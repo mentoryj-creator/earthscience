@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>과목 | 지구과학 시뮬레이션 실험실</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="data/sims.js"></script>
+  <script src="js/site.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<main id="page"></main>
+<footer id="site-footer"></footer>
+
+<script>
+const { S, esc, card, url, param } = App;
+const c = App.course(param('c'));
+const page = document.getElementById('page');
+
+if (!c) {
+  page.innerHTML = '<div class="notice">과목을 찾을 수 없습니다. <a href="index.html">홈으로</a></div>';
+} else {
+  document.title = c.name + ' | 지구과학 시뮬레이션 실험실';
+  const lv = S.levels.find(l => l.id === c.level);
+  const simsIn = uid => S.sims.filter(s => (s.links || []).some(l => l.course === c.id && l.unit === uid));
+
+  page.innerHTML = `
+    <div class="breadcrumb"><a href="${url.home()}">홈</a> › ${esc(lv?.name || '')}</div>
+    <h1 class="page-title">${esc(c.name)}</h1>
+    <p class="lead">단원별로 쓸 수 있는 시뮬레이션입니다.</p>
+    <div class="with-toc">
+      <nav class="toc"><h4>단원</h4>
+        ${c.units.map(u => `<a href="#${u.id}">${esc(u.name)}<span class="n">${simsIn(u.id).filter(s => s.status === 'ready').length}</span></a>`).join('')}
+      </nav>
+      <div>
+        ${c.units.map(u => {
+          const list = simsIn(u.id);
+          return `<section class="unit-block" id="${u.id}">
+            <h2 class="section-title">${esc(u.name)}</h2>
+            ${list.length ? `<div class="cards">${list.map(s => card(s, { noChips: true })).join('')}</div>`
+                          : '<p class="empty">아직 연결된 시뮬레이션이 없습니다.</p>'}
+          </section>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>

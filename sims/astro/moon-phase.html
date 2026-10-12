@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>달의 위상 변화</title>
+<style>
+  /* ---- 단독 시뮬레이션 공통 규칙 (사이트 안 틀과 수업 모드에 맞춤) ---- */
+  html, body { margin: 0; background: #0b1020; color: #e8ebf1;
+    font-family: "Noto Sans KR", system-ui, -apple-system, sans-serif; }
+  .wrap { padding: 12px; }
+  canvas { display: block; width: 100%; height: auto; border-radius: 10px; touch-action: none; }
+  .fs body { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+  .fs canvas { height: calc(100vh - 90px); object-fit: contain; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: center; padding: 12px 4px 2px; font-size: 15px; }
+  .controls label { display: flex; align-items: center; gap: 8px; }
+  input[type=range] { width: 170px; accent-color: #6c9bff; }
+  .readout { color: #9fc0ff; min-width: 3.5em; font-variant-numeric: tabular-nums; }
+  .btn { font: inherit; cursor: pointer; border: none; background: #2563eb; color: #fff; padding: 7px 16px; border-radius: 8px; }
+  .btn.ghost { background: transparent; color: #cfd8ea; border: 1px solid #3a4560; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="sim" width="900" height="460"></canvas>
+  <div class="controls">
+    <button class="btn" id="playBtn">▶ 재생</button>
+    <label>음력 날짜
+      <input type="range" id="daySlider" min="0" max="29.5" step="0.1" value="7.4">
+      <span class="readout" id="dayOut"></span>
+    </label>
+    <button class="btn ghost" data-day="0">삭</button>
+    <button class="btn ghost" data-day="7.4">상현</button>
+    <button class="btn ghost" data-day="14.8">망</button>
+    <button class="btn ghost" data-day="22.1">하현</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  달의 위상 시뮬레이션
+//  theta: 태양 방향에서 잰 달의 공전 각 (0 = 삭, 180° = 망)
+// ============================================================
+const SYNODIC = 29.53;
+const canvas = document.getElementById('sim');
+const ctx = canvas.getContext('2d');
+const slider = document.getElementById('daySlider');
+const dayOut = document.getElementById('dayOut');
+const playBtn = document.getElementById('playBtn');
+const FONT = '"Noto Sans KR", system-ui, sans-serif';
+
+const ORBIT = { x: 270, y: 230, r: 160 };
+const VIEW  = { x: 700, y: 190, r: 95 };
+
+let theta = dayToTheta(parseFloat(slider.value));
+let playing = false, dragging = false;
+
+function dayToTheta(d) { return (d / SYNODIC) * Math.PI * 2; }
+function thetaToDay(t) { return (t / (Math.PI * 2)) * SYNODIC; }
+
+function phaseName(deg) {
+  if (deg < 6 || deg >= 354) return '삭 (신월)';
+  if (deg < 84)  return '초승달';
+  if (deg < 96)  return '상현달';
+  if (deg < 174) return '상현과 망 사이 (볼록한 달)';
+  if (deg < 186) return '망 (보름달)';
+  if (deg < 264) return '망과 하현 사이 (볼록한 달)';
+  if (deg < 276) return '하현달';
+  return '그믐달';
+}
+
+// 지구에서 본 달 모양 (북반구: 차는 달은 오른쪽이 밝음)
+function drawPhase(x, y, r, t) {
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = '#262b36'; ctx.fill();
+  const c = Math.cos(t), waxing = Math.sin(t) >= 0;
+  ctx.beginPath();
+  if (waxing) { ctx.arc(x, y, r, -Math.PI / 2, Math.PI / 2, false);
+                ctx.ellipse(x, y, Math.abs(c) * r, r, 0, Math.PI / 2, -Math.PI / 2, c > 0); }
+  else        { ctx.arc(x, y, r, Math.PI / 2, Math.PI * 1.5, false);
+                ctx.ellipse(x, y, Math.abs(c) * r, r, 0, Math.PI * 1.5, Math.PI / 2, c > 0); }
+  ctx.closePath(); ctx.fillStyle = '#f3ecd2'; ctx.fill();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 햇빛
+  ctx.strokeStyle = 'rgba(255,214,90,.55)'; ctx.fillStyle = 'rgba(255,214,90,.9)'; ctx.lineWidth = 2;
+  for (let i = 0; i < 5; i++) {
+    const y = 70 + i * 80;
+    ctx.beginPath(); ctx.moveTo(560, y); ctx.lineTo(522, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(518, y); ctx.lineTo(528, y - 5); ctx.lineTo(528, y + 5); ctx.fill();
+  }
+  ctx.font = '15px ' + FONT; ctx.textAlign = 'center';
+  ctx.fillText('햇빛', 540, 30);
+
+  // 공전 궤도와 위치 이름
+  ctx.setLineDash([4, 6]); ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, ORBIT.r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = '13px ' + FONT;
+  for (const [d, s] of [[0,'삭'],[90,'상현'],[180,'망'],[270,'하현']]) {
+    const a = d * Math.PI / 180;
+    ctx.fillText(s, ORBIT.x + (ORBIT.r + 32) * Math.cos(a), ORBIT.y - (ORBIT.r + 32) * Math.sin(a) + 5);
+  }
+
+  // 지구 (오른쪽 반은 낮)
+  const er = 26;
+  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, er, 0, Math.PI * 2); ctx.fillStyle = '#1b2a4a'; ctx.fill();
+  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, er, -Math.PI / 2, Math.PI / 2); ctx.fillStyle = '#3b82f6'; ctx.fill();
+  ctx.fillStyle = '#cfe0ff'; ctx.fillText('지구', ORBIT.x, ORBIT.y + er + 18);
+
+  // 공전 방향 화살표
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.5;
+  const ar = ORBIT.r - 26, a1 = -0.35, a2 = -0.85;
+  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, ar, a1, a2, true); ctx.stroke();
+  const ax = ORBIT.x + ar * Math.cos(a2), ay = ORBIT.y + ar * Math.sin(a2), tx = Math.sin(a2), ty = -Math.cos(a2);
+  ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath();
+  ctx.moveTo(ax + tx * 8, ay + ty * 8); ctx.lineTo(ax - ty * 5, ay + tx * 5); ctx.lineTo(ax + ty * 5, ay - tx * 5); ctx.fill();
+
+  // 달
+  const mx = ORBIT.x + ORBIT.r * Math.cos(theta), my = ORBIT.y - ORBIT.r * Math.sin(theta), mr = 16;
+  ctx.strokeStyle = 'rgba(159,192,255,.4)'; ctx.setLineDash([2, 4]);
+  ctx.beginPath(); ctx.moveTo(ORBIT.x, ORBIT.y); ctx.lineTo(mx, my); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI * 2); ctx.fillStyle = '#3a3f4a'; ctx.fill();
+  ctx.beginPath(); ctx.arc(mx, my, mr, -Math.PI / 2, Math.PI / 2); ctx.fillStyle = '#f3ecd2'; ctx.fill();
+  ctx.beginPath(); ctx.arc(mx, my, mr + 5, 0, Math.PI * 2);
+  ctx.strokeStyle = dragging ? '#ffd65a' : 'rgba(255,214,90,.5)'; ctx.lineWidth = 2; ctx.stroke();
+
+  // 지구에서 본 달
+  ctx.fillStyle = '#9fc0ff'; ctx.font = '15px ' + FONT;
+  ctx.fillText('지구(북반구)에서 본 달', VIEW.x, 60);
+  drawPhase(VIEW.x, VIEW.y, VIEW.r, theta);
+
+  const deg = ((theta * 180 / Math.PI) % 360 + 360) % 360;
+  const lit = Math.round((1 - Math.cos(theta)) / 2 * 100);
+  const transit = (12 + deg / 15) % 24;
+  let hh = Math.floor(transit), mm = Math.round((transit - hh) * 60);
+  if (mm === 60) { mm = 0; hh = (hh + 1) % 24; }
+
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 22px ' + FONT;
+  ctx.fillText(phaseName(deg), VIEW.x, VIEW.y + VIEW.r + 46);
+  ctx.font = '15px ' + FONT; ctx.fillStyle = '#cfd8ea';
+  ctx.fillText(`태양-지구-달 사이각 ${Math.round(deg)}°  ·  밝게 보이는 부분 ${lit}%`, VIEW.x, VIEW.y + VIEW.r + 76);
+  ctx.fillText(`남중 시각 약 ${String(hh).padStart(2,'0')}시 ${String(mm).padStart(2,'0')}분`, VIEW.x, VIEW.y + VIEW.r + 100);
+
+  dayOut.textContent = thetaToDay(theta).toFixed(1) + '일';
+}
+
+function loop() {
+  if (playing && !dragging) {
+    theta = (theta + 0.012) % (Math.PI * 2);
+    slider.value = thetaToDay(theta).toFixed(1);
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// 화면 좌표 → 캔버스 좌표 (수업 모드에서 그림이 가운데 정렬돼도 정확하게)
+function toCanvas(e) {
+  const r = canvas.getBoundingClientRect();
+  const s = Math.min(r.width / canvas.width, r.height / canvas.height);
+  const ox = (r.width - canvas.width * s) / 2, oy = (r.height - canvas.height * s) / 2;
+  return { px: (e.clientX - r.left - ox) / s, py: (e.clientY - r.top - oy) / s };
+}
+function setAngle(px, py) {
+  theta = (Math.atan2(-(py - ORBIT.y), px - ORBIT.x) + Math.PI * 2) % (Math.PI * 2);
+  slider.value = thetaToDay(theta).toFixed(1);
+}
+canvas.addEventListener('pointerdown', e => {
+  const { px, py } = toCanvas(e);
+  if (Math.hypot(px - ORBIT.x, py - ORBIT.y) < ORBIT.r + 50) {
+    dragging = true; canvas.setPointerCapture(e.pointerId); setAngle(px, py);
+  }
+});
+canvas.addEventListener('pointermove', e => { if (dragging) { const p = toCanvas(e); setAngle(p.px, p.py); } });
+canvas.addEventListener('pointerup', () => dragging = false);
+canvas.addEventListener('pointercancel', () => dragging = false);
+
+slider.addEventListener('input', () => { theta = dayToTheta(parseFloat(slider.value)); });
+playBtn.addEventListener('click', () => { playing = !playing; playBtn.textContent = playing ? '⏸ 정지' : '▶ 재생'; });
+document.querySelectorAll('[data-day]').forEach(b => b.addEventListener('click', () => {
+  slider.value = b.dataset.day; theta = dayToTheta(parseFloat(b.dataset.day));
+}));
+loop();
+
+// ---- 사이트 연동: 높이 알리기 + 수업 모드(전체 화면) 감지 ----
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script>
+</body>
+</html>

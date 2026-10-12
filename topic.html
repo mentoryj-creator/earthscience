@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>주제 | 지구과학 시뮬레이션 실험실</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="data/sims.js"></script>
+  <script src="js/site.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<main id="page"></main>
+<footer id="site-footer"></footer>
+
+<script>
+const { S, esc, card, url, param } = App;
+const t = App.topic(param('t'));
+const page = document.getElementById('page');
+
+if (!t) {
+  page.innerHTML = '<div class="notice">주제를 찾을 수 없습니다. <a href="index.html">홈으로</a></div>';
+} else {
+  document.title = t.name + ' | 지구과학 시뮬레이션 실험실';
+  const inTopic = S.sims.filter(s => s.topic === t.id);
+  // 소주제 목록에 없는 시뮬레이션은 '기타'로
+  const subs = [...t.subs];
+  if (inTopic.some(s => !subs.includes(s.sub))) subs.push('기타');
+  const simsIn = sub => inTopic.filter(s => sub === '기타' ? !t.subs.includes(s.sub) : s.sub === sub);
+
+  page.innerHTML = `
+    <div class="breadcrumb"><a href="${url.home()}">홈</a> › 주제별</div>
+    <h1 class="page-title">${esc(t.name)}</h1>
+    <p class="lead">과목과 상관없이 주제로 묶어 본 시뮬레이션입니다.</p>
+    <div class="with-toc" style="--c:${t.color}">
+      <nav class="toc"><h4>소주제</h4>
+        ${subs.map((s, i) => `<a href="#s${i}">${esc(s)}<span class="n">${simsIn(s).filter(x => x.status === 'ready').length}</span></a>`).join('')}
+      </nav>
+      <div>
+        ${subs.map((s, i) => {
+          const list = simsIn(s);
+          return `<section class="unit-block" id="s${i}">
+            <h2 class="section-title">${esc(s)}</h2>
+            ${list.length ? `<div class="cards">${list.map(x => card(x)).join('')}</div>`
+                          : '<p class="empty">아직 시뮬레이션이 없습니다.</p>'}
+          </section>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>

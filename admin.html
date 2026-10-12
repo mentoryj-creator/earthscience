@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>관리 페이지 | 지구과학 시뮬레이션 실험실</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="data/sims.js"></script>
+  <script src="js/site.js"></script>
+  <style>
+    .admin-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-top: 16px; }
+    .admin-box h2 { font-size: 1.05rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .pill { font-size: .78rem; padding: 2px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-weight: 400; }
+    .pill.ok { background: rgba(22,163,74,.12); color: var(--ok); }
+    .pill.err { background: rgba(220,38,38,.12); color: var(--danger); }
+    .form-grid { display: grid; gap: 12px 16px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .field { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; color: var(--muted); }
+    .field.wide { grid-column: 1 / -1; }
+    .field input, .field select, .field textarea, .inline-input {
+      background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--text); font-size: .95rem;
+    }
+    .field textarea { min-height: 96px; resize: vertical; line-height: 1.6; }
+    .field input:focus, .field select:focus, .field textarea:focus, .inline-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .hint { font-size: .8rem; color: var(--muted); }
+    .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    details { margin-top: 12px; font-size: .9rem; }
+    details summary { cursor: pointer; color: var(--accent); }
+    details ol { padding-left: 1.3em; color: var(--muted); }
+    details textarea { width: 100%; min-height: 220px; font-family: ui-monospace, monospace; font-size: .8rem; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; color: var(--text); }
+
+    .tabs { display: flex; gap: 4px; margin-top: 28px; border-bottom: 1px solid var(--line); }
+    .tab { background: none; border: none; padding: 10px 16px; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; font-size: .97rem; }
+    .tab.on { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
+
+    .list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+            display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center; }
+    .item .t { font-weight: 700; }
+    .item .meta { font-size: .82rem; color: var(--muted); }
+    .item .chips { margin-top: 4px; }
+    .item .btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; }
+    .badge { font-size: .74rem; padding: 1px 8px; border-radius: 6px; margin-left: 6px; vertical-align: 2px; font-weight: 400; }
+    .badge.ready { background: rgba(22,163,74,.12); color: var(--ok); }
+    .badge.soon { background: var(--surface-2); color: var(--muted); }
+    .group-title { font-size: .9rem; color: var(--muted); margin: 18px 0 2px; }
+
+    .course-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-top: 12px; }
+    .course-card .top { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .course-card .top input { font-weight: 700; flex: 1; min-width: 160px; }
+    .unit-row { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+    .unit-row .num { width: 26px; color: var(--muted); font-size: .85rem; text-align: right; }
+    .unit-row input { flex: 1; min-width: 0; }
+
+    .savebar { position: sticky; bottom: 0; z-index: 20; margin-top: 28px; background: var(--surface); border: 1px solid var(--line);
+               border-radius: 14px; box-shadow: var(--shadow); padding: 12px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .savebar .msg { flex: 1; min-width: 200px; font-size: .92rem; }
+    .savebar .msg.dirty { color: #d97706; font-weight: 700; }
+
+    dialog { border: none; border-radius: 16px; padding: 0; width: min(760px, 94vw); background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    dialog::backdrop { background: rgba(10, 14, 24, .55); }
+    .dlg-head { padding: 16px 20px; border-bottom: 1px solid var(--line); font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .dlg-body { padding: 16px 20px; max-height: 70vh; overflow: auto; }
+    .dlg-foot { padding: 12px 20px; border-top: 1px solid var(--line); display: flex; gap: 8px; justify-content: end; }
+    .links-grid { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; align-items: center; }
+    .links-grid span { color: var(--text); font-size: .92rem; }
+  </style>
+</head>
+<body>
+<header id="site-header"></header>
+
+<main>
+  <div class="breadcrumb"><a href="index.html">홈</a> › 관리</div>
+  <h1 class="page-title">관리 페이지</h1>
+  <p class="lead">시뮬레이션, 과목·단원, 주제를 여기서 고치고 저장하면 사이트 전체 메뉴와 목록에 반영됩니다.</p>
+
+  <!-- ===== GitHub 연결 ===== -->
+  <section class="admin-box">
+    <h2>GitHub 연결 <span class="pill" id="ghStatus">연결 안 됨</span></h2>
+    <div class="form-grid">
+      <label class="field">GitHub 아이디<input id="ghOwner" placeholder="예: mentoryj"></label>
+      <label class="field">저장소 이름<input id="ghRepo" placeholder="예: earth-sim"></label>
+      <label class="field">브랜치<input id="ghBranch" value="main"></label>
+      <label class="field">토큰 (비밀번호처럼 다루세요)<input id="ghToken" type="password" placeholder="github_pat_로 시작"></label>
+    </div>
+    <div class="row-btns">
+      <button class="btn" id="ghConnect">연결하기</button>
+      <button class="btn ghost" id="ghDisconnect">연결 끊기</button>
+      <label class="hint"><input type="checkbox" id="ghRemember"> 이 브라우저에 기억하기 (개인 컴퓨터에서만)</label>
+    </div>
+    <details>
+      <summary>토큰은 어떻게 만드나요?</summary>
+      <ol>
+        <li>GitHub에 로그인 → 오른쪽 위 프로필 사진 → <b>Settings</b></li>
+        <li>왼쪽 맨 아래 <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>
+        <li>Token name은 아무 이름, Expiration은 원하는 기간(예: 1년)</li>
+        <li><b>Repository access</b>: <i>Only select repositories</i> → 이 사이트 저장소 하나만 선택</li>
+        <li><b>Permissions</b> → Repository permissions → <b>Contents</b>를 <i>Read and write</i>로</li>
+        <li>Generate token → 나온 값을 복사해 위 칸에 붙여 넣기 (한 번만 보여 주니 따로 안전하게 보관)</li>
+      </ol>
+      토큰은 이 브라우저에서 GitHub로만 전송되고 사이트 파일에는 저장되지 않습니다.
+      연결하지 않아도 아래에서 <b>sims.js 내려받기</b>로 저장한 뒤 직접 올릴 수 있습니다.
+    </details>
+  </section>
+
+  <!-- ===== 탭 ===== -->
+  <div class="tabs">
+    <button class="tab on" data-tab="sims">시뮬레이션</button>
+    <button class="tab" data-tab="courses">과목 · 단원</button>
+    <button class="tab" data-tab="topics">주제</button>
+  </div>
+
+  <section id="tab-sims">
+    <div class="row-btns">
+      <button class="btn" id="addSim">+ 새 시뮬레이션</button>
+      <select class="inline-input" id="simFilter"></select>
+    </div>
+    <details>
+      <summary>Claude에게 새 시뮬레이션을 부탁할 때 붙여 넣을 문구</summary>
+      <p class="hint">이 문구 뒤에 만들고 싶은 내용을 적어 요청하면, 이 사이트에 바로 끼울 수 있는 형태로 만들어 줍니다.</p>
+      <textarea id="promptText" readonly></textarea>
+      <div class="row-btns"><button class="btn small" id="copyPrompt">문구 복사</button></div>
+    </details>
+    <div class="list" id="simList"></div>
+  </section>
+
+  <section id="tab-courses" hidden>
+    <p class="hint" style="margin-top:16px">단원 이름을 바꾸면 연결된 시뮬레이션은 그대로 유지됩니다. 단원을 지우면 그 단원과의 연결만 사라집니다.</p>
+    <div id="courseList"></div>
+    <div class="row-btns"><button class="btn ghost" id="addCourse">+ 과목 추가</button></div>
+  </section>
+
+  <section id="tab-topics" hidden>
+    <p class="hint" style="margin-top:16px">소주제는 한 줄에 하나씩 적습니다. 순서대로 주제 페이지에 표시됩니다.</p>
+    <div id="topicList"></div>
+  </section>
+
+  <!-- ===== 저장 막대 ===== -->
+  <div class="savebar">
+    <span class="msg" id="saveMsg">변경 사항 없음</span>
+    <button class="btn ghost" id="download">sims.js 내려받기</button>
+    <button class="btn" id="save">GitHub에 저장</button>
+  </div>
+</main>
+
+<!-- ===== 시뮬레이션 편집 창 ===== -->
+<dialog id="dlg">
+  <form method="dialog" id="simForm">
+    <div class="dlg-head"><span id="dlgTitle">시뮬레이션</span><button class="btn ghost small" value="cancel">닫기</button></div>
+    <div class="dlg-body">
+      <div class="form-grid">
+        <label class="field wide">제목 *<input id="fTitle"></label>
+        <label class="field wide">한 줄 설명<input id="fDesc" placeholder="카드에 보이는 짧은 설명"></label>
+        <label class="field">주제<select id="fTopic"></select></label>
+        <label class="field">소주제<select id="fSub"></select></label>
+        <label class="field">상태
+          <select id="fStatus"><option value="ready">공개</option><option value="soon">준비 중 (카드만 표시)</option></select></label>
+        <label class="field">높이(px, 비우면 자동)<input id="fHeight" type="number" min="0" placeholder="자동"></label>
+        <div class="field wide">시뮬레이션 파일
+          <div class="row-btns" style="margin-top:0">
+            <input class="inline-input" id="fFile" style="flex:1;min-width:220px" placeholder="sims/astro/파일이름.html">
+            <label class="btn ghost small">HTML 파일 고르기<input type="file" id="fUpload" accept=".html,.htm" hidden></label>
+            <button type="button" class="btn ghost small" id="fPreview">미리 보기</button>
+          </div>
+          <span class="hint" id="fFileHint">Claude가 만든 HTML 파일을 고르면 저장할 때 함께 올라갑니다.</span>
+        </div>
+        <div class="field wide">어느 과목·단원에서 쓰나요?
+          <div class="links-grid" id="fLinks"></div>
+        </div>
+        <label class="field wide">조작 방법 <span class="hint">한 줄에 하나씩 · **굵게** 가능</span><textarea id="fHowto"></textarea></label>
+        <label class="field wide">핵심 개념 <span class="hint">줄마다 문단이 됩니다</span><textarea id="fConcept"></textarea></label>
+        <label class="field wide">탐구 활동 <span class="hint">한 줄에 질문 하나씩</span><textarea id="fInquiry"></textarea></label>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn ghost" value="cancel">취소</button>
+      <button class="btn" id="dlgOk" value="ok">확인</button>
+    </div>
+  </form>
+</dialog>
+
+<footer id="site-footer"></footer>
+
+<script>
+// =====================================================================
+//  관리 페이지
+//  - 고친 내용은 먼저 이 화면에만 반영되고, [GitHub에 저장]을 눌러야 사이트에 올라갑니다.
+//  - GitHub 연결이 없으면 [sims.js 내려받기] 후 data 폴더에 직접 올리면 됩니다.
+// =====================================================================
+const { esc } = App;
+let data = JSON.parse(JSON.stringify(window.SITE));
+let dirty = 0;
+let pending = {};          // 올릴 시뮬레이션 파일 { 경로: File }
+let editing = null;        // 편집 중인 시뮬레이션 (새로 만들면 null)
+const $ = id => document.getElementById(id);
+
+// ---------- 저장소(브라우저) 도우미 ----------
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+
+function markDirty() { dirty++; updateSaveBar(); }
+function updateSaveBar(text, cls) {
+  const m = $('saveMsg');
+  if (text) { m.textContent = text; m.className = 'msg ' + (cls || ''); return; }
+  const files = Object.keys(pending).length;
+  m.textContent = dirty ? `저장하지 않은 변경 사항이 있습니다${files ? ` (올릴 파일 ${files}개)` : ''}` : '변경 사항 없음';
+  m.className = 'msg' + (dirty ? ' dirty' : '');
+}
+window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+// ---------- 탭 ----------
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+  ['sims', 'courses', 'topics'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
+});
+
+// =====================================================================
+//  시뮬레이션 목록
+// =====================================================================
+const topicOf = id => data.topics.find(t => t.id === id);
+const courseOf = id => data.courses.find(c => c.id === id);
+
+function renderFilter() {
+  const f = $('simFilter'), cur = f.value;
+  f.innerHTML = '<option value="">전체 보기</option>' +
+    data.topics.map(t => `<option value="t:${t.id}">주제: ${esc(t.name)}</option>`).join('') +
+    data.courses.map(c => `<option value="c:${c.id}">과목: ${esc(c.name)}</option>`).join('');
+  f.value = cur;
+}
+$('simFilter').onchange = renderSims;
+
+function renderSims() {
+  const f = $('simFilter').value;
+  const pass = s => !f || (f.startsWith('t:') ? s.topic === f.slice(2) : (s.links || []).some(l => l.course === f.slice(2)));
+  const groups = data.topics.map(t => ({ t, list: data.sims.filter(s => s.topic === t.id && pass(s)) }));
+  const orphan = data.sims.filter(s => !topicOf(s.topic) && pass(s));
+  if (orphan.length) groups.push({ t: { name: '주제 없음' }, list: orphan });
+
+  $('simList').innerHTML = groups.filter(g => g.list.length).map(g =>
+    `<div class="group-title">${esc(g.t.name)}</div>` + g.list.map(s => {
+      const i = data.sims.indexOf(s);
+      const chips = (s.links || []).map(l => {
+        const c = courseOf(l.course), u = c && c.units.find(x => x.id === l.unit);
+        return c ? `<span class="chip">${esc(c.name)}${u ? ' · ' + esc(u.name) : ''}</span>` : '';
+      }).join('');
+      return `<div class="item">
+        <div>
+          <div class="t">${esc(s.title)}<span class="badge ${s.status}">${s.status === 'ready' ? '공개' : '준비 중'}</span></div>
+          <div class="meta">${esc(s.sub || '')}${s.file ? ' · ' + esc(s.file) : ' · 파일 없음'}${pending[s.file] ? ' (저장 시 업로드)' : ''}</div>
+          <div class="chips">${chips || '<span class="hint">연결된 과목 없음</span>'}</div>
+        </div>
+        <div class="btns">
+          <button class="btn ghost small" onclick="moveSim(${i},-1)" title="앞으로">▲</button>
+          <button class="btn ghost small" onclick="moveSim(${i},1)" title="뒤로">▼</button>
+          <button class="btn ghost small" onclick="openEditor(${i})">수정</button>
+          <button class="btn danger small" onclick="deleteSim(${i})">삭제</button>
+        </div></div>`;
+    }).join('')).join('') || '<p class="empty">시뮬레이션이 없습니다.</p>';
+}
+
+function moveSim(i, d) {
+  const j = i + d; if (j < 0 || j >= data.sims.length) return;
+  [data.sims[i], data.sims[j]] = [data.sims[j], data.sims[i]]; markDirty(); renderSims();
+}
+function deleteSim(i) {
+  const s = data.sims[i];
+  if (!confirm(`'${s.title}'을(를) 목록에서 지울까요?\n(파일은 저장소에 남으니 필요하면 GitHub에서 따로 지우세요)`)) return;
+  delete pending[s.file]; data.sims.splice(i, 1); markDirty(); renderSims();
+}
+
+// ---------- 편집 창 ----------
+function fillSubs(topicId, selected) {
+  const t = topicOf(topicId);
+  const subs = t ? [...t.subs] : [];
+  if (selected && !subs.includes(selected)) subs.push(selected);
+  $('fSub').innerHTML = subs.map(s => `<option>${esc(s)}</option>`).join('');
+  if (selected) $('fSub').value = selected;
+}
+$('fTopic').onchange = () => fillSubs($('fTopic').value);
+
+function openEditor(i) {
+  editing = i == null ? null : data.sims[i];
+  const s = editing || { title: '', desc: '', topic: data.topics[0].id, sub: '', status: 'ready', file: '', height: 0, links: [], howto: '', concept: '', inquiry: '' };
+  $('dlgTitle').textContent = editing ? '시뮬레이션 수정' : '새 시뮬레이션';
+  $('fTitle').value = s.title; $('fDesc').value = s.desc || '';
+  $('fTopic').innerHTML = data.topics.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  $('fTopic').value = s.topic; fillSubs(s.topic, s.sub);
+  $('fStatus').value = s.status; $('fHeight').value = s.height || '';
+  $('fFile').value = s.file || ''; $('fUpload').value = '';
+  $('fFileHint').textContent = pending[s.file] ? '저장할 때 업로드될 파일이 준비되어 있습니다.' : 'Claude가 만든 HTML 파일을 고르면 저장할 때 함께 올라갑니다.';
+  $('fHowto').value = s.howto || ''; $('fConcept').value = s.concept || ''; $('fInquiry').value = s.inquiry || '';
+  $('fLinks').innerHTML = data.courses.map(c => {
+    const cur = (s.links || []).find(l => l.course === c.id);
+    return `<span>${esc(c.name)}</span><select class="inline-input" data-course="${c.id}">
+      <option value="">— 쓰지 않음 —</option>
+      ${c.units.map(u => `<option value="${u.id}" ${cur && cur.unit === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}
+    </select>`;
+  }).join('');
+  $('dlg').showModal();
+}
+$('addSim').onclick = () => openEditor(null);
+
+// 파일을 고르면 경로를 자동으로 채움
+let chosenFile = null;
+$('fUpload').onchange = () => {
+  chosenFile = $('fUpload').files[0] || null;
+  if (!chosenFile) return;
+  let name = chosenFile.name.toLowerCase().replace(/\s+/g, '-');
+  if (!/^[a-z0-9._-]+$/.test(name)) name = 'sim-' + Date.now().toString(36) + '.html';   // 한글 파일 이름은 영어로 바꿈
+  $('fFile').value = `sims/${$('fTopic').value}/${name}`;
+  $('fFileHint').textContent = `'${chosenFile.name}' → 저장할 때 ${$('fFile').value} 로 올라갑니다.`;
+};
+$('fPreview').onclick = () => {
+  const path = $('fFile').value.trim();
+  const f = chosenFile || pending[path];
+  if (f) window.open(URL.createObjectURL(f), '_blank');
+  else if (path) window.open(path, '_blank');
+};
+
+$('simForm').addEventListener('submit', e => {
+  if (e.submitter && e.submitter.value !== 'ok') { chosenFile = null; return; }
+  const title = $('fTitle').value.trim();
+  if (!title) { e.preventDefault(); $('fTitle').focus(); return; }
+  const file = $('fFile').value.trim();
+  const s = editing || {};
+  Object.assign(s, {
+    title, desc: $('fDesc').value.trim(), topic: $('fTopic').value, sub: $('fSub').value,
+    status: $('fStatus').value, height: Number($('fHeight').value) || 0, file,
+    links: [...$('fLinks').querySelectorAll('select')].filter(x => x.value).map(x => ({ course: x.dataset.course, unit: x.value })),
+    howto: $('fHowto').value.trim(), concept: $('fConcept').value.trim(), inquiry: $('fInquiry').value.trim(),
+  });
+  if (!editing) {
+    let id = (file.split('/').pop() || '').replace(/\.html?$/, '') || 'sim-' + Date.now().toString(36);
+    while (data.sims.some(x => x.id === id)) id += '-2';
+    s.id = id; data.sims.push(s);
+  }
+  if (chosenFile && file) pending[file] = chosenFile;
+  chosenFile = null; markDirty(); renderSims();
+});
+
+// =====================================================================
+//  과목 · 단원
+// =====================================================================
+function renderCourses() {
+  $('courseList').innerHTML = data.courses.map((c, ci) => `
+    <div class="course-card">
+      <div class="top">
+        <input class="inline-input" value="${esc(c.name)}" oninput="data.courses[${ci}].name=this.value; markDirty()">
+        <select class="inline-input" onchange="data.courses[${ci}].level=this.value; markDirty()">
+          ${data.levels.map(l => `<option value="${l.id}" ${c.level === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}
+        </select>
+        <button class="btn ghost small" onclick="moveCourse(${ci},-1)">▲</button>
+        <button class="btn ghost small" onclick="moveCourse(${ci},1)">▼</button>
+        <button class="btn danger small" onclick="deleteCourse(${ci})">과목 삭제</button>
+      </div>
+      ${c.units.map((u, ui) => `<div class="unit-row">
+        <span class="num">${ui + 1}</span>
+        <input class="inline-input" value="${esc(u.name)}" oninput="data.courses[${ci}].units[${ui}].name=this.value; markDirty()">
+        <button class="btn ghost small" onclick="moveUnit(${ci},${ui},-1)">▲</button>
+        <button class="btn ghost small" onclick="moveUnit(${ci},${ui},1)">▼</button>
+        <button class="btn ghost small" onclick="deleteUnit(${ci},${ui})">✕</button>
+      </div>`).join('')}
+      <div class="row-btns" style="margin-top:10px"><button class="btn ghost small" onclick="addUnit(${ci})">+ 단원 추가</button></div>
+    </div>`).join('');
+}
+function addUnit(ci) {
+  const c = data.courses[ci]; let n = c.units.length + 1;
+  while (c.units.some(u => u.id === 'u' + n)) n++;
+  c.units.push({ id: 'u' + n, name: '새 단원' }); markDirty(); renderCourses();
+}
+function moveUnit(ci, ui, d) {
+  const us = data.courses[ci].units, j = ui + d; if (j < 0 || j >= us.length) return;
+  [us[ui], us[j]] = [us[j], us[ui]]; markDirty(); renderCourses();
+}
+function deleteUnit(ci, ui) {
+  const c = data.courses[ci], u = c.units[ui];
+  if (!confirm(`'${c.name} - ${u.name}' 단원을 지울까요?`)) return;
+  c.units.splice(ui, 1);
+  data.sims.forEach(s => s.links = (s.links || []).filter(l => !(l.course === c.id && l.unit === u.id)));
+  markDirty(); renderCourses(); renderSims();
+}
+function moveCourse(ci, d) {
+  const j = ci + d; if (j < 0 || j >= data.courses.length) return;
+  [data.courses[ci], data.courses[j]] = [data.courses[j], data.courses[ci]]; markDirty(); renderCourses(); renderFilter();
+}
+function deleteCourse(ci) {
+  const c = data.courses[ci];
+  if (!confirm(`'${c.name}' 과목을 통째로 지울까요?`)) return;
+  data.courses.splice(ci, 1);
+  data.sims.forEach(s => s.links = (s.links || []).filter(l => l.course !== c.id));
+  markDirty(); renderCourses(); renderSims(); renderFilter();
+}
+$('addCourse').onclick = () => {
+  let id = 'c' + Date.now().toString(36);
+  data.courses.push({ id, level: 'high', name: '새 과목', units: [{ id: 'u1', name: '1단원' }] });
+  markDirty(); renderCourses(); renderFilter();
+};
+
+// =====================================================================
+//  주제
+// =====================================================================
+function renderTopics() {
+  $('topicList').innerHTML = data.topics.map((t, ti) => `
+    <div class="course-card">
+      <div class="top">
+        <input class="inline-input" value="${esc(t.name)}" oninput="data.topics[${ti}].name=this.value; markDirty()">
+        <input type="color" value="${t.color}" title="대표 색" oninput="data.topics[${ti}].color=this.value; markDirty()">
+      </div>
+      <label class="field" style="margin-top:10px">소주제
+        <textarea oninput="data.topics[${ti}].subs=this.value.split('\\n').map(x=>x.trim()).filter(Boolean); markDirty()">${esc(t.subs.join('\n'))}</textarea>
+      </label>
+    </div>`).join('');
+}
+
+// =====================================================================
+//  sims.js 만들기 / 내려받기
+// =====================================================================
+function buildSimsJs() {
+  return `// =====================================================================
+//  사이트 전체 목록 파일
+//  관리 페이지(admin.html)에서 저장하면 이 파일이 자동으로 바뀝니다.
+//  직접 고쳐도 되지만, 아래 DATA-START ~ DATA-END 표시는 지우지 마세요.
+// =====================================================================
+window.SITE = /*DATA-START*/${JSON.stringify(data, null, 2)}/*DATA-END*/;
+`;
+}
+$('download').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([buildSimsJs()], { type: 'text/javascript' }));
+  a.download = 'sims.js'; a.click();
+  const files = Object.keys(pending);
+  alert('sims.js를 내려받았습니다.\nGitHub 저장소의 data 폴더에 올려(덮어써) 주세요.' +
+    (files.length ? '\n\n함께 올려야 할 시뮬레이션 파일:\n' + files.join('\n') : ''));
+};
+
+// =====================================================================
+//  GitHub 연결 (GitHub API로 저장소 파일을 직접 고침)
+// =====================================================================
+const gh = { ok: false };
+const toB64 = bytes => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); };
+const fromB64 = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, '')), c => c.charCodeAt(0)));
+
+function ghFields() {
+  return { owner: $('ghOwner').value.trim(), repo: $('ghRepo').value.trim(), branch: $('ghBranch').value.trim() || 'main', token: $('ghToken').value.trim() };
+}
+async function api(path, opts = {}) {
+  const f = ghFields();
+  const res = await fetch(`https://api.github.com/repos/${f.owner}/${f.repo}${path}`, {
+    ...opts,
+    headers: { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + f.token, 'X-GitHub-Api-Version': '2022-11-28', ...(opts.headers || {}) },
+  });
+  return res;
+}
+async function getFile(path) {
+  const res = await api(`/contents/${path}?ref=${encodeURIComponent(ghFields().branch)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`${path} 읽기 실패 (${res.status})`);
+  return res.json();
+}
+async function putFile(path, b64, message) {
+  const old = await getFile(path);
+  const res = await api(`/contents/${path}`, {
+    method: 'PUT',
+    body: JSON.stringify({ message, content: b64, branch: ghFields().branch, ...(old ? { sha: old.sha } : {}) }),
+  });
+  if (!res.ok) throw new Error(`${path} 저장 실패 (${res.status}) ${(await res.json().catch(() => ({}))).message || ''}`);
+}
+function setStatus(text, cls) { const p = $('ghStatus'); p.textContent = text; p.className = 'pill ' + (cls || ''); }
+
+$('ghConnect').onclick = async () => {
+  const f = ghFields();
+  if (!f.owner || !f.repo || !f.token) { setStatus('아이디·저장소·토큰을 모두 입력하세요', 'err'); return; }
+  setStatus('확인하는 중…');
+  try {
+    const res = await api('');
+    if (res.status === 401) throw new Error('토큰이 올바르지 않습니다');
+    if (res.status === 404) throw new Error('저장소를 찾을 수 없습니다 (이름 또는 토큰 권한 확인)');
+    const repo = await res.json();
+    if (repo.permissions && !repo.permissions.push) throw new Error('이 토큰으로는 저장소에 쓸 수 없습니다 (Contents 권한 확인)');
+    gh.ok = true; setStatus('연결됨', 'ok');
+    if ($('ghRemember').checked) { store.set('gh', JSON.stringify(f)); } else store.del('gh');
+    // 저장소의 최신 목록 불러오기 (사이트 반영이 늦어도 최신 내용으로 편집)
+    const file = await getFile('data/sims.js');
+    if (file && !dirty) {
+      const m = fromB64(file.content).match(/\/\*DATA-START\*\/([\s\S]*)\/\*DATA-END\*\//);
+      if (m) { data = JSON.parse(m[1]); renderAll(); updateSaveBar('저장소의 최신 목록을 불러왔습니다'); }
+    }
+  } catch (err) { gh.ok = false; setStatus(err.message, 'err'); }
+};
+$('ghDisconnect').onclick = () => {
+  gh.ok = false; $('ghToken').value = ''; store.del('gh'); setStatus('연결 안 됨');
+};
+
+$('save').onclick = async () => {
+  if (!gh.ok) { alert('먼저 GitHub에 연결하세요.\n연결 없이 저장하려면 [sims.js 내려받기]를 쓰세요.'); return; }
+  if (!dirty) { updateSaveBar('저장할 변경 사항이 없습니다'); return; }
+  $('save').disabled = true;
+  try {
+    for (const [path, file] of Object.entries(pending)) {
+      updateSaveBar(`${path} 올리는 중…`);
+      await putFile(path, toB64(new Uint8Array(await file.arrayBuffer())), `시뮬레이션 파일 업로드: ${path}`);
+      delete pending[path];
+    }
+    updateSaveBar('목록(sims.js) 저장하는 중…');
+    await putFile('data/sims.js', toB64(new TextEncoder().encode(buildSimsJs())), '관리 페이지에서 목록 수정');
+    dirty = 0; renderSims();
+    updateSaveBar('✅ 저장 완료! 1~2분 뒤 사이트에 반영됩니다. (반영 전에는 새로고침해도 이전 내용이 보일 수 있어요)');
+  } catch (err) {
+    updateSaveBar('⚠️ ' + err.message, 'dirty');
+  } finally { $('save').disabled = false; }
+};
+
+// 처음 열 때: 기억해 둔 연결 정보, 또는 주소에서 아이디·저장소 추측
+(function initGh() {
+  const saved = store.get('gh');
+  if (saved) {
+    try { const f = JSON.parse(saved);
+      $('ghOwner').value = f.owner; $('ghRepo').value = f.repo; $('ghBranch').value = f.branch; $('ghToken').value = f.token;
+      $('ghRemember').checked = true; } catch (e) {}
+  } else if (location.hostname.endsWith('.github.io')) {
+    const owner = location.hostname.split('.')[0];
+    const seg = location.pathname.split('/')[1];
+    $('ghOwner').value = owner;
+    $('ghRepo').value = seg && !seg.endsWith('.html') ? seg : location.hostname;
+  }
+})();
+
+// =====================================================================
+//  Claude 요청 문구
+// =====================================================================
+$('promptText').value = `고등학교 지구과학 수업용 시뮬레이션을 HTML 파일 한 개로 만들어 줘.
+내 사이트에 끼워 넣을 거라서 아래 규칙을 꼭 지켜 줘.
+
+1. 제목이나 개념 설명 글 없이, 시뮬레이션 그림과 조작 버튼·슬라이더만 넣기 (설명은 사이트에서 따로 씀)
+2. 배경은 #0b1020, 글자는 밝은색. 외부 파일 없이 HTML 하나로 완성
+3. 캔버스를 쓰면 width:100%; height:auto 로 화면 폭에 맞추고, 터치(휴대폰)로도 조작되게
+4. 수업 모드(전체 화면)용으로 아래 CSS를 넣기
+   .fs body { min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+   .fs canvas { height:calc(100vh - 90px); object-fit:contain; }
+   (object-fit 때문에 그림이 가운데 정렬되므로 마우스 좌표 계산도 그에 맞게)
+5. </body> 바로 앞에 아래 스크립트를 그대로 넣기
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+<\/script>
+6. 다 만들면 사이트의 '조작 방법(한 줄에 하나)', '핵심 개념', '탐구 활동(한 줄에 질문 하나)'에 넣을 글도 따로 적어 줘
+
+만들고 싶은 시뮬레이션: `;
+$('copyPrompt').onclick = () => {
+  navigator.clipboard?.writeText($('promptText').value).then(() => $('copyPrompt').textContent = '복사됨 ✓',
+    () => { $('promptText').select(); document.execCommand('copy'); $('copyPrompt').textContent = '복사됨 ✓'; });
+};
+
+function renderAll() { renderFilter(); renderSims(); renderCourses(); renderTopics(); }
+renderAll();
+</script>
+</body>
+</html>

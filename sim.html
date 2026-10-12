@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시뮬레이션 | 지구과학 시뮬레이션 실험실</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="data/sims.js"></script>
+  <script src="js/site.js"></script>
+</head>
+<body>
+<header id="site-header"></header>
+<main id="page"></main>
+<footer id="site-footer"></footer>
+
+<script>
+// 모든 시뮬레이션이 함께 쓰는 '보여주기' 페이지입니다.
+// 목록(sims.js)의 정보로 제목·설명을 채우고, 시뮬레이션 파일은 아래 틀(iframe) 안에 띄웁니다.
+const { S, esc, fmt, lines, card, url, param } = App;
+const sim = S.sims.find(s => s.id === param('id'));
+const page = document.getElementById('page');
+
+if (!sim) {
+  page.innerHTML = '<div class="notice">시뮬레이션을 찾을 수 없습니다. <a href="index.html">홈으로</a></div>';
+} else {
+  document.title = sim.title + ' | 지구과학 시뮬레이션 실험실';
+  const t = App.topic(sim.topic) || {};
+  const chips = (sim.links || []).map(l => {
+    const c = App.course(l.course), u = App.unit(l.course, l.unit);
+    return c ? `<a class="chip" href="${url.course(c.id, l.unit)}">${esc(c.name)}${u ? ' · ' + esc(u.name) : ''}</a>` : '';
+  }).join('');
+  const related = S.sims.filter(s => s.id !== sim.id && s.topic === sim.topic && s.status === 'ready')
+    .sort((a, b) => (b.sub === sim.sub) - (a.sub === sim.sub)).slice(0, 3);
+
+  const howto = lines(sim.howto), inquiry = lines(sim.inquiry), concept = lines(sim.concept);
+  const panels = [
+    howto.length && `<section class="panel"><h2>조작 방법</h2><ul>${howto.map(x => `<li>${fmt(x)}</li>`).join('')}</ul></section>`,
+    concept.length && `<section class="panel"><h2>핵심 개념</h2>${concept.map(x => `<p>${fmt(x)}</p>`).join('')}</section>`,
+    inquiry.length && `<section class="panel full"><h2>탐구 활동</h2><ol>${inquiry.map(x => `<li>${fmt(x)}</li>`).join('')}</ol></section>`,
+  ].filter(Boolean).join('');
+
+  const ready = sim.status === 'ready' && sim.file;
+  page.innerHTML = `
+    <div class="breadcrumb"><a href="${url.home()}">홈</a> › <a href="${url.topic(sim.topic)}">${esc(t.name || '')}</a> › ${esc(sim.sub || '')}</div>
+    <div class="sim-head">
+      <div>
+        <h1 class="page-title">${esc(sim.title)}</h1>
+        <div class="chips">${chips}</div>
+      </div>
+      ${ready ? `<div class="sim-tools">
+        <button class="btn" id="fsBtn">⛶ 수업 모드</button>
+        <a class="btn ghost" href="${url.file(sim.file)}" target="_blank">새 창으로 ↗</a>
+      </div>` : ''}
+    </div>
+    ${ready ? `<div class="sim-frame" id="frameBox"><iframe id="frame" src="${url.file(sim.file)}" title="${esc(sim.title)}" allow="fullscreen"></iframe><button class="fs-exit" id="fsExit">✕ 수업 모드 끝내기 (Esc)</button></div>`
+            : '<div class="notice">이 시뮬레이션은 준비 중입니다.</div>'}
+    ${panels ? `<div class="info-grid">${panels}</div>` : ''}
+    ${related.length ? `<h2 class="section-title" style="--c:${t.color}">함께 보면 좋은 시뮬레이션</h2>
+      <div class="cards">${related.map(s => card(s)).join('')}</div>` : ''}`;
+
+  if (ready) setupFrame();
+}
+
+function setupFrame() {
+  const box = document.getElementById('frameBox');
+  const frame = document.getElementById('frame');
+  const fixed = Number(sim.height) || 0;          // 관리 페이지에서 높이를 정했으면 그 값 사용
+  let measured = false;
+  const setH = h => { if (!document.fullscreenElement && h > 50) frame.style.height = Math.ceil(h) + 'px'; };
+  if (fixed) setH(fixed);
+
+  // 1) 시뮬레이션 파일이 스스로 높이를 알려주는 경우
+  window.addEventListener('message', e => {
+    if (e.source === frame.contentWindow && e.data && e.data.type === 'sim-height' && !fixed) {
+      measured = true; setH(e.data.h);
+    }
+  });
+  // 2) 같은 사이트 안의 파일이면 직접 재기 (GitHub Pages에서는 대부분 이쪽)
+  frame.addEventListener('load', () => {
+    if (fixed || measured) return;
+    try {
+      const body = frame.contentDocument.body;
+      const measure = () => { if (!measured) setH(body.scrollHeight + 4); };
+      measure(); new ResizeObserver(measure).observe(body);
+    } catch (err) { /* 재지 못하면 기본 높이(600px) 유지 */ }
+  });
+
+  // 수업 모드 (전체 화면)
+  document.getElementById('fsBtn').onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else (box.requestFullscreen || box.webkitRequestFullscreen).call(box);
+  };
+  document.getElementById('fsExit').onclick = () => document.exitFullscreen();
+  document.addEventListener('fullscreenchange', () => {
+    document.getElementById('fsBtn').textContent = document.fullscreenElement ? '✕ 수업 모드 끝내기' : '⛶ 수업 모드';
+  });
+}
+</script>
+</body>
+</html>
