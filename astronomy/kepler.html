@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>케플러 제2법칙 | 지구과학 시뮬레이션 실험실</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <a class="logo" href="../index.html">지구과학 <span>시뮬레이션</span> 실험실</a>
+    <nav class="site-nav">
+      <a href="../index.html#geo">고체지구</a>
+      <a href="../index.html#atmo">대기와 해양</a>
+      <a href="../index.html#space">우주</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="breadcrumb"><a href="../index.html">홈</a> › 우주 › 행성의 운동</div>
+  <h1 class="page-title">케플러 제2법칙 (면적 속도 일정 법칙)</h1>
+  <span class="standard">관련 개념: 타원 궤도, 이심률, 근일점과 원일점</span>
+
+  <!-- ===== 시뮬레이션 ===== -->
+  <div class="sim-box">
+    <canvas id="sim" width="900" height="540"></canvas>
+    <div class="controls">
+      <button class="btn" id="playBtn">⏸ 정지</button>
+      <label>이심률 e
+        <input type="range" id="eSlider" min="0" max="0.8" step="0.01" value="0.5">
+        <span class="readout" id="eOut"></span>
+      </label>
+      <label>속도
+        <input type="range" id="speedSlider" min="0.2" max="3" step="0.1" value="1">
+      </label>
+      <label><input type="checkbox" id="showArea" checked> 같은 시간 동안 쓸고 간 면적</label>
+    </div>
+  </div>
+
+  <!-- ===== 설명 ===== -->
+  <div class="info-grid">
+    <section class="panel">
+      <h2>조작 방법</h2>
+      <ul>
+        <li><b>이심률</b> 슬라이더로 궤도의 납작한 정도를 바꿉니다. (0이면 원)</li>
+        <li>궤도는 공전 주기를 <b>12개의 같은 시간 구간</b>으로 나누어 색칠되어 있습니다.</li>
+        <li>행성의 화살표 길이는 공전 속력을 나타냅니다.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>핵심 개념</h2>
+      <p>행성과 태양을 잇는 선분은 <b>같은 시간 동안 같은 면적</b>을 쓸고 지나갑니다(케플러 제2법칙).
+      따라서 태양에 가까운 <b>근일점</b>에서는 빠르게, 먼 <b>원일점</b>에서는 느리게 공전합니다.</p>
+      <p>이 법칙은 행성이 받는 힘(만유인력)이 항상 태양 쪽을 향하기 때문에 성립하며, 물리적으로는 각운동량 보존과 같은 내용입니다.</p>
+    </section>
+
+    <section class="panel full">
+      <h2>탐구 활동</h2>
+      <ol>
+        <li>이심률을 0으로 하면 각 구간의 모양은 어떻게 되는가? 이때 공전 속력은 어떻게 변하는가?</li>
+        <li>이심률이 클수록 근일점과 원일점에서의 속력 차이는 어떻게 되는가? 화면의 값을 표로 정리해 보자.</li>
+        <li>지구는 1월 초에 근일점을 지난다. 북반구의 겨울(동지~춘분)이 여름(하지~추분)보다 며칠 짧은 까닭을 설명해 보자.</li>
+      </ol>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  지구과학 시뮬레이션 실험실 · 그림의 크기와 거리는 실제 비율과 다릅니다
+</footer>
+
+<script>
+// ============================================================
+//  케플러 제2법칙 시뮬레이션
+//  케플러 방정식 M = E - e·sinE 를 풀어 '시간 → 위치'를 정확히 계산합니다.
+// ============================================================
+const canvas = document.getElementById('sim');
+const ctx = canvas.getContext('2d');
+const eSlider = document.getElementById('eSlider');
+const eOut = document.getElementById('eOut');
+const speedSlider = document.getElementById('speedSlider');
+const showArea = document.getElementById('showArea');
+const playBtn = document.getElementById('playBtn');
+
+const A = 210;            // 긴반지름 (화면 픽셀)
+const N = 12;             // 한 주기를 나눌 구간 수
+const CY = 280;
+let t = 0;                // 0~1 : 한 주기 중 지난 시간 비율
+let playing = true;
+
+// 케플러 방정식 풀이 (뉴턴법)
+function solveE(M, e) {
+  let E = e < 0.8 ? M : Math.PI;
+  for (let i = 0; i < 12; i++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+  return E;
+}
+
+// 시간 비율 → 화면 좌표
+function posAt(frac, e, sun) {
+  const B = A * Math.sqrt(1 - e * e);
+  const E = solveE(2 * Math.PI * frac, e);
+  return { x: sun.x + A * (Math.cos(E) - e), y: sun.y - B * Math.sin(E), E };
+}
+
+function draw() {
+  const e = parseFloat(eSlider.value);
+  const B = A * Math.sqrt(1 - e * e);
+  const sun = { x: 450 + A * e, y: CY };       // 타원 중심이 화면 가운데에 오도록
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = 'center';
+  ctx.font = '14px "Noto Sans KR", sans-serif';
+
+  // ---- 같은 시간 구간의 면적 ----
+  const cur = Math.floor(t * N);
+  if (showArea.checked) {
+    for (let k = 0; k < N; k++) {
+      ctx.beginPath(); ctx.moveTo(sun.x, sun.y);
+      for (let s = 0; s <= 30; s++) {
+        const p = posAt((k + s / 30) / N, e, sun);
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = k === cur ? 'rgba(255,214,90,.45)'
+                    : (k % 2 ? 'rgba(108,155,255,.20)' : 'rgba(167,139,250,.20)');
+      ctx.fill();
+    }
+  }
+
+  // ---- 궤도 ----
+  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(450, CY, A, B, 0, 0, Math.PI * 2); ctx.stroke();
+
+  // 다른 초점
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  ctx.beginPath(); ctx.arc(450 - A * e, CY, 3, 0, Math.PI * 2); ctx.fill();
+
+  // 근일점, 원일점
+  ctx.fillStyle = '#cfd8ea';
+  ctx.fillText('근일점', 450 + A + 34, CY + 5);
+  ctx.fillText('원일점', 450 - A - 34, CY + 5);
+
+  // ---- 태양 ----
+  const g = ctx.createRadialGradient(sun.x, sun.y, 2, sun.x, sun.y, 26);
+  g.addColorStop(0, '#fff7c2'); g.addColorStop(.5, '#ffc93c'); g.addColorStop(1, 'rgba(255,160,0,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sun.x, sun.y, 26, 0, Math.PI * 2); ctx.fill();
+
+  // ---- 행성 ----
+  const p = posAt(t, e, sun);
+  const rRel = 1 - e * Math.cos(p.E);                 // r / a
+  const vRel = Math.sqrt(2 / rRel - 1);               // v / (원궤도 속력), 활력 방정식
+  // 속도 방향 (위치를 E로 미분)
+  let vx = -A * Math.sin(p.E), vy = -B * Math.cos(p.E);
+  const len = Math.hypot(vx, vy); vx /= len; vy /= len;
+  const L = 45 * vRel;
+
+  ctx.strokeStyle = 'rgba(159,192,255,.6)'; ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.moveTo(sun.x, sun.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.setLineDash([]);
+
+  ctx.strokeStyle = '#7dd3fc'; ctx.fillStyle = '#7dd3fc'; ctx.lineWidth = 2.5;
+  const tx = p.x + vx * L, ty = p.y + vy * L;
+  ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(tx, ty); ctx.stroke();
+  const ang = Math.atan2(vy, vx);
+  ctx.beginPath(); ctx.moveTo(tx, ty);
+  ctx.lineTo(tx - 9 * Math.cos(ang - .4), ty - 9 * Math.sin(ang - .4));
+  ctx.lineTo(tx - 9 * Math.cos(ang + .4), ty - 9 * Math.sin(ang + .4)); ctx.fill();
+
+  ctx.fillStyle = '#60a5fa';
+  ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI * 2); ctx.fill();
+
+  // ---- 수치 표시 ----
+  ctx.textAlign = 'left'; ctx.fillStyle = '#e8ebf1'; ctx.font = '15px "Noto Sans KR", sans-serif';
+  ctx.fillText(`태양까지 거리  ${rRel.toFixed(2)} a`, 20, 30);
+  ctx.fillText(`공전 속력  ${vRel.toFixed(2)} (원궤도 기준)`, 20, 54);
+  ctx.fillStyle = '#ffd65a';
+  ctx.fillText(`각 구간 면적 = πab/12 (모두 같음)`, 20, 78);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '13px "Noto Sans KR", sans-serif';
+  ctx.fillText(`근일점 속력 ÷ 원일점 속력 = ${((1 + e) / (1 - e)).toFixed(2)}`, 20, canvas.height - 20);
+
+  eOut.textContent = e.toFixed(2);
+}
+
+function loop() {
+  if (playing) t = (t + 0.0015 * parseFloat(speedSlider.value)) % 1;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+playBtn.addEventListener('click', () => {
+  playing = !playing;
+  playBtn.textContent = playing ? '⏸ 정지' : '▶ 재생';
+});
+
+loop();
+</script>
+</body>
+</html>
