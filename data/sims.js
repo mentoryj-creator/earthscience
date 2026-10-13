@@ -5,38 +5,148 @@
 // =====================================================================
 window.SITE = /*DATA-START*/{
   "levels": [
-    { "id": "high", "name": "고등학교" },
-    { "id": "middle", "name": "중학교", "soon": true }
+    {
+      "id": "high",
+      "name": "고등학교"
+    },
+    {
+      "id": "middle",
+      "name": "중학교",
+      "soon": true
+    }
   ],
   "courses": [
-    { "id": "is1", "level": "high", "name": "통합과학1", "units": [
-      { "id": "u1", "name": "과학의 기초" },
-      { "id": "u2", "name": "물질과 규칙성" },
-      { "id": "u3", "name": "시스템과 상호작용" } ] },
-    { "id": "is2", "level": "high", "name": "통합과학2", "units": [
-      { "id": "u1", "name": "변화와 다양성" },
-      { "id": "u2", "name": "환경과 에너지" },
-      { "id": "u3", "name": "과학과 미래사회" } ] },
-    { "id": "es", "level": "high", "name": "지구과학", "units": [
-      { "id": "u1", "name": "1단원 (목차 입력 예정)" },
-      { "id": "u2", "name": "2단원 (목차 입력 예정)" },
-      { "id": "u3", "name": "3단원 (목차 입력 예정)" } ] },
-    { "id": "ess", "level": "high", "name": "지구시스템과학", "units": [
-      { "id": "u1", "name": "1단원 (목차 입력 예정)" },
-      { "id": "u2", "name": "2단원 (목차 입력 예정)" },
-      { "id": "u3", "name": "3단원 (목차 입력 예정)" } ] },
-    { "id": "pss", "level": "high", "name": "행성우주과학", "units": [
-      { "id": "u1", "name": "1단원 (목차 입력 예정)" },
-      { "id": "u2", "name": "2단원 (목차 입력 예정)" },
-      { "id": "u3", "name": "3단원 (목차 입력 예정)" } ] }
+    {
+      "id": "is1",
+      "level": "high",
+      "name": "통합과학1",
+      "units": [
+        {
+          "id": "u1",
+          "name": "과학의 기초"
+        },
+        {
+          "id": "u2",
+          "name": "물질과 규칙성"
+        },
+        {
+          "id": "u3",
+          "name": "시스템과 상호작용"
+        }
+      ]
+    },
+    {
+      "id": "is2",
+      "level": "high",
+      "name": "통합과학2",
+      "units": [
+        {
+          "id": "u1",
+          "name": "변화와 다양성"
+        },
+        {
+          "id": "u2",
+          "name": "환경과 에너지"
+        },
+        {
+          "id": "u3",
+          "name": "과학과 미래사회"
+        }
+      ]
+    },
+    {
+      "id": "es",
+      "level": "high",
+      "name": "지구과학",
+      "units": [
+        {
+          "id": "u1",
+          "name": "대기와 해양의 상호작용"
+        },
+        {
+          "id": "u2",
+          "name": "지구의 역사와 한반도의 암석"
+        },
+        {
+          "id": "u3",
+          "name": "태양계 천체와 별과 우주의 진화"
+        }
+      ]
+    },
+    {
+      "id": "ess",
+      "level": "high",
+      "name": "지구시스템과학",
+      "units": [
+        {
+          "id": "u1",
+          "name": "지구 탄생과 생동하는지구"
+        },
+        {
+          "id": "u2",
+          "name": "해수의 운동"
+        },
+        {
+          "id": "u3",
+          "name": "강수과정과 대기의 운동"
+        }
+      ]
+    },
+    {
+      "id": "pss",
+      "level": "high",
+      "name": "행성우주과학",
+      "units": [
+        {
+          "id": "u1",
+          "name": "우주 탐사와 행성계"
+        },
+        {
+          "id": "u2",
+          "name": "태양과 별의 관측"
+        },
+        {
+          "id": "u3",
+          "name": "은하와 우주"
+        }
+      ]
+    }
   ],
   "topics": [
-    { "id": "solid", "name": "고체지구", "color": "#b45309",
-      "subs": ["지구시스템", "판 구조론과 지각 변동", "광물과 암석", "지구의 역사"] },
-    { "id": "fluid", "name": "유체지구", "color": "#0e7490",
-      "subs": ["대기와 날씨", "해수의 성질과 순환", "대기-해양 상호작용", "기후 변화"] },
-    { "id": "astro", "name": "천문", "color": "#6d28d9",
-      "subs": ["천체 관측", "지구와 달", "태양계와 행성의 운동", "별", "은하와 우주"] }
+    {
+      "id": "solid",
+      "name": "고체지구",
+      "color": "#b45309",
+      "subs": [
+        "지구시스템",
+        "판 구조론과 지각 변동",
+        "광물과 암석",
+        "지구의 역사"
+      ]
+    },
+    {
+      "id": "fluid",
+      "name": "유체지구",
+      "color": "#0e7490",
+      "subs": [
+        "대기와 날씨",
+        "해수의 성질과 순환",
+        "대기-해양 상호작용",
+        "기후 변화"
+      ]
+    },
+    {
+      "id": "astro",
+      "name": "천문",
+      "color": "#6d28d9",
+      "subs": [
+        "천체 관측",
+        "지구와 달",
+        "태양계와 행성의 운동",
+        "별",
+        "은하와 우주"
+      ]
+    }
   ],
   "sims": [
     {
@@ -44,9 +154,20 @@ window.SITE = /*DATA-START*/{
       "title": "달의 위상 변화",
       "desc": "공전 위치에 따라 달의 모양과 남중 시각이 어떻게 바뀔까?",
       "file": "sims/astro/moon-phase.html",
-      "topic": "astro", "sub": "지구와 달",
-      "links": [ { "course": "es", "unit": "u3" }, { "course": "pss", "unit": "u1" } ],
-      "status": "ready", "height": 0,
+      "topic": "astro",
+      "sub": "지구와 달",
+      "links": [
+        {
+          "course": "es",
+          "unit": "u3"
+        },
+        {
+          "course": "pss",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
       "howto": "왼쪽 그림에서 **달을 끌어서** 공전 위치를 바꿀 수 있습니다.\n**재생**을 누르면 달이 시계 반대 방향으로 공전합니다.\n슬라이더나 버튼으로 음력 날짜를 직접 정할 수 있습니다.\n오른쪽 그림은 북반구에서 남쪽 하늘을 볼 때의 달 모양입니다.",
       "concept": "달은 스스로 빛을 내지 못하고 햇빛을 반사합니다. 달의 절반은 항상 태양 쪽을 향해 밝게 빛나지만, 공전 위치에 따라 **지구에서 보이는 밝은 부분의 비율**이 달라지므로 모양이 바뀌어 보입니다. 삭에서 다음 삭까지 약 **29.5일**(삭망월)이 걸립니다.\n달은 하루에 약 12°씩 서→동으로 공전하므로, 남중 시각은 매일 약 **50분씩 늦어집니다**.",
       "inquiry": "상현달일 때 태양-지구-달이 이루는 각은 몇 도인가? 이때 달은 언제 남중하는가?\n초저녁(18시 무렵) 남쪽 하늘에 보이는 달의 위상은 무엇인가?\n보름달이 새벽에 서쪽 하늘에 지는 까닭을 공전 위치와 지구 자전으로 설명해 보자.\n일식과 월식은 각각 어떤 위상일 때 일어날 수 있는가? 매달 일어나지 않는 까닭은?"
@@ -56,33 +177,100 @@ window.SITE = /*DATA-START*/{
       "title": "케플러 제2법칙 (면적 속도 일정)",
       "desc": "타원 궤도에서 행성의 속도가 변하는 이유",
       "file": "sims/astro/kepler.html",
-      "topic": "astro", "sub": "태양계와 행성의 운동",
-      "links": [ { "course": "pss", "unit": "u2" } ],
-      "status": "ready", "height": 0,
+      "topic": "astro",
+      "sub": "태양계와 행성의 운동",
+      "links": [
+        {
+          "course": "pss",
+          "unit": "u2"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
       "howto": "**이심률** 슬라이더로 궤도의 납작한 정도를 바꿉니다. (0이면 원)\n궤도는 공전 주기를 **12개의 같은 시간 구간**으로 나누어 색칠되어 있습니다.\n행성의 화살표 길이는 공전 속력을 나타냅니다.",
       "concept": "행성과 태양을 잇는 선분은 **같은 시간 동안 같은 면적**을 쓸고 지나갑니다(케플러 제2법칙). 따라서 태양에 가까운 **근일점**에서는 빠르게, 먼 **원일점**에서는 느리게 공전합니다.\n이 법칙은 행성이 받는 힘(만유인력)이 항상 태양 쪽을 향하기 때문에 성립하며, 물리적으로는 각운동량 보존과 같은 내용입니다.",
       "inquiry": "이심률을 0으로 하면 각 구간의 모양은 어떻게 되는가? 이때 공전 속력은 어떻게 변하는가?\n이심률이 클수록 근일점과 원일점에서의 속력 차이는 어떻게 되는가? 화면의 값을 표로 정리해 보자.\n지구는 1월 초에 근일점을 지난다. 북반구의 겨울이 여름보다 며칠 짧은 까닭을 설명해 보자."
     },
     {
-      "id": "plate-boundary", "title": "판의 경계와 지각 변동",
+      "id": "plate-boundary",
+      "title": "판의 경계와 지각 변동",
       "desc": "발산형·수렴형·보존형 경계에서 일어나는 일",
-      "file": "", "topic": "solid", "sub": "판 구조론과 지각 변동",
-      "links": [ { "course": "is1", "unit": "u3" }, { "course": "es", "unit": "u1" }, { "course": "ess", "unit": "u1" } ],
-      "status": "soon", "height": 0, "howto": "", "concept": "", "inquiry": ""
+      "file": "",
+      "topic": "solid",
+      "sub": "판 구조론과 지각 변동",
+      "links": [
+        {
+          "course": "is1",
+          "unit": "u3"
+        },
+        {
+          "course": "es",
+          "unit": "u1"
+        },
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "soon",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
     },
     {
-      "id": "el-nino", "title": "엘니뇨와 라니냐",
+      "id": "el-nino",
+      "title": "엘니뇨와 라니냐",
       "desc": "무역풍의 세기와 적도 태평양의 수온 분포",
-      "file": "", "topic": "fluid", "sub": "대기-해양 상호작용",
-      "links": [ { "course": "is2", "unit": "u2" }, { "course": "es", "unit": "u2" }, { "course": "ess", "unit": "u2" } ],
-      "status": "soon", "height": 0, "howto": "", "concept": "", "inquiry": ""
+      "file": "",
+      "topic": "fluid",
+      "sub": "대기-해양 상호작용",
+      "links": [
+        {
+          "course": "is2",
+          "unit": "u2"
+        },
+        {
+          "course": "es",
+          "unit": "u2"
+        },
+        {
+          "course": "ess",
+          "unit": "u2"
+        }
+      ],
+      "status": "soon",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
     },
     {
-      "id": "hr-diagram", "title": "H-R도와 별의 진화",
+      "id": "hr-diagram",
+      "title": "H-R도와 별의 진화",
       "desc": "질량에 따라 별은 어떤 일생을 보낼까?",
-      "file": "", "topic": "astro", "sub": "별",
-      "links": [ { "course": "is1", "unit": "u2" }, { "course": "es", "unit": "u3" }, { "course": "pss", "unit": "u3" } ],
-      "status": "soon", "height": 0, "howto": "", "concept": "", "inquiry": ""
+      "file": "",
+      "topic": "astro",
+      "sub": "별",
+      "links": [
+        {
+          "course": "is1",
+          "unit": "u2"
+        },
+        {
+          "course": "es",
+          "unit": "u3"
+        },
+        {
+          "course": "pss",
+          "unit": "u3"
+        }
+      ],
+      "status": "soon",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
     }
   ]
 }/*DATA-END*/;
