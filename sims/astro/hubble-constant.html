@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>은하를 관측해 허블 상수를 직접 구해 봅시다</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+
+<style>
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+        
+        /* 03단원 스타일 표지 디자인 */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px;}
+        .ppt-subtitle { display: inline-block; font-size: 42px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 15px 35px; border-radius: 0 20px 20px 0; margin-bottom: 40px; align-self: flex-start;}
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all;}
+        .ppt-list { font-size: 38px; color: #1e293b; line-height: 1.6; background-color: #f8fafc; padding: 30px 40px; border-radius: 20px; border: 2px solid #e2e8f0; }
+        .ppt-list li { margin-bottom: 20px; display: flex; align-items: flex-start; }
+        .ppt-list li::before { content: '•'; color: #3b82f6; font-weight: bold; margin-right: 20px; font-size: 45px; line-height: 1.5; }
+        .ppt-list li:last-child { margin-bottom: 0; }
+        
+        .math-box { font-size: 55px; background-color: #faf5ff; border-left: 8px solid #a855f7; padding: 30px; text-align: center; border-radius: 0 20px 20px 0; margin: 30px 0; font-weight: bold;}
+        .cite { display: none; }
+
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px;}
+        .svg-content { width: 100%; height: 100%; object-fit: contain; }
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #64748b; background: rgba(255,255,255,0.95); padding: 10px 20px; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10;}
+
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 34px; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #3b82f6; color: white; padding: 20px; border: 2px solid #93c5fd; font-weight: bold;}
+        .ppt-table td { padding: 25px 20px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; font-family: 'Gowun Dodum', sans-serif;}
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; font-family: 'Gowun Dodum', sans-serif;}
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        /* 애니메이션 모음 */
+        @keyframes expand-space { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
+        @keyframes stretch-wave { 0% { stroke-dasharray: 10, 10; stroke: #3b82f6;} 50% { stroke-dasharray: 25, 25; stroke: #ef4444; } 100% { stroke-dasharray: 10, 10; stroke: #3b82f6;} }
+        @keyframes redshift-shift { 0% { transform: translateX(0); } 50% { transform: translateX(80px); } 100% { transform: translateX(0); } }
+        @keyframes scatter-dots { 0% { transform: scale(0.8) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes scan-line { 0% { transform: translateY(0); } 50% { transform: translateY(200px); } 100% { transform: translateY(0); } }
+        @keyframes pulse-light { 0%, 100% { opacity: 0.7; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+
+        .anim-expand { animation: expand-space 6s ease-in-out infinite; transform-origin: center; }
+        .anim-stretch { animation: stretch-wave 6s ease-in-out infinite; }
+        .anim-shift { animation: redshift-shift 4s ease-in-out infinite; }
+        .anim-scatter { animation: scatter-dots 1s ease-out forwards; }
+        .anim-scan { animation: scan-line 3s linear infinite; }
+        .anim-pulse { animation: pulse-light 3s ease-in-out infinite; transform-origin: center; }
+    
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+    </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="simJ">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>은하를 관측해 허블 상수를 직접 구해 봅시다</div>
+            <div class="ppt-subtitle">은하를 하나씩 관측하여 거리–후퇴 속도 그래프에 점을 찍어요.</div>
+            <div class="sim-wrap">
+                <div class="sim-col" style="width:480px">
+                    <div class="sim-stage"><canvas id="cJ1" width="480" height="610"></canvas></div>
+                </div>
+                <div class="sim-stage light"><canvas id="cJ2" width="780" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>관측하기</h4>
+                        <div class="sim-btns"><button class="sim-btn on" id="bJ1">은하 1개 관측</button><button class="sim-btn" id="bJ2">10개 관측</button><button class="sim-btn" id="bJ3">↺ 초기화</button></div>
+                    </div>
+                    <div class="sim-box key">
+                        <h4>그래프 기울기</h4>
+                        <div>H ≈ <span class="sim-big" id="oJ1">-</span> <span style="font-size:24px">km/s/Mpc</span></div>
+                        <div style="margin-top:6px;font-size:25px">우주의 나이 ≈ 1/H ≈ <b id="oJ2" style="color:#c2410c">-</b></div>
+                    </div>
+                    <div class="sim-box" style="font-size:22px;padding:12px 18px">
+                        <div class="sim-row" style="font-size:22px"><span style="flex:none">교사용: 가상 우주의 H</span><input type="range" class="sim-range" id="rJ" min="50" max="100" step="1" value="70" style="height:28px"><b id="vJ" style="color:#64748b">70</b></div>
+                        <div class="sim-note" style="font-size:20px">값을 바꾸면 관측 자료가 초기화돼요.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT') a.blur(); });
+    </script>
+<script>
+
+
+    /* ===================== 시뮬레이션 J: 허블 법칙 ===================== */
+    (function () {
+        const c1 = document.getElementById('cJ1'), g1 = c1.getContext('2d'), c2 = document.getElementById('cJ2'), g2 = c2.getContext('2d');
+        let Ht = 70, pts = [], last = null;
+        const W2 = 780, H2 = 610, L = 110, R = 750, T = 40, B = 520, XM = 500;
+        const ymax = () => Math.ceil(Ht * 500 / 10000) * 10000;
+        function add(n) {
+            for (let k = 0; k < n; k++) {
+                const r = 20 + Math.random() * 460, v = Ht * r + SIM.gauss(Math.random) * 900;
+                last = { r: r, v: v, z: v / 299792, rot: Math.random() * 3, t: performance.now() }; pts.push(last);
+            }
+            fit();
+        }
+        function fit() {
+            if (!pts.length) { document.getElementById('oJ1').textContent = '-'; document.getElementById('oJ2').textContent = '-'; return; }
+            let a = 0, b = 0; pts.forEach(p => { a += p.r * p.v; b += p.r * p.r; }); const H = a / b;
+            document.getElementById('oJ1').textContent = H.toFixed(1);
+            document.getElementById('oJ2').textContent = pts.length < 3 ? '(자료를 더 모아요)' : '약 ' + Math.round(9778 / H) + '억 년';
+        }
+        document.getElementById('bJ1').onclick = () => add(1);
+        document.getElementById('bJ2').onclick = () => add(10);
+        document.getElementById('bJ3').onclick = () => { pts = []; last = null; fit(); };
+        document.getElementById('rJ').oninput = e => { Ht = +e.target.value; document.getElementById('vJ').textContent = Ht; pts = []; last = null; fit(); };
+        fit();
+        SIM.loop('simJ', (t) => {
+            // 왼쪽: 방금 관측한 은하
+            g1.fillStyle = '#0f172a'; g1.fillRect(0, 0, 480, 610);
+            g1.fillStyle = '#e2e8f0'; g1.font = SIM.font(26); g1.textAlign = 'center'; g1.fillText('방금 관측한 은하', 240, 44);
+            if (!last) { g1.fillStyle = '#94a3b8'; g1.font = SIM.font(22, false); g1.fillText('‘은하 1개 관측’을 눌러 보세요', 240, 300); }
+            else {
+                const s = Math.min(160, Math.max(26, 16000 / last.r)); const cx = 240, cy = 200;
+                g1.save(); g1.translate(cx, cy); g1.rotate(last.rot + t / 6000);
+                for (let k = 0; k < 2; k++) for (let i = 0; i < 160; i++) { const th = i / 160 * 4.5 + k * Math.PI, rr = i / 160 * s; g1.fillStyle = 'rgba(191,219,254,' + (0.7 - i / 300).toFixed(2) + ')'; g1.beginPath(); g1.arc(Math.cos(th) * rr, Math.sin(th) * rr * 0.55, Math.max(1, s / 30), 0, 7); g1.fill(); }
+                const cg = g1.createRadialGradient(0, 0, 0, 0, 0, s * 0.35); cg.addColorStop(0, '#fff'); cg.addColorStop(1, 'rgba(254,240,138,0)'); g1.fillStyle = cg; g1.beginPath(); g1.arc(0, 0, s * 0.35, 0, 7); g1.fill();
+                g1.restore();
+                g1.fillStyle = '#94a3b8'; g1.font = SIM.font(18, false); g1.fillText('(멀수록 작고 어둡게 보여요)', 240, 330);
+                // 스펙트럼 띠 (550~800nm)
+                const x0 = 40, x1 = 440, la = 550, lb = 800, X = l => x0 + (l - la) / (lb - la) * (x1 - x0);
+                for (let x = x0; x < x1; x++) { const l = la + (x - x0) / (x1 - x0) * (lb - la); const rgb = l <= 780 ? SIM.wl2rgb(l) : [51, 65, 85]; g1.fillStyle = 'rgb(' + rgb.join(',') + ')'; g1.fillRect(x, 360, 1.5, 40); }
+                g1.fillStyle = '#fff'; g1.fillRect(X(656.3) - 1, 352, 2, 56);
+                g1.fillStyle = '#000'; g1.fillRect(X(656.3 * (1 + last.z)) - 2.5, 360, 5, 40);
+                g1.font = SIM.font(18); g1.fillStyle = '#fff'; g1.fillText('Hα 원래 위치', X(656.3), 428);
+                g1.textAlign = 'left'; g1.font = SIM.font(24); const y0 = 480;
+                g1.fillStyle = '#facc15'; g1.fillText('거리 r (표준 촛불): ' + last.r.toFixed(0) + ' Mpc', 34, y0);
+                g1.fillStyle = '#fca5a5'; g1.fillText('적색 이동 z: ' + last.z.toFixed(4), 34, y0 + 40);
+                g1.fillStyle = '#f87171'; g1.fillText('후퇴 속도 v = cz: ' + Math.round(last.v).toLocaleString() + ' km/s', 34, y0 + 80);
+            }
+            // 오른쪽: 그래프
+            const YM = ymax(), X2 = r => L + r / XM * (R - L), Y2 = v => B - v / YM * (B - T);
+            g2.clearRect(0, 0, W2, H2);
+            g2.strokeStyle = '#e2e8f0'; g2.lineWidth = 1.5;
+            for (let r = 100; r <= XM; r += 100) { g2.beginPath(); g2.moveTo(X2(r), T); g2.lineTo(X2(r), B); g2.stroke(); }
+            for (let v = 10000; v <= YM; v += 10000) { g2.beginPath(); g2.moveTo(L, Y2(v)); g2.lineTo(R, Y2(v)); g2.stroke(); }
+            g2.strokeStyle = '#334155'; g2.lineWidth = 3; g2.beginPath(); g2.moveTo(L, T - 8); g2.lineTo(L, B); g2.lineTo(R + 8, B); g2.stroke();
+            g2.fillStyle = '#334155'; g2.font = SIM.font(19, false); g2.textAlign = 'center';
+            for (let r = 0; r <= XM; r += 100) g2.fillText(r, X2(r), B + 26);
+            g2.textAlign = 'right'; for (let v = 0; v <= YM; v += 10000) g2.fillText(v.toLocaleString(), L - 10, Y2(v) + 6);
+            g2.textAlign = 'center'; g2.font = SIM.font(22); g2.fillText('거리 r (Mpc)', (L + R) / 2, B + 62);
+            g2.save(); g2.translate(26, (T + B) / 2); g2.rotate(-Math.PI / 2); g2.fillText('후퇴 속도 v (km/s)', 0, 0); g2.restore();
+            if (pts.length >= 2) {
+                let a = 0, b = 0; pts.forEach(p => { a += p.r * p.v; b += p.r * p.r; }); const H = a / b;
+                g2.strokeStyle = '#3b82f6'; g2.lineWidth = 4; g2.beginPath(); g2.moveTo(X2(0), Y2(0)); const re = Math.min(XM, YM / H); g2.lineTo(X2(re), Y2(H * re)); g2.stroke();
+                g2.fillStyle = '#2563eb'; g2.font = SIM.font(24); g2.textAlign = 'left'; g2.fillText('기울기 = H ≈ ' + H.toFixed(1), L + 30, T + 50);
+            }
+            pts.forEach(p => { const fresh = p === last && t - p.t < 1500; g2.fillStyle = fresh ? '#ef4444' : '#f59e0b'; g2.beginPath(); g2.arc(X2(p.r), Y2(p.v), fresh ? 11 : 8, 0, 7); g2.fill(); g2.strokeStyle = '#fff'; g2.lineWidth = 2; g2.stroke(); });
+            g2.fillStyle = '#64748b'; g2.font = SIM.font(20); g2.textAlign = 'left'; g2.fillText('관측한 은하: ' + pts.length + '개', R - 190, B - 20);
+        });
+    })();
+
+
+</script>
+
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+</script>
+</body>
+</html>

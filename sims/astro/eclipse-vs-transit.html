@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식쌍성 vs 외계 행성 광도 곡선</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .simulator-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--panel-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #0b1121;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        input[type="radio"] {
+            accent-color: var(--accent);
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .val-display {
+            background-color: var(--panel-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 1rem;
+            min-width: 60px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        button {
+            background-color: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        canvas {
+            width: 100%;
+            border-radius: 0.75rem;
+            background-color: #000;
+            border: 1px solid var(--border);
+        }
+
+        #orbit-canvas {
+            height: 300px;
+        }
+
+        #chart-canvas {
+            height: 250px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>식쌍성 vs 외계 행성 광도 곡선 시뮬레이터</h1>
+        <p>천체가 서로를 가릴 때 발생하는 밝기 변화(광도 곡선)를 비교해 보세요.</p>
+    </div>
+
+    <div class="simulator-container">
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>관측 대상 선택 (모드)</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="mode" value="binary" checked id="radio-binary">
+                        <span>식쌍성 (Eclipsing Binary)</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="mode" value="exo" id="radio-exo">
+                        <span>외계 행성 (Exoplanet)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>동반 천체의 크기 비율 (R₂ / R₁)</label>
+                <div class="slider-container">
+                    <input type="range" id="size-slider" min="0.1" max="0.8" step="0.05" value="0.5">
+                    <span class="val-display" id="size-val">0.50</span>
+                </div>
+            </div>
+
+            <div class="control-group" style="justify-content: flex-end;">
+                <button id="btn-toggle-play">일시정지 ⏸</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <!-- 궤도 운동 시각화 -->
+            <canvas id="orbit-canvas"></canvas>
+            
+            <div class="legend" id="dynamic-legend">
+                <div class="legend-item"><div class="dot" style="background:#fde047;"></div>중심별 (스스로 빛을 냄)</div>
+                <div class="legend-item"><div class="dot" style="background:#f97316;" id="legend-companion-color"></div><span id="legend-companion-text">동반성 (스스로 약한 빛을 냄)</span></div>
+            </div>
+
+            <!-- 광도 곡선 그래프 -->
+            <canvas id="chart-canvas"></canvas>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM Elements
+        const canvasOrbit = document.getElementById('orbit-canvas');
+        const ctxOrbit = canvasOrbit.getContext('2d');
+        const canvasChart = document.getElementById('chart-canvas');
+        const ctxChart = canvasChart.getContext('2d');
+        
+        const radioBinary = document.getElementById('radio-binary');
+        const radioExo = document.getElementById('radio-exo');
+        const sizeSlider = document.getElementById('size-slider');
+        const sizeVal = document.getElementById('size-val');
+        const btnTogglePlay = document.getElementById('btn-toggle-play');
+        const legendCompanionColor = document.getElementById('legend-companion-color');
+        const legendCompanionText = document.getElementById('legend-companion-text');
+
+        // State Variables
+        let mode = 'binary'; // 'binary' or 'exo'
+        let sizeRatio = 0.5;
+        let phase = 0; // 0 to 2PI
+        let isPlaying = true;
+        let fluxHistory = [];
+        const MAX_HISTORY = 300;
+
+        // Constants
+        const R1 = 50; // Main star radius
+        const ORBIT_RADIUS = 200; // Orbit semi-major axis
+        const SPEED = 0.02; // Angular velocity
+
+        // Resize Canvas to fit container
+        function resizeCanvas() {
+            canvasOrbit.width = canvasOrbit.parentElement.clientWidth;
+            canvasOrbit.height = 300;
+            canvasChart.width = canvasChart.parentElement.clientWidth;
+            canvasChart.height = 250;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Event Listeners
+        radioBinary.addEventListener('change', (e) => {
+            if(e.target.checked) setMode('binary');
+        });
+        radioExo.addEventListener('change', (e) => {
+            if(e.target.checked) setMode('exo');
+        });
+
+        sizeSlider.addEventListener('input', (e) => {
+            sizeRatio = parseFloat(e.target.value);
+            sizeVal.textContent = sizeRatio.toFixed(2);
+            // Clear history on size change to rescale cleanly
+            fluxHistory = []; 
+        });
+
+        btnTogglePlay.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            btnTogglePlay.textContent = isPlaying ? "일시정지 ⏸" : "재생 ▶";
+        });
+
+        function setMode(newMode) {
+            mode = newMode;
+            fluxHistory = []; // Reset chart
+            phase = Math.PI / 2; // Reset position to side (out of transit)
+            
+            if(mode === 'binary') {
+                sizeSlider.min = "0.2";
+                sizeSlider.max = "0.9";
+                sizeSlider.value = "0.6";
+                sizeRatio = 0.6;
+                legendCompanionColor.style.background = "#f97316";
+                legendCompanionText.textContent = "동반성 (스스로 약한 빛을 냄)";
+            } else {
+                // Exoplanets are much smaller relative to star
+                sizeSlider.min = "0.05";
+                sizeSlider.max = "0.3";
+                sizeSlider.value = "0.15";
+                sizeRatio = 0.15;
+                legendCompanionColor.style.background = "#1e293b";
+                legendCompanionColor.style.border = "1px solid #475569";
+                legendCompanionText.textContent = "행성 (스스로 빛을 내지 않음)";
+            }
+            sizeVal.textContent = sizeRatio.toFixed(2);
+        }
+        
+        // Initialize Mode
+        setMode('binary');
+
+        // Math: Circle Intersection Area
+        function getOverlapArea(r1, r2, d) {
+            if (d >= r1 + r2) return 0; // No overlap
+            if (d <= Math.abs(r1 - r2)) return Math.PI * Math.pow(Math.min(r1, r2), 2); // One completely inside other
+            
+            let r1Sq = r1 * r1;
+            let r2Sq = r2 * r2;
+            let dSq = d * d;
+            
+            let d1 = (r1Sq - r2Sq + dSq) / (2 * d);
+            let d2 = d - d1;
+            
+            let part1 = r1Sq * Math.acos(d1 / r1) - d1 * Math.sqrt(Math.max(0, r1Sq - d1 * d1));
+            let part2 = r2Sq * Math.acos(d2 / r2) - d2 * Math.sqrt(Math.max(0, r2Sq - d2 * d2));
+            
+            return part1 + part2;
+        }
+
+        // Generate static star background
+        const stars = [];
+        for(let i=0; i<150; i++) {
+            stars.push({
+                x: Math.random() * 2000,
+                y: Math.random() * 500,
+                s: Math.random() * 1.5,
+                a: Math.random()
+            });
+        }
+
+        function drawStars(ctx, width, height) {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, width, height);
+            stars.forEach(s => {
+                ctx.fillStyle = `rgba(255, 255, 255, ${s.a})`;
+                ctx.beginPath();
+                ctx.arc(s.x % width, s.y % height, s.s, 0, Math.PI*2);
+                ctx.fill();
+            });
+        }
+
+        // Main Animation Loop
+        function animate() {
+            if (isPlaying) {
+                phase += SPEED;
+                if (phase > Math.PI * 2) phase -= Math.PI * 2;
+            }
+
+            renderOrbit();
+            calculateFlux();
+            renderChart();
+
+            requestAnimationFrame(animate);
+        }
+
+        function renderOrbit() {
+            const w = canvasOrbit.width;
+            const h = canvasOrbit.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            ctxOrbit.clearRect(0, 0, w, h);
+            drawStars(ctxOrbit, w, h);
+
+            // Orbit Path
+            ctxOrbit.beginPath();
+            ctxOrbit.ellipse(cx, cy, ORBIT_RADIUS, 15, 0, 0, Math.PI * 2);
+            ctxOrbit.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            ctxOrbit.lineWidth = 1;
+            ctxOrbit.stroke();
+
+            const R2 = R1 * sizeRatio;
+            const companionX = cx + Math.cos(phase) * ORBIT_RADIUS;
+            // Add slight Y tilt to orbital plane for 3D effect
+            const companionY = cy + Math.sin(phase) * 15; 
+            const isCompanionInFront = Math.sin(phase) > 0;
+
+            // Draw functions
+            const drawMainStar = () => {
+                const grd = ctxOrbit.createRadialGradient(cx, cy, 0, cx, cy, R1);
+                grd.addColorStop(0, "#fef08a"); // Bright yellow
+                grd.addColorStop(0.7, "#eab308");
+                grd.addColorStop(1, "#ca8a04");
+                
+                ctxOrbit.beginPath();
+                ctxOrbit.arc(cx, cy, R1, 0, Math.PI * 2);
+                ctxOrbit.fillStyle = grd;
+                ctxOrbit.fill();
+                
+                // Glow
+                ctxOrbit.shadowBlur = 40;
+                ctxOrbit.shadowColor = "#fef08a";
+                ctxOrbit.fill();
+                ctxOrbit.shadowBlur = 0; // reset
+            };
+
+            const drawCompanion = () => {
+                ctxOrbit.beginPath();
+                ctxOrbit.arc(companionX, companionY, Math.max(2, R2), 0, Math.PI * 2);
+                
+                if (mode === 'binary') {
+                    const grd = ctxOrbit.createRadialGradient(companionX, companionY, 0, companionX, companionY, R2);
+                    grd.addColorStop(0, "#fdba74");
+                    grd.addColorStop(1, "#c2410c"); // Darker orange/red
+                    ctxOrbit.fillStyle = grd;
+                    ctxOrbit.fill();
+                    ctxOrbit.shadowBlur = 20;
+                    ctxOrbit.shadowColor = "#ea580c";
+                    ctxOrbit.fill();
+                    ctxOrbit.shadowBlur = 0;
+                } else {
+                    // Exoplanet (Dark silhouette)
+                    ctxOrbit.fillStyle = "#0f172a";
+                    ctxOrbit.fill();
+                    // Optional: tiny atmosphere glow when in front
+                    if (isCompanionInFront) {
+                        ctxOrbit.strokeStyle = "rgba(255,255,255,0.1)";
+                        ctxOrbit.lineWidth = 2;
+                        ctxOrbit.stroke();
+                    }
+                }
+            };
+
+            // Depth sorting
+            if (isCompanionInFront) {
+                drawMainStar();
+                drawCompanion();
+            } else {
+                drawCompanion();
+                drawMainStar();
+            }
+        }
+
+        function calculateFlux() {
+            if (!isPlaying && fluxHistory.length > 0) return; // Don't add data if paused
+
+            const R2 = R1 * sizeRatio;
+            
+            // X-distance projected on 2D plane
+            const dx = Math.cos(phase) * ORBIT_RADIUS;
+            // Y-distance (tilt)
+            const dy = Math.sin(phase) * 15;
+            const d = Math.sqrt(dx*dx + dy*dy);
+            const z = Math.sin(phase); // Positive = front, Negative = back
+
+            const overlapArea = getOverlapArea(R1, R2, d);
+
+            // Luminosity settings
+            const surfBright1 = 1.0;
+            const surfBright2 = mode === 'binary' ? 0.3 : 0.0; // Companion is dimmer or completely dark
+
+            const L1 = Math.PI * R1 * R1 * surfBright1;
+            const L2 = Math.PI * R2 * R2 * surfBright2;
+            const maxLuminosity = L1 + L2;
+
+            let currentLuminosity = maxLuminosity;
+
+            if (z > 0) {
+                // Companion is in FRONT, blocking main star
+                currentLuminosity -= overlapArea * surfBright1;
+            } else {
+                // Companion is BEHIND, main star blocks companion
+                currentLuminosity -= overlapArea * surfBright2;
+            }
+
+            const relativeFlux = currentLuminosity / maxLuminosity;
+
+            fluxHistory.push(relativeFlux);
+            if (fluxHistory.length > MAX_HISTORY) {
+                fluxHistory.shift();
+            }
+        }
+
+        function renderChart() {
+            const w = canvasChart.width;
+            const h = canvasChart.height;
+            const padX = 50;
+            const padY = 30;
+            const graphW = w - padX * 2;
+            const graphH = h - padY * 2;
+
+            ctxChart.clearRect(0, 0, w, h);
+
+            // Draw Background grid
+            ctxChart.strokeStyle = "#334155";
+            ctxChart.lineWidth = 1;
+            ctxChart.beginPath();
+            for(let i=0; i<=4; i++) {
+                let y = padY + (graphH / 4) * i;
+                ctxChart.moveTo(padX, y);
+                ctxChart.lineTo(w - padX, y);
+            }
+            ctxChart.stroke();
+
+            // Determine Y-axis Scale based on mode and size
+            let yMin, yMax = 1.01;
+            
+            if (mode === 'binary') {
+                // Binary max dip is roughly when R2 blocks R1 (1 * R2^2) + secondary (0.3 * R2^2)
+                // Let's compute theoretical max dip for current size
+                let maxPossibleBlock = Math.PI * Math.pow(R1 * sizeRatio, 2) * 1.0; // front block
+                let totalL = (Math.PI * R1*R1*1.0) + (Math.PI * Math.pow(R1 * sizeRatio, 2)*0.3);
+                let theoreticalMin = 1.0 - (maxPossibleBlock / totalL);
+                yMin = theoreticalMin - 0.05; // give 5% padding
+            } else {
+                // Exoplanet max dip is exactly (R2/R1)^2
+                let ratio = sizeRatio;
+                let theoreticalMin = 1.0 - (ratio * ratio);
+                yMin = theoreticalMin - (ratio * ratio * 0.5); // dynamic padding based on dip depth
+            }
+            
+            // Ensure minimum spread to avoid flatline appearance
+            if (yMax - yMin < 0.05) yMin = yMax - 0.05; 
+
+            // Draw Y-axis Labels
+            ctxChart.fillStyle = "#94a3b8";
+            ctxChart.font = "12px sans-serif";
+            ctxChart.textAlign = "right";
+            ctxChart.textBaseline = "middle";
+            ctxChart.fillText("1.00", padX - 10, padY + graphH * (yMax - 1.0)/(yMax - yMin));
+            ctxChart.fillText("상대 광도", padX - 10, padY - 10);
+            
+            let midVal = (yMax + yMin) / 2;
+            ctxChart.fillText(midVal.toFixed(2), padX - 10, padY + graphH/2);
+            ctxChart.fillText(yMin.toFixed(2), padX - 10, padY + graphH);
+
+            // Plot Data
+            if (fluxHistory.length === 0) return;
+
+            ctxChart.beginPath();
+            ctxChart.strokeStyle = "#38bdf8";
+            ctxChart.lineWidth = 3;
+            ctxChart.lineJoin = "round";
+
+            for (let i = 0; i < fluxHistory.length; i++) {
+                let flux = fluxHistory[i];
+                let x = padX + (i / MAX_HISTORY) * graphW;
+                
+                // Map flux to Y coordinate
+                let y = padY + graphH - ((flux - yMin) / (yMax - yMin)) * graphH;
+                
+                // Clamp Y visually inside graph area
+                y = Math.max(padY, Math.min(padY + graphH, y));
+
+                if (i === 0) ctxChart.moveTo(x, y);
+                else ctxChart.lineTo(x, y);
+            }
+            ctxChart.stroke();
+            
+            // Draw current point indicator
+            let lastFlux = fluxHistory[fluxHistory.length-1];
+            let lastX = padX + ((fluxHistory.length-1) / MAX_HISTORY) * graphW;
+            let lastY = padY + graphH - ((lastFlux - yMin) / (yMax - yMin)) * graphH;
+            
+            ctxChart.beginPath();
+            ctxChart.arc(lastX, lastY, 5, 0, Math.PI*2);
+            ctxChart.fillStyle = "#fff";
+            ctxChart.fill();
+            ctxChart.strokeStyle = "#38bdf8";
+            ctxChart.lineWidth = 2;
+            ctxChart.stroke();
+            
+            // X-axis label
+            ctxChart.fillStyle = "#94a3b8";
+            ctxChart.textAlign = "center";
+            ctxChart.fillText("시간 (시간/위상) ➔", w/2, h - 5);
+        }
+
+        // Start Animation
+        animate();
+
+    </script>
+</body>
+</html>
