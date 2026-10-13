@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>퇴적 구조로 지층 역전 판별하기</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .sorter{display:flex;flex-direction:column;gap:16px;width:100%}
+            .sort-pool{display:flex;flex-wrap:wrap;gap:12px;min-height:70px;padding:14px;border:2px dashed #cbd5e1;border-radius:18px;background:#f8fafc}
+            .sort-chip{border:2px solid #94a3b8;background:#fff;border-radius:14px;padding:8px 18px;font-size:26px;font-weight:bold;color:#334155;cursor:pointer;font-family:inherit;transition:transform .15s}
+            .sort-chip.sel{border-color:#ea580c;background:#fff7ed;color:#c2410c;transform:scale(1.06)}
+            .sort-chip.bad{animation:shake .4s}
+            .sort-chip.ok{cursor:default;border-color:#93c5fd;background:#eff6ff;color:#1d4ed8;font-size:23px;padding:6px 14px}
+            @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+            .sort-bins{display:flex;gap:16px}
+            .sort-bin{flex:1;border:3px solid #cbd5e1;border-radius:18px;padding:12px 14px;min-height:250px;background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+            .sort-bin h4{font-size:28px;font-weight:800;margin-bottom:4px}
+            .sort-bin .items{display:flex;flex-wrap:wrap;gap:8px}
+            .sort-bin.hl{border-color:#ea580c;background:#fffbf5}
+            .sort-msg{font-size:26px;font-weight:bold;min-height:36px;color:#334155}
+            .tree{display:flex;gap:20px;align-items:stretch}
+            .tree .br{flex:1;border:2px solid #cbd5e1;border-radius:18px;padding:14px 18px;background:#f8fafc}
+            .tree h4{font-size:30px;font-weight:800;margin-bottom:8px}
+            .tree li{font-size:26px;line-height:1.6;margin-left:28px}
+        </style><style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s16">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>이 지층, 뒤집혔을까? 퇴적 구조로 판별하기</div>
+            <div class="ppt-subtitle">퇴적 구조를 보고 지층의 <span class="or">원래 위쪽</span>이 어디인지 골라 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cD3" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>원래의 위쪽은?</h4>
+                        <div class="sim-btns"><button class="sim-btn" data-up="1">▲ 그림의 위쪽</button><button class="sim-btn" data-up="0">▼ 그림의 아래쪽</button></div>
+                        <div class="sim-btns" style="margin-top:8px"><button class="sim-btn orange" id="bD3">다음 문제</button></div>
+                    </div>
+                    <div class="sim-box key" id="oD3" style="font-size:24px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">지층은 과거를 기록한 책이에요</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">02. 퇴적 지층과 지질 시대의 환경</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px;">
+                    <img data-noimg="" style="width:100%;height:100%;object-fit:cover;object-position:50% 40%">
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">퇴적암 · 퇴적 구조 · 지질 시대 · 화석 · 고기후</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">퇴적암에 남은 <span class="or">흔적</span>으로 과거 지구의 <span class="or">환경과 생물</span>을 읽어 내요.</div>
+            <div class="main">
+                <div class="col" style="width:1060px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div>퇴적암의 형성 과정과 퇴적암에 기록된 <b>퇴적 구조</b>와 <b>퇴적 환경</b>의 관계를 설명할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>지질 시대를 <b>기(紀) 수준</b>에서 구분하고, 지층과 화석을 통해 지질 시대의 <b>생물과 환경 변화</b>를 해석할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:640px;border-radius:14px;border:2px solid #e2e8f0">
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: 공룡의 모습은 실제로 어땠을까?</div>
+            <div class="ppt-subtitle">지질 시대에는 어떤 생물이 살았을까? 과거의 환경은 어떻게 알아낼까?</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:880px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>아무도 본 적 없는 공룡의 모습과 그 시대의 환경을 과학자들은 어떻게 알아냈을까?</div>
+                    <div class="card" data-step="2">단서는 <b>퇴적암</b>에 있어요. 퇴적암 속 <b>퇴적 구조</b>와 <b>화석</b>이 과거를 기록하고 있거든요.</div>
+                    <div class="card key" data-step="3">오늘은 지층이라는 책을 <b>읽는 방법</b>을 배워요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">퇴적암은 어떻게 만들어질까?</div>
+            <div class="ppt-subtitle">풍화 → 침식 → 운반 → <span class="or">퇴적</span> → <span class="or">속성 작용</span></div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1180px;flex:none"><img data-noimg="" style="width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">지표의 암석이 <b>풍화·침식</b>으로 잘게 부서져 낮은 곳으로 운반돼요.</div>
+                    <div class="card" data-step="2">바다, 호수, 범람원 같은 <b>저지대</b>에 퇴적물이 계속 쌓여요.</div>
+                    <div class="card key" data-step="3">쌓인 퇴적물이 다져지고 굳어져 퇴적암이 되기까지의 전체 과정 = <b>속성 작용</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">속성 작용 = 다짐 작용 + 교결 작용</div>
+            <div class="ppt-subtitle">눌려서 <span class="or">빈틈이 줄고</span>, 교결 물질이 입자를 <span class="or">붙여요</span>.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:380px;flex:none"><img data-noimg="" style="max-height:622px"></div>
+                <div class="col grow" style="justify-content:center;gap:16px">
+                    <div class="card" data-step="1"><span class="tag b">다짐 작용</span>윗부분 퇴적물의 <b>무게</b>로 아래 퇴적물이 눌려 입자 사이 간격이 좁아져요.</div>
+                    <div class="card" data-step="2"><span class="tag o">교결 작용</span>지하수에 녹아 있던 <b>규질·석회 물질, 산화 철</b> 등이 입자 사이를 메우며 입자들을 붙여요.</div>
+                    <div class="card key" data-step="3">Q. 운동장 모래를 단단히 다지면 암석이 될까? → 아니요! 압축과 함께 <b>교결 작용</b>이 꼭 필요해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s6">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>퇴적물을 깊이 묻어 퇴적암으로 만들어 봐요</div>
+            <div class="ppt-subtitle">묻힌 깊이를 늘리면 <span class="or">공극(빈틈)</span>이 줄고, 교결 물질이 들어오면 단단해져요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cD1" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:150px">묻힌 깊이</span><input type="range" class="sim-range" id="rD1" min="0" max="1" step="0.01" value="0"></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bD1c">교결 물질 넣기</button><button class="sim-btn" id="bD1r">처음부터</button></div>
+                    </div>
+                    <div class="sim-box key" id="oD1" style="font-size:24px"></div>
+                    <div class="sim-note">※ 개념 모형이에요. 공극률은 그림 속 입자 면적으로 계산한 값이라 실제 암석의 값과는 달라요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">퇴적물의 기원에 따라 세 종류로 나눠요</div>
+            <div class="ppt-subtitle"><span class="or">쇄설성</span> · <span class="or">화학적</span> · <span class="or">유기적</span> 퇴적암 (퇴적물 → 퇴적암)</div>
+            <div class="main" style="flex-direction:column;gap:14px">
+                <div style="display:flex;gap:20px;align-items:stretch">
+<div class="gcard" data-step="1" style="font-size:31px;gap:4px"><h3>🪨 쇄설성 퇴적암</h3><div style="font-size:25px;color:#475569;margin-bottom:6px">기존 암석이 풍화·침식된 입자, 화산재가 쌓여 굳음</div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>자갈, 모래, 점토</span><b>→ 역암</b></div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>모래, 점토</span><b>→ 사암</b></div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>점토</span><b>→ 셰일, 이암</b></div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>화산재</span><b>→ 응회암</b></div></div><div class="gcard orange" data-step="2" style="font-size:31px;gap:4px"><h3>🧪 화학적 퇴적암</h3><div style="font-size:25px;color:#475569;margin-bottom:6px">물에 녹은 화학 성분이 침전</div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>탄산칼슘(CaCO₃)</span><b>→ 석회암</b></div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>염화 나트륨(NaCl)</span><b>→ 암염</b></div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>규질(SiO₂)</span><b>→ 처트</b></div></div><div class="gcard" data-step="3" style="font-size:31px;gap:4px"><h3>🐚 유기적 퇴적암</h3><div style="font-size:25px;color:#475569;margin-bottom:6px">생물의 유해나 골격이 쌓임</div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>석회질 생물체</span><b>→ 석회암</b></div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>규질 생물체</span><b>→ 처트</b></div><div style="display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:2px dashed #e2e8f0"><span>식물체</span><b>→ 석탄</b></div></div>
+                </div>
+                <div class="note" data-step="3">석회암과 처트는 화학적으로도, 유기적으로도 만들어질 수 있어요. 퇴적학에서는 지름 2 mm 이상의 입자를 자갈로 분류해요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">쇄설성 퇴적암: 입자의 크기로 구분해요</div>
+            <div class="ppt-subtitle">자갈 → <span class="or">역암</span>, 모래 → <span class="or">사암</span>, 점토 → <span class="or">셰일·이암</span>, 화산재 → <span class="or">응회암</span></div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1100px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card soft" data-step="1">역암: 굵은 <b>자갈</b>이 보여요.</div>
+                    <div class="card soft" data-step="2">사암: <b>모래</b> 알갱이가 느껴져요.</div>
+                    <div class="card soft" data-step="3">셰일·이암: 아주 고운 <b>점토</b>, 셰일은 얇게 쪼개져요.</div>
+                    <div class="card soft" data-step="4">응회암: <b>화산재</b>가 굳어 생겼어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">화학적 퇴적암과 유기적 퇴적암</div>
+            <div class="ppt-subtitle">물에서 <span class="or">침전</span>되거나 <span class="or">생물</span>이 쌓여서 만들어져요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:760px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1"><span class="tag o">화학적</span>건조한 환경에서 물이 증발 → <b>암염</b>·석고 / 해수 중 탄산염 침전 → <b>석회암</b> / 규질 물질 침전 → <b>처트</b></div>
+                    <div class="card" data-step="2"><span class="tag g">유기적</span>산호·조개·유공충 → <b>석회암</b> / 규조류 → <b>처트</b> / 육상식물이 매몰되어 높은 온도·압력 → <b>석탄</b></div>
+                    <div class="card key" data-step="3">석회암과 처트는 화학적으로도, 유기적으로도 만들어질 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">퇴적 구조: 퇴적 당시의 환경을 알려 주는 단서</div>
+            <div class="ppt-subtitle">층리, 점이 층리, 사층리, 연흔, 건열 → <span class="or">환경</span>, 지층의 <span class="or">상하 관계</span>, <span class="or">역전</span> 여부</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="1" style="flex:1;text-align:center;font-size:36px"><b>층리</b><br><span style="font-size:29px">퇴적물이 층층이 쌓인 줄무늬, 보통 수평</span></div>
+                    <div class="card" data-step="2" style="flex:1;text-align:center;font-size:36px"><b>점이 층리</b><br><span style="font-size:29px">깊은 바다·깊은 호수</span></div>
+                    <div class="card" data-step="3" style="flex:1;text-align:center;font-size:36px"><b>사층리</b><br><span style="font-size:29px">물·바람 방향이 자주 변하는 곳</span></div>
+                </div>
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="4" style="flex:1;text-align:center;font-size:36px"><b>연흔</b><br><span style="font-size:29px">수심이 얕은 물 밑</span></div>
+                    <div class="card" data-step="5" style="flex:1;text-align:center;font-size:36px"><b>건열</b><br><span style="font-size:29px">얕은 물 → 건조한 대기에 노출</span></div>
+                    <div class="card key" data-step="6" style="flex:1;text-align:center;font-size:28px">하나씩 크게 살펴볼까요?</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s11">
+            <div class="ppt-title">점이 층리: 위로 갈수록 입자가 작아져요</div>
+            <div class="ppt-subtitle">퇴적물이 <span class="or">수심이 깊은</span> 바다나 깊은 호수에 쌓일 때 형성돼요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1020px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">한 지층 안에서 <b>아래는 굵고, 위는 가는</b> 입자</div>
+                    <div class="card" data-step="2">큰 입자가 <b>먼저</b>, 작은 입자가 <b>나중에</b> 가라앉기 때문</div>
+                    <div class="card key" data-step="3">→ 입자가 작은 쪽이 지층의 <b>위쪽</b>! 역전 여부를 알 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s12">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>깊은 물속에서 점이 층리 만들기</div>
+            <div class="ppt-subtitle">여러 크기의 퇴적물이 한꺼번에 쏟아지면 <span class="or">어떤 입자가 먼저</span> 바닥에 닿을까?</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cD2" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-btns"><button class="sim-btn orange" id="bD2">퇴적물 쏟아붓기</button><button class="sim-btn" id="bD2r">물 비우기</button></div>
+                    </div>
+                    <div class="sim-box key" id="oD2" style="font-size:24px"></div>
+                    <div class="sim-note">※ 개념 모형이에요. 물속에서 작은 입자의 침강 속도는 지름의 제곱에 비례한다(스토크스 법칙)는 관계를 이용해 상대적인 속도만 나타냈어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s13">
+            <div class="ppt-title">사층리: 비스듬히 기울거나 엇갈린 층리</div>
+            <div class="ppt-subtitle">물 또는 바람의 방향이 <span class="or">자주 변하는</span> 환경에서 만들어져요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1020px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">모래가 언덕의 경사면을 따라 굴러 내려가 <b>비스듬히</b> 쌓여요.</div>
+                    <div class="card" data-step="2">과거에 물이 흘렀던 방향이나 바람이 불었던 <b>방향</b>을 알 수 있어요.</div>
+                    <div class="card key" data-step="3">사막, 삼각주, 범람원 등에서 잘 나타나요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s14">
+            <div class="ppt-title">연흔: 물결 모양의 울퉁불퉁한 흔적</div>
+            <div class="ppt-subtitle">주로 <span class="or">수심이 얕은</span> 물 밑에서 형성돼요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px;flex:none;justify-content:center;align-items:center;gap:12px">
+                    <img data-noimg="" style="height:330px;border-radius:14px">
+                    <img data-noimg="" style="width:900px;border-radius:14px">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1"><span class="tag o">비대칭 연흔</span>한 방향으로 흐르는 바람이 작용하는 <b>사막이나 강</b></div>
+                    <div class="card" data-step="2"><span class="tag b">대칭 연흔</span>물결이 오가는 <b>바다</b>에서 주로 관찰</div>
+                    <div class="card key" data-step="3">물결의 <b>뾰족한 부분</b>이 위를 향해요 → 지층의 위아래 판단</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">건열: 논바닥이 갈라진 것 같은 구조</div>
+            <div class="ppt-subtitle">얕은 곳에 쌓인 점토질 물질이 <span class="or">건조한 대기</span>에 노출되어 생겨요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px;flex:none;justify-content:center;align-items:center;gap:12px">
+                    <img data-noimg="" style="height:330px;border-radius:14px">
+                    <img data-noimg="" style="width:900px;border-radius:14px">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">수심이 얕은 곳에 <b>점토질</b> 물질이 쌓인 뒤, 수면 위로 드러나 마르며 갈라져요.</div>
+                    <div class="card" data-step="2">갈라진 틈은 <b>위쪽이 넓은 쐐기 모양</b> → 지층의 위아래 판단</div>
+                    <div class="note" data-step="3">건조 기후에서는 사질 퇴적물이 많아 오히려 건열이 생기기 쉽지 않아요. ‘건조한 지역에서만’ 생기는 것은 아니에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">퇴적 환경: 육상 · 연안 · 해양</div>
+            <div class="ppt-subtitle">퇴적 구조를 종합하면 과거의 <span class="or">퇴적 환경</span>을 추론할 수 있어요. 그림 속 환경을 찾아봐요.</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:14px;border:2px solid #e2e8f0">
+            </div>
+        </div>
+        <div class="slide-x" id="s17b">
+            <div class="ppt-title">퇴적 환경을 세 곳으로 나누어 정리해요</div>
+            <div class="ppt-subtitle">육지에서 바다 쪽으로 가면서 환경이 달라져요.</div>
+            <div class="main" style="gap:24px">
+                <div class="gcard orange" data-step="1" style="font-size:36px;justify-content:center"><h3>🏜 육상 환경</h3><div>호수, 사막, 범람원, 빙하</div></div>
+                <div class="gcard" data-step="2" style="font-size:36px;justify-content:center;border-color:#86efac;background:#f0fdf4"><h3>🏖 연안 환경</h3><div>삼각주, 해빈</div><div style="font-size:26px;color:#475569">육지와 바다가 만나는 곳</div></div>
+                <div class="gcard" data-step="3" style="font-size:36px;justify-content:center;border-color:#93c5fd;background:#eff6ff"><h3>🌊 해양 환경</h3><div>대륙붕, 대륙대</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">우리나라 남해안에서 찾을 수 있는 퇴적 구조</div>
+            <div class="ppt-subtitle">각 구조는 <span class="or">어떤 환경</span>에서 만들어졌을까? 지금의 환경과 비교해 봐요.</div>
+            <div class="main" style="flex-direction:column;align-items:center;gap:10px">
+                <img data-noimg="" style="height:555px;max-width:100%;border-radius:14px">
+                <div style="display:flex;gap:12px;width:100%">
+                    <div class="card soft qa" data-step="1" style="flex:1;font-size:23px">(가) 점이 층리: 깊은 물</div>
+                    <div class="card soft qa" data-step="2" style="flex:1;font-size:23px">(나) 사층리: 물·바람 방향 변화</div>
+                    <div class="card soft qa" data-step="3" style="flex:1;font-size:23px">(다) 건열: 얕은 물 → 건조 노출</div>
+                    <div class="card soft qa" data-step="4" style="flex:1;font-size:23px">(라) 연흔: 얕은 물 밑</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s19">
+            <div class="ppt-title">지질 시대: 약 46억 년 전부터 지금까지</div>
+            <div class="ppt-subtitle">생물계의 큰 변화, 지각 변동, 기후 변화 등을 기준으로 <span class="or">누대 → 대 → 기</span>로 나눠요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:640px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1"><b>누대</b>(가장 큰 단위): 명왕누대, 시생누대, 원생누대, 현생누대</div>
+                    <div class="card" data-step="2">명왕·시생·원생누대 = <b>선캄브리아시대</b> → 화석이 거의 발견되지 않아요.</div>
+                    <div class="card" data-step="3"><b>현생누대</b>: 화석이 비교적 많음 → 고생대, 중생대, 신생대</div>
+                    <div class="card key" data-step="4">지금은 현생누대 <b>신생대 제4기</b>예요. 그런데 그림을 보면 선캄브리아시대가 <b>대부분</b>을 차지하죠?</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">지질 시대를 기(紀) 수준까지 나눠 봐요</div>
+            <div class="ppt-subtitle">국제 층서 위원회(2023)의 구분 (단위: 백만 년 전)</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1000px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1"><span class="tag">고생대</span>캄브리아기 → 오르도비스기 → 실루리아기 → 데본기 → 석탄기 → 페름기</div>
+                    <div class="card" data-step="2"><span class="tag o">중생대</span>트라이아스기 → 쥐라기 → 백악기</div>
+                    <div class="card" data-step="3"><span class="tag g">신생대</span>고진기 → 신진기 → 제4기</div>
+                    <div class="card key" data-step="4" style="font-size:25px">경계: 고생대 시작 538.8 / 중생대 251.9 / 신생대 66.0 (백만 년 전)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s21">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>46억 년을 1년 달력으로 줄이면?</div>
+            <div class="ppt-subtitle">지구 탄생 = <span class="or">1월 1일 0시</span>, 현재 = <span class="or">12월 31일 자정</span>으로 환산해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cD4" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>사건 고르기</h4>
+                        <div class="sim-btns" id="evD4"></div>
+                    </div>
+                    <div class="sim-box key" id="oD4" style="font-size:24px"></div>
+                    <div class="sim-note">※ 연대는 교과서의 지질 시대 구분(국제 층서 위원회, 2023)과 본문 내용을 이용해 계산했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">표준 화석: 지층의 시대를 알려 줘요</div>
+            <div class="ppt-subtitle">특정 시기에 출현하여 일정 기간만 번성한 생물의 화석</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:700px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1"><b>조건</b>: 생존 기간이 <b>짧고</b>, <b>넓은 지역</b>에 분포하며, 개체 수가 <b>많아야</b> 해요.</div>
+                    <div class="card" data-step="2">지질 시대의 결정과 <b>지층 대비</b>에 이용해요.</div>
+                    <div class="card key" data-step="3">고생대: 삼엽충, 방추충 / 중생대: 암모나이트, 공룡 / 신생대: 화폐석, 매머드</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s23">
+            <div class="ppt-title">시상 화석: 그 시대의 환경을 알려 줘요</div>
+            <div class="ppt-subtitle">환경 변화에 <span class="or">민감</span>해 특정한 환경에서만 번성한 생물의 화석</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:700px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1"><b>조건</b>: 생존 기간이 <b>길고</b>, <b>특정한 환경</b>에서만 분포하며 환경 변화에 민감해야 해요.</div>
+                    <div class="card key" data-step="2">예) <b>산호</b> 화석 → 따뜻하고 얕은 바다였을 거예요.</div>
+                    <div class="card soft" data-step="3" style="font-size:26px">산호는 살던 곳에서 그대로 화석이 되는 경우가 많아 시상 화석으로 적절해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s24">
+            <div class="ppt-title">표준 화석 vs 시상 화석</div>
+            <div class="ppt-subtitle">빈칸을 눌러 비교해 봐요.</div>
+            <div class="main" style="gap:24px">
+                <div class="gcard" style="font-size:33px;justify-content:center;gap:18px"><h3>📅 표준 화석</h3>
+                    <div>분포: <span class="blank" style="min-width:90px">넓게</span></div>
+                    <div>생존 기간: <span class="blank" style="min-width:90px">짧음</span></div>
+                    <div>쓰임: <span class="blank" style="min-width:300px">지질 시대 결정, 지층 대비</span></div></div>
+                <div class="gcard orange" style="font-size:33px;justify-content:center;gap:18px"><h3>🌊 시상 화석</h3>
+                    <div>분포: <span class="blank" style="min-width:150px">특정 환경</span></div>
+                    <div>생존 기간: <span class="blank" style="min-width:90px">긺</span></div>
+                    <div>쓰임: <span class="blank" style="min-width:220px">퇴적 환경 추론</span></div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s25">
+            <div class="ppt-title">고기후 연구: 과거의 기후를 알아내는 방법</div>
+            <div class="ppt-subtitle">빙하 코어, 석회 동굴의 석순, 유공충 화석, 꽃가루 화석</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:900px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:10px">
+                    <div class="card" data-step="1" style="font-size:25px"><span class="tag b">빙하 코어</span>빙하 생성 당시의 <b>대기 조성과 기온</b></div>
+                    <div class="card" data-step="2" style="font-size:25px"><span class="tag">유공충 화석</span>껍데기의 <b>산소 동위원소비</b> → 해수의 온도</div>
+                    <div class="card" data-step="3" style="font-size:25px"><span class="tag g">꽃가루 화석</span>형태와 무늬 → 당시의 <b>식생과 기후</b></div>
+                    <div class="card" data-step="4" style="font-size:25px"><span class="tag o">석회 동굴의 석순</span>탄소 방사성 동위원소 → 형성 시기, 산소 동위원소비 → 기온</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s26">
+            <div class="ppt-title">지질 시대 동안 온난기와 한랭기가 반복되었어요</div>
+            <div class="ppt-subtitle">고기후는 화석과 함께 과거 지질 시대의 <span class="or">환경</span>을 추론하는 데 이용돼요.</div>
+            <div class="main" style="flex-direction:column;align-items:center;gap:14px">
+                <img data-noimg="" style="width:1500px;max-width:100%;border-radius:14px;border:2px solid #e2e8f0">
+                <div class="cap">지질 시대별 기후 (자료 출처: 『Paleoclimatology』, 2019)</div>
+                <div style="display:flex;gap:14px;width:100%">
+                    <div class="card" data-step="1" style="flex:1">그래프에서 <b>한랭</b>했던 시기를 찾아보세요. (예: 고생대 후기의 빙하기)</div>
+                    <div class="card key" data-step="2" style="flex:1">신생대 후반으로 갈수록 기온이 내려가 <b>제4기</b>에는 빙하기와 간빙기가 여러 번 나타났어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s27">
+            <div class="ppt-title">탐구 활동) 고기후 연구 방법 비교 · 평가하기</div>
+            <div class="ppt-subtitle">모둠별로 한 가지 방법을 조사해 표를 완성해 봐요. (지도서 예시 답안)</div>
+            <div class="main" style="flex-direction:column;justify-content:center">
+                <table style="width:100%;border-collapse:collapse;font-size:31px;line-height:1.55">
+                    <tr style="background:#eff6ff"><th style="border:2px solid #cbd5e1;padding:10px">연구 방법</th><th style="border:2px solid #cbd5e1;padding:10px">해석 방법</th><th style="border:2px solid #cbd5e1;padding:10px">추정할 수 있는 기후 요소</th><th style="border:2px solid #cbd5e1;padding:10px">연구한 지질 시대와 지역</th></tr>
+                    <tr><td style="border:2px solid #cbd5e1;padding:10px;font-weight:bold">빙하 코어</td><td style="border:2px solid #cbd5e1;padding:10px">산소 동위원소비</td><td style="border:2px solid #cbd5e1;padding:10px">과거의 기온</td><td style="border:2px solid #cbd5e1;padding:10px">신생대 / 남극 주변</td></tr>
+                    <tr data-step="1"><td style="border:2px solid #cbd5e1;padding:10px;font-weight:bold">석회 동굴의 석순</td><td style="border:2px solid #cbd5e1;padding:10px">탄소 및 산소 동위원소비</td><td style="border:2px solid #cbd5e1;padding:10px">석순의 나이, 성장 당시 온도 및 강수량 등</td><td style="border:2px solid #cbd5e1;padding:10px">신생대 / 한국, 중국 등 석회 동굴이 있는 지역</td></tr>
+                    <tr data-step="2"><td style="border:2px solid #cbd5e1;padding:10px;font-weight:bold">유공충 화석</td><td style="border:2px solid #cbd5e1;padding:10px">산소 동위원소비</td><td style="border:2px solid #cbd5e1;padding:10px">해수의 온도</td><td style="border:2px solid #cbd5e1;padding:10px">고생대, 중생대, 신생대 / 전 세계의 바다</td></tr>
+                    <tr data-step="3"><td style="border:2px solid #cbd5e1;padding:10px;font-weight:bold">꽃가루 화석</td><td style="border:2px solid #cbd5e1;padding:10px">꽃가루의 모양으로 식물의 종류 → 식물상 해석</td><td style="border:2px solid #cbd5e1;padding:10px">과거의 식물상 → 기후 변동 추적</td><td style="border:2px solid #cbd5e1;padding:10px">신생대 / 한국, 전 세계</td></tr>
+                </table>
+                <div class="card key" data-step="4" style="margin-top:14px">평가 기준: 적절성 · 넓은 지역 · 오랜 기간 · 환경 변화와 생물 변천을 알 수 있는가?</div>
+            </div>
+        </div>
+        <div class="slide-x" id="sfig12big">
+            <div class="ppt-title">선캄브리아시대의 바다를 크게 봐요</div>
+            <div class="ppt-subtitle">에디아카라 생물군 같은 <span class="or">다세포 생물</span>과 스트로마톨라이트를 찾아봐요.</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px;border:2px solid #e2e8f0">
+            </div>
+        </div>
+        <div class="slide-x" id="s28">
+            <div class="ppt-title">선캄브리아시대: 단세포 생물에서 다세포 생물까지</div>
+            <div class="ppt-subtitle">약 46억 년 전 ~ 5.4억 년 전</div>
+            <div class="main">
+                <div class="col" style="width:1000px;flex:none;justify-content:center;gap:6px">
+                    <img data-noimg="" style="width:100%;border-radius:14px">
+                    <div class="cap">선캄브리아시대의 바다 환경(상상도), 오른쪽 위: 후기 수륙 분포, 아래: 스트로마톨라이트</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:10px">
+                    <div class="card" data-step="1" style="font-size:24px">대기에 산소가 거의 없어 강한 자외선 → 육지에는 생명체 X, 바다에 <b>단세포 원핵생물</b></div>
+                    <div class="card" data-step="2" style="font-size:24px">약 30억 년 전 <b>남세균</b> 출현 → <b>스트로마톨라이트</b>, 광합성 산소 → 호상철광층 → 대기 중 산소 증가</div>
+                    <div class="card" data-step="3" style="font-size:24px">약 7억 년 전 최초의 <b>다세포 생물</b> → <b>에디아카라 생물군</b> 화석</div>
+                    <div class="note" data-step="3">오랜 지각 변동으로 지층·화석이 변형·소실되어 정확히 추정하기 어려워요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="sfig13big">
+            <div class="ppt-title">고생대의 바다를 크게 봐요</div>
+            <div class="ppt-subtitle"><span class="or">삼엽충</span>과 <span class="or">완족류</span> 화석을 찾아봐요. 오른쪽 위 지구본은 당시의 수륙 분포예요.</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px;border:2px solid #e2e8f0">
+            </div>
+        </div>
+        <div class="slide-x" id="s29">
+            <div class="ppt-title">고생대: 생물의 폭발적 출현, ‘삼엽충의 시대’</div>
+            <div class="ppt-subtitle">약 5.4억 년 전 ~ 2.5억 년 전 · 대체로 온난 건조, 후기에 빙하기 · 말기에 <span class="or">판게아</span> 형성</div>
+            <div class="main">
+                <div class="col" style="width:1000px;flex:none;justify-content:center;gap:6px">
+                    <img data-noimg="" style="width:100%">
+                    <img data-noimg="" style="width:100%;border-radius:14px">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:8px">
+                    <div class="card" data-step="1" style="font-size:23px">캄브리아기: 삼엽충, 완족류 / 오르도비스기: 두족류, 필석류, 최초의 <b>어류</b>·<b>육상 식물</b></div>
+                    <div class="card" data-step="2" style="font-size:23px">실루리아기: 갑주어, 바다 전갈 / 데본기: 어류 번성, 최초의 <b>양서류</b></div>
+                    <div class="card" data-step="3" style="font-size:23px">석탄기: 방추충, 산호, 곤충, <b>양치식물 대삼림 → 석탄층</b></div>
+                    <div class="card key" data-step="4" style="font-size:23px">페름기 말: 판게아 형성기의 조산 운동·화산 활동·기후 변화 등 → 해양 생물종의 약 90 % 멸종 추정</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="sfig14big">
+            <div class="ppt-title">중생대의 땅과 하늘을 크게 봐요</div>
+            <div class="ppt-subtitle"><span class="or">공룡</span>, 익룡, <span class="or">암모나이트</span>, 공룡 발자국을 찾아봐요.</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px;border:2px solid #e2e8f0">
+            </div>
+        </div>
+        <div class="slide-x" id="s30">
+            <div class="ppt-title">중생대: 온난한 기후, ‘공룡의 시대’</div>
+            <div class="ppt-subtitle">약 2.5억 년 전 ~ 6600만 년 전 · 판게아 분리 → 대서양 형성 시작(쥐라기), 인도양 확장(백악기)</div>
+            <div class="main">
+                <div class="col" style="width:880px;flex:none;justify-content:center;gap:6px">
+                    <img data-noimg="" style="width:100%">
+                    <img data-noimg="" style="width:100%;border-radius:14px">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:8px">
+                    <div class="card" data-step="1" style="font-size:23px">트라이아스기: 바다에 <b>암모나이트</b>, 육지에 <b>공룡</b> 출현, 최초의 <b>포유류</b>, 겉씨식물 번성</div>
+                    <div class="card" data-step="2" style="font-size:23px">쥐라기: 공룡과 암모나이트 번성, <b>시조새</b> 출현</div>
+                    <div class="card" data-step="3" style="font-size:23px">백악기: <b>속씨식물</b> 출현, 말기에 환경이 급변해 많은 생물 멸종</div>
+                    <div class="card key" data-step="4" style="font-size:23px">한반도: 공룡 발자국 등은 많지만 <b>암모나이트는 없음</b> → 중생대에 해양 환경에 노출되지 않았기 때문</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="sfig15big">
+            <div class="ppt-title">신생대의 초원을 크게 봐요</div>
+            <div class="ppt-subtitle"><span class="or">매머드</span>와 <span class="or">화폐석</span>, 참나무 잎 화석을 찾아봐요.</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px;border:2px solid #e2e8f0">
+            </div>
+        </div>
+        <div class="slide-x" id="s31">
+            <div class="ppt-title">신생대: 포유류의 번성과 인류의 등장</div>
+            <div class="ppt-subtitle">6600만 년 전 ~ 현재 · 점차 기온 하강 → 제4기에 빙하기·간빙기 반복</div>
+            <div class="main">
+                <div class="col" style="width:880px;flex:none;justify-content:center;gap:6px">
+                    <img data-noimg="" style="width:100%">
+                    <img data-noimg="" style="width:100%;border-radius:14px">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:8px">
+                    <div class="card" data-step="1" style="font-size:23px">인도-오스트레일리아판과 유라시아판 충돌 → <b>히말라야산맥</b>, 오늘날과 비슷한 수륙 분포</div>
+                    <div class="card" data-step="2" style="font-size:23px">고진기·신진기: <b>속씨식물</b> 번성 → 삼림과 초원 → 포유류 번성, 바다에 <b>화폐석</b></div>
+                    <div class="card" data-step="3" style="font-size:23px">제4기: <b>매머드</b> 같은 대형 포유류 번성, <b>인류의 조상</b> 출현</div>
+                    <div class="card key" data-step="4" style="font-size:23px">생물계는 지구 환경 변화에 따라 적응과 멸종을 이어 오며 진화해 왔어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s32">
+            <div class="ppt-title"><span class="sim-tag">활동</span>이 생물은 어느 시대에 살았을까?</div>
+            <div class="ppt-subtitle">카드를 하나 누르고, 알맞은 <span class="or">지질 시대</span> 상자를 눌러 보세요.</div>
+            <div class="main" style="flex-direction:column">
+                <div class="sorter" id="sortV2">
+                    <div class="sort-pool"></div>
+                    <div class="sort-bins">
+                        <div class="sort-bin" data-bin="pc"><h4 style="color:#16a34a">선캄브리아시대</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="pz"><h4 style="color:#2563eb">고생대</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="mz"><h4 style="color:#ea580c">중생대</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="cz"><h4 style="color:#db2777">신생대</h4><div class="items"></div></div>
+                    </div>
+                    <div class="sort-msg"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s33">
+            <div class="ppt-title">탐구 활동) 한반도에서 산출되는 화석 분포 지도</div>
+            <div class="ppt-subtitle">지도의 발자국 화석은 모두 <span class="or">중생대</span> 생물이에요. 다른 시대 화석도 조사해 봐요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:760px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:8px">
+                    <div class="card soft" data-step="1" style="font-size:22px"><span class="tag g">선캄브리아</span>스트로마톨라이트 등 (인천, 고창 등) → 대부분 바다</div>
+                    <div class="card soft" data-step="2" style="font-size:22px"><span class="tag b">고생대</span>삼엽충, 어류 / 곤충, 고사리 등 (태백, 단양 등) → 초기 바다, 후기로 갈수록 육지</div>
+                    <div class="card soft" data-step="3" style="font-size:22px"><span class="tag o">중생대</span>공룡 뼈·발자국·알, 익룡 등 (하동, 의성, 해남, 시흥 등) → 육지</div>
+                    <div class="card soft" data-step="4" style="font-size:22px"><span class="tag r">신생대</span>식물, 고래 뼈 등 (제주, 김해, 포항 등) → 현재의 한반도 모습</div>
+                    <div class="note">(지도: 『대한민국 국가지도집Ⅱ』, 2020 / 표: 지도서 예시 답안)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s34">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column; gap:18px">
+                <div style="display:flex; gap:22px; align-items:stretch">
+                    <div class="card" style="flex:1; font-size:27px; line-height:1.9"><h3 style="color:#2563eb">퇴적 구조</h3>
+                        <div>점이 층리: 위로 갈수록 입자 크기 <span class="blank" style="min-width:90px">감소</span></div>
+                        <div>사층리: 물·바람의 <span class="blank" style="min-width:90px">방향</span>을 알 수 있음</div>
+                        <div>연흔: 수심이 <span class="blank" style="min-width:70px">얕은</span> 물 밑</div>
+                        <div>건열: <span class="blank" style="min-width:90px">건조</span>한 대기에 노출</div></div>
+                    <div class="card" style="flex:1; font-size:27px; line-height:1.9"><h3 style="color:#ea580c">지질 시대</h3>
+                        <div>5.4억 년 전 ~ 2.5억 년 전: <span class="blank" style="min-width:100px">고생대</span></div>
+                        <div>2.5억 년 전 ~ 6600만 년 전: <span class="blank" style="min-width:100px">중생대</span></div>
+                        <div>삼엽충 → 고생대, 암모나이트 → <span class="blank" style="min-width:100px">중생대</span></div>
+                        <div>매머드·화폐석 → <span class="blank" style="min-width:100px">신생대</span></div></div>
+                </div>
+                <div class="note" style="text-align:right">빈칸을 누르면 정답이 나타나요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s35">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card q" data-a="p"><div class="qrow">생물이 폭발적으로 증가, 삼엽충·완족류·두족류 출현 <button class="sim-btn" data-v="p">고생대</button><button class="sim-btn" data-v="m">중생대</button><span class="res"></span></div></div>
+                <div class="card q" data-a="m"><div class="qrow">바다에 암모나이트, 육지에 공룡 번성, 최초의 포유류 출현 <button class="sim-btn" data-v="p">고생대</button><button class="sim-btn" data-v="m">중생대</button><span class="res"></span></div></div>
+                <div class="card q" data-a="w"><div class="qrow">표준 화석은 지리적으로 어떻게 분포할까? <button class="sim-btn" data-v="w">넓게</button><button class="sim-btn" data-v="n">좁게</button><span class="res"></span></div></div>
+                <div class="card q" data-a="g"><div class="qrow">깊은 바다에서 위로 갈수록 입자가 작아지는 퇴적 구조는? <button class="sim-btn" data-v="g">점이 층리</button><button class="sim-btn" data-v="c">건열</button><span class="res"></span></div></div>
+                <div class="card key" style="font-size:27px"><b>생각해 보기</b> 한반도에서 공룡 화석은 많이 발견되지만 암모나이트 화석은 발견되지 않는 까닭은? → 중생대 한반도는 <b>육지 환경</b>이었기 때문</div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+function makeSorter(id,items,names){
+  const root=document.getElementById(id),pool=root.querySelector('.sort-pool'),msg=root.querySelector('.sort-msg');let sel=null,done=0;
+  const fb=items.map(it=>it);
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function reset(){pool.innerHTML='';root.querySelectorAll('.sort-bin .items').forEach(x=>x.innerHTML='');done=0;sel=null;msg.innerHTML='카드를 하나 누른 뒤, 알맞은 상자를 눌러 보세요.';
+    shuffle(fb.slice()).forEach(it=>{const b=document.createElement('button');b.className='sort-chip';b.textContent=it.t;b.dataset.bin=it.b;b.dataset.why=it.w||'';b.onclick=e=>{e.stopPropagation();if(b.classList.contains('ok'))return;pool.querySelectorAll('.sort-chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.add('hl'));};pool.appendChild(b);});}
+  root.querySelectorAll('.sort-bin').forEach(bin=>bin.onclick=()=>{if(!sel)return;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.remove('hl'));
+    if(sel.dataset.bin===bin.dataset.bin){sel.classList.remove('sel');sel.classList.add('ok');bin.querySelector('.items').appendChild(sel);done++;msg.innerHTML='⭕ 정답! '+(sel.dataset.why?'<span style="font-weight:normal">'+sel.dataset.why+'</span>':'');msg.style.color='#2563eb';
+      if(done===items.length){msg.innerHTML='🎉 모두 분류했어요! <button class="sim-btn orange" style="margin-left:12px">다시 하기</button>';msg.querySelector('button').onclick=reset;}}
+    else{const s=sel;s.classList.remove('sel');s.classList.add('bad');setTimeout(()=>s.classList.remove('bad'),450);msg.innerHTML='❌ 다시 생각해 봐요. ('+s.textContent+' → '+names[bin.dataset.bin]+'?)';msg.style.color='#ea580c';}
+    sel=null;});
+  reset();
+}
+
+makeSorter('sortV2',[
+  {t:'남세균·스트로마톨라이트',b:'pc',w:'약 30억 년 전 광합성을 하는 최초의 생명체'},
+  {t:'에디아카라 생물군',b:'pc',w:'최초의 다세포 생물(약 7억 년 전)'},
+  {t:'삼엽충',b:'pz',w:'고생대 대표 표준 화석'},
+  {t:'방추충',b:'pz',w:'석탄기에 번성'},
+  {t:'갑주어',b:'pz',w:'실루리아기에 번성'},
+  {t:'양치식물 대삼림 → 석탄층',b:'pz',w:'석탄기'},
+  {t:'암모나이트',b:'mz',w:'중생대 대표 표준 화석'},
+  {t:'공룡',b:'mz',w:'트라이아스기에 출현'},
+  {t:'시조새',b:'mz',w:'쥐라기에 출현'},
+  {t:'화폐석',b:'cz',w:'유공충의 한 종류, 신생대 바다'},
+  {t:'매머드',b:'cz',w:'제4기 대형 포유류'},
+  {t:'인류의 조상',b:'cz',w:'제4기에 출현'}
+],{pc:'선캄브리아시대',pz:'고생대',mz:'중생대',cz:'신생대'});
+
+/* ========== SIM D1: 속성 작용 ========== */
+(function(){
+  const c=document.getElementById('cD1'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rD1');
+  const BX=330,BW=400,BOT=540,H0=420;let grains=[],cem=0,cemOn=false,dep=0,cur=0;
+  function gen(){grains=[];const rnd=SIM.rng(11);let tries=0;while(grains.length<120&&tries<30000){tries++;const rr=12+rnd()*10,x=BX+rr+rnd()*(BW-2*rr),y=BOT-H0+rr+rnd()*(H0-2*rr);if(grains.every(q=>Math.hypot(q.x-x,q.y-y)>q.r+rr+3))grains.push({x,y,r:rr,a:rnd()*3,h:rnd()});}}
+  gen();
+  r.oninput=e=>{dep=+e.target.value;};document.getElementById('bD1c').onclick=()=>{cemOn=true;};document.getElementById('bD1r').onclick=()=>{dep=0;r.value=0;cem=0;cemOn=false;};
+  SIM.loop('s6',(tm,dt)=>{cur+=(dep-cur)*Math.min(1,dt*4);if(cemOn)cem=Math.min(1,cem+dt*0.35);
+    const k=1-0.32*cur; // 세로 압축 비율
+    const top=BOT-H0*k;g.clearRect(0,0,W,H);
+    // 위에 쌓인 퇴적물 (깊이 표현)
+    const ov=cur*170;g.fillStyle='#e7d7b5';g.fillRect(BX-60,top-ov-10,BW+120,ov+10);for(let i=0;i<cur*6;i++){g.fillStyle=i%2?'#d9c49b':'#cfb991';g.fillRect(BX-60,top-ov-10+i*ov/Math.max(1,cur*6),BW+120,ov/Math.max(1,cur*6)/2);}
+    // 압력 화살표
+    if(cur>0.05){g.fillStyle='#dc2626';for(let i=0;i<4;i++){const x=BX+60+i*95;g.beginPath();g.moveTo(x,top-12);g.lineTo(x-14,top-40);g.lineTo(x+14,top-40);g.fill();}}
+    // 상자
+    g.fillStyle=cem>0?'rgba(147,197,253,'+(0.15+0.5*cem)+')':'#e0f2fe';g.fillRect(BX,top,BW,BOT-top);
+    let area=0;
+    grains.forEach(q=>{const y=BOT-(BOT-q.y)*k,ry=q.r*(1-0.18*cur),rx=q.r*(1+0.06*cur);area+=Math.PI*rx*ry;
+      g.fillStyle='hsl('+(30+q.h*14)+',45%,'+(58+q.h*12)+'%)';g.beginPath();g.ellipse(q.x,y,rx,ry,q.a*0.2,0,7);g.fill();g.strokeStyle='rgba(90,60,30,.6)';g.lineWidth=1.5;g.stroke();});
+    if(cem>0){g.strokeStyle='rgba(30,64,175,'+(0.6*cem)+')';g.lineWidth=3*cem;grains.forEach(q=>{const y=BOT-(BOT-q.y)*k;g.beginPath();g.ellipse(q.x,y,q.r*(1+0.06*cur)+2,q.r*(1-0.18*cur)+2,0,0,7);g.stroke();});}
+    g.strokeStyle='#334155';g.lineWidth=3;g.strokeRect(BX,top,BW,BOT-top);
+    const box=BW*(BOT-top),por=Math.max(0,1-area/box)*(1-0.85*cem);
+    // 눈금
+    g.fillStyle='#334155';g.font=SIM.font(22);g.textAlign='center';g.fillText(cem>0.95?'퇴적암':cem>0?'교결 작용 중':cur>0.05?'다짐 작용 중':'쌓인 퇴적물',BX+BW/2,BOT+40);
+    // 공극률 막대
+    const PX=820,PY=120,PH=360;g.fillStyle='#f1f5f9';g.fillRect(PX,PY,70,PH);g.fillStyle='#38bdf8';g.fillRect(PX,PY+PH*(1-por/0.6),70,PH*por/0.6);g.strokeStyle='#334155';g.lineWidth=2;g.strokeRect(PX,PY,70,PH);
+    g.fillStyle='#0f172a';g.font=SIM.font(22);g.fillText('공극률',PX+35,PY-16);g.fillText((por*100).toFixed(0)+'%',PX+35,PY+PH+32);
+    g.textAlign='left';g.font=SIM.font(20);g.fillStyle='#64748b';g.fillText('↓ 깊이 '+(cur>0.02?'증가':'얕음'),40,90);
+    document.getElementById('oD1').innerHTML='<div>단계: <b>'+(cem>0.95?'퇴적암 완성':cem>0?'교결 작용':cur>0.05?'다짐 작용':'퇴적물')+'</b></div><div>공극(빈틈)의 비율: <span class="sim-big">'+(por*100).toFixed(0)+'%</span></div><div style="font-size:21px;margin-top:6px">'+(cem>0?'파란색 교결 물질(규질·석회 물질, 산화 철 등)이 입자 사이를 메우며 <b>입자들을 붙여요</b>.':cur>0.05?'위에 쌓인 퇴적물의 <b>무게</b>로 눌려 입자 사이 간격이 좁아져요.':'깊이 슬라이더를 오른쪽으로 옮겨 보세요.')+'</div>';
+  });
+})();
+
+/* ========== SIM D2: 점이 층리 ========== */
+(function(){
+  const c=document.getElementById('cD2'),g=c.getContext('2d'),W=1060,H=610;
+  const L=60,R=1000,TOP=60,BOT=570;let P=[],lev=0,beds=0,settled=[];
+  const SZ=[{n:'자갈',r:9,col:'#78716c'},{n:'굵은 모래',r:6,col:'#d97706'},{n:'모래',r:4,col:'#facc15'},{n:'점토',r:2.3,col:'#a3a3a3'}];
+  function reset(){P=[];lev=0;settled=[];beds=0;}
+  reset();
+  function pour(){beds++;for(let i=0;i<620;i++){const k=i<60?0:i<180?1:i<360?2:3;const s=SZ[k];P.push({x:L+20+Math.random()*(R-L-40),y:TOP+10+Math.random()*90,r:s.r,k,vx:(Math.random()-0.5)*20,bed:beds});}}
+  document.getElementById('bD2').onclick=()=>{if(P.length)return;if(lev>330){out('물이 가득 찼어요. <b>물 비우기</b>를 눌러 주세요.');return;}pour();};
+  document.getElementById('bD2r').onclick=reset;
+  function out(m){document.getElementById('oD2').innerHTML=m;}
+  out('<b>퇴적물 쏟아붓기</b>를 눌러 보세요.');
+  SIM.loop('s12',(tm,dt)=>{
+    const V0=11; // r=1일 때 속도(px/s), v ∝ r²
+    P.forEach(p=>{const v=V0*p.r*p.r;p.y+=v*dt;p.x+=p.vx*dt;p.vx*=0.98;if(p.x<L+p.r)p.x=L+p.r;if(p.x>R-p.r)p.x=R-p.r;
+      if(p.y+p.r>=BOT-lev){p.done=1;lev+=Math.PI*p.r*p.r/(R-L)*2.6;p.y=Math.min(BOT-p.r,BOT-lev+p.r*Math.random());settled.push(p);}});
+    P=P.filter(p=>!p.done);
+    g.clearRect(0,0,W,H);const wt=g.createLinearGradient(0,TOP,0,BOT);wt.addColorStop(0,'#bae6fd');wt.addColorStop(1,'#1e40af');g.fillStyle=wt;g.fillRect(L,TOP,R-L,BOT-TOP);
+    settled.forEach(p=>{g.fillStyle=SZ[p.k].col;g.beginPath();g.arc(p.x,p.y,p.r,0,7);g.fill();});
+    P.forEach(p=>{g.fillStyle=SZ[p.k].col;g.beginPath();g.arc(p.x,p.y,p.r,0,7);g.fill();});
+    g.strokeStyle='#334155';g.lineWidth=4;g.beginPath();g.moveTo(L,TOP);g.lineTo(L,BOT);g.lineTo(R,BOT);g.lineTo(R,TOP);g.stroke();
+    // 범례
+    g.font=SIM.font(20);g.textAlign='left';SZ.forEach((s,i)=>{const x=L+20+i*235;g.fillStyle=s.col;g.beginPath();g.arc(x,32,s.r+2,0,7);g.fill();g.fillStyle='#0f172a';g.fillText(s.n+' (속도 ×'+(s.r*s.r/SZ[3].r/SZ[3].r).toFixed(0)+')',x+16,39);});
+    if(P.length){const cnt=[0,0,0,0];P.forEach(p=>cnt[p.k]++);out('<div>가라앉는 중…</div><div style="font-size:22px">아직 떠 있는 입자: 자갈 '+cnt[0]+', 굵은 모래 '+cnt[1]+', 모래 '+cnt[2]+', 점토 '+cnt[3]+'</div><div style="font-size:22px;margin-top:6px"><b>큰 입자</b>일수록 빨리 가라앉아요.</div>');}
+    else if(settled.length)out('<div>쌓인 지층 <span class="sim-big">'+beds+'</span>개</div><div style="font-size:22px">각 지층은 아래가 <b>굵고</b> 위가 <b>가는</b> 점이 층리예요. 한 번 더 쏟아부으면 그 위에 새 점이 층리가 생겨요.</div>');
+  });
+})();
+
+/* ========== SIM D3: 위아래 판별 ========== */
+(function(){
+  const c=document.getElementById('cD3'),g=c.getContext('2d'),W=1060,H=610;
+  const TYPES=[{k:'graded',n:'점이 층리',why:'입자가 <b>작은 쪽</b>이 원래의 위쪽이에요.'},{k:'crack',n:'건열',why:'쐐기 모양 틈의 <b>넓은 쪽</b>이 원래의 위쪽이에요.'},{k:'ripple',n:'연흔(대칭)',why:'물결의 <b>뾰족한 부분</b>이 원래의 위쪽을 향해요.'},{k:'cross',n:'사층리',why:'층리가 <b>아래쪽으로 오목</b>하게 휘고, 아래에서는 완만하게 붙고 위에서는 잘려요.'}];
+  let q=0,flip=false,answered=false,score=[0,0];const rnd=SIM.rng(5);
+  function next(){q=Math.floor(Math.random()*4);flip=Math.random()<0.5;answered=false;out('<b>'+TYPES[q].n+'</b>예요. 원래의 위쪽은 어디일까요?');}
+  function out(m){document.getElementById('oD3').innerHTML=m+'<div style="margin-top:8px;font-size:20px;color:#64748b">맞힌 문제 '+score[0]+' / '+score[1]+'</div>';}
+  document.querySelectorAll('#s16 [data-up]').forEach(b=>b.onclick=()=>{if(answered)return;answered=true;score[1]++;const up=b.dataset.up==='1';const ok=up===!flip;if(ok)score[0]++;out((ok?'⭕ 정답! ':'❌ 아쉬워요. ')+'이 지층은 '+(flip?'<b>뒤집혀(역전되어)</b> 있어요.':'<b>뒤집히지 않았어요</b>.')+'<br>'+TYPES[q].why);});
+  document.getElementById('bD3').onclick=next;next();
+  function draw(k){// 정상 방향으로 그리기: 영역 x 180..880, y 80..540
+    const X0=180,X1=880,Y0=80,Y1=540;
+    if(k==='graded'){for(let b=0;b<3;b++){const yb=Y1-b*153,yt=yb-153;g.fillStyle='#e7e5e4';g.fillRect(X0,yt,X1-X0,153);const r2=SIM.rng(30+b);for(let i=0;i<900;i++){const f=r2();const y=yb-f*150;const rr=1.2+9*Math.pow(1-f,2.2);const x=X0+4+r2()*(X1-X0-8);g.fillStyle=rr>6?'#78716c':rr>3?'#b45309':'#a8a29e';g.beginPath();g.arc(x,y,rr,0,7);g.fill();}g.strokeStyle='#57534e';g.lineWidth=3;g.beginPath();g.moveTo(X0,yt);g.lineTo(X1,yt);g.stroke();}}
+    if(k==='crack'){g.fillStyle='#c2410c';g.fillRect(X0,Y0,X1-X0,Y1-Y0);g.fillStyle='#fdba74';g.fillRect(X0,Y0,X1-X0,140);g.fillStyle='#9a3412';for(let i=0;i<6;i++){const x=X0+60+i*110;g.beginPath();g.moveTo(x-22,Y0+140);g.lineTo(x+22,Y0+140);g.lineTo(x,Y0+300);g.fill();}g.fillStyle='#fed7aa';for(let i=0;i<6;i++){const x=X0+60+i*110;g.beginPath();g.moveTo(x-18,Y0+140);g.lineTo(x+18,Y0+140);g.lineTo(x,Y0+280);g.fill();}g.strokeStyle='#7c2d12';g.lineWidth=2;for(let y=Y0+330;y<Y1;y+=40){g.beginPath();g.moveTo(X0,y);g.lineTo(X1,y);g.stroke();}}
+    if(k==='ripple'){g.fillStyle='#fde68a';g.fillRect(X0,Y0,X1-X0,Y1-Y0);for(let l=0;l<3;l++){const yb=Y0+200+l*110;g.fillStyle=l%2?'#d6d3d1':'#a8a29e';g.beginPath();g.moveTo(X0,Y1);for(let x=X0;x<=X1;x+=4){const ph=((x-X0)/70)%1;const y=yb-34*(1-Math.abs(2*ph-1))**1.6;g.lineTo(x,y);}g.lineTo(X1,Y1);g.closePath();g.fill();g.strokeStyle='#44403c';g.lineWidth=2;g.stroke();}}
+    if(k==='cross'){g.fillStyle='#fcd34d';g.fillRect(X0,Y0,X1-X0,Y1-Y0);const sets=[[Y1,Y1-150],[Y1-150,Y1-300],[Y1-300,Y0]];sets.forEach(([yb,yt],si)=>{g.strokeStyle='#92400e';g.lineWidth=2.5;for(let i=-6;i<14;i++){const xs=X0+i*60+(si%2)*30;g.beginPath();for(let t=0;t<=1;t+=0.02){const x=xs+t*170,y=yb-(yb-yt)*Math.pow(t,1.8);if(x<X0||x>X1)continue;if(t===0||x-0.0<X0+1)g.moveTo(x,y);else g.lineTo(x,y);}g.stroke();}g.strokeStyle='#451a03';g.lineWidth=4;g.beginPath();g.moveTo(X0,yt);g.lineTo(X1,yt);g.stroke();});}
+    g.strokeStyle='#334155';g.lineWidth=4;g.strokeRect(X0,Y0,X1-X0,Y1-Y0);}
+  SIM.loop('s16',()=>{g.clearRect(0,0,W,H);g.save();if(flip){g.translate(W,H);g.rotate(Math.PI);g.translate(0,-10);}draw(TYPES[q].k);g.restore();
+    g.fillStyle='#334155';g.font=SIM.font(24);g.textAlign='left';g.fillText('그림의 위쪽 ▲',30,40);g.fillText('그림의 아래쪽 ▼',30,590);
+    if(answered){g.fillStyle=flip?'#dc2626':'#16a34a';g.font=SIM.font(30);g.textAlign='right';g.fillText(flip?'원래 위쪽 ▼ (역전)':'원래 위쪽 ▲ (정상)',W-30,40);}
+  });
+})();
+
+/* ========== SIM D4: 지구 달력 ========== */
+(function(){
+  const c=document.getElementById('cD4'),g=c.getContext('2d'),W=1060,H=610;const T0=4567;
+  const EV=[{n:'지구 탄생',a:4567,c:'#64748b'},{n:'시생누대 시작',a:4031,c:'#be185d'},{n:'남세균 출현(약)',a:3000,c:'#16a34a'},{n:'원생누대 시작',a:2500,c:'#db2777'},{n:'최초의 다세포 생물(약)',a:700,c:'#0d9488'},{n:'고생대 시작',a:538.8,c:'#2563eb'},{n:'중생대 시작',a:251.9,c:'#ea580c'},{n:'신생대 시작',a:66.0,c:'#db2777'},{n:'제4기 시작',a:2.58,c:'#7c3aed'}];
+  let sel=5;const box=document.getElementById('evD4');
+  EV.forEach((e,i)=>{const b=document.createElement('button');b.className='sim-btn';b.textContent=e.n;b.style.fontSize='20px';b.onclick=()=>{sel=i;out();};box.appendChild(b);});
+  const MD=[31,28,31,30,31,30,31,31,30,31,30,31];
+  function toDate(a){const f=(T0-a)/T0,doy=f*365;let d=doy,m=0;while(m<11&&d>=MD[m]){d-=MD[m];m++;}const day=Math.floor(d)+1,hh=(d-Math.floor(d))*24;return {m:m+1,day,h:Math.floor(hh),mi:Math.floor((hh%1)*60),doy};}
+  function out(){box.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===sel));const e=EV[sel],t=toDate(e.a);
+    const ago=e.a>=100?(e.a/100).toFixed(3).replace(/0+$/,'').replace(/\.$/,'')+'억 년 전':Math.round(e.a*100)+'만 년 전';
+    document.getElementById('oD4').innerHTML='<div><b>'+e.n+'</b></div><div style="font-size:22px">'+ago+'</div><div style="margin-top:6px">달력으로는 <span class="sim-big">'+t.m+'월 '+t.day+'일</span></div><div style="font-size:22px">'+t.h+'시 '+t.mi+'분 무렵</div><div style="font-size:21px;margin-top:6px">계산: (4567 − '+e.a+') ÷ 4567 × 365일 = '+t.doy.toFixed(1)+'일째</div>';}
+  out();
+  SIM.loop('s21',(tm)=>{g.clearRect(0,0,W,H);const X0=40,Y0=40,CWd=245,CH=130;
+    for(let m=0;m<12;m++){const x=X0+(m%4)*CWd,y=Y0+Math.floor(m/4)*(CH+50);g.fillStyle='#f8fafc';g.fillRect(x,y,CWd-14,CH);g.strokeStyle='#cbd5e1';g.lineWidth=2;g.strokeRect(x,y,CWd-14,CH);g.fillStyle='#0f172a';g.font=SIM.font(24);g.textAlign='left';g.fillText((m+1)+'월',x+10,y+30);
+      // 일 눈금
+      for(let d=0;d<MD[m];d++){const dx=x+10+d*(CWd-34)/31;g.fillStyle='#e2e8f0';g.fillRect(dx,y+50,(CWd-34)/31-1,60);}}
+    // 지질 시대 칠하기
+    const segs=[[4567,538.8,'rgba(34,197,94,.35)'],[538.8,251.9,'rgba(59,130,246,.55)'],[251.9,66,'rgba(249,115,22,.6)'],[66,0,'rgba(219,39,119,.7)']];
+    function pos(a){const t=toDate(a);const m=t.m-1,x=X0+(m%4)*CWd,y=Y0+Math.floor(m/4)*(CH+50);const dd=t.day-1+t.h/24;return {x:x+10+dd*(CWd-34)/31,y};}
+    segs.forEach(([a0,a1,col])=>{for(let doy=(T0-a0)/T0*365;doy<(T0-a1)/T0*365;doy+=0.05){const a=T0-doy/365*T0;const p=pos(a);g.fillStyle=col;g.fillRect(p.x,p.y+50,1.6,60);}});
+    EV.forEach((e,i)=>{const p=pos(e.a);const on=i===sel;g.fillStyle=e.c;g.beginPath();g.arc(p.x,p.y+(on?42:118),on?10:6,0,7);g.fill();if(on){g.strokeStyle=e.c;g.lineWidth=3;g.beginPath();g.moveTo(p.x,p.y+50);g.lineTo(p.x,p.y+110);g.stroke();}});
+    g.font=SIM.font(19);g.textAlign='left';[['선캄브리아시대','rgba(34,197,94,.6)'],['고생대','rgba(59,130,246,.7)'],['중생대','rgba(249,115,22,.75)'],['신생대','rgba(219,39,119,.8)']].forEach(([n,col],i)=>{g.fillStyle=col;g.fillRect(X0+i*230,580,24,18);g.fillStyle='#334155';g.fillText(n,X0+i*230+32,596);});
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

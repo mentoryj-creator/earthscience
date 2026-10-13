@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>허블-르메트르 법칙 그래프</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .sorter{display:flex;flex-direction:column;gap:16px;width:100%}
+            .sort-pool{display:flex;flex-wrap:wrap;gap:12px;min-height:70px;padding:14px;border:2px dashed #cbd5e1;border-radius:18px;background:#f8fafc}
+            .sort-chip{border:2px solid #94a3b8;background:#fff;border-radius:14px;padding:8px 18px;font-size:26px;font-weight:bold;color:#334155;cursor:pointer;font-family:inherit;transition:transform .15s}
+            .sort-chip.sel{border-color:#ea580c;background:#fff7ed;color:#c2410c;transform:scale(1.06)}
+            .sort-chip.bad{animation:shake .4s}
+            .sort-chip.ok{cursor:default;border-color:#93c5fd;background:#eff6ff;color:#1d4ed8;font-size:23px;padding:6px 14px}
+            @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+            .sort-bins{display:flex;gap:16px}
+            .sort-bin{flex:1;border:3px solid #cbd5e1;border-radius:18px;padding:12px 14px;min-height:250px;background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+            .sort-bin h4{font-size:28px;font-weight:800;margin-bottom:4px}
+            .sort-bin .items{display:flex;flex-wrap:wrap;gap:8px}
+            .sort-bin.hl{border-color:#ea580c;background:#fffbf5}
+            .sort-msg{font-size:26px;font-weight:bold;min-height:36px;color:#334155}
+            .tree{display:flex;gap:20px;align-items:stretch}
+            .tree .br{flex:1;border:2px solid #cbd5e1;border-radius:18px;padding:14px 18px;background:#f8fafc}
+            .tree h4{font-size:30px;font-weight:800;margin-bottom:8px}
+            .tree li{font-size:26px;line-height:1.6;margin-left:28px}
+        </style><style>
+            .htab{border-collapse:collapse;width:100%;font-size:21px}
+            .htab th,.htab td{border:1.5px solid #cbd5e1;padding:5px 6px;text-align:center}
+            .htab th{background:#eff6ff;color:#1e3a8a}
+            .htab td.hid{color:transparent}
+            .flow{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;width:100%}
+            .flow .fbox{border:3px solid #cbd5e1;border-radius:18px;padding:12px 18px;font-size:25px;line-height:1.55;background:#fff;word-break:keep-all}
+            .flow .fbox h4{font-size:27px;margin-bottom:4px}
+            .flow .mid{grid-column:1 / span 2;justify-self:center;width:60%}
+            .flow .arr{grid-column:1 / span 2;text-align:center;font-size:34px;color:#94a3b8;line-height:1;margin:-8px 0}
+            .donut{width:400px;height:400px;border-radius:50%;background:conic-gradient(#2563eb 0 5%,#7c3aed 5% 30%,#ea580c 30% 100%);position:relative;flex:none}
+            .donut::after{content:'';position:absolute;inset:95px;background:#fff;border-radius:50%}
+        </style><style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s11">
+            <div class="ppt-title"><span class="sim-tag">활동</span>후퇴 속도를 계산하고 그래프를 그려요</div>
+            <div class="ppt-subtitle">은하 버튼을 눌러 계산 → 점 찍기, 기울기 <span class="or">H</span>를 움직여 원점을 지나는 직선을 맞춰 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cH" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-btns"><button class="sim-btn" data-g="0">(가) 계산</button><button class="sim-btn" data-g="1">(나) 계산</button><button class="sim-btn" data-g="2">(다) 계산</button></div>
+                        <table class="htab" style="margin-top:6px"><tr><th>은하</th><th>λ−λ₀</th><th>적색 편이</th><th>v (km/s)</th></tr>
+                            <tr id="hr0"><td>(가)</td><td></td><td></td><td></td></tr><tr id="hr1"><td>(나)</td><td></td><td></td><td></td></tr><tr id="hr2"><td>(다)</td><td></td><td></td><td></td></tr></table>
+                        <div class="sim-row" style="margin-top:8px"><span class="lbl" style="width:80px">기울기</span><input type="range" class="sim-range" id="rH" min="30" max="120" step="0.5" value="45"><span class="sim-val" id="vH" style="min-width:80px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bHfit">추세선 그리기</button><button class="sim-btn" id="bHreset">처음부터</button></div>
+                    </div>
+                    <div class="sim-box key" id="oH" style="font-size:22px"></div>
+                    <div class="sim-note">※ c = 3×10⁵ km/s로 계산 (지도서). 추세선은 원점을 지나는 직선이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">우주의 기원과 진화를 알아내기 위해 과학자들은 어떻게 탐구했을까?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">07. 우주 팽창과 우주론의 정립 과정</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:#fff">
+                    <img data-noimg="" style="width:100%;height:100%;object-fit:contain">
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">정적 우주 · 팽창 우주 · 허블-르메트르 법칙 · 빅뱅 · 급팽창 · 가속 팽창</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">우주는 <span class="or">팽창</span>하고 있을까? 그렇다면 어떻게 시작되었을까?</div>
+            <div class="main">
+                <div class="col" style="width:960px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div><b>허블-르메트르 법칙</b>으로 우주의 팽창을 이해할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>우주의 진화에 대한 다양한 설명 체계의 의의를 <b>현대 우주론</b>의 관점에서 비교할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:100%;max-height:560px;object-fit:contain">
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: 우주는 변하지 않을까, 변할까?</div>
+            <div class="ppt-subtitle">우주의 모든 천체에는 <span class="or">중력</span>이 작용해요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <div class="card soft" style="font-size:33px"><span class="look">Q</span>모든 물체가 중력으로 서로 잡아당긴다면, 우주는 시간이 지나면 어떻게 될까?</div>
+                <div class="card" data-step="1" style="font-size:31px">점점 가까워져 마침내 충돌하고, 우주가 <b>수축</b>하여 한 점으로 모이게 될 거예요.</div>
+                <div class="card key" data-step="2" style="font-size:31px">1915년 <b>아인슈타인</b>(Einstein)은 이 결과를 받아들일 수 없었어요. “우주는 변함없이 늘 일정한 모습일 거야!”</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">정적 우주론 vs 팽창 우주론</div>
+            <div class="ppt-subtitle">당시의 관측 기술로는 우주가 정적인지 팽창하는지 <span class="or">알 수 없었어요</span>.</div>
+            <div class="main" style="gap:20px">
+                <div class="gcard" data-step="1" style="font-size:28px;justify-content:center"><h3>아인슈타인 (1915~)</h3><div>일반 상대성 이론 → 우주의 형태 문제</div><div>수축을 막는 <b>척력</b>의 성질을 가진 <b>우주 상수</b> 도입</div><div class="kw">→ 정적 우주론</div></div>
+                <div class="gcard" data-step="2" style="font-size:28px;justify-content:center"><h3>프리드만 (1922)</h3><div>수학적 계산으로 우주가 <b>팽창</b>하거나 수축하며 진화하는 모형 제시</div><div class="kw">→ 팽창 우주론</div></div>
+                <div class="gcard orange" data-step="3" style="font-size:28px;justify-content:center"><h3>르메트르</h3><div>우주가 <b>고온·고밀도</b> 상태의 한 점에서 시작해 팽창하며 진화했다!</div><div class="note">정적 우주론: 근원을 알 수 없는 우주 상수가 필요 / 팽창 우주론: 팽창의 기원에 대한 해답이 필요</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">시간을 거꾸로 돌리면 우주는 한 점으로!</div>
+            <div class="ppt-subtitle">우주가 팽창한다면, 과거의 우주는 지금보다 <span class="or">더 작았을 거예요</span>.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:700px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:16px">
+                    <div class="card" data-step="1">아주 먼 과거로 가면 전체 우주 공간이 <b>한 점</b>에 모여 있었을 것이다. (르메트르)</div>
+                    <div class="card" data-step="2">아인슈타인은 프리드만의 결과가 이론적으로는 문제가 없다고 인정했지만, 관측적 증거가 없어 받아들이지 않았어요.</div>
+                    <div class="card key" data-step="3">논쟁은 <b>허블의 관측</b>으로 전환점을 맞아요!</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s6">
+            <div class="ppt-title">도플러 효과: 다가오면 짧게, 멀어지면 길게</div>
+            <div class="ppt-subtitle">소리나 빛과 같은 <span class="or">파동</span>을 내는 물체가 움직이면 관측되는 파장이 달라져요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <img data-noimg="" style="width:100%;max-height:430px;object-fit:contain">
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="1" style="flex:1;font-size:28px;border-color:#93c5fd;background:#eff6ff">🔵 관측자와 가까워지면 → 파장이 짧은 청색 쪽으로 치우침 = <b>청색 편이</b></div>
+                    <div class="card" data-step="2" style="flex:1;font-size:28px;border-color:#fca5a5;background:#fef2f2">🔴 관측자와 멀어지면 → 파장이 긴 적색 쪽으로 치우침 = <b>적색 편이</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s7">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>움직이는 파원이 만드는 파면</div>
+            <div class="ppt-subtitle">파원의 <span class="or">속도</span>를 바꾸며 앞쪽과 뒤쪽 관측자가 받는 파장을 비교해요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cD" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:130px">파원의 속도</span><input type="range" class="sim-range" id="rD" min="-0.6" max="0.6" step="0.05" value="0.4"><span class="sim-val" id="vD" style="min-width:90px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" data-v="-0.4">← 왼쪽으로</button><button class="sim-btn" data-v="0">정지</button><button class="sim-btn" data-v="0.4">오른쪽으로 →</button></div>
+                    </div>
+                    <div class="sim-box key" id="oD" style="font-size:23px"></div>
+                    <div class="sim-note">※ 속도는 파동의 전파 속도에 대한 비율이에요. 파면 간격(파장)은 λ(1 ∓ v/파동 속도)로 계산했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">외부 은하의 스펙트럼은 적색 쪽으로 치우쳐 있어요</div>
+            <div class="ppt-subtitle">먼 은하일수록 적색 쪽으로 파장 <span class="or">이동량이 커요</span>. (그림 48)</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%">
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">허블: 멀리 있는 은하일수록 더 빨리 멀어진다!</div>
+            <div class="ppt-subtitle">흡수선의 <span class="or">파장 변화량</span>으로 은하의 후퇴 속도를 구했어요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card key" style="font-size:40px;text-align:center;padding:24px">은하의 후퇴 속도 &nbsp; <b>v = c × (λ − λ₀) / λ₀</b></div>
+                <div class="cap" style="font-size:24px;text-align:center">c: 빛의 속도, λ₀: 스펙트럼선의 고유 파장, λ − λ₀: 파장 변화량</div>
+                <div class="card" data-step="1" style="font-size:28px">외부 은하의 스펙트럼에서 적색 편이를 처음 발견한 사람: <b>슬라이퍼</b>(Slipher)</div>
+                <div class="card" data-step="2" style="font-size:28px">허블은 슬라이퍼의 적색 편이와 자신이 측정한 <b>거리</b>를 연관 지어, 거리와 적색 편이가 <b>비례</b>한다는 것을 발견했어요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">탐구 활동) 적색 편이로 후퇴 속도 계산하기</div>
+            <div class="ppt-subtitle">슬론 거대 우주 탐사로 얻은 외부 은하의 스펙트럼 · 수소 방출선의 고유 파장 <span class="or">λ₀ = 656.3 nm</span></div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1020px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" style="font-size:26px">(가) 거리 <b>52</b> Mpc<br>(나) 거리 <b>268</b> Mpc<br>(다) 거리 <b>407</b> Mpc</div>
+                    <div class="card soft" data-step="1" style="font-size:26px"><span class="look">Q</span>세 은하의 수소 방출선은 각각 몇 nm로 관측되었나요?</div>
+                    <div class="card key" data-step="2" style="font-size:26px">(가) 664.5 nm<br>(나) 697.4 nm<br>(다) 722.2 nm</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">탐구 정리) 직선의 기울기는 무엇을 뜻할까?</div>
+            <div class="ppt-subtitle">지도서 예시 답안</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <div class="card qa" data-step="1"><b>1.</b> 거리가 먼 은하일수록 파장 변화량과 적색 편이량이 크고, 후퇴 속도가 <b>빨라요</b>.</div>
+                <div class="card qa" data-step="2"><b>2.</b> 은하의 후퇴 속도는 거리에 <b>비례</b>해요. (원점을 지나는 직선)</div>
+                <div class="card key qa" data-step="3"><b>정리</b> 추세선의 기울기 = <b>허블 상수(H)</b> → 이 탐구에서는 <b>H ≈ 72.8 km/s/Mpc</b></div>
+                <div class="note" data-step="3">활용 Tip: 적색 편이가 큰 은하일수록 멀리 있어 사진 속 은하가 전반적으로 작게 보여요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s13">
+            <div class="ppt-title">허블-르메트르 법칙: v = H · r</div>
+            <div class="ppt-subtitle">외부 은하의 후퇴 속도는 <span class="or">거리에 비례</span>해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1100px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="font-size:26px">르메트르가 허블보다 <b>2년 앞서</b> 비슷한 주장을 발표했다는 사실이 밝혀져 → <b>허블-르메트르 법칙</b></div>
+                    <div class="card key" data-step="2" style="font-size:26px">허블 상수 최근 측정값: 약 <b>70 km/s/Mpc</b></div>
+                    <div class="note" data-step="2">1 Mpc 떨어진 외부 은하가 평균적으로 약 70 km/s로 멀어진다는 뜻이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s14">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>어느 은하에서 보아도 다른 은하가 멀어져요</div>
+            <div class="ppt-subtitle">은하를 <span class="or">눌러서</span> 관측자를 바꿔 보세요. 공간이 팽창하면 누구나 자신이 중심인 것처럼 보여요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cE" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-btns"><button class="sim-btn on" id="bEplay">⏸ 멈춤</button><button class="sim-btn" id="bEreset">처음으로</button></div>
+                        <div class="sim-row"><span class="lbl" style="width:140px">화살표 보기</span><button class="sim-btn on" id="bEarr">켜짐</button></div>
+                    </div>
+                    <div class="sim-box key" id="oE" style="font-size:23px"></div>
+                    <div class="sim-note">※ 개념 모형이에요. 모든 은하 사이 거리가 같은 비율로 늘어나도록 그렸어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">허블-르메트르 법칙이 의미하는 것은? → 우주 공간의 팽창</div>
+            <div class="ppt-subtitle">은하가 공간 속을 달려가는 것이 아니라, <span class="or">공간 자체</span>가 늘어나요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1000px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">허블은 은하가 멀수록 더 빨리 후퇴하는 현상을 <b>우주 공간의 팽창</b>으로 해석했어요.</div>
+                    <div class="card key" data-step="2">팽창하는 우주에는 <b>특별한 중심이 없어요</b>.</div>
+                    <div class="card" data-step="3">이후 많은 과학자들이 우주의 팽창을 고려한 우주론을 전개했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s16">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>시간을 되감아 우주의 나이 구하기: t ≈ 1/H</div>
+            <div class="ppt-subtitle">거리 r의 은하가 속도 v로 멀어진다면, 멀어지기 시작한 때부터 지금까지 걸린 시간은 <span class="or">r/v = 1/H</span></div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cA" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:110px">허블 상수</span><input type="range" class="sim-range" id="rA" min="50" max="100" step="1" value="70"><span class="sim-val" id="vA" style="min-width:110px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" data-h="50">50</button><button class="sim-btn" data-h="70">70</button><button class="sim-btn" data-h="100">100</button></div>
+                    </div>
+                    <div class="sim-box key" id="oA" style="font-size:23px"></div>
+                    <div class="sim-note">※ 팽창 속도가 일정했다고 가정한 근삿값이에요. 1 Mpc = 3.086×10¹⁹ km, 1년 = 3.156×10⁷ s로 계산했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">빅뱅 우주론: 가모프 (Gamow)</div>
+            <div class="ppt-subtitle">우주는 고온·고밀도의 아주 작은 상태에서 시작해 팽창하며 <span class="or">밀도와 온도가 낮아져요</span>.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <img data-noimg="" style="width:100%;max-height:520px;object-fit:contain">
+                <div class="card key" data-step="1" style="font-size:28px">물질의 총량은 <b>일정</b> → 팽창하면 밀도 <b>감소</b> · 대부분의 원소는 우주가 시작된 이후 초기 <b>몇 분</b> 안에 생성</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">정상 우주론: 호일 (Hoyle)</div>
+            <div class="ppt-subtitle">우주에는 처음도 끝도 없고, 팽창하는 동안 물질이 계속 생성되어 <span class="or">영원히 같은 상태</span>를 유지해요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <img data-noimg="" style="width:100%;max-height:520px;object-fit:contain">
+                <div class="card key" data-step="1" style="font-size:28px">질량은 <b>증가</b>하지만 그만큼 팽창하므로 밀도는 <b>일정</b> · 원소는 모두 <b>별의 진화 과정</b>에서 생성</div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s19">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>빅뱅 우주론 vs 정상 우주론 비교</div>
+            <div class="ppt-subtitle">같은 팽창, 다른 결과! <span class="or">은하 수 · 밀도 · 온도</span>가 어떻게 변하는지 비교해요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cB" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-btns"><button class="sim-btn on" id="bBplay">⏸ 멈춤</button><button class="sim-btn" id="bBreset">처음부터</button></div>
+                    </div>
+                    <div class="sim-box key" id="oB" style="font-size:23px"></div>
+                    <div class="sim-note">※ 두 우주론의 주장을 비교하기 위한 개념 모형이에요. 밀도 = 은하 수 ÷ 넓이(상댓값)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">빅뱅의 증거 ① 우주의 수소와 헬륨 질량비 ≈ 3 : 1</div>
+            <div class="ppt-subtitle">우주 나이 약 3분, 중성자 : 양성자의 개수비는 약 <span class="or">1 : 7</span></div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <img data-noimg="" style="width:100%;max-height:400px;object-fit:contain">
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="1" style="flex:1;font-size:27px">양성자 2개 + 중성자 2개 → <b>헬륨 원자핵</b>, 남은 양성자 → <b>수소 원자핵</b></div>
+                    <div class="card key" data-step="2" style="flex:1;font-size:27px">이 비율은 별과 성간 물질의 수소·헬륨 비율과 같아요 → 빅뱅 우주론을 <b>지지</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s21">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>초기 우주에서 헬륨 원자핵 만들기</div>
+            <div class="ppt-subtitle">중성자 2개가 모두 헬륨 원자핵이 될 때, 수소 : 헬륨의 <span class="or">질량비</span>를 구해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cN" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:150px">중성자 : 양성자</span><input type="range" class="sim-range" id="rN" min="3" max="10" step="1" value="7"><span class="sim-val" id="vN" style="min-width:80px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bNgo">결합!</button><button class="sim-btn" id="bNre">다시</button><button class="sim-btn" id="bN7">교과서 값 1 : 7</button></div>
+                    </div>
+                    <div class="sim-box key" id="oN" style="font-size:23px"></div>
+                    <div class="sim-note">※ 양성자와 중성자의 질량을 1로 보고 계산했어요. 헬륨 원자핵 질량 = 4</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">빅뱅의 증거 ② 우주 배경 복사</div>
+            <div class="ppt-subtitle">우주 나이 약 <span class="or">38만 년</span>, 온도 약 3000 K → 빛이 자유롭게 여행하기 시작!</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:560px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="font-size:27px">초기 우주: 전자·광자·양성자 등이 뒤섞여 빛이 <b>나아갈 수 없는</b> 상태</div>
+                    <div class="card" data-step="2" style="font-size:27px">38만 년: 전자가 원자핵과 결합해 수소·헬륨 <b>원자</b> 형성 → 빛이 자유롭게 여행</div>
+                    <div class="card key" data-step="3" style="font-size:27px">팽창하는 공간을 지나며 파장이 길어져, 지금은 약 <b>2.73 K</b>의 차가운 흑체 복사로 <b>모든 방향</b>에서 관측 = <b>우주 배경 복사</b></div>
+                    <div class="note" data-step="3">1948년 가모프 연구팀이 처음 예견했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s23">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>3000 K의 빛이 2.73 K의 마이크로파가 되기까지</div>
+            <div class="ppt-subtitle">우주가 팽창하면 빛의 파장도 같은 비율로 늘어나요. 흑체 복사의 <span class="or">최대 복사 파장</span>을 따라가 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cC" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:120px">팽창 배율</span><input type="range" class="sim-range" id="rC" min="0" max="1" step="0.002" value="0"><span class="sim-val" id="vC" style="min-width:100px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" id="bC0">38만 년 (3000 K)</button><button class="sim-btn" id="bC1">현재 (2.73 K)</button><button class="sim-btn orange" id="bCplay">▶ 자동</button></div>
+                    </div>
+                    <div class="sim-box key" id="oC" style="font-size:23px"></div>
+                    <div class="sim-note">※ 플랑크 흑체 복사식으로 그린 곡선(최댓값을 같게 맞춤)이에요. 최대 복사 파장은 빈의 변위 법칙(λmax·T = 2.898×10⁻³ m·K)으로 계산했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s24">
+            <div class="ppt-title">우주 배경 복사의 발견과 정밀 관측</div>
+            <div class="ppt-subtitle">1964년 <span class="or">펜지어스와 윌슨</span>: 통신 안테나 잡음 → 하늘 모든 방향에서 오는 마이크로파!</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1150px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:24px"><b>코비(COBE)</b> 1989년 발사: 약 2.73 K 흑체 복사와 일치, 미세한 <b>온도 요동</b> 첫 검출</div>
+                    <div class="card" data-step="2" style="font-size:24px"><b>더블유맵(WMAP)</b>, <b>플랑크(Planck)</b> 위성이 더 정확하고 자세하게 관측</div>
+                    <div class="card key" data-step="3" style="font-size:24px">얼룩덜룩한 곳: 평균 2.73 K에 대해 약 <b>10만분의 1</b> 정도의 온도 차이</div>
+                    <div class="note" data-step="3">발견 이후 정상 우주론은 더 이상 지지를 받지 못했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s25">
+            <div class="ppt-title">잠깐! ‘빅뱅’이라는 이름은 누가 지었을까?</div>
+            <div class="ppt-subtitle">빅뱅(Big Bang)이라는 이름의 유래</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <div class="card soft" style="font-size:32px"><span class="look">Q</span>‘빅뱅’이라는 말을 처음 만든 사람은?</div>
+                <div class="card key" data-step="1" style="font-size:31px">정상 우주론의 창시자 <b>호일</b>이 “그럼 우주가 ‘꽝’하고 폭발하면서 생긴 것이란 말인가?”라며 대폭발 우주론을 비판하면서 만들어 낸 용어예요.</div>
+                <div class="card q" data-a="a" data-step="2"><div class="qrow">빅뱅 우주론을 지지하는 결정적인 증거가 된 것은? <button class="sim-btn" data-v="a">우주 배경 복사</button><button class="sim-btn" data-v="b">별 내부의 핵융합</button><span class="res"></span></div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s26">
+            <div class="ppt-title">빅뱅 우주론의 한계 ① 평탄성 문제</div>
+            <div class="ppt-subtitle">관측 결과 현재 우주 공간은 곡률이 0에 가까워 <span class="or">거의 평탄</span>해요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <div style="display:flex;gap:16px;align-items:center">
+                    <img data-noimg="" style="width:960px;max-height:300px;object-fit:contain">
+                    <img data-noimg="" style="height:320px;flex:none">
+                </div>
+                <div style="display:flex;gap:12px">
+                    <div class="card" data-step="1" style="flex:1;font-size:24px"><b>평탄 우주</b>: 밀도 = 임계 밀도, 영원히 팽창하지만 팽창 속도가 0으로 수렴</div>
+                    <div class="card" data-step="1" style="flex:1;font-size:24px"><b>닫힌 우주</b>: 밀도 &gt; 임계 밀도, 팽창하다가 만유인력으로 다시 수축</div>
+                    <div class="card" data-step="1" style="flex:1;font-size:24px"><b>열린 우주</b>: 밀도 &lt; 임계 밀도, 계속 팽창</div>
+                </div>
+                <div class="card key" data-step="2" style="font-size:26px">지금 거의 평탄하려면 우주 초기에 곡률이 <b>더 높은 정밀도로 0</b>에 가까워야 하는데, 빅뱅 우주론은 이를 설명하지 못해요.</div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s27">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>시간에 따른 상대적인 우주의 크기</div>
+            <div class="ppt-subtitle">우주 모형을 골라 <span class="or">과거와 미래</span>의 우주 크기 변화를 비교해요. (현재 크기 = 1)</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cK" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-btns"><button class="sim-btn on" data-k="0">닫힌 우주</button><button class="sim-btn on" data-k="1">평탄 우주</button></div>
+                        <div class="sim-btns"><button class="sim-btn on" data-k="2">열린 우주</button><button class="sim-btn on" data-k="3">가속 팽창 우주</button></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bKplay">▶ 다시 그리기</button></div>
+                    </div>
+                    <div class="sim-box key" id="oK" style="font-size:22px"></div>
+                    <div class="sim-note">※ 현재의 팽창 속도(H = 70 km/s/Mpc)를 같게 두고 프리드만 방정식으로 계산했어요. 물질 밀도/임계 밀도: 닫힌 3, 평탄 1, 열린 0.3, 가속 팽창 0.3(+암흑 에너지 0.7)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s28">
+            <div class="ppt-title">빅뱅 우주론의 한계 ② 지평선 문제</div>
+            <div class="ppt-subtitle">하늘에서 1° 이상 떨어진 두 지점은 우주 나이 38만 년 당시 <span class="or">정보를 교환할 수 없었어요</span>.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:560px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:16px">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>그런데 우주 배경 복사의 온도는 모든 방향에서 약 <b>10만분의 1 K</b> 수준까지 비슷해요. 왜일까?</div>
+                    <div class="card" data-step="2">(A) 빅뱅 우주론: 관측자는 하늘의 여러 방향에서 <b>성질이 다른</b> 영역을 보게 돼요. → 설명 불가!</div>
+                    <div class="card key" data-step="3">(B) 급팽창 우주론: 성질이 <b>비슷한 영역의 일부</b>를 하늘의 전 방향에서 보게 돼요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s29">
+            <div class="ppt-title">급팽창 우주론: 구스 (Guth, 1981)</div>
+            <div class="ppt-subtitle">대폭발 직후 극히 짧은 시간 동안 우주가 <span class="or">급격하게 팽창</span>했다!</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:660px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:16px">
+                    <div class="card" data-step="1"><b>평탄성 문제 해결</b>: 공간이 극도로 커지므로 관측되는 우주의 영역은 <b>평탄하게</b> 보여요.</div>
+                    <div class="card" data-step="2"><b>지평선 문제 해결</b>: 급팽창 직전 극도로 작은 영역 안에서는 정보 교환이 가능해 요동의 성질이 비슷했고, 이 영역이 팽창해 관측 가능한 우주가 되었어요.</div>
+                    <div class="note" data-step="2">급팽창은 빅뱅 직후 약 10⁻³⁶초에 시작해 10⁻³³~10⁻³²초 무렵 끝났을 것으로 생각돼요. (지도서)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s30">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>엄청나게 부풀리면 휘어진 공간도 평평해 보여요</div>
+            <div class="ppt-subtitle">관측 가능한 영역(창)의 크기는 그대로, 공 모양 우주를 <span class="or">급팽창</span>시켜 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cF" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:120px">팽창 배율</span><input type="range" class="sim-range" id="rF" min="0" max="6" step="0.02" value="0"><span class="sim-val" id="vF" style="min-width:110px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bFgo">▶ 급팽창!</button><button class="sim-btn" id="bFre">처음으로</button></div>
+                    </div>
+                    <div class="sim-box key" id="oF" style="font-size:23px"></div>
+                    <div class="sim-note">※ 개념 모형이에요. 지구 표면이 우리 눈에 평평해 보이는 것과 비슷해요. 실제 급팽창 배율은 이보다 훨씬 커요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s31">
+            <div class="ppt-title">관측 가능한 우주와 우주의 지평선</div>
+            <div class="ppt-subtitle">우주 나이 138억 년 → 그런데 관측 가능한 최대 거리는 <span class="or">약 470억 광년</span>!</div>
+            <div class="main">
+                <div style="display:flex;gap:14px;flex:none;align-items:center">
+                    <img data-noimg="" style="height:620px">
+                    <img data-noimg="" style="height:620px">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:24px">팽창하지 않았다면 최대 거리는 빛이 138억 년 동안 간 <b>138억 광년</b></div>
+                    <div class="card" data-step="2" style="font-size:24px">빛이 진행하는 동안 공간이 팽창하면 → 현재 척도로 약 <b>470억 광년</b></div>
+                    <div class="card key" data-step="3" style="font-size:24px">이 거리 한계 = <b>우주의 지평선</b>, 그 안쪽 = <b>관측 가능한 우주</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s32">
+            <div class="ppt-title">가속 팽창 우주론: 우주의 팽창이 빨라지고 있다!</div>
+            <div class="ppt-subtitle">1990년대 말 <span class="or">펄머터</span>와 <span class="or">리스</span>: 먼 Ia형 초신성이 예측보다 더 어둡다!</div>
+            <div class="main">
+                <div style="display:flex;gap:10px;flex:none;align-items:center">
+                    <img data-noimg="" style="height:600px">
+                    <img data-noimg="" style="height:600px">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:23px"><b>Ia형 초신성</b>: 백색 왜성의 질량이 태양의 약 <b>1.4배</b>가 되면 폭발 → 모두 <b>절대 등급이 같아요</b>.</div>
+                    <div class="card" data-step="2" style="font-size:23px">팽창 속도가 점차 감소하다가 약 <b>60억 년 전</b>부터 다시 증가</div>
+                    <div class="card key" data-step="3" style="font-size:23px">빛이 더 오래 여행 → 같은 적색 편이의 초신성이 <b>더 멀고 더 어둡게</b> 보여요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s33">
+            <div class="ppt-title">무엇이 우주를 가속 팽창시킬까? → 암흑 에너지</div>
+            <div class="ppt-subtitle">중력과 반대로 작용하는 미지의 에너지를 통틀어 <span class="or">암흑 에너지</span>라고 해요. (지도서)</div>
+            <div class="main" style="align-items:center;gap:50px;justify-content:center">
+                <div class="donut" data-step="1"></div>
+                <div class="col" style="width:820px;gap:16px">
+                    <div class="card" data-step="1" style="font-size:30px"><span class="tag b">5 %</span>보통 물질</div>
+                    <div class="card" data-step="1" style="font-size:30px"><span class="tag p">25 %</span>암흑 물질</div>
+                    <div class="card" data-step="1" style="font-size:30px"><span class="tag o">70 %</span>암흑 에너지</div>
+                    <div class="note" data-step="2">현재 우주의 에너지 함량비(지도서 자료). 우주 초기에는 빛과 물질의 밀도가 우세해 감속 팽창했고, 약 60억 년 전부터 암흑 에너지가 우세해져 가속 팽창으로 전환되었다고 생각해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s34">
+            <div class="ppt-title">해 보기) 우주론의 정립 과정 추론하기</div>
+            <div class="ppt-subtitle">빈칸을 눌러 순서도를 완성해요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center">
+                <div class="flow">
+                    <div class="fbox" style="border-color:#93c5fd;background:#eff6ff"><h4 style="color:#1d4ed8">정적 우주론</h4>아인슈타인: 척력의 성질을 가진 <span class="blank" style="min-width:120px">우주 상수</span>를 도입하여 시간이 지나도 변하지 않는 정적인 우주를 수립</div>
+                    <div class="fbox" style="border-color:#f9a8d4;background:#fdf2f8"><h4 style="color:#be185d">팽창 우주론</h4>프리드만: 수학적 계산으로 우주가 팽창한다고 주장 / <span class="blank" style="min-width:100px">르메트르</span>: 고온·고밀도 상태의 한 점에서 시작</div>
+                    <div class="arr">⇩</div>
+                    <div class="fbox mid" style="border-color:#c4b5fd;background:#f5f3ff"><h4 style="color:#6d28d9">우주 팽창 관측</h4>외부 은하의 후퇴 속도가 거리에 비례하여 커진다는 <span class="blank" style="min-width:180px">허블-르메트르</span> 법칙 발표</div>
+                    <div class="arr">⇩</div>
+                    <div class="fbox" style="border-color:#c4b5fd;background:#f5f3ff"><h4 style="color:#6d28d9">빅뱅 우주론</h4>가모프: 고온·고밀도의 한 점에서 시작, 팽창하며 밀도와 온도가 낮아짐</div>
+                    <div class="fbox" style="border-color:#c4b5fd;background:#f5f3ff"><h4 style="color:#6d28d9"><span class="blank" style="min-width:70px">정상</span> 우주론</h4>호일: 처음과 끝이 없고, 물질이 계속 생성되어 영원히 동일한 상태</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s35">
+            <div class="ppt-title"><span class="sim-tag">활동</span>빅뱅 우주론의 증거와 한계를 분류해요</div>
+            <div class="ppt-subtitle">카드를 하나 누르고, 알맞은 <span class="or">상자</span>를 눌러 넣어 보세요.</div>
+            <div class="main" style="flex-direction:column">
+                <div class="sorter" id="sortA">
+                    <div class="sort-pool"></div>
+                    <div class="sort-bins">
+                        <div class="sort-bin" data-bin="ev"><h4 style="color:#2563eb">빅뱅 우주론의 증거</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="lim"><h4 style="color:#dc2626">빅뱅 우주론의 한계</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="sol"><h4 style="color:#16a34a">한계를 해결한 생각</h4><div class="items"></div></div>
+                    </div>
+                    <div class="sort-msg"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s36">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <div class="card" style="font-size:27px;line-height:1.75"><b>허블-르메트르 법칙</b>: 외부 은하의 <span class="blank" style="min-width:110px">후퇴 속도</span>가 거리에 비례하여 커진다. v = H · r</div>
+                <div class="card" style="font-size:27px;line-height:1.75"><b>빅뱅 우주론</b>: 극단의 고온·고밀도 상태에서 팽창 · 근거: 우주의 원소비, <span class="blank" style="min-width:160px">우주 배경 복사</span></div>
+                <div class="card" style="font-size:27px;line-height:1.75"><b>급팽창 우주론</b>: 대폭발 직후 극히 짧은 시간 동안 <span class="blank" style="min-width:100px">급팽창</span> → 평탄성 문제, 지평선 문제 해결</div>
+                <div class="card" style="font-size:27px;line-height:1.75"><b>가속 팽창 우주론</b>: 약 60억 년 전부터 팽창 속도 증가 · 근거: <span class="blank" style="min-width:80px">Ia형</span> 초신성이 예측보다 더 어두움</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s37">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <div class="card q" data-a="b"><div class="qrow">멀리 있는 은하일수록 스펙트럼선이 파장이 더 ( ) 쪽으로, 더 ( ) 멀어진다. <button class="sim-btn" data-v="a">짧은, 느리게</button><button class="sim-btn" data-v="b">긴, 빨리</button><span class="res"></span></div></div>
+                <div class="card q" data-a="a"><div class="qrow">구스가 제안하여 평탄성 문제와 지평선 문제를 해결한 우주론은? <button class="sim-btn" data-v="a">급팽창 우주론</button><button class="sim-btn" data-v="b">정상 우주론</button><span class="res"></span></div></div>
+                <div class="card q" data-a="b"><div class="qrow">중성자 2개, 양성자 14개가 결합해 헬륨 원자핵을 만들면 수소 : 헬륨 질량비는? <button class="sim-btn" data-v="a">7 : 1</button><button class="sim-btn" data-v="b">3 : 1</button><span class="res"></span></div><div class="why" style="display:none">헬륨 원자핵 1개(질량 4) + 수소 원자핵 12개(질량 12) → 12 : 4 = 3 : 1</div></div>
+                <div class="card key" style="font-size:25px"><b>생각해 보기</b> 불꽃놀이는 한 점에서 빠르게 뻗어 나간다는 점에서 대폭발과 비슷하지만, <b>공간이 팽창</b>하며 일어나는 현상이 아니라는 점에서 달라요. 풍선을 불 때 늘어나는 고무 표면이 더 알맞은 비유예요. (지도서)</div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+function makeSorter(id,items,names){
+  const root=document.getElementById(id),pool=root.querySelector('.sort-pool'),msg=root.querySelector('.sort-msg');let sel=null,done=0;
+  const fb=items.map(it=>it);
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function reset(){pool.innerHTML='';root.querySelectorAll('.sort-bin .items').forEach(x=>x.innerHTML='');done=0;sel=null;msg.innerHTML='카드를 하나 누른 뒤, 알맞은 상자를 눌러 보세요.';
+    shuffle(fb.slice()).forEach(it=>{const b=document.createElement('button');b.className='sort-chip';b.textContent=it.t;b.dataset.bin=it.b;b.dataset.why=it.w||'';b.onclick=e=>{e.stopPropagation();if(b.classList.contains('ok'))return;pool.querySelectorAll('.sort-chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.add('hl'));};pool.appendChild(b);});}
+  root.querySelectorAll('.sort-bin').forEach(bin=>bin.onclick=()=>{if(!sel)return;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.remove('hl'));
+    if(sel.dataset.bin===bin.dataset.bin){sel.classList.remove('sel');sel.classList.add('ok');bin.querySelector('.items').appendChild(sel);done++;msg.innerHTML='⭕ 정답! '+(sel.dataset.why?'<span style="font-weight:normal">'+sel.dataset.why+'</span>':'');msg.style.color='#2563eb';
+      if(done===items.length){msg.innerHTML='🎉 모두 분류했어요! <button class="sim-btn orange" style="margin-left:12px">다시 하기</button>';msg.querySelector('button').onclick=reset;}}
+    else{const s=sel;s.classList.remove('sel');s.classList.add('bad');setTimeout(()=>s.classList.remove('bad'),450);msg.innerHTML='❌ 다시 생각해 봐요. ('+s.textContent+' → '+names[bin.dataset.bin]+'?)';msg.style.color='#ea580c';}
+    sel=null;});
+  reset();
+}
+
+makeSorter('sortA',[
+  {t:'우주 배경 복사',b:'ev',w:'가모프 연구팀이 예견, 펜지어스와 윌슨이 발견'},
+  {t:'수소 : 헬륨 질량비 ≈ 3 : 1',b:'ev',w:'빅뱅 초기 몇 분 동안의 원소 생성으로 설명'},
+  {t:'평탄성 문제',b:'lim',w:'현재 우주가 거의 평탄한 까닭을 설명하지 못함'},
+  {t:'지평선 문제',b:'lim',w:'멀리 떨어진 두 지점의 온도가 비슷한 까닭을 설명하지 못함'},
+  {t:'급팽창 우주론',b:'sol',w:'구스(1981): 평탄성·지평선 문제 해결'},
+  {t:'우주 배경 복사의 미세한 온도 요동이 방향에 상관없이 비슷',b:'sol',w:'급팽창 전 작은 영역 안의 요동이 커졌기 때문'}
+],{ev:'증거',lim:'한계',sol:'해결'});
+
+/* ===== D 도플러 ===== */
+(function(){
+  const c=document.getElementById('cD'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rD');let v=0.4;
+  const C=170,T=0.42,lam=C*T;let fronts=[],acc=0,sx=530,sy=230;
+  function out(){r.value=v;document.getElementById('vD').textContent=(v>0?'→ ':v<0?'← ':'')+Math.abs(v).toFixed(2);
+    document.querySelectorAll('#s7 [data-v]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.v-v)<1e-6));
+    const R=1-v,L=1+v;const desc=x=>x<0.999?'<b style="color:#2563eb">짧아짐 (청색 편이)</b>':x>1.001?'<b style="color:#dc2626">길어짐 (적색 편이)</b>':'변화 없음';
+    document.getElementById('oD').innerHTML='<div>오른쪽 관측자: 파장 × <b>'+R.toFixed(2)+'</b> → '+desc(R)+'</div><div style="margin-top:6px">왼쪽 관측자: 파장 × <b>'+L.toFixed(2)+'</b> → '+desc(L)+'</div><div class="sim-note">파원이 다가오는 쪽은 파면이 촘촘하고, 멀어지는 쪽은 성겨요.</div>';}
+  r.oninput=e=>{v=+e.target.value;fronts=[];out();};document.querySelectorAll('#s7 [data-v]').forEach(b=>b.onclick=()=>{v=+b.dataset.v;fronts=[];out();});out();
+  function wave(x0,y,w,l,col){g.strokeStyle=col;g.lineWidth=4;g.beginPath();for(let x=0;x<=w;x+=2){const yy=y+Math.sin(x/l*2*Math.PI)*22;x?g.lineTo(x0+x,yy):g.moveTo(x0,yy);}g.stroke();}
+  SIM.loop('s7',(tm,dt)=>{acc+=dt;if(acc>T){acc-=T;fronts.push(0);}fronts=fronts.map(a=>a+dt).filter(a=>C*a<900);
+    g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
+    fronts.forEach(a=>{const cx=sx-v*C*a,rad=C*a;g.strokeStyle='rgba(148,197,253,'+Math.max(0.15,1-rad/700)+')';g.lineWidth=2.5;g.beginPath();g.arc(cx,sy,rad,0,7);g.stroke();});
+    // 파원
+    g.fillStyle='#fbbf24';g.beginPath();g.arc(sx,sy,16,0,7);g.fill();
+    if(Math.abs(v)>0.01){g.strokeStyle='#fbbf24';g.lineWidth=4;const d=v>0?1:-1;g.beginPath();g.moveTo(sx+d*24,sy);g.lineTo(sx+d*80,sy);g.stroke();g.beginPath();g.moveTo(sx+d*80,sy);g.lineTo(sx+d*66,sy-10);g.lineTo(sx+d*66,sy+10);g.closePath();g.fillStyle='#fbbf24';g.fill();}
+    // 관측자
+    [[40,'왼쪽 관측자'],[1020,'오른쪽 관측자']].forEach(([x,t])=>{g.fillStyle='#e2e8f0';g.beginPath();g.arc(x,sy-20,10,0,7);g.fill();g.fillRect(x-6,sy-10,12,34);g.font=SIM.font(18);g.textAlign=x<500?'left':'right';g.fillText(t,x<500?14:W-14,sy+52);});
+    // 받는 파동
+    g.fillStyle='#1e293b';g.fillRect(0,400,W,210);
+    const L=lam*(1+v),R=lam*(1-v);
+    const colL=L>lam*1.001?'#f87171':L<lam*0.999?'#60a5fa':'#a3e635',colR=R>lam*1.001?'#f87171':R<lam*0.999?'#60a5fa':'#a3e635';
+    g.font=SIM.font(20);g.textAlign='left';g.fillStyle='#e2e8f0';g.fillText('왼쪽 관측자가 받는 파동',30,432);g.fillText('오른쪽 관측자가 받는 파동',560,432);
+    wave(30,500,470,L,colL);wave(560,500,470,R,colR);
+    g.font=SIM.font(19,false);g.fillStyle='#94a3b8';g.fillText('정지했을 때의 파장 = '+lam.toFixed(0)+' px',30,590);
+  });
+})();
+
+/* ===== H 허블 그래프 ===== */
+(function(){
+  const c=document.getElementById('cH'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rH');
+  const D=[{n:'(가)',d:52,l:664.5,dl:'8.2',z:'0.0124',v:3720},{n:'(나)',d:268,l:697.4,dl:'41.1',z:'0.0626',v:18780},{n:'(다)',d:407,l:722.2,dl:'65.9',z:'0.1004',v:30120}];
+  let shown=[false,false,false],h=45,fit=false,anim=[0,0,0];
+  function rows(){D.forEach((o,i)=>{const tr=document.getElementById('hr'+i).children;if(shown[i]){tr[1].textContent=o.dl;tr[2].textContent=o.z;tr[3].textContent=o.v.toLocaleString();}else{tr[1].textContent='';tr[2].textContent='';tr[3].textContent='';}});
+    document.querySelectorAll('#s11 [data-g]').forEach(b=>b.classList.toggle('on',shown[+b.dataset.g]));}
+  function out(){r.value=h;document.getElementById('vH').textContent=h.toFixed(1);const k=shown.filter(x=>x).length;
+    let res='';if(k){let s=0;D.forEach((o,i)=>{if(shown[i])s+=Math.pow(o.v-h*o.d,2);});res='<div>점과 직선 사이 오차(평균): <b>'+Math.round(Math.sqrt(s/k)).toLocaleString()+' km/s</b></div>';}
+    const last=D.map((o,i)=>i).filter(i=>shown[i]).pop();
+    const calc=last==null?'<div>은하 버튼을 눌러 계산을 시작해요.</div>':'<div>'+D[last].n+' λ − λ₀ = '+D[last].l+' − 656.3 = <b>'+D[last].dl+' nm</b></div><div>적색 편이 = '+D[last].dl+' ÷ 656.3 ≈ <b>'+D[last].z+'</b></div><div>v = (3×10⁵) × '+D[last].z+' ≈ <b>'+D[last].v.toLocaleString()+' km/s</b></div>';
+    document.getElementById('oH').innerHTML=calc+res+(fit?'<div style="margin-top:6px">추세선: <span class="sim-big">v = 72.8 r</span></div><div>기울기 = <b>허블 상수</b></div>':'');}
+  rows();out();
+  document.querySelectorAll('#s11 [data-g]').forEach(b=>b.onclick=()=>{const i=+b.dataset.g;if(!shown[i]){shown[i]=true;anim[i]=0;}rows();out();});
+  r.oninput=e=>{h=+e.target.value;fit=false;out();};
+  document.getElementById('bHfit').onclick=()=>{shown=[true,true,true];h=72.8;fit=true;rows();out();};
+  document.getElementById('bHreset').onclick=()=>{shown=[false,false,false];h=45;fit=false;anim=[0,0,0];rows();out();};
+  const L=110,R=1020,T=40,B=530,X=d=>L+d/450*(R-L),Y=v=>B-v/35000*(B-T);
+  SIM.loop('s11',(tm,dt)=>{g.clearRect(0,0,W,H);
+    g.strokeStyle='#e2e8f0';g.lineWidth=1;g.font=SIM.font(18,false);g.fillStyle='#475569';
+    for(let d=0;d<=450;d+=50){g.beginPath();g.moveTo(X(d),T);g.lineTo(X(d),B);g.stroke();g.textAlign='center';g.fillText(d,X(d),B+26);}
+    for(let v=0;v<=35000;v+=5000){g.beginPath();g.moveTo(L,Y(v));g.lineTo(R,Y(v));g.stroke();g.textAlign='right';g.fillText(v.toLocaleString(),L-10,Y(v)+6);}
+    g.strokeStyle='#334155';g.lineWidth=2.5;g.beginPath();g.moveTo(L,T);g.lineTo(L,B);g.lineTo(R,B);g.stroke();
+    g.font=SIM.font(21);g.fillStyle='#1e293b';g.textAlign='center';g.fillText('거리 (Mpc)',(L+R)/2,B+58);
+    g.save();g.translate(28,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('후퇴 속도 (km/s)',0,0);g.restore();
+    // 직선
+    const dEnd=Math.min(450,35000/h);g.strokeStyle=fit?'#ea580c':'#2563eb';g.lineWidth=4;g.setLineDash(fit?[]:[12,8]);g.beginPath();g.moveTo(X(0),Y(0));g.lineTo(X(dEnd),Y(h*dEnd));g.stroke();g.setLineDash([]);
+    g.fillStyle=fit?'#ea580c':'#2563eb';g.font=SIM.font(24);g.textAlign='left';g.fillText('v = '+h.toFixed(1)+' r',X(dEnd)-190,Y(h*dEnd)+40>B-10?B-20:Math.max(T+30,Y(h*dEnd)+40));
+    D.forEach((o,i)=>{if(!shown[i])return;anim[i]=Math.min(1,anim[i]+dt*2);const x=X(o.d),y=Y(o.v);
+      g.strokeStyle='rgba(220,38,38,.35)';g.lineWidth=2;g.setLineDash([5,5]);g.beginPath();g.moveTo(x,y);g.lineTo(x,Y(h*o.d));g.stroke();g.setLineDash([]);
+      g.fillStyle='#dc2626';g.beginPath();g.arc(x,y,7+8*(1-anim[i]),0,7);g.fill();g.fillStyle='#7f1d1d';g.font=SIM.font(20);g.textAlign='left';g.fillText(o.n,x+12,y-10);});
+  });
+})();
+
+/* ===== E 팽창 ===== */
+(function(){
+  const c=document.getElementById('cE'),g=c.getContext('2d'),W=1060,H=610;const rnd=SIM.rng(7);
+  const G=[];for(let i=0;i<34;i++){let p;do{p=[90+rnd()*880,80+rnd()*450];}while(G.some(q=>Math.hypot(q[0]-p[0],q[1]-p[1])<70));G.push(p);}
+  let obs=G.reduce((b,p,i)=>Math.hypot(p[0]-530,p[1]-305)<Math.hypot(G[b][0]-530,G[b][1]-305)?i:b,0);
+  let t=0,play=true,arr=true;const stars=[];for(let i=0;i<90;i++)stars.push([rnd()*W,rnd()*H]);
+  const near=()=>{const o=G[obs];const ds=G.map((p,i)=>[Math.hypot(p[0]-o[0],p[1]-o[1]),i]).filter(x=>x[1]!==obs).sort((a,b)=>a[0]-b[0]);return [ds[1][1],ds[Math.min(ds.length-1,9)][1]];};
+  let pair=near();
+  const a=()=>1+0.6*Math.min(t,1);
+  function out(){const o=G[obs];const A=a();const [i1,i2]=pair;const d1=Math.hypot(G[i1][0]-o[0],G[i1][1]-o[1]),d2=Math.hypot(G[i2][0]-o[0],G[i2][1]-o[1]);
+    document.getElementById('oE').innerHTML='<div>⭐ 관측자 은하에서 보면</div><div>A까지 거리 <b>'+(d1*A/10).toFixed(0)+'</b> → 속도 <b>'+(d1*0.6/10).toFixed(1)+'</b></div><div>B까지 거리 <b>'+(d2*A/10).toFixed(0)+'</b> → 속도 <b>'+(d2*0.6/10).toFixed(1)+'</b></div><div style="margin-top:6px">거리가 <b>'+(d2/d1).toFixed(1)+'배</b>면 속도도 <b>'+(d2/d1).toFixed(1)+'배</b> → v ∝ r</div><div class="sim-note">(상댓값) 다른 은하를 눌러 관측자를 바꿔도 똑같아요.</div>';}
+  c.onclick=ev=>{const p=SIM.pos(ev,c);const o=G[obs],A=a();let best=-1,bd=40;G.forEach((q,i)=>{const x=o[0]+(q[0]-o[0])*A*0.62+ (530-o[0]),y=o[1]+(q[1]-o[1])*A*0.62+(305-o[1]);const d=Math.hypot(x-p.x,y-p.y);if(d<bd){bd=d;best=i;}});if(best>=0){obs=best;pair=near();t=0;out();}};
+  document.getElementById('bEplay').onclick=e=>{play=!play;e.target.textContent=play?'⏸ 멈춤':'▶ 재생';e.target.classList.toggle('on',play);};
+  document.getElementById('bEreset').onclick=()=>{t=0;out();};
+  document.getElementById('bEarr').onclick=e=>{arr=!arr;e.target.textContent=arr?'켜짐':'꺼짐';e.target.classList.toggle('on',arr);};
+  out();
+  SIM.loop('s14',(tm,dt)=>{if(play){t+=dt/6;if(t>1.25)t=0;}const A=a();g.fillStyle='#020617';g.fillRect(0,0,W,H);
+    g.fillStyle='rgba(255,255,255,.35)';stars.forEach(s=>g.fillRect(s[0],s[1],1.5,1.5));
+    const o=G[obs];const P=q=>[530+(q[0]-o[0])*A*0.62,305+(q[1]-o[1])*A*0.62];
+    // 격자(공간)
+    g.strokeStyle='rgba(59,130,246,.18)';g.lineWidth=1;for(let k=-12;k<=12;k++){const s=60*A*0.62;g.beginPath();g.moveTo(530+k*s,0);g.lineTo(530+k*s,H);g.stroke();g.beginPath();g.moveTo(0,305+k*s);g.lineTo(W,305+k*s);g.stroke();}
+    G.forEach((q,i)=>{const [x,y]=P(q);if(x<-20||x>W+20||y<-20||y>H+20)return;
+      if(arr&&i!==obs){const dx=(q[0]-o[0])*0.62,dy=(q[1]-o[1])*0.62;const k=0.35;g.strokeStyle='rgba(251,146,60,.85)';g.lineWidth=2.5;g.beginPath();g.moveTo(x,y);g.lineTo(x+dx*k,y+dy*k);g.stroke();const ang=Math.atan2(dy,dx),ex=x+dx*k,ey=y+dy*k;g.beginPath();g.moveTo(ex,ey);g.lineTo(ex-10*Math.cos(ang-0.4),ey-10*Math.sin(ang-0.4));g.lineTo(ex-10*Math.cos(ang+0.4),ey-10*Math.sin(ang+0.4));g.closePath();g.fillStyle='rgba(251,146,60,.85)';g.fill();}
+      const isO=i===obs,isA=i===pair[0],isB=i===pair[1];
+      const gl=g.createRadialGradient(x,y,1,x,y,isO?18:12);gl.addColorStop(0,isO?'#fde047':'#e0e7ff');gl.addColorStop(1,'rgba(99,102,241,0)');g.fillStyle=gl;g.beginPath();g.arc(x,y,isO?18:12,0,7);g.fill();
+      g.strokeStyle='rgba(199,210,254,.8)';g.lineWidth=1.5;g.beginPath();g.ellipse(x,y,9,4,i,0,7);g.stroke();
+      if(isO){g.fillStyle='#fde047';g.font=SIM.font(20);g.textAlign='center';g.fillText('⭐ 관측자',x,y-24);}
+      if(isA||isB){g.fillStyle='#86efac';g.font=SIM.font(22);g.textAlign='center';g.fillText(isA?'A':'B',x,y-18);}});
+    g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.textAlign='left';g.fillText('우주의 크기 척도: '+A.toFixed(2),20,36);
+  });
+})();
+
+/* ===== A 우주의 나이 ===== */
+(function(){
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rA');let h=70;
+  const age=h=>3.0857e19/h/3.156e7/1e8; // 억 년
+  function out(){r.value=h;document.getElementById('vA').textContent=h+' km/s/Mpc';document.querySelectorAll('#s16 [data-h]').forEach(b=>b.classList.toggle('on',+b.dataset.h===h));
+    document.getElementById('oA').innerHTML='<div>1/H = 1 ÷ '+h+' km/s/Mpc</div><div>≈ <span class="sim-big">'+Math.round(age(h))+'억 년</span></div><div class="sim-note">H = 70이면 약 140억 년 → 현재 우주의 나이 138억 년과 비슷해요. H가 클수록(빨리 팽창할수록) 나이는 적어져요.</div>';}
+  r.oninput=e=>{h=+e.target.value;out();};document.querySelectorAll('#s16 [data-h]').forEach(b=>b.onclick=()=>{h=+b.dataset.h;out();});out();
+  const L=120,R=1010,T=40,B=520,tmin=-200,X=t=>L+(t-tmin)/(0-tmin)*(R-L),Y=d=>B-d/400*(B-T);
+  const DS=[100,200,300,400];
+  SIM.loop('s16',(tm)=>{g.clearRect(0,0,W,H);const A=age(h);
+    g.strokeStyle='#e2e8f0';g.lineWidth=1;g.font=SIM.font(18,false);g.fillStyle='#475569';
+    for(let t=-200;t<=0;t+=25){g.beginPath();g.moveTo(X(t),T);g.lineTo(X(t),B);g.stroke();g.textAlign='center';g.fillText(t===0?'현재':(-t)+'억 년 전',X(t),B+26);}
+    for(let d=0;d<=400;d+=100){g.beginPath();g.moveTo(L,Y(d));g.lineTo(R,Y(d));g.stroke();g.textAlign='right';g.fillText(d,L-10,Y(d)+6);}
+    g.strokeStyle='#334155';g.lineWidth=2.5;g.beginPath();g.moveTo(L,T);g.lineTo(L,B);g.lineTo(R,B);g.stroke();
+    g.font=SIM.font(21);g.fillStyle='#1e293b';g.textAlign='center';g.fillText('시간',(L+R)/2,B+58);g.save();g.translate(30,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('은하까지의 거리 (Mpc)',0,0);g.restore();
+    // 되감기 애니메이션
+    const ph=(tm/4000)%1;const tNow=-A*Math.min(1,ph*1.25);
+    DS.forEach((d,i)=>{const col=['#2563eb','#7c3aed','#db2777','#ea580c'][i];g.strokeStyle=col;g.lineWidth=3;g.beginPath();g.moveTo(X(-A),Y(0));g.lineTo(X(0),Y(d));g.stroke();
+      const dd=d*(1+tNow/A);g.fillStyle=col;g.beginPath();g.arc(X(tNow),Y(dd),9,0,7);g.fill();
+      g.font=SIM.font(18);g.textAlign='left';g.fillText('v = '+(h*d).toLocaleString()+' km/s',X(0)-170,Y(d)-12);});
+    g.fillStyle='#ea580c';g.beginPath();g.arc(X(-A),Y(0),11,0,7);g.fill();g.font=SIM.font(22);g.textAlign='center';const lx=Math.max(L+190,X(-A)+40),lt='모든 은하가 한 점에! ('+Math.round(A)+'억 년 전)';const tw=g.measureText(lt).width;g.fillStyle='rgba(255,255,255,.92)';g.fillRect(lx-tw/2-8,Y(0)-92,tw+16,36);g.fillStyle='#c2410c';g.fillText(lt,lx,Y(0)-66);g.strokeStyle='#ea580c';g.lineWidth=2;g.beginPath();g.moveTo(lx,Y(0)-56);g.lineTo(X(-A),Y(0)-12);g.stroke();
+    g.fillStyle='#1e293b';g.font=SIM.font(20);g.textAlign='left';g.fillText('◀ 시간을 되감는 중',L+16,T+28);
+  });
+})();
+
+/* ===== B 빅뱅 vs 정상 ===== */
+(function(){
+  const c=document.getElementById('cB'),g=c.getContext('2d'),W=1060,H=610;let t=0,play=true;const rnd=SIM.rng(11);
+  const base=[];for(let i=0;i<40;i++){const rr=Math.sqrt(rnd()),a=rnd()*6.283;base.push([rr*Math.cos(a),rr*Math.sin(a)]);}
+  let extra=[];
+  function reset(){t=0;extra=[];}
+  document.getElementById('bBplay').onclick=e=>{play=!play;e.target.textContent=play?'⏸ 멈춤':'▶ 재생';e.target.classList.toggle('on',play);};
+  document.getElementById('bBreset').onclick=reset;
+  const R0=60,Rmax=230;
+  SIM.loop('s19',(tm,dt)=>{if(play){t+=dt/8;if(t>1.15)reset();}const tt=Math.min(t,1);const Rr=R0+(Rmax-R0)*tt;const s=Rr/R0;
+    // 정상: 밀도 유지 → 필요한 은하 수 = 40*s^2
+    const need=Math.round(40*s*s);while(base.length+extra.length<need){const rr=Math.sqrt(Math.random()),a=Math.random()*6.283;extra.push([rr*Math.cos(a)*s,rr*Math.sin(a)*s,0]);}
+    g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
+    const T=3000/(s*s*s*s);// 개념적 온도 표시용 색
+    [[265,'빅뱅 우주론'],[795,'정상 우주론']].forEach(([cx,lab],k)=>{const cy=300;
+      const col=k===0?SIM.bbRGB(Math.max(1500,12000/s)):[96,165,250];
+      g.fillStyle=k===0?'rgba('+col+','+(0.55/s)+')':'rgba(59,130,246,.22)';g.beginPath();g.arc(cx,cy,Rr,0,7);g.fill();
+      g.strokeStyle='#94a3b8';g.lineWidth=2;g.beginPath();g.arc(cx,cy,Rr,0,7);g.stroke();
+      base.forEach(p=>{g.fillStyle='#fde68a';g.beginPath();g.arc(cx+p[0]*Rr,cy+p[1]*Rr,4,0,7);g.fill();});
+      if(k===1)extra.forEach(p=>{p[2]=Math.min(1,p[2]+dt*2);g.fillStyle='rgba(134,239,172,'+p[2]+')';g.beginPath();g.arc(cx+p[0]*R0,cy+p[1]*R0,4,0,7);g.fill();});
+      g.fillStyle='#e2e8f0';g.font=SIM.font(30);g.textAlign='center';g.fillText(lab,cx,48);
+      const n=k===0?40:40+extra.length;const dens=n/(s*s)/40;
+      g.font=SIM.font(22);g.fillText('은하 수 '+n+'  ·  밀도 '+dens.toFixed(2),cx,575);});
+    g.strokeStyle='#334155';g.lineWidth=2;g.beginPath();g.moveTo(530,20);g.lineTo(530,H-20);g.stroke();
+    document.getElementById('oB').innerHTML='<div>우주 크기: <b>'+s.toFixed(2)+'배</b></div><div style="margin-top:6px"><b style="color:#ca8a04">빅뱅</b>: 물질 총량 일정 → 밀도 <b>감소</b>, 온도 <b>감소</b> (원의 색이 점점 어두워져요)</div><div style="margin-top:6px"><b style="color:#16a34a">정상</b>: 새 은하(초록) 생성 → 밀도 <b>일정</b></div>';
+  });
+})();
+
+/* ===== N 헬륨 ===== */
+(function(){
+  const c=document.getElementById('cN'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rN');let k=7,go=false,ph=0;
+  function out(){r.value=k;document.getElementById('vN').textContent='1 : '+k;const p=2*k,hN=p-2;
+    document.getElementById('oN').innerHTML='<div>중성자 <b>2</b>개, 양성자 <b>'+p+'</b>개</div>'+(go&&ph>=1?'<div style="margin-top:6px">헬륨 원자핵 1개 → 질량 <b>4</b></div><div>수소 원자핵 '+hN+'개 → 질량 <b>'+hN+'</b></div><div style="margin-top:6px">수소 : 헬륨 = '+hN+' : 4 = <span class="sim-big">'+(hN/4).toFixed(hN%4?1:0)+' : 1</span></div>'+(k===7?'<div class="sim-note">교과서 값 1 : 7 → 약 3 : 1 ✔ 실제 우주의 비율과 같아요!</div>':''):'<div style="margin-top:6px">‘결합!’을 눌러 보세요.</div>');
+    document.getElementById('bN7').classList.toggle('on',k===7);}
+  r.oninput=e=>{k=+e.target.value;go=false;ph=0;out();};document.getElementById('bNgo').onclick=()=>{go=true;ph=0;};document.getElementById('bNre').onclick=()=>{go=false;ph=0;out();};document.getElementById('bN7').onclick=()=>{k=7;go=false;ph=0;out();};out();
+  let shown=false;
+  function ball(x,y,col,lab){const gr=g.createRadialGradient(x-6,y-6,2,x,y,22);gr.addColorStop(0,'#fff');gr.addColorStop(0.3,col);gr.addColorStop(1,col);g.fillStyle=gr;g.beginPath();g.arc(x,y,27,0,7);g.fill();g.fillStyle='#0f172a';g.font=SIM.font(22);g.textAlign='center';g.fillText(lab,x,y+6);}
+  SIM.loop('s21',(tm,dt)=>{if(go&&ph<1){ph=Math.min(1,ph+dt/1.6);if(ph>=1&&!shown){shown=true;out();}}if(!go)shown=false;
+    g.fillStyle='#fff';g.fillRect(0,0,W,H);const p=2*k;const e=ph<0.5?0:Math.min(1,(ph-0.5)*2),m=Math.min(1,ph*2);const ease=x=>x*x*(3-2*x);
+    // 초기 배치 위치
+    const cols=Math.min(10,p+2),pos=i=>[90+(i%cols)*74,130+Math.floor(i/cols)*74];
+    const tgt=[[850,300],[910,300],[850,360],[910,360]];// 헬륨 위치
+    const ids=[];for(let i=0;i<p+2;i++)ids.push(i);
+    // 입자 0,1 = 중성자, 2.. = 양성자 ; 헬륨: 중성자0,1 + 양성자2,3
+    ids.forEach(i=>{let [x,y]=pos(i);const isN=i<2;
+      if(i<4){const [tx,ty]=tgt[i<2?i*3:i-1];const q=ease(m);x=x+(tx-x)*q;y=y+(ty-y)*q;}
+      else{const q=ease(e);const j=i-4;const hx=90+(j%9)*74,hy=460+Math.floor(j/9)*74;x=x+(hx-x)*q;y=y+(hy-y)*q;}
+      ball(x,y,isN?'#cbd5e1':'#ef4444',isN?'n':'p');});
+    g.fillStyle='#1e293b';g.font=SIM.font(24);g.textAlign='left';g.fillText('우주 나이 약 3분',30,50);
+    if(ph>=1){g.strokeStyle='#ea580c';g.lineWidth=3;g.beginPath();g.arc(880,330,80,0,7);g.stroke();g.fillStyle='#c2410c';g.font=SIM.font(26);g.textAlign='center';g.fillText('헬륨 원자핵 (질량 4)',880,450);
+      g.fillStyle='#b91c1c';g.textAlign='left';g.fillText('수소 원자핵 '+(p-2)+'개 (질량 '+(p-2)+')',70,415);}
+  });
+})();
+
+/* ===== C 우주 배경 복사 ===== */
+(function(){
+  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rC');let u=0,auto=false;
+  const SMAX=3000/2.73; // 약 1099
+  const S=()=>Math.pow(SMAX,u),TT=()=>3000/S();
+  function out(){r.value=u;const s=S(),T=TT(),lm=2.898e6/T;// nm
+    document.getElementById('vC').textContent=s.toFixed(s<10?2:0)+'배';
+    const reg=lm<780?'가시광선':lm<1e6?'적외선':'마이크로파';
+    document.getElementById('oC').innerHTML='<div>온도 <span class="sim-big">'+(T>=100?Math.round(T):T.toFixed(2))+' K</span></div><div>최대 복사 파장 λmax ≈ <b>'+(lm<1e4?Math.round(lm)+' nm':lm<1e6?(lm/1000).toFixed(0)+' μm':(lm/1e6).toFixed(2)+' mm')+'</b> ('+reg+')</div><div class="sim-note">파장이 '+s.toFixed(0)+'배 늘어나면 온도는 1/'+s.toFixed(0)+'로 낮아져요.</div>';}
+  r.oninput=e=>{u=+e.target.value;auto=false;out();};document.getElementById('bC0').onclick=()=>{u=0;auto=false;out();};document.getElementById('bC1').onclick=()=>{u=1;auto=false;out();};document.getElementById('bCplay').onclick=()=>{u=0;auto=true;};out();
+  const L=80,R=1010,T0=60,B=420,lmin=Math.log10(100),lmax=Math.log10(1e7),X=l=>L+(Math.log10(l)-lmin)/(lmax-lmin)*(R-L);
+  const planck=(l,T)=>{const x=1.4388e7/(l*T);return x>700?0:Math.pow(l,-4)/(Math.exp(x)-1);};// λ·Bλ
+  function curve(T,col,w,dash){let mx=0;const pts=[];for(let i=0;i<=400;i++){const l=Math.pow(10,lmin+(lmax-lmin)*i/400);const v=planck(l,T);pts.push([l,v]);if(v>mx)mx=v;}
+    g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();pts.forEach(([l,v],i)=>{const y=B-v/mx*(B-T0-20);i?g.lineTo(X(l),y):g.moveTo(X(l),y);});g.stroke();g.setLineDash([]);}
+  SIM.loop('s23',(tm,dt)=>{if(auto){u=Math.min(1,u+dt/6);if(u>=1)auto=false;out();}g.clearRect(0,0,W,H);
+    // 영역 띠
+    const bands=[[100,380,'자외선','#ede9fe'],[380,780,'가시광선',null],[780,1e6,'적외선','#fee2e2'],[1e6,1e7,'마이크로파','#dbeafe']];
+    bands.forEach(([a,b,n,col])=>{if(col){g.fillStyle=col;g.fillRect(X(a),T0-30,X(b)-X(a),B-T0+30);}else{for(let x=X(a);x<X(b);x++){const l=Math.pow(10,lmin+(x-L)/(R-L)*(lmax-lmin));g.fillStyle='rgba('+SIM.wl2rgb(l)+',.35)';g.fillRect(x,T0-30,1,B-T0+30);}}
+      g.fillStyle='#334155';g.font=SIM.font(17);g.textAlign='center';g.fillText(n,(X(a)+X(b))/2,T0-8);});
+    curve(3000,'rgba(234,88,12,.35)',3,[8,6]);const T=TT();curve(T,'#dc2626',4.5);
+    const lm=2.898e6/T;g.strokeStyle='#1e293b';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();g.moveTo(X(lm),T0);g.lineTo(X(lm),B);g.stroke();g.setLineDash([]);
+    g.fillStyle='#1e293b';g.font=SIM.font(19);g.textAlign='center';g.fillText('λmax',X(lm),T0+18);
+    g.strokeStyle='#334155';g.lineWidth=2.5;g.beginPath();g.moveTo(L,B);g.lineTo(R,B);g.stroke();
+    g.font=SIM.font(16,false);g.fillStyle='#475569';[[100,'100 nm'],[1000,'1 μm'],[1e4,'10 μm'],[1e5,'100 μm'],[1e6,'1 mm'],[1e7,'1 cm']].forEach(([l,t])=>g.fillText(t,X(l),B+22));
+    g.font=SIM.font(19);g.fillText('파장 (로그 눈금)',(L+R)/2,B+48);
+    g.fillStyle='rgba(234,88,12,.8)';g.font=SIM.font(18);g.textAlign='left';g.fillText('- - 3000 K (38만 년)',L+10,B-12);
+    // 늘어나는 빛
+    const s=S();const lw=26*Math.pow(s,0.42);g.strokeStyle='#dc2626';g.lineWidth=3;g.beginPath();for(let x=0;x<=900;x+=2){const y=540+Math.sin(x/lw*2*Math.PI-tm/300)*18;x?g.lineTo(L+x,y):g.moveTo(L,y);}g.stroke();
+    g.fillStyle='#64748b';g.font=SIM.font(17,false);g.textAlign='left';g.fillText('공간이 팽창하며 늘어나는 빛의 파동 (개념 그림)',L,595);
+  });
+})();
+
+/* ===== K 우주 크기 곡선 ===== */
+(function(){
+  const c=document.getElementById('cK'),g=c.getContext('2d'),W=1060,H=610;
+  const M=[{n:'닫힌 우주',m:3,l:0,c:'#dc2626'},{n:'평탄 우주',m:1,l:0,c:'#7c3aed'},{n:'열린 우주',m:0.3,l:0,c:'#2563eb'},{n:'가속 팽창 우주',m:0.3,l:0.7,c:'#16a34a'}];
+  const on=[true,true,true,true];let prog=0;
+  // 적분: 시간 단위 1/H0, a(0)=1, da/dt=1
+  M.forEach(o=>{const acc=a=>-o.m/(2*a*a)+o.l*a;const f=(a,v,dt)=>{// RK4
+      const k1a=v,k1v=acc(a),k2a=v+k1v*dt/2,k2v=acc(a+k1a*dt/2),k3a=v+k2v*dt/2,k3v=acc(a+k2a*dt/2),k4a=v+k3v*dt,k4v=acc(a+k3a*dt);return [a+dt*(k1a+2*k2a+2*k3a+k4a)/6,v+dt*(k1v+2*k2v+2*k3v+k4v)/6];};
+    const back=[];let a=1,v=1,t=0;while(a>0.02&&t>-3){const dt=-Math.min(0.002,a*0.01);[a,v]=f(a,v,dt);t+=dt;back.push([t,a]);}
+    o.age=-t;back.reverse();const fw=[];a=1;v=1;t=0;while(t<2.6&&a>0.02&&a<3){[a,v]=f(a,v,0.004);t+=0.004;fw.push([t,a]);}
+    o.pts=back.concat([[0,1]],fw);});
+  const L=100,R=1020,T=40,B=530,tmin=-1.6,tmax=2.6,amax=2.6,X=t=>L+(t-tmin)/(tmax-tmin)*(R-L),Y=a=>B-a/amax*(B-T);
+  const GY=3.0857e19/70/3.156e7/1e8;// 억 년 per unit
+  function out(){document.querySelectorAll('#s27 [data-k]').forEach(b=>b.classList.toggle('on',on[+b.dataset.k]));
+    document.getElementById('oK').innerHTML='<div><b>우주의 나이</b> (계산값)</div>'+M.map((o,i)=>on[i]?'<div><span style="color:'+o.c+'">■</span> '+o.n+': 약 <b>'+Math.round(o.age*GY)+'억 년</b></div>':'').join('')+'<div class="sim-note">같은 팽창 속도라면, 가속 팽창 우주가 초기에 더 천천히 팽창해 나이가 더 많아요.</div>';}
+  document.querySelectorAll('#s27 [data-k]').forEach(b=>b.onclick=()=>{on[+b.dataset.k]=!on[+b.dataset.k];out();});document.getElementById('bKplay').onclick=()=>{prog=0;};out();
+  SIM.loop('s27',(tm,dt)=>{prog=Math.min(1,prog+dt/4);g.clearRect(0,0,W,H);
+    g.strokeStyle='#e2e8f0';g.lineWidth=1;for(let a=0;a<=2.5;a+=0.5){g.beginPath();g.moveTo(L,Y(a));g.lineTo(R,Y(a));g.stroke();g.fillStyle='#475569';g.font=SIM.font(17,false);g.textAlign='right';g.fillText(a.toFixed(1),L-10,Y(a)+6);}
+    g.strokeStyle='#334155';g.lineWidth=2.5;g.beginPath();g.moveTo(L,T);g.lineTo(L,B);g.lineTo(R,B);g.stroke();
+    g.strokeStyle='#94a3b8';g.setLineDash([6,6]);g.beginPath();g.moveTo(X(0),T);g.lineTo(X(0),B);g.stroke();g.setLineDash([]);
+    g.fillStyle='#1e293b';g.font=SIM.font(20);g.textAlign='center';g.fillText('현재',X(0),B+28);g.fillText('과거 ←   시간   → 미래',(L+R)/2+120,B+56);
+    g.save();g.translate(32,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('상대적인 우주의 크기',0,0);g.restore();
+    const tCut=tmin+(tmax-tmin)*prog;
+    M.forEach((o,i)=>{if(!on[i])return;g.strokeStyle=o.c;g.lineWidth=4;g.beginPath();let first=true,last=null;o.pts.forEach(([t,a])=>{if(t<tmin||t>tCut||a>amax)return;first?g.moveTo(X(t),Y(a)):g.lineTo(X(t),Y(a));first=false;last=[t,a];});g.stroke();
+      g.fillStyle=o.c;g.fillRect(L+24,T+10+i*34,30,6);g.font=SIM.font(20);g.textAlign='left';g.fillText(o.n,L+64,T+20+i*34);});
+    g.fillStyle='#1e293b';g.beginPath();g.arc(X(0),Y(1),7,0,7);g.fill();
+  });
+})();
+
+/* ===== F 급팽창 평탄 ===== */
+(function(){
+  const c=document.getElementById('cF'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rF');let k=0,auto=false;
+  function out(){r.value=k;const f=Math.pow(10,k);document.getElementById('vF').textContent=f<1e3?f.toFixed(0)+'배':'10^'+k.toFixed(1)+'배';
+    const R=120*f;const sag=R-Math.sqrt(Math.max(0,R*R-150*150));
+    document.getElementById('oF').innerHTML='<div>창 안에서 보이는 휘어짐: <span class="sim-big">'+(sag<0.01?'≈ 0':sag.toFixed(sag<1?2:0))+' px</span></div><div class="sim-note">공간이 극도로 커지면 관측되는 영역의 곡률은 0에 가까워져 <b>평탄</b>하게 보여요.</div>';}
+  r.oninput=e=>{k=+e.target.value;auto=false;out();};document.getElementById('bFgo').onclick=()=>{k=0;auto=true;};document.getElementById('bFre').onclick=()=>{k=0;auto=false;out();};out();
+  const stars=[];const rnd=SIM.rng(5);for(let i=0;i<120;i++)stars.push([rnd()*W,rnd()*H]);
+  SIM.loop('s30',(tm,dt)=>{if(auto){k=Math.min(6,k+dt*1.6);if(k>=6)auto=false;out();}
+    g.fillStyle='#020617';g.fillRect(0,0,W,H);g.fillStyle='rgba(255,255,255,.4)';stars.forEach(s=>g.fillRect(s[0],s[1],1.5,1.5));
+    const f=Math.pow(10,k),R=120*f,cx=530,top=300,cy=top+R;
+    // 공
+    if(R<5000){const gr=g.createRadialGradient(cx-R*0.3,cy-R*0.3,R*0.1,cx,cy,R);gr.addColorStop(0,'#60a5fa');gr.addColorStop(1,'#1e3a8a');g.fillStyle=gr;g.beginPath();g.arc(cx,cy,R,0,7);g.fill();
+      g.strokeStyle='rgba(191,219,254,.5)';g.lineWidth=1;for(let j=-6;j<=6;j++){g.beginPath();g.ellipse(cx,cy,Math.abs(R*j/7),R,0,0,7);g.stroke();}
+      for(let j=1;j<7;j++){const yy=cy-R+2*R*j/7;const hw=Math.sqrt(Math.max(0,R*R-(yy-cy)*(yy-cy)));g.beginPath();g.ellipse(cx,yy,hw,hw*0.12,0,0,7);g.stroke();}}
+    else{g.fillStyle='#1e40af';g.beginPath();g.moveTo(0,H);const N=200;for(let i=0;i<=N;i++){const x=i/N*W;const dx=x-cx;const y=cy-Math.sqrt(Math.max(0,R*R-dx*dx));g.lineTo(x,y);}g.lineTo(W,H);g.closePath();g.fill();
+      g.strokeStyle='rgba(191,219,254,.5)';g.lineWidth=1;const sp=40;for(let x=cx%sp;x<W;x+=sp){g.beginPath();g.moveTo(x,top);g.lineTo(x,H);g.stroke();}for(let y=top;y<H;y+=sp){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
+    // 관측 창
+    g.strokeStyle='#fbbf24';g.lineWidth=4;g.setLineDash([12,8]);g.strokeRect(cx-150,top-70,300,140);g.setLineDash([]);
+    g.fillStyle='#fbbf24';g.font=SIM.font(22);g.textAlign='center';g.fillText('관측 가능한 영역',cx,top-82);
+    // 창 안 표면 강조
+    g.strokeStyle='#f97316';g.lineWidth=5;g.beginPath();for(let x=-150;x<=150;x+=3){const y=cy-Math.sqrt(Math.max(0,R*R-x*x));x===-150?g.moveTo(cx+x,y):g.lineTo(cx+x,y);}g.stroke();
+    g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.textAlign='left';g.fillText('우주의 반지름 × '+(f<1000?f.toFixed(0):'10^'+k.toFixed(1)),20,40);
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

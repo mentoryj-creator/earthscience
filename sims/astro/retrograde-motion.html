@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행성의 겉보기 운동</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s13">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>행성의 겉보기 운동 시뮬레이터</div>
+            <div class="ppt-subtitle">아래는 <span class="or">우주 시점</span>, 위는 <span class="or">지구 시점</span>(별자리 배경)이에요. 행성을 바꿔 가며 역행을 찾아보세요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cP1" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>행성 고르기</h4>
+                        <div class="sim-btns"><button class="sim-btn" data-pl="0">수성</button><button class="sim-btn" data-pl="1">금성</button><button class="sim-btn on" data-pl="2">화성</button><button class="sim-btn" data-pl="3">목성</button><button class="sim-btn" data-pl="4">토성</button></div>
+                        <div class="sim-row" style="margin-top:6px"><span class="lbl" style="width:90px">속도</span><input type="range" class="sim-range" id="rP1" min="0.02" max="0.5" step="0.01" value="0.15"></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bP1">⏸ 멈춤</button><button class="sim-btn" id="bP1r">처음부터</button></div>
+                    </div>
+                    <div class="sim-box key" id="oP1" style="font-size:23px"></div>
+                    <div class="sim-note">※ 실제 공전 주기·궤도 경사로 계산(원 궤도 가정)했어요. 위쪽 별자리 배경의 위아래 폭은 과장했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">화성은 왜 하늘에서 왔다 갔다 할까?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">02. 태양계 행성의 겉보기 운동</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:#0f172a">
+                    <img data-noimg="" style="width:100%;height:100%;object-fit:cover">
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">순행 · 역행 · 유 · 내합과 외합 · 합과 충</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">지구에서 보는 행성의 운동과 <span class="or">실제 행성의 운동</span>은 어떻게 다를까?</div>
+            <div class="main">
+                <div class="col" style="width:1000px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div><b>내행성</b>과 <b>외행성</b>의 겉보기 운동을 비교할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>모형을 이용하여 태양계 행성의 겉보기 운동을 <b>설명</b>할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:720px;border-radius:14px;border:2px solid #e2e8f0">
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: 화성은 왜 왔다 갔다 하는 걸까?</div>
+            <div class="ppt-subtitle">“난 공전 궤도를 따라 부지런히 달려가지.” 그런데 지구에서 보면…</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:720px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>행성은 언제나 같은 방향으로 공전하는데, 하늘에서는 왜 <b>거꾸로</b> 가는 것처럼 보일 때가 있을까?</div>
+                    <div class="card" data-step="2">우리는 <b>움직이는 지구</b> 위에서 다른 행성을 보고 있어요.</div>
+                    <div class="card key" data-step="3">‘행성(planet)’은 그리스어로 <b>방랑자</b>라는 뜻에서 유래했어요. 옛사람들 눈에는 별들 사이를 떠도는 별처럼 보였거든요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">행성은 모두 서→동으로, 안쪽일수록 빠르게 공전해요</div>
+            <div class="ppt-subtitle">태양계 행성의 궤도 자료 (한국 천문 연구원 역서, 2024 · 지도서 자료)</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <table style="width:100%;border-collapse:collapse;font-size:29px;text-align:center;line-height:1.5">
+                    <tr style="background:#eff6ff"><th style="border:2px solid #cbd5e1;padding:8px">행성</th><th style="border:2px solid #cbd5e1">이심률</th><th style="border:2px solid #cbd5e1">평균 공전 속도 (km/s)</th><th style="border:2px solid #cbd5e1">공전 주기 (년)</th></tr>
+                    <tr><td style="border:2px solid #cbd5e1">수성</td><td style="border:2px solid #cbd5e1">0.2056</td><td style="border:2px solid #cbd5e1;font-weight:bold;color:#c2410c">47.36</td><td style="border:2px solid #cbd5e1">0.241</td></tr>
+                    <tr><td style="border:2px solid #cbd5e1">금성</td><td style="border:2px solid #cbd5e1">0.0068</td><td style="border:2px solid #cbd5e1;font-weight:bold;color:#c2410c">35.02</td><td style="border:2px solid #cbd5e1">0.615</td></tr>
+                    <tr style="background:#f0f9ff"><td style="border:2px solid #cbd5e1;font-weight:bold">지구</td><td style="border:2px solid #cbd5e1">0.0167</td><td style="border:2px solid #cbd5e1;font-weight:bold">29.78</td><td style="border:2px solid #cbd5e1">1.000</td></tr>
+                    <tr><td style="border:2px solid #cbd5e1">화성</td><td style="border:2px solid #cbd5e1">0.0933</td><td style="border:2px solid #cbd5e1;color:#2563eb;font-weight:bold">24.08</td><td style="border:2px solid #cbd5e1">1.881</td></tr>
+                    <tr><td style="border:2px solid #cbd5e1">목성</td><td style="border:2px solid #cbd5e1">0.0483</td><td style="border:2px solid #cbd5e1;color:#2563eb;font-weight:bold">13.06</td><td style="border:2px solid #cbd5e1">11.862</td></tr>
+                    <tr><td style="border:2px solid #cbd5e1">토성</td><td style="border:2px solid #cbd5e1">0.0548</td><td style="border:2px solid #cbd5e1;color:#2563eb;font-weight:bold">9.65</td><td style="border:2px solid #cbd5e1">29.457</td></tr>
+                </table>
+                <div class="card key" data-step="1">공전 속도는 태양의 중력에 따라 달라져요. → 태양에 가까울수록 <b>빠르게</b> 공전해요. 이 속도 차이가 겉보기 운동의 열쇠!</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">행성의 겉보기 운동: 순행 · 역행 · 유</div>
+            <div class="ppt-subtitle">지구에서 꾸준히 관측하면 행성이 <span class="or">별들 사이를 움직이는</span> 것을 볼 수 있어요.</div>
+            <div class="main" style="flex-direction:column;gap:14px">
+                <img data-noimg="" style="width:100%;max-height:440px;object-fit:contain;border-radius:16px;background:#0f172a">
+                <div style="display:flex;gap:14px">
+                    <div class="card" data-step="1" style="flex:1"><span class="tag b">순행</span>서 → 동으로 이동 (공전 방향과 같음)</div>
+                    <div class="card" data-step="2" style="flex:1"><span class="tag o">역행</span>동 → 서로 이동 (공전 방향과 반대)</div>
+                    <div class="card key" data-step="3" style="flex:1"><span class="tag g">유</span>방향이 바뀔 때 잠시 <b>멈춘 것처럼</b> 보임</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s6">
+            <div class="ppt-title">내행성과 지구의 위치 관계</div>
+            <div class="ppt-subtitle">내행성(수성, 금성)은 지구 공전 궤도의 <span class="or">안쪽</span>에서 공전해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:760px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1"><span class="tag">이각</span>내행성이 태양으로부터 떨어져 보이는 <b>각거리</b></div>
+                    <div class="card" data-step="2"><span class="tag o">최대이각</span>태양에서 가장 멀리 떨어져 보일 때의 각거리 (동방·서방)</div>
+                    <div class="card" data-step="3"><span class="tag b">내합</span>태양과 지구 <b>사이</b>에서 태양과 나란할 때</div>
+                    <div class="card" data-step="4"><span class="tag p">외합</span>태양의 <b>뒤쪽</b>에서 태양과 나란할 때</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">내행성은 새벽이나 초저녁에만 보여요</div>
+            <div class="ppt-subtitle">내행성은 늘 <span class="or">태양 주위</span>에서 관측돼요.</div>
+            <div class="main" style="gap:24px">
+                <div class="gcard" data-step="1" style="font-size:32px;justify-content:center"><h3>🌅 태양의 서쪽</h3><div>태양보다 <b>먼저</b> 뜨고 짐</div><div class="kw">→ 새벽, 동쪽 하늘</div></div>
+                <div class="gcard orange" data-step="2" style="font-size:32px;justify-content:center"><h3>🌇 태양의 동쪽</h3><div>태양보다 <b>늦게</b> 뜨고 짐</div><div class="kw">→ 초저녁, 서쪽 하늘</div></div>
+                <div class="gcard" data-step="3" style="font-size:30px;justify-content:center;border-color:#c4b5fd;background:#f5f3ff"><h3>📐 최대이각</h3><div>수성: 약 <b>18°~28°</b> 사이에서 변함</div><div>금성: 약 <b>48°</b>로 거의 일정</div><div class="note">그래서 한밤중에는 내행성을 볼 수 없어요.</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">금성은 최대이각일 때 가장 밝을까?</div>
+            <div class="ppt-subtitle">학생들의 오개념과 질문 (지도서)</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:20px">
+                <div class="card soft" style="font-size:34px"><span class="look">Q</span>금성의 위상이 반달처럼 보이는 최대이각에서 가장 밝지 않을까?</div>
+                <div class="card" data-step="1" style="font-size:32px">최대이각과 내합 사이에서는 위상은 더 작지만, 지구에 가까워 <b>시지름이 커서</b> 햇빛을 반사하는 면적이 더 커져요.</div>
+                <div class="card key" data-step="2" style="font-size:32px">→ 금성은 <b>최대이각과 내합 사이</b>에서 가장 밝아요.</div>
+                <div class="note" data-step="2">내합 부근에서는 지구와 가장 가까워 시지름이 가장 크고, 외합 부근에서는 가장 작게 보여요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">내행성은 내합 전후에 역행해요</div>
+            <div class="ppt-subtitle">내행성은 태양에 더 가까워 지구보다 <span class="or">빠르게</span> 공전해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:720px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1"><span class="tag b">순행</span>1번 → 2번, 7번 → 9번 구간</div>
+                    <div class="card" data-step="2"><span class="tag o">역행</span>3번 → 5번 구간 (내합 부근)</div>
+                    <div class="card key" data-step="3">내합 부근에서 역행하고, 서방 최대이각 부근부터 동방 최대이각까지는 순행해요.</div>
+                    <div class="note" data-step="3">역행이 일어나는 까닭: 지구와 행성의 <b>공전 속도가 다르기</b> 때문</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">외행성과 지구의 위치 관계</div>
+            <div class="ppt-subtitle">외행성(화성, 목성, 토성 …)은 지구 공전 궤도의 <span class="or">바깥쪽</span>에서 공전해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:720px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1"><span class="tag p">합</span>태양의 <b>뒤쪽</b>에서 태양과 나란할 때</div>
+                    <div class="card" data-step="2"><span class="tag o">충</span>태양의 <b>반대편</b>, 태양–지구–외행성 순서로 나란할 때 (지구와 가장 가까움)</div>
+                    <div class="card" data-step="3"><span class="tag b">구</span>지구를 중심으로 태양과 <b>직각</b>을 이룰 때: 태양의 서쪽 = <b>서구</b>, 동쪽 = <b>동구</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s11">
+            <div class="ppt-title">외행성은 충일 때 가장 잘 보여요</div>
+            <div class="ppt-subtitle">위치에 따라 <span class="or">밝기, 크기, 관측 시간</span>이 달라져요.</div>
+            <div class="main" style="gap:20px">
+                <div class="gcard" data-step="1" style="font-size:29px;justify-content:center"><h3>☀ 합</h3><div>지구에서 <b>가장 멀리</b> → 시지름 최소, 가장 어두움</div><div>태양과 같이 뜨고 짐 → <b>관측하기 어려움</b></div></div>
+                <div class="gcard orange" data-step="2" style="font-size:29px;justify-content:center"><h3>🌕 충</h3><div>지구에서 <b>가장 가까이</b> → 시지름 최대, 가장 밝음</div><div>태양 반대쪽 → 초저녁에 떠서 자정에 남중, <b>밤새</b> 관측</div></div>
+                <div class="gcard" data-step="3" style="font-size:29px;justify-content:center;border-color:#93c5fd;background:#eff6ff"><h3>📐 동구 · 서구</h3><div>동구: 한낮에 떠서 <b>자정 무렵</b>에 짐</div><div>서구: <b>자정 무렵</b>에 떠서 한낮에 짐</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">외행성은 충 전후에 역행해요</div>
+            <div class="ppt-subtitle">지구가 바깥쪽의 느린 외행성을 <span class="or">추월</span>할 때 역행이 보여요.</div>
+            <div class="main">
+                <img data-noimg="" style="height:600px;flex:none;align-self:center;border-radius:14px">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="font-size:27px"><span class="tag b">순행</span>1 → 3, 7 → 9</div>
+                    <div class="card" data-step="2" style="font-size:27px"><span class="tag o">역행</span>4 → 6 (충 부근)</div>
+                    <div class="card key" data-step="3" style="font-size:27px">외행성의 역행 기간은 내행성보다 <b>길고</b>, 태양에서 <b>멀수록</b> 역행 기간도 길어져요. (지도서)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s14">
+            <div class="ppt-title">역행의 비밀: 공전 속도가 다르기 때문이에요</div>
+            <div class="ppt-subtitle">고속도로에서 느린 차를 <span class="or">추월</span>할 때를 떠올려 봐요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>빠른 차에서 옆 차를 보면, 추월하는 순간 옆 차가 <b>뒤로 가는 것처럼</b> 보여요. (먼 산은 그대로)</div></div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div><b>외행성</b>: 빠른 지구가 느린 외행성을 따라잡는 <b>충</b> 부근 → 배경 별에 대해 역행</div></div>
+                <div class="card" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum">3</span><div><b>내행성</b>: 빠른 내행성이 지구를 따라잡는 <b>내합</b> 부근 → 역행</div></div>
+                <div class="card key" data-step="4" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">!</span><div>순행·역행은 행성의 <b>공전 방향을 기준</b>으로 한 표현이에요. 두 방향이 같으면 순행, 반대면 역행!</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">겉보기 운동은 S자? 고리 모양?</div>
+            <div class="ppt-subtitle">내행성은 S자, 외행성은 고리 모양으로 <span class="or">정해져 있을까?</span></div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:20px">
+                <div class="card soft" style="font-size:33px"><span class="look">Q</span>내행성과 외행성의 겉보기 운동은 언제나 같은 모양으로 관측될까?</div>
+                <div class="card" data-step="1" style="font-size:32px">아니에요! 내행성도 고리 모양, 외행성도 S자 모양으로 나타날 수 있어요.</div>
+                <div class="card key" data-step="2" style="font-size:32px">까닭: 지구의 공전 궤도면과 행성의 공전 궤도면이 <b>같은 평면에 있지 않기</b> 때문이에요.</div>
+                <div class="note" data-step="2">시뮬레이터에서 날짜에 따라 경로 모양이 달라지는 것을 확인해 봐요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">탐구 활동) 화성의 겉보기 운동 시뮬레이션하기</div>
+            <div class="ppt-subtitle">2024년 10월 8일 ~ 2025년 4월 8일, 한 달 간격으로 <span class="or">자정마다</span> 화성의 위치를 기록해요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:10px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:18px;font-size:27px"><span class="gnum">1</span><div>위치: 내가 사는 지역, 시각: 2024년 10월 8일 0시 / ‘별자리 선’ 켜기</div></div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:18px;font-size:27px"><span class="gnum">2</span><div>남쪽을 중앙에 두고 화성과 주변 별자리를 <b>투명 필름</b>에 표시 (쌍둥이자리를 기준으로!)</div></div>
+                <div class="card" data-step="3" style="display:flex;align-items:center;gap:18px;font-size:27px"><span class="gnum">3</span><div>2025년 4월 8일까지 한 달 간격으로 화성의 위치를 차례로 기록</div></div>
+                <div class="card" data-step="4" style="display:flex;align-items:center;gap:18px;font-size:27px"><span class="gnum">4</span><div><b>NASA’s Eyes</b>(eyes.nasa.gov)로 같은 기간 지구와 화성의 <b>실제 운동</b> 관찰</div></div>
+                <div class="card key" data-step="5" style="display:flex;align-items:center;gap:18px;font-size:27px"><span class="gnum" style="background:#ea580c">5</span><div>지구 시점의 겉보기 운동과 우주 시점의 실제 운동을 <b>비교</b>해요.</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">탐구 결과) 지구 시점 vs 우주 시점</div>
+            <div class="ppt-subtitle">같은 날짜, 다른 관점! (교과서 그림과 지도서 예시 답안)</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1040px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:25px">쌍둥이자리에 대해 <b>동쪽</b>으로 멀어지다가, 2024년 12월부터 <b>서쪽</b>으로 이동해 가까워짐, 2025년 3월 이후 다시 동쪽으로</div>
+                    <div class="card key" data-step="2" style="font-size:25px">우주에서는 지구와 화성이 일정한 속도로 서→동 공전하지만, 지구에서는 화성이 <b>불규칙하게</b> 움직여 보여요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">탐구 정리하기</div>
+            <div class="ppt-subtitle">지도서 예시 답안으로 정리해 봐요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <div class="card qa" data-step="1"><b>1. 매달 같은 시각에 보이는 별의 위치는?</b><br>지구의 공전(서→동) 때문에 <b>동에서 서로</b> 이동해 보여요.</div>
+                <div class="card qa" data-step="2"><b>2. 별에 대한 행성의 상대적 위치는?</b><br>별은 동→서로 일정하게 이동하지만, 행성은 별에 대해 <b>서→동 또는 동→서</b>로 변해요.</div>
+                <div class="card key qa" data-step="3"><b>3. 겉보기 운동이 그렇게 보이는 까닭은?</b><br>순행·유·역행을 반복 ← 지구와 행성의 <b>공전 속도가 다르기</b> 때문. 지구와 가장 가까운 위치(내행성: 내합, 외행성: 충) 부근에서 역행</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s19">
+            <div class="ppt-title">외행성의 역행을 직접 관측하기 어려운 까닭은?</div>
+            <div class="ppt-subtitle">밤하늘을 관찰해 볼까요? (지도서)</div>
+            <div class="main" style="gap:24px">
+                <div class="gcard" data-step="1" style="font-size:33px;justify-content:center"><h3>⏳ 수개월에 걸친 현상</h3><div>외행성의 역행은 <b>수개월 동안</b> 일어나서 장기간 꾸준히 관측해야 해요.</div></div>
+                <div class="gcard orange" data-step="2" style="font-size:33px;justify-content:center"><h3>📏 정밀한 측정</h3><div>배경 별들에 대한 위치 변화를 비교적 <b>정확히 측정</b>해야 해요.</div><div class="note">그래서 천체 관측 프로그램이 큰 도움이 돼요!</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">위치 관계 맞히기</div>
+            <div class="ppt-subtitle">설명에 알맞은 이름을 골라 보세요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <div class="card q" data-a="a"><div class="qrow">내행성이 태양과 지구 사이에서 태양과 나란히 놓일 때 <button class="sim-btn" data-v="a">내합</button><button class="sim-btn" data-v="b">외합</button><span class="res"></span></div></div>
+                <div class="card q" data-a="e"><div class="qrow">내행성이 태양의 동쪽으로 가장 멀리 떨어져 보일 때 <button class="sim-btn" data-v="e">동방 최대이각</button><button class="sim-btn" data-v="w">서방 최대이각</button><span class="res"></span></div></div>
+                <div class="card q" data-a="o"><div class="qrow">외행성이 태양–지구–외행성 순으로 나란히 놓일 때 <button class="sim-btn" data-v="c">합</button><button class="sim-btn" data-v="o">충</button><span class="res"></span></div></div>
+                <div class="card q" data-a="w"><div class="qrow">외행성이 지구를 중심으로 태양과 직각, 태양의 서쪽에 있을 때 <button class="sim-btn" data-v="e">동구</button><button class="sim-btn" data-v="w">서구</button><span class="res"></span></div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column;gap:14px">
+                <img data-noimg="" style="width:100%;max-height:330px;object-fit:contain">
+                <div style="display:flex;gap:16px">
+                    <div class="card" style="flex:1;font-size:27px;line-height:1.8"><h3 style="color:#7c3aed">내행성</h3><div><span class="blank" style="min-width:80px">내합</span>: 태양과 지구 사이에서 나란히</div><div><span class="blank" style="min-width:160px">동방 최대이각</span>: 태양의 동쪽으로 가장 멀리</div><div>여러 달 관측하면 <span class="blank" style="min-width:80px">내합</span> 전후에 역행</div></div>
+                    <div class="card" style="flex:1;font-size:27px;line-height:1.8"><h3 style="color:#16a34a">외행성</h3><div><span class="blank" style="min-width:60px">합</span>: 태양의 뒤쪽에서 나란히</div><div><span class="blank" style="min-width:60px">충</span>: 태양–지구–외행성 순으로 나란히</div><div>여러 달 관측하면 <span class="blank" style="min-width:60px">충</span> 전후에 역행</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="gap:20px">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card q" data-a="r"><div class="qrow">지구에서 볼 때 행성이 동에서 서로 이동하는 것은? <button class="sim-btn" data-v="d">순행</button><button class="sim-btn" data-v="r">역행</button><span class="res"></span></div></div>
+                    <div class="card q" data-a="w"><div class="qrow">새벽에 동쪽 하늘에서 보이는 내행성은 태양의 어느 쪽에 있을까? <button class="sim-btn" data-v="e">동쪽</button><button class="sim-btn" data-v="w">서쪽</button><span class="res"></span></div></div>
+                    <div class="card q" data-a="o"><div class="qrow">외행성을 밤새 관측할 수 있는 위치는? <button class="sim-btn" data-v="o">충</button><button class="sim-btn" data-v="c">합</button><span class="res"></span></div></div>
+                    <div class="card q" data-a="b"><div class="qrow">오른쪽 그림에서 토성이 역행할 때 이동 방향은? <button class="sim-btn" data-v="a">A</button><button class="sim-btn" data-v="b">B</button><span class="res"></span></div><div class="why" style="display:none">역행은 동 → 서 방향이에요. 그림에서 서쪽(오른쪽)인 B 방향!</div></div>
+                </div>
+                <div class="col" style="width:560px;flex:none;justify-content:center"><img data-noimg="" style="width:100%;border-radius:12px"></div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ========== SIM P1: 겉보기 운동 ========== */
+(function(){
+  const c=document.getElementById('cP1'),g=c.getContext('2d'),W=1060,H=610;
+  const PL=[{n:'수성',P:0.241,i:7.0,col:'#a8a29e'},{n:'금성',P:0.615,i:3.39,col:'#fde68a'},{n:'화성',P:1.881,i:1.85,col:'#f87171'},{n:'목성',P:11.862,i:1.30,col:'#fdba74'},{n:'토성',P:29.457,i:2.49,col:'#facc15'}];
+  let pi=2,t=0,spd=0.15,run=true,trail=[],center=null,prevL=null,prevDir=0,stations=[];const OM=0.7,T0=0.35;
+  const rad=Math.PI/180,wrap=a=>{a=(a+540)%360-180;return a;};
+  function pos(tt){const p=PL[pi],a=Math.pow(p.P,2/3);const thE=2*Math.PI*tt,thP=2*Math.PI*tt/p.P+2*Math.PI*T0*(1-1/p.P);
+    const ex=Math.cos(thE),ey=Math.sin(thE),px=a*Math.cos(thP),py=a*Math.sin(thP),pz=a*Math.sin(p.i*rad)*Math.sin(thP-OM);
+    const dx=px-ex,dy=py-ey,dist=Math.hypot(dx,dy);const lam=Math.atan2(dy,dx)/rad,sun=Math.atan2(-ey,-ex)/rad;const beta=Math.atan2(pz,dist)/rad;
+    return {a,thE,thP,ex,ey,px,py,lam,beta,elong:wrap(lam-sun),dist};}
+  function reset(){t=0;trail=[];center=null;prevL=null;prevDir=0;stations=[];}
+  document.querySelectorAll('#s13 [data-pl]').forEach(b=>b.onclick=()=>{pi=+b.dataset.pl;document.querySelectorAll('#s13 [data-pl]').forEach(x=>x.classList.toggle('on',x===b));reset();});
+  document.getElementById('rP1').oninput=e=>spd=+e.target.value;
+  const bp=document.getElementById('bP1');bp.onclick=()=>{run=!run;bp.textContent=run?'⏸ 멈춤':'▶ 재생';};
+  document.getElementById('bP1r').onclick=reset;
+  let dir=0;const STARS=[];{const r=SIM.rng(5);for(let k=0;k<420;k++)STARS.push([r()*360,(r()-0.5)*16,r()*1.6+0.4]);}
+  function config(s){const p=PL[pi],inner=s.a<1,e=s.elong,ae=Math.abs(e);
+    if(inner){const me=Math.asin(s.a)/rad;if(ae<4)return s.dist<1?'내합':'외합';if(ae>me-1.2)return e>0?'동방 최대이각':'서방 최대이각';return '';}
+    if(ae<4)return '합';if(ae>176)return '충';if(Math.abs(ae-90)<2.5)return e>0?'동구':'서구';return '';}
+  function vis(s){const inner=s.a<1,e=s.elong;if(inner){if(Math.abs(e)<5)return '태양과 너무 가까워 보기 어려워요';return e>0?'초저녁 서쪽 하늘에서 보여요':'새벽 동쪽 하늘에서 보여요';}
+    const ae=Math.abs(e);if(ae<15)return '태양과 함께 떠서 보기 어려워요';if(ae>150)return '거의 밤새 보여요';return e>0?'초저녁~한밤에 보여요':'한밤~새벽에 보여요';}
+  SIM.loop('s13',(tm,dt)=>{
+    if(run){const step=spd*dt;const n=Math.max(1,Math.ceil(step/0.004));for(let k=0;k<n;k++){t+=step/n;const s=pos(t);
+      if(center===null)center=s.lam;
+      if(prevL!==null){const d=wrap(s.lam-prevL);const nd=d>0?1:-1;if(prevDir&&nd!==prevDir)stations.push({lam:s.lam,beta:s.beta});prevDir=nd;dir=nd;}
+      prevL=s.lam;trail.push({lam:s.lam,beta:s.beta,dir:dir});if(trail.length>4000)trail.shift();}}
+    const s=pos(t);if(center===null)center=s.lam;center+=wrap(s.lam-center)*Math.min(1,dt*1.2);
+    g.fillStyle='#020617';g.fillRect(0,0,W,H);
+    // 위: 지구 시점 별자리 띠
+    const SY=20,SH=210,CX=W/2,CY=SY+SH/2+8,KX=6,KY=7;
+    const sk=g.createLinearGradient(0,SY,0,SY+SH);sk.addColorStop(0,'#1e3a8a');sk.addColorStop(1,'#0f172a');g.fillStyle=sk;g.fillRect(10,SY,W-20,SH);
+    const X=l=>CX-wrap(l-center)*KX,Y=b=>CY-b*KY;
+    g.fillStyle='rgba(255,255,255,.75)';STARS.forEach(st=>{const x=X(st[0]);if(x<14||x>W-14)return;g.beginPath();g.arc(x,Y(st[1]),st[2],0,7);g.fill();});
+    g.lineWidth=3;for(let k=1;k<trail.length;k++){const a=trail[k-1],b=trail[k];g.strokeStyle=b.dir<0?'#fb923c':'#60a5fa';g.beginPath();g.moveTo(X(a.lam),Y(a.beta));g.lineTo(X(b.lam),Y(b.beta));g.stroke();}
+    stations.forEach(st=>{g.fillStyle='#4ade80';g.beginPath();g.arc(X(st.lam),Y(st.beta),7,0,7);g.fill();g.fillStyle='#bbf7d0';g.font=SIM.font(16);g.textAlign='center';g.fillText('유',X(st.lam),Y(st.beta)-12);});
+    g.fillStyle=PL[pi].col;g.beginPath();g.arc(X(s.lam),Y(s.beta),9,0,7);g.fill();
+    g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';g.fillText('← 동',20,SY+SH-10);g.textAlign='right';g.fillText('서 →',W-20,SY+SH-10);
+    g.textAlign='center';g.font=SIM.font(17);g.fillStyle='#bfdbfe';g.fillText('지구 시점: 별자리를 배경으로 본 '+PL[pi].n+' (파랑: 순행, 주황: 역행, 초록: 유)',CX,SY+22);
+    // 아래: 우주 시점
+    const OX=300,OY=420,RMAX=148;const sc=s.a>1?RMAX/s.a:RMAX;
+    g.strokeStyle='rgba(96,165,250,.6)';g.lineWidth=2;g.beginPath();g.arc(OX,OY,sc,0,7);g.stroke();
+    g.strokeStyle='rgba(251,191,36,.5)';g.beginPath();g.arc(OX,OY,sc*s.a,0,7);g.stroke();
+    const sg=g.createRadialGradient(OX,OY,3,OX,OY,18);sg.addColorStop(0,'#fef08a');sg.addColorStop(1,'#f97316');g.fillStyle=sg;g.beginPath();g.arc(OX,OY,14,0,7);g.fill();
+    const ex=OX+s.ex*sc,ey=OY-s.ey*sc,px=OX+s.px*sc,py=OY-s.py*sc;
+    g.save();g.beginPath();g.rect(0,240,590,370);g.clip();g.strokeStyle='rgba(255,255,255,.55)';g.setLineDash([6,5]);g.beginPath();g.moveTo(ex,ey);const L=600;g.lineTo(ex+Math.cos(s.lam*rad)*L,ey-Math.sin(s.lam*rad)*L);g.stroke();g.setLineDash([]);g.restore();
+    g.fillStyle='#3b82f6';g.beginPath();g.arc(ex,ey,9,0,7);g.fill();g.fillStyle=PL[pi].col;g.beginPath();g.arc(px,py,8,0,7);g.fill();
+    g.fillStyle='#e2e8f0';g.font=SIM.font(17);g.textAlign='center';g.fillText('지구',ex,ey+26);g.fillText(PL[pi].n,px,py-14);
+    g.fillStyle='#94a3b8';g.textAlign='left';g.fillText('우주 시점: 북쪽에서 본 모습 (반시계 = 서→동)',20,255);
+    // 오른쪽 아래 상태
+    const cf=config(s);g.fillStyle='rgba(30,41,59,.9)';g.fillRect(600,260,440,330);
+    g.textAlign='left';g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.fillText('경과: '+Math.floor(t*365.25)+'일',625,300);
+    g.font=SIM.font(30);g.fillStyle=dir<0?'#fb923c':'#60a5fa';g.fillText(dir<0?'역행 중 (동→서)':'순행 중 (서→동)',625,350);
+    g.font=SIM.font(22);g.fillStyle='#e2e8f0';g.fillText('이각: 태양의 '+(s.elong>0?'동쪽':'서쪽')+' '+Math.abs(s.elong).toFixed(0)+'°',625,400);
+    g.fillStyle='#fde68a';g.fillText(cf?'지금 위치: '+cf:' ',625,445);g.fillStyle='#cbd5e1';g.font=SIM.font(20);g.fillText(vis(s),625,490);
+    g.fillStyle='#94a3b8';g.font=SIM.font(17);g.fillText('지구–'+PL[pi].n+' 거리: '+s.dist.toFixed(2)+' AU',625,540);
+    document.getElementById('oP1').innerHTML='<h4>'+PL[pi].n+' (공전 주기 '+PL[pi].P+'년)</h4><div>'+(s.a<1?'<b>내행성</b>: 내합 부근에서 역행해요.':'<b>외행성</b>: 충 부근에서 역행해요.')+'</div><div>역행할 때 지구와의 거리를 확인해 보세요. → <b>가장 가까울 때</b>!</div>';
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

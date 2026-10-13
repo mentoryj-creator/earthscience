@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해양의 열 수송</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s19">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>해류가 열을 나르지 못하면?</div>
+            <div class="ppt-subtitle">순환의 세기를 줄이며 <span class="or">저위도와 고위도의 온도</span> 변화를 비교해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cJ" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>해양 순환의 세기</h4>
+                        <div class="sim-row"><span class="lbl" style="width:110px">세기</span><input type="range" class="sim-range" id="rJ" min="0" max="100" step="1" value="100"><span class="sim-val" id="vJ" style="min-width:100px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" data-j="100">현재 (100 %)</button><button class="sim-btn" data-j="50">약화 (50 %)</button><button class="sim-btn orange" data-j="0">멈춤 (0 %)</button></div>
+                    </div>
+                    <div class="sim-box" id="oJ" style="font-size:26px"></div>
+                    <div class="sim-box key" style="font-size:24px">순환이 약해지면 저위도는 <b>더 따뜻해지고</b>, 고위도는 <b>더 차가워져</b> 위도에 따른 온도 차가 커져요.</div>
+                    <div class="sim-note">※ 열 수송을 단순화한 개념 모형이에요. 온도 변화 값은 실제 예측값이 아니에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">바닷물은 어떻게 지구를 돌고 돌까?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">02. 해양의 순환과 기후 변화</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:linear-gradient(180deg,#e0f2fe,#0c4a6e);">
+                    <div style="display:flex; gap:40px; align-items:center;">
+                        <img data-noimg="" style="height:400px;border-radius:16px;border:4px solid rgba(255,255,255,.8)">
+                        <img data-noimg="" style="height:400px;border-radius:16px;border:4px solid rgba(255,255,255,.8)">
+                    </div>
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">바람이 만드는 표층 순환, 밀도가 만드는 심층 순환, 그리고 기후 변화</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">오늘은 <span class="or">심층 순환</span>과 <span class="or">기후 변화</span>의 관계를 알아봐요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div><b>심층 순환</b>의 발생 원리와 분포를 설명할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>심층 순환과 <b>표층 순환</b> 및 <b>기후 변화</b>의 관련성을 추론할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:640px;border-radius:16px;border:2px solid #e2e8f0">
+                    <div class="cap">심층 순환 모형</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: “위에서 차가운 물이 내려오는 것 같은데…”</div>
+            <div class="ppt-subtitle">극 지역에서 차가워진 표층 해수는 <span class="or">어디로</span> 갈까요?</div>
+            <div class="main">
+                <div class="imgbox" style="width:820px"><img data-noimg="" style="max-height:620px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q1</span>극 지역에서 가라앉는 해수의 양이 줄면 깊은 바다의 고래에게 공급되는 <b>산소</b>는 어떻게 될까?</div>
+                    <div class="card soft" data-step="2"><span class="look">Q2</span>대양에 버려진 쓰레기는 어디에 특히 <b>많이 모일까?</b></div>
+                    <div class="card key" data-step="3">기온이 낮아져 수온이 내려가는데 염분이 낮아지지 않으면 해수의 <b>밀도가 커져 가라앉아요</b> → <b>심층 순환</b>의 시작!</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">표층 순환: 바람이 만드는 해류</div>
+            <div class="ppt-subtitle">해양의 표층에서는 <span class="or">대기 대순환의 바람</span>에 의해 해수가 순환해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1100px"><img data-noimg="" style="max-height:600px"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <table class="sim-table" data-step="1" style="font-size:24px">
+                        <tr><th>바람</th><th>바람과 같은 방향의 해류</th></tr>
+                        <tr><td><b>편서풍</b><br>(서→동)</td><td>북태평양 해류, 북대서양 해류, 남극 순환류</td></tr>
+                        <tr><td><b>무역풍</b><br>(동→서)</td><td>북적도 해류, 남적도 해류</td></tr>
+                    </table>
+                    <div class="card soft" data-step="2" style="font-size:26px">표층 순환의 방향과 세기는 <b>지구 자전의 영향</b>과 <b>육지로 둘러싸인 대양의 형태</b>에 따라 달라져요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">아열대 순환: 북반구는 시계 방향, 남반구는 반대</div>
+            <div class="ppt-subtitle">대양의 대부분을 차지하는 순환은 <span class="or">5개의 아열대 순환</span>이에요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center">
+                    <div class="row">
+                        <div class="gcard" data-step="1"><h3 style="font-size:36px;color:#dc2626">북반구 ↻</h3><div><b>시계 방향</b>으로 순환<br>북태평양, 북대서양</div></div>
+                        <div class="gcard" data-step="1"><h3 style="font-size:36px;color:#2563eb">남반구 ↺</h3><div><b>시계 반대 방향</b>으로 순환<br>남태평양, 남대서양, 인도양</div></div>
+                    </div>
+                    <table class="ppt-table" data-step="2" style="font-size:26px">
+                        <thead><tr><th>북태평양 아열대 순환</th><th>수온</th><th>염분</th><th>용존산소</th><th>영양염류·플랑크톤</th><th>투명도</th></tr></thead>
+                        <tbody><tr><td class="rowh" style="color:#dc2626">쿠로시오 해류 (난류)</td><td>높다</td><td>많다</td><td>적다</td><td>적다</td><td>높다</td></tr>
+                        <tr><td class="rowh" style="color:#2563eb">캘리포니아 해류 (한류)</td><td>낮다</td><td>적다</td><td>많다</td><td>많다</td><td>낮다</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="col" style="width:540px;align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:500px"></div>
+                    <div class="cap" style="text-align:center">우리나라 주변 해류: 쿠로시오 해류, 대마난류, 동한난류, 북한한류, 연해주한류, 황해난류, 제주난류, 서한연안류 등</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s6">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>바람이 불면 대양에 어떤 순환이 생길까?</div>
+            <div class="ppt-subtitle">무역풍과 편서풍이 부는 <span class="or">태평양 모형</span>에서 해류를 관찰해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cG" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>보기 설정</h4>
+                        <div class="sim-btns"><button class="sim-btn on" id="bG1">바람</button><button class="sim-btn on" id="bG2">해류 이름</button><button class="sim-btn" id="bG3">난류·한류 색</button></div>
+                        <div class="sim-row" style="margin-top:10px"><span class="lbl" style="width:140px">바람 세기</span><input type="range" class="sim-range" id="rG" min="0" max="2" step="0.05" value="1"><span class="sim-val" id="vG" style="min-width:80px"></span></div>
+                    </div>
+                    <div class="sim-box" style="font-size:26px">
+                        <div>① <b>무역풍</b>(동→서) → 북·남적도 해류</div>
+                        <div>② <b>편서풍</b>(서→동) → 북태평양 해류, 남극 순환류</div>
+                        <div>③ 대륙에 막혀 남북으로 돌아 <b>아열대 순환</b> 완성</div>
+                    </div>
+                    <div class="sim-box key" style="font-size:25px">대양의 <b>서쪽 가장자리</b>에서 고위도로 흐르는 해류(쿠로시오 해류 등)는 <b>난류</b>, 동쪽 가장자리에서 저위도로 흐르는 해류는 <b>한류</b>예요.</div>
+                    <div class="sim-note">※ 단순화한 대양 모형이에요. 실제 해류는 바람에 의한 해수면 높이 차로 유지되는 흐름이에요(지구시스템과학에서 학습).</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">탐구 활동) 심층 순환의 형성 원리 알아보기</div>
+            <div class="ppt-subtitle">수온과 염분이 다른 물을 수조에 부으면 <span class="or">어디로</span> 흘러갈까요?</div>
+            <div class="main">
+                <div class="col" style="width:700px;justify-content:center;align-items:center;gap:16px">
+                    <img data-noimg="" style="width:420px">
+                    <img data-noimg="" style="width:470px;border-radius:14px;border:2px solid #e2e8f0">
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card soft" style="font-size:26px"><span class="gnum s">①</span>비커 A: 소금 6.8 g + <b style="color:#dc2626">빨간 색소</b> + <b>상온의 물</b> → 200 mL</div>
+                    <div class="card soft" style="font-size:26px"><span class="gnum s">②</span>비커 B: 소금 7 g + <b style="color:#2563eb">파란 색소</b> + <b>냉수</b> → 200 mL</div>
+                    <div class="card soft" style="font-size:26px"><span class="gnum s">③</span>수조: 소금 280 g + 상온의 물 → 8000 mL</div>
+                    <div class="card soft" style="font-size:26px"><span class="gnum s">④</span>구멍 뚫은 종이컵을 수조 양 끝에 매달고 A, B를 <b>천천히</b> 부으며 관찰</div>
+                    <div class="note">※ 냉수는 상온보다 1~5 ℃ 낮은 물. 7 g을 넣어 200 mL로 맞추면 염분 약 35 psu</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s8">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>가상 수조 실험: 물은 밀도를 따라 흘러요</div>
+            <div class="ppt-subtitle">수온·염분을 바꿔 붓고, 물이 <span class="or">위로 갈지 아래로 갈지</span> 예상해 보세요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cH" width="1060" height="610"></canvas></div>
+                <div class="sim-panel" style="gap:12px">
+                    <div class="sim-box" style="padding:12px 22px;border-color:#fca5a5;background:#fef2f2">
+                        <h4 style="color:#dc2626;margin-bottom:2px">비커 A (빨강)</h4>
+                        <div class="sim-row"><span class="lbl" style="width:80px">수온</span><input type="range" class="sim-range" id="rHa1" min="5" max="25" step="0.5" value="15"><span class="sim-val" id="vHa1" style="min-width:110px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:80px">염분</span><input type="range" class="sim-range" id="rHa2" min="32" max="37" step="0.1" value="34"><span class="sim-val" id="vHa2" style="min-width:110px"></span></div>
+                    </div>
+                    <div class="sim-box" style="padding:12px 22px;border-color:#93c5fd;background:#eff6ff">
+                        <h4 style="margin-bottom:2px">비커 B (파랑)</h4>
+                        <div class="sim-row"><span class="lbl" style="width:80px">수온</span><input type="range" class="sim-range" id="rHb1" min="5" max="25" step="0.5" value="10"><span class="sim-val" id="vHb1" style="min-width:110px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:80px">염분</span><input type="range" class="sim-range" id="rHb2" min="32" max="37" step="0.1" value="35"><span class="sim-val" id="vHb2" style="min-width:110px"></span></div>
+                    </div>
+                    <div class="sim-btns"><button class="sim-btn orange on" id="bH1">▶ 천천히 붓기</button><button class="sim-btn" id="bH2">↺ 다시</button><button class="sim-btn" id="bH3">교과서 조건</button></div>
+                    <div class="sim-box key" id="oH" style="font-size:24px;padding:12px 22px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">탐구 결과: 밀도에 따라 흐르는 깊이가 달라져요</div>
+            <div class="ppt-subtitle">수온 염분도에 표시하면 <span class="or">밀도 순서</span>가 한눈에 보여요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center;gap:16px">
+                    <table class="ppt-table" style="font-size:30px">
+                        <thead><tr><th>구분</th><th style="background:#dc2626">비커 A</th><th>비커 B</th><th style="background:#475569">수조</th></tr></thead>
+                        <tbody><tr><td class="rowh">온도 (℃)</td><td>15</td><td>10</td><td>15</td></tr><tr><td class="rowh">염분 (psu)</td><td>34</td><td>35</td><td>35</td></tr><tr data-step="1"><td class="rowh">밀도 비교</td><td><b class="hl">가장 작음</b></td><td><b class="or">가장 큼</b></td><td>중간</td></tr></tbody>
+                    </table>
+                    <div class="card soft" data-step="2"><span class="tag r">A</span>수조 물보다 밀도가 <b>작아</b> 수면을 따라 <b>위쪽</b>으로 이동</div>
+                    <div class="card soft" data-step="3"><span class="tag b">B</span>수조 물보다 밀도가 <b>커서</b> 바닥을 따라 <b>아래쪽</b>으로 이동</div>
+                    <div class="note">※ 예시 측정값(지도서). 실제 실험 값은 계절·물 온도에 따라 달라져요.</div>
+                </div>
+                <div style="width:560px;flex:none;display:flex;align-items:center">
+                    <svg viewBox="0 0 560 560" width="560" height="560" id="ts9"></svg>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">생각해 보기: 차가운 빙하 녹은 물은 왜 가라앉지 못할까?</div>
+            <div class="ppt-subtitle">빙하가 녹아 북극해로 들어간 물은 <span class="or">수온이 낮은데</span>도 해수의 밀도를 높이지 못해요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">빙하가 녹은 물은 염분이 거의 없는 <b>담수</b>예요.</div>
+                    <div class="card" data-step="2">수온은 낮지만 <b>염분이 크게 낮아져</b> 들어간 해역의 해수 <b>밀도가 낮아져요.</b></div>
+                    <div class="card key" data-step="3">→ 밀도는 <b>수온과 염분을 함께</b> 따져야 해요! 그래서 온난화로 극 지역 빙하가 녹으면 해수의 <b>침강이 어려워져요.</b></div>
+                </div>
+                <div class="col" style="width:620px;justify-content:center">
+                    <div class="card soft" style="font-size:27px"><b>Q.</b> 북대서양 심층수는 염분이 낮은 북극해 근처에서 어떻게 만들어질까?</div>
+                    <div class="card key" data-step="4" style="font-size:27px">북대서양 북쪽은 <b>멕시코만류</b>가 멀리 북쪽까지 흐르며 <b>염분을 공급</b>해 염분이 높아요. 이 물이 냉각·결빙되면 밀도가 커져 침강해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s11">
+            <div class="ppt-title">심층 순환(열염 순환)</div>
+            <div class="ppt-subtitle">표층수 아래부터 해저까지, <span class="or">밀도 차</span>에 의해 일어나는 순환이에요.</div>
+            <div class="main" style="flex-direction:column;gap:20px">
+                <div class="imgbox tight" style="height:400px"><img data-noimg="" style="max-height:385px"></div>
+                <div class="row">
+                    <div class="card soft" data-step="1" style="flex:1;font-size:27px"><span class="tag">열염 순환</span>밀도를 결정하는 가장 중요한 요인인 <b>수온(열)</b>과 <b>염분(염)</b>에서 붙은 이름</div>
+                    <div class="card soft" data-step="2" style="flex:1;font-size:27px"><span class="tag b">침강</span>표층에서 <b>냉각과 결빙</b>으로 밀도가 커진 해수가 가라앉아 심층을 따라 <b>저위도</b>로 흘러요.</div>
+                    <div class="card key" data-step="3" style="flex:1;font-size:27px"><span class="tag o">용승</span>적도 중앙부 등에서 <b>아주 느린 속도</b>로 올라온 뒤 표층을 따라 <b>극 쪽</b>으로 이동해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">해수가 가라앉는 곳은 어디일까?</div>
+            <div class="ppt-subtitle">대표적인 침강 지역: <span class="or">그린란드 주변</span>과 <span class="or">남극 대륙 주변의 웨들해</span></div>
+            <div class="main">
+                <div style="width:820px;flex:none;display:flex;align-items:center;justify-content:center">
+                    <svg viewBox="0 0 800 620" width="800" height="620">
+                        <defs><radialGradient id="glb" cx=".4" cy=".35"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0369a1"/></radialGradient></defs>
+                        <circle cx="400" cy="310" r="280" fill="url(#glb)"/>
+                        <path d="M250 120 Q300 90 330 140 Q340 200 300 230 Q270 250 260 300 Q240 330 230 280 Q200 220 210 170Z" fill="#65a30d"/>
+                        <path d="M370 70 Q430 50 470 80 Q455 120 420 125 Q385 120 370 70Z" fill="#e2e8f0"/>
+                        <path d="M480 120 Q560 110 600 170 Q620 240 580 300 Q560 380 520 430 Q500 380 505 320 Q470 280 480 220Z" fill="#65a30d"/>
+                        <path d="M290 330 Q330 330 340 380 Q350 450 320 520 Q300 480 290 430 Q275 380 290 330Z" fill="#65a30d"/>
+                        <path d="M220 560 Q400 520 580 560 Q500 600 400 605 Q300 600 220 560Z" fill="#f1f5f9"/>
+                        <g data-step="1"><circle cx="355" cy="110" r="16" fill="#dc2626"/><circle cx="455" cy="95" r="16" fill="#dc2626"/>
+                            <text x="250" y="80" font-size="28" font-weight="bold" fill="#fff" stroke="#1e293b" stroke-width="5" paint-order="stroke">래브라도해</text><text x="480" y="60" font-size="28" font-weight="bold" fill="#fff" stroke="#1e293b" stroke-width="5" paint-order="stroke">노르웨이해</text>
+                            <circle cx="355" cy="110" r="16" fill="none" stroke="#dc2626" stroke-width="4" class="pulse" style="transform-origin:355px 110px"/></g>
+                        <g data-step="2"><circle cx="400" cy="548" r="16" fill="#dc2626"/><text x="430" y="530" font-size="28" font-weight="bold" fill="#fff" stroke="#1e293b" stroke-width="5" paint-order="stroke">웨들해</text></g>
+                        <text x="400" y="610" font-size="22" text-anchor="middle" fill="#334155">※ 위치를 단순화한 모식도</text>
+                    </svg>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1"><span class="tag r">북대서양</span>그린란드 주변(래브라도해, 노르웨이해): <b>염분이 높은 난류</b>가 냉각·결빙 → <b>북대서양 심층수</b></div>
+                    <div class="card" data-step="2"><span class="tag b">남극</span>웨들해: 겨울에 수온이 낮아지고 결빙으로 염분 증가 → 전 세계에서 <b>밀도가 가장 큰 물</b>(남극 저층수)</div>
+                    <div class="card key" data-step="3">침강 원인: <b>수온 ↓</b> 또는 <b>염분 ↑</b> → 표층 해수의 <b>밀도 증가</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s13">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>극에서 가라앉고, 적도에서 올라오는 심층 순환</div>
+            <div class="ppt-subtitle">냉각·결빙과 <span class="or">빙하 융해수</span>를 조절하며 순환의 세기를 관찰해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cI" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>극 지역의 조건</h4>
+                        <div class="sim-row"><span class="lbl" style="width:170px">냉각·결빙</span><input type="range" class="sim-range" id="rI1" min="0" max="10" step="0.1" value="7"><span class="sim-val" id="vI1" style="min-width:70px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:170px">빙하 융해수</span><input type="range" class="sim-range" id="rI2" min="0" max="10" step="0.1" value="0"><span class="sim-val" id="vI2" style="min-width:70px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" id="bI1">현재 상태</button><button class="sim-btn orange" id="bI2">온난화 (빙하 융해 ↑)</button></div>
+                    </div>
+                    <div class="sim-box" id="oI" style="font-size:26px"></div>
+                    <div class="sim-note">※ 개념 이해용 단면 모형이에요. 실제로 해수가 표층 → 심층 → 표층으로 되돌아오는 데는 1000년 이상 걸려요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s14">
+            <div class="ppt-title">대서양의 심층 순환: 세 개의 물 층</div>
+            <div class="ppt-subtitle">밀도가 큰 물일수록 <span class="or">더 깊은 곳</span>을 흘러요.</div>
+            <div class="main" style="flex-direction:column;gap:18px">
+                <div class="imgbox tight" style="height:420px"><img data-noimg="" style="max-height:405px"></div>
+                <div class="row">
+                    <div class="card soft" data-step="1" style="flex:1;font-size:26px"><span class="tag">남극 중층수</span>남극 주변에서 형성되어 수심 약 1000 m 부근을 따라 북쪽으로</div>
+                    <div class="card soft" data-step="2" style="flex:1;font-size:26px"><span class="tag r">북대서양 심층수</span>그린란드 주변에서 침강하여 <b>남대서양까지</b> 흘러가요.</div>
+                    <div class="card key" data-step="3" style="flex:1;font-size:26px"><span class="tag b">남극 저층수</span>웨들해에서 형성된 <b>가장 무거운 물</b> → 해저면을 따라 적도를 지나 <b>북반구까지</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">수괴: 성질이 비슷한 해수 덩어리</div>
+            <div class="ppt-subtitle">성질이 다른 수괴는 잘 섞이지 않아 <span class="or">수온·염분이 오래 유지</span>돼요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:440px"></div>
+                    <div class="cap">수온 염분도에 나타낸 대서양의 수괴 (가) 수괴의 특성 (나) 한 지점의 깊이별 특성</div>
+                    <table class="sim-table" data-step="1" style="font-size:24px;margin-top:10px">
+                        <tr><th>수괴</th><th>수온 (℃)</th><th>염분 (psu)</th><th>밀도 (g/cm³)</th></tr>
+                        <tr><td>남극 중층수</td><td>5</td><td>&lt; 34.5</td><td>1.0270</td></tr><tr><td>북대서양 심층수</td><td>4</td><td>35.0</td><td>1.0277</td></tr><tr><td>남극 저층수</td><td>0</td><td>34.7</td><td><b>1.0279</b></td></tr>
+                    </table>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" style="font-size:27px">심층 순환은 너무 느려서 흐름을 직접 재기 어려워요 → 수괴의 <b>수온, 염분, 용존산소, 방사성 동위원소</b>를 측정해 흐름과 기원을 추정해요.</div>
+                    <div class="card key" data-step="2" style="font-size:27px"><b>(나)의 A, B, C는?</b><br>A = <b>남극 중층수</b>, B = <b>북대서양 심층수</b>, C = <b>남극 저층수</b>가 근원이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">표층 순환과 심층 순환은 하나로 연결되어 있어요</div>
+            <div class="ppt-subtitle">전 세계 해수의 순환은 거대한 <span class="or">컨베이어 벨트</span>와 같아요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1060px"><img data-noimg="" style="max-height:620px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1" style="font-size:27px">극 지역 결빙 → 염분 ↑ → 밀도 ↑ → <b>침강</b></div>
+                    <div class="card" data-step="2" style="font-size:27px">침강하는 흐름이 표층 해류를 <b>고위도로 당겨요.</b> 심층 해류는 저층에서 적도를 향해 흘러요.</div>
+                    <div class="card key" data-step="3" style="font-size:27px">표층에서 침강 → 심층 순환 → 다시 처음 표층까지 <b class="or">1000년 이상</b>!</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16b">
+            <div class="ppt-title">생각 열기 다시 보기: 깊은 바다의 산소는 어디서 올까?</div>
+            <div class="ppt-subtitle">심층 순환은 깊은 바다에 <span class="or">산소</span>를 실어 날라요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">극 지역의 차가운 표층 해수는 산소가 <b>많이 녹아 있어요</b>. (수온이 낮을수록 기체 용해도 ↑)</div>
+                    <div class="card" data-step="2">이 해수가 <b>침강</b>하여 심층으로 흘러가면 깊은 바다에 산소를 공급해요. → 깊은 심층에서 용존산소량이 다시 증가하는 까닭!</div>
+                    <div class="card key" data-step="3">침강량이 줄고 심층 해류가 느려지면 <b>산소 공급은 늦어지고</b> 소모는 많아져 용존산소가 <b>감소</b>해요. → 깊은 바다 생물(고래 등)에게 영향</div>
+                    <div class="note">연결: 01. 해수의 여러 가지 성질 – 용존산소, 세로처럼 깊게</div>
+                </div>
+                <div class="imgbox" style="width:640px"><img data-noimg="" style="max-height:560px"></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">심층 순환이 약해지면 기후가 변해요</div>
+            <div class="ppt-subtitle">심층 순환은 기후를 바꾸는 <span class="or">방아쇠</span>가 될 수 있어요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:10px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>극 지역에서 심층으로 <b>침강하는 해수의 양 감소</b> (예: 빙하 융해로 염분 ↓)</div></div>
+                <div class="arrow-down" data-step="2">▼</div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div>표층 해류를 고위도로 이동시키는 양 감소 → <b>유속이 느려짐</b></div></div>
+                <div class="arrow-down" data-step="3">▼</div>
+                <div class="card" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum">3</span><div>저위도의 열이 고위도로 <b>제대로 전달되지 못함</b></div></div>
+                <div class="arrow-down" data-step="4">▼</div>
+                <div class="card key" data-step="4" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">4</span><div>저위도는 더 <b>따뜻</b>, 고위도는 더 <b>차가워져</b> 위도별 열 불균형 증가 → <b>기후 변화</b></div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">해 보기) 심층 순환과 기후 변화의 관련성 추론하기</div>
+            <div class="ppt-subtitle">지구 평균 기온 상승으로 <span class="or">북대서양 심층수가 멈춘다면?</span> (기후 모델 결과)</div>
+            <div class="main">
+                <div class="col" style="width:960px;align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:500px"></div>
+                    <div class="cap">북대서양 심층수가 멈출 경우 지구 온도 변화 (기후 모델, 2017)</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card soft qa"><b>Q1.</b> 표층수의 침강량에 영향을 주는 요인은?</div>
+                    <div class="card key qa" data-step="1">밀도가 클수록 침강량 ↑ → <span class="a">수온 ↓, 염분 ↑</span>. 빙하가 녹아 담수화되면 침강이 어려워져요.</div>
+                    <div class="card soft qa"><b>Q2.</b> 북대서양 심층수가 멈추면?</div>
+                    <div class="card key qa" data-step="2">대서양 주변(미국·유럽)은 <span class="a">최대 약 5 ℃ 하강</span>, 그 밖의 지역은 오히려 <span class="a">상승</span> → 지역 간 기온 차 증가, 극단적 기후</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">해양의 순환이 변하면 지구 기후는?</div>
+            <div class="ppt-subtitle">표층 순환과 심층 순환은 <span class="or">서로 영향</span>을 주고받아요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">심층 순환은 표층 순환에 영향을 주고, 표층 순환은 다시 심층 순환에 영향을 줘요.</div>
+                    <div class="card soft" data-step="2">이 과정에서 <b>기온과 강수량</b>이 변하면서 지역에 따른 기온이 변해요.</div>
+                    <div class="card key" data-step="3"><b>온난화 → 심층 순환 약화 → 북반구 중·고위도 냉각, 남반구·저위도 온도 상승</b> → 기후 변화. 약해진 해수 순환은 과거 <b>빙하기</b>에도 영향을 주었을 것으로 추정돼요.</div>
+                </div>
+                <div class="col" style="width:640px;align-items:center;justify-content:center">
+                    <img data-noimg="" style="width:620px;border-radius:14px;border:2px solid #e2e8f0">
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column; gap:20px">
+                <div style="display:flex; gap:24px; align-items:stretch">
+                    <div class="card" style="flex:1; font-size:30px; line-height:1.85"><h3>표층 순환</h3>
+                        <div><span class="blank" style="min-width:110px">바람</span>에 의해 형성</div>
+                        <div>지구 자전, 대양의 형태에 따라 방향·세기가 달라짐</div>
+                        <div>북반구 아열대 순환: <span class="blank" style="min-width:160px">시계 방향</span></div></div>
+                    <div class="card" style="flex:1; font-size:30px; line-height:1.85"><h3>심층 순환</h3>
+                        <div><span class="blank" style="min-width:110px">밀도</span> 차에 의해 발생 = 열염 순환</div>
+                        <div>밀도 결정 요인: <span class="blank" style="min-width:100px">수온</span>과 <span class="blank" style="min-width:100px">염분</span></div>
+                        <div>침강량 감소 → 열 전달 ↓ → <span class="blank" style="min-width:160px">기후 변화</span></div></div>
+                </div>
+                <div class="card soft q" data-a="h" style="font-size:29px"><div class="qrow"><b>확인!</b> 심층 순환은 밀도가 (&nbsp;?&nbsp;) 표층수가 침강하면서 발생해요. <button class="sim-btn" data-v="h">높은</button><button class="sim-btn" data-v="l">낮은</button><span class="res"></span></div><div class="why" style="display:none">침강한 해수는 심층을 따라 <b>저위도</b>로 흐르며, 아주 느린 속도로 상승해요.</div></div>
+                <div class="card soft q" data-a="d" style="font-size:29px"><div class="qrow"><b>확인!</b> 심층 순환이 멈추면 저위도 → 고위도 열 이동량은? <button class="sim-btn" data-v="u">증가</button><button class="sim-btn" data-v="d">감소</button><span class="res"></span></div><div class="why" style="display:none">저위도는 온도 상승, 고위도는 온도 하강 → 지구 전체의 온도 차 증가, 극단적인 기후가 나타날 수 있어요.</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">확인 문제: 세 해수 A, B, C가 만나면?</div>
+            <div class="ppt-subtitle">밀도와 관련지어 <span class="or">흐름</span>을 설명해 보세요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:560px"><img data-noimg="" style="max-height:600px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft qa">A(5 ℃, 34.1 psu), B(12 ℃, 35.4 psu), C(5 ℃, 35.4 psu)</div>
+                    <div class="card qa" data-step="1"><b>A와 B</b>: 등밀도선 <b>1.0270</b> 위에 함께 있어 밀도가 같아요 → 만나면 <span class="a">혼합</span>돼요.</div>
+                    <div class="card key qa" data-step="2"><b>C</b>: 밀도 <b>1.0280</b>으로 가장 커요 → A, B와 쉽게 섞이지 않고 <span class="a">아래로 가라앉아요.</span></div>
+                    <div class="card soft qa" data-step="3">→ 이처럼 밀도가 큰 물이 가라앉아 흐르는 것이 <b>심층 순환</b>의 원리예요!</div>
+                </div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ========== s9 T-S 그래프 (SVG) ========== */
+(function(){
+  const rw=T=>999.842594+6.793952e-2*T-9.095290e-3*T*T+1.001685e-4*T**3-1.120083e-6*T**4+6.536332e-9*T**5;
+  const rho=(S,T)=>(rw(T)+S*(0.824493-4.0899e-3*T+7.6438e-5*T*T-8.2467e-7*T**3+5.3875e-9*T**4)+S**1.5*(-5.72466e-3+1.0227e-4*T-1.6546e-6*T*T)+4.8314e-4*S*S)/1000;
+  window.RHO=rho;
+  const L=80,R=530,T=20,B=480,X=s=>L+(s-33)/(37-33)*(R-L),Y=t=>B-t/30*(B-T);
+  let h='<rect x="'+L+'" y="'+T+'" width="'+(R-L)+'" height="'+(B-T)+'" fill="#fff" stroke="#334155" stroke-width="2"/>';
+  for(let lv=1.020;lv<=1.0296;lv+=0.001){let d='';for(let s=33;s<=37.001;s+=0.05){let lo=-2,hi=40;for(let k=0;k<40;k++){const m=(lo+hi)/2;rho(s,m)>lv?lo=m:hi=m;}const t=(lo+hi)/2;if(t<0||t>30)continue;d+=(d?'L':'M')+X(s).toFixed(1)+' '+Y(t).toFixed(1);}if(d)h+='<path d="'+d+'" fill="none" stroke="#93c5fd" stroke-width="2"/>';}
+  for(let s=33;s<=37;s++)h+='<text x="'+X(s)+'" y="'+(B+28)+'" font-size="20" text-anchor="middle">'+s+'</text>';
+  for(let t=0;t<=30;t+=10)h+='<text x="'+(L-10)+'" y="'+(Y(t)+7)+'" font-size="20" text-anchor="end">'+t+'</text>';
+  h+='<text x="'+((L+R)/2)+'" y="'+(B+60)+'" font-size="22" text-anchor="middle" font-weight="bold">염분 (psu)</text><text x="24" y="'+((T+B)/2)+'" font-size="22" text-anchor="middle" font-weight="bold" transform="rotate(-90 24 '+((T+B)/2)+')">수온 (℃)</text>';
+  [['A',34,15,'#dc2626'],['B',35,10,'#2563eb'],['수조',35,15,'#475569']].forEach(([n,s,t,c])=>{h+='<circle cx="'+X(s)+'" cy="'+Y(t)+'" r="12" fill="'+c+'"/><text x="'+(X(s)+16)+'" y="'+(Y(t)-12)+'" font-size="26" font-weight="bold" fill="'+c+'">'+n+'</text>';});
+  h+='<text x="'+(R-10)+'" y="'+(B-14)+'" font-size="20" text-anchor="end" fill="#3b82f6">파란 선 = 등밀도선 (↘ 밀도 증가)</text>';
+  document.getElementById('ts9').innerHTML=h;
+})();
+
+/* ========== SIM G: 표층 순환 ========== */
+(function(){
+  const c=document.getElementById('cG'),g=c.getContext('2d'),W=1060,H=610;
+  const OX0=150,OX1=1000,LAT0=65,top=20,bot=590,Y=lat=>top+(LAT0-lat)/(2*LAT0)*(bot-top),iLat=y=>LAT0-(y-top)/(bot-top)*2*LAT0;
+  let showW=true,showN=true,showC=false,ws=1;
+  const d=0.06;
+  function psi(x,lat){ // x 0..1 (서→동)
+    const X=(1-Math.exp(-x/d))*(1-x)*1.0;
+    if(lat>=0&&lat<=60) return X*Math.sin(Math.PI*lat/60);
+    if(lat<0&&lat>=-50) return -X*Math.sin(Math.PI*(-lat)/50);
+    return 0;}
+  function vel(x,lat){const e=1e-3,el=0.05;
+    let u=-(psi(x,lat+el)-psi(x,lat-el))/(2*el)*60/Math.PI*0.5, v=(psi(x+e,lat)-psi(x-e,lat))/(2*e)*0.012;
+    if(lat<-52){u=0.9;v=0;} // 남극 순환류
+    return [u,v];}
+  const P=[];const r=SIM.rng(11);
+  function spawn(p){p.x=r();p.lat=-62+r()*122;p.age=0;p.life=200+r()*300;p.tr=[];}
+  for(let i=0;i<520;i++){const p={};spawn(p);P.push(p);}
+  const b1=document.getElementById('bG1'),b2=document.getElementById('bG2'),b3=document.getElementById('bG3');
+  b1.onclick=()=>{showW=!showW;b1.classList.toggle('on',showW);};
+  b2.onclick=()=>{showN=!showN;b2.classList.toggle('on',showN);};
+  b3.onclick=()=>{showC=!showC;b3.classList.toggle('on',showC);};
+  const rg=document.getElementById('rG');rg.oninput=e=>{ws=+e.target.value;document.getElementById('vG').textContent=Math.round(ws*100)+'%';};rg.oninput({target:rg});
+  const PX=x=>OX0+x*(OX1-OX0);
+  SIM.loop('s6',(tm,dt)=>{
+    g.fillStyle='#0b3a5e';g.fillRect(0,0,W,H);
+    // 육지
+    g.fillStyle='#4d7c0f';g.fillRect(OX0-60,top,60,Y(-58)-top);g.fillRect(OX1,top,60,Y(-58)-top);
+    g.fillStyle='#e2e8f0';g.fillRect(OX0-60,Y(-62),OX1-OX0+120,bot-Y(-62));
+    // 위도선
+    g.strokeStyle='rgba(255,255,255,.15)';g.lineWidth=1;g.font=SIM.font(16,false);g.fillStyle='#94a3b8';g.textAlign='right';
+    [60,30,0,-30,-60].forEach(l=>{g.beginPath();g.moveTo(OX0,Y(l));g.lineTo(OX1,Y(l));g.stroke();g.fillText((l===0?'0°':Math.abs(l)+'°'+(l>0?'N':'S')),OX0-6,Y(l)+5);});
+    // 바람 띠
+    if(showW){const band=(l0,l1,dir,name,col)=>{const y0=Y(l0),y1=Y(l1);g.fillStyle=col;g.fillRect(0,y0,86,y1-y0);g.fillStyle='#fff';g.font=SIM.font(16);g.textAlign='center';name.split(' ').forEach((w,i,a)=>g.fillText(w,43,(y0+y1)/2+6+(i-(a.length-1)/2)*20));
+        g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=3;for(let i=0;i<5;i++){const x=OX0+((tm/20*ws*dir+i*170)%850+850)%850,y=(y0+y1)/2+((i%2)?14:-14);g.beginPath();g.moveTo(x,y);g.lineTo(x+40*dir,y);g.stroke();g.beginPath();g.moveTo(x+46*dir,y);g.lineTo(x+34*dir,y-6);g.lineTo(x+34*dir,y+6);g.closePath();g.fillStyle='rgba(255,255,255,.35)';g.fill();}};
+      band(60,30,1,'편서풍','#7c3aed');band(30,0,-1,'북동 무역풍','#ea580c');band(0,-30,-1,'남동 무역풍','#ea580c');band(-30,-60,1,'편서풍','#7c3aed');}
+    // 입자
+    P.forEach(p=>{const [u,v]=vel(p.x,p.lat);const dx=u*0.33*ws,dl=v*150*ws;p.x+=dx*dt;p.lat+=dl*dt;p.age++;p.tr.push([PX(p.x),Y(p.lat)]);if(p.tr.length>22)p.tr.shift();
+      if(p.x<0.003||p.x>0.997||p.lat>62||p.lat<-61||p.age>p.life){spawn(p);return;}
+      const vx=dx*850,vy=dl*4.4,sp=Math.hypot(vx,vy)+1e-6;let col='rgba(226,232,240,.85)';
+      if(showC){const pole=(p.lat>=0?vy:-vy)/sp;if(pole>0.45)col='#f87171';else if(pole<-0.45)col='#60a5fa';}
+      if(p.tr.length>2){g.strokeStyle=col;g.globalAlpha=.55;g.lineWidth=2;g.beginPath();p.tr.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.stroke();g.globalAlpha=1;}g.fillStyle=col;g.beginPath();g.arc(PX(p.x),Y(p.lat),2.6,0,7);g.fill();});
+    if(showN){g.font=SIM.font(19);g.textAlign='center';const lab=(t,x,l,col)=>{g.fillStyle='rgba(15,23,42,.7)';const w=g.measureText(t).width+14;g.fillRect(PX(x)-w/2,Y(l)-17,w,26);g.fillStyle=col;g.fillText(t,PX(x),Y(l)+3);};
+      lab('북태평양 해류 →',0.5,50,'#fff');lab('← 북적도 해류',0.5,11,'#fff');lab('쿠로시오 해류 ↑',0.09,30,'#fca5a5');lab('캘리포니아 해류 ↓',0.86,32,'#93c5fd');
+      lab('← 남적도 해류',0.5,-9,'#fff');lab('동오스트레일리아 해류 ↓',0.13,-28,'#fca5a5');lab('페루 해류 ↑',0.88,-28,'#93c5fd');lab('남극 순환류 →',0.5,-56,'#fff');}
+    g.fillStyle='#e2e8f0';g.font=SIM.font(18);g.textAlign='center';g.save();g.translate(OX0-30,Y(15));g.rotate(-Math.PI/2);g.fillText('아시아 (서쪽)',0,0);g.restore();g.save();g.translate(OX1+30,Y(15));g.rotate(Math.PI/2);g.fillText('아메리카 (동쪽)',0,0);g.restore();
+  });
+})();
+
+/* ========== SIM H: 수조 실험 ========== */
+(function(){
+  const c=document.getElementById('cH'),g=c.getContext('2d'),W=1060,H=610;
+  const TL=60,TR=760,TT=150,TB=520; let A={t:15,s:34},B={t:10,s:35},Tk={t:15,s:35},pour=false,parts=[],tt=0;
+  const ids=[['rHa1','vHa1',A,'t',' ℃'],['rHa2','vHa2',A,'s',' psu'],['rHb1','vHb1',B,'t',' ℃'],['rHb2','vHb2',B,'s',' psu']];
+  function rd(){return [RHO(A.s,A.t),RHO(B.s,B.t),RHO(Tk.s,Tk.t)];}
+  function where(r,rt){return r<rt-0.00008?'위':r>rt+0.00008?'아래':'가운데';}
+  function out(){ids.forEach(([i,v,o,k,u])=>{document.getElementById(v).textContent=o[k].toFixed(k==='t'?1:1)+u;document.getElementById(i).value=o[k];});
+    const [ra,rb,rt]=rd();document.getElementById('oH').innerHTML='밀도(g/cm³) &nbsp;A <b style="color:#dc2626">'+ra.toFixed(4)+'</b> · B <b style="color:#2563eb">'+rb.toFixed(4)+'</b> · 수조 <b>'+rt.toFixed(4)+'</b><br>예상: A는 <b>'+where(ra,rt)+'</b>쪽, B는 <b>'+where(rb,rt)+'</b>쪽으로!';}
+  ids.forEach(([i,v,o,k])=>document.getElementById(i).oninput=e=>{o[k]=+e.target.value;reset();out();});
+  function reset(){parts=[];tt=0;pour=false;}
+  document.getElementById('bH1').onclick=()=>{reset();pour=true;};
+  document.getElementById('bH2').onclick=()=>{reset();};
+  document.getElementById('bH3').onclick=()=>{A.t=15;A.s=34;B.t=10;B.s=35;reset();out();};
+  out();
+  const r=SIM.rng(5);
+  function target(rr,rt){const d=(rr-rt)/0.0012;return Math.max(-1,Math.min(1,d));} // -1 위, +1 아래
+  SIM.loop('s8',(tm,dt)=>{
+    const [ra,rb,rt]=rd();
+    if(pour&&tt<9){tt+=dt;for(let k=0;k<3;k++){[[0,ra,'a'],[1,rb,'b']].forEach(([side,rr,n])=>{parts.push({x:side?TR-24:TL+24,y:TT+6,side,tg:target(rr,rt),n,vx:0,vy:0,j:r()});});}}
+    parts.forEach(p=>{const ty=p.tg<-0.15?TT+10+p.j*40:p.tg>0.15?TB-10-p.j*40:(TT+TB)/2+(p.j-0.5)*50;
+      const dy=ty-p.y; p.vy+= (Math.sign(dy)*Math.min(1,Math.abs(dy)/30))*dt*120 - p.vy*dt*2; p.y+=p.vy*dt;
+      const settled=Math.abs(dy)<35; const dir=p.side?-1:1; if(settled)p.vx+=dir*dt*40*(0.6+p.j)-p.vx*dt*0.8; p.x+=p.vx*dt;
+      p.x=Math.max(TL+4,Math.min(TR-4,p.x));p.y=Math.max(TT+4,Math.min(TB-4,p.y));});
+    g.clearRect(0,0,W,H);
+    g.fillStyle='#ecfeff';g.fillRect(TL,TT,TR-TL,TB-TT);
+    parts.forEach(p=>{g.fillStyle=p.n==='a'?'rgba(220,38,38,.35)':'rgba(37,99,235,.35)';g.beginPath();g.arc(p.x,p.y,9,0,7);g.fill();});
+    g.strokeStyle='#334155';g.lineWidth=5;g.beginPath();g.moveTo(TL,TT-30);g.lineTo(TL,TB);g.lineTo(TR,TB);g.lineTo(TR,TT-30);g.stroke();
+    // 종이컵
+    [[TL+24,'#dc2626','A'],[TR-24,'#2563eb','B']].forEach(([x,col,n])=>{g.fillStyle='#7c3aed';g.beginPath();g.moveTo(x-26,TT-70);g.lineTo(x+26,TT-70);g.lineTo(x+18,TT-10);g.lineTo(x-18,TT-10);g.fill();g.fillStyle=col;g.font=SIM.font(26);g.textAlign='center';g.fillText(n,x,TT-84);if(pour&&tt<9){g.fillStyle=col;g.fillRect(x-3,TT-10,6,16);}});
+    g.fillStyle='#334155';g.font=SIM.font(20);g.textAlign='center';g.fillText('수조: '+Tk.t+' ℃, '+Tk.s+' psu (밀도 '+rt.toFixed(4)+')',(TL+TR)/2,TB+36);
+    if(!pour){g.fillStyle='#64748b';g.font=SIM.font(24);g.fillText('▶ 천천히 붓기를 눌러 보세요',(TL+TR)/2,(TT+TB)/2);}
+    // 미니 T-S
+    const L=820,R=1030,T=170,Bt=430,X=s=>L+(s-32)/5*(R-L),Yt=t=>Bt-(t-5)/20*(Bt-T);
+    g.strokeStyle='#334155';g.lineWidth=2;g.strokeRect(L,T,R-L,Bt-T);g.fillStyle='#334155';g.font=SIM.font(18);g.fillText('T-S도',(L+R)/2,T-14);g.font=SIM.font(15,false);g.fillText('염분 →',(L+R)/2,Bt+22);g.save();g.translate(L-14,(T+Bt)/2);g.rotate(-Math.PI/2);g.fillText('수온 →',0,0);g.restore();
+    [[A,'#dc2626','A'],[B,'#2563eb','B'],[Tk,'#475569','수조']].forEach(([o,col,n])=>{g.fillStyle=col;g.beginPath();g.arc(X(o.s),Yt(o.t),8,0,7);g.fill();g.font=SIM.font(16);g.textAlign='left';g.fillText(n,X(o.s)+10,Yt(o.t)-8);});
+    g.textAlign='center';
+  });
+})();
+
+/* ========== SIM I: 심층 순환 단면 ========== */
+(function(){
+  const c=document.getElementById('cI'),g=c.getContext('2d'),W=1060,H=610;
+  let cool=7,melt=0;const SL=60,SR=1000,ST=120,SB=560;
+  function str(){return Math.max(0,Math.min(1,(cool/10)*1.1-(melt/10)*0.9));}
+  function out(){document.getElementById('vI1').textContent=cool.toFixed(1);document.getElementById('vI2').textContent=melt.toFixed(1);document.getElementById('rI1').value=cool;document.getElementById('rI2').value=melt;
+    const s=str();document.getElementById('oI').innerHTML='<h4>심층 순환의 세기</h4><div><span class="sim-big">'+Math.round(s*100)+'</span> %</div><div>'+(s>0.6?'극 지역 해수가 <b>활발히 침강</b>하고 있어요.':s>0.25?'침강량이 <b class="or">줄어</b> 표층 해류도 느려졌어요.':'침강이 거의 <b class="or">멈췄어요!</b> 열 수송이 크게 줄어요.')+'</div>';}
+  document.getElementById('rI1').oninput=e=>{cool=+e.target.value;out();};document.getElementById('rI2').oninput=e=>{melt=+e.target.value;out();};
+  document.getElementById('bI1').onclick=()=>{cool=7;melt=0;out();};document.getElementById('bI2').onclick=()=>{cool=6;melt=7;out();};out();
+  // 순환 경로 매개변수 s 0..4: 표층(적도→극) 0..1, 침강 1..2, 심층(극→적도) 2..3, 용승 3..4
+  function path(s,off){const o=off;if(s<1){return [SR-40-(SR-SL-100)*s, ST+30+o*40];}
+    if(s<2){const f=s-1;return [SL+60-o*30, ST+30+o*40+(SB-ST-90-o*80)*f];}
+    if(s<3){const f=s-2;return [SL+60-o*30+(SR-SL-100+o*30)*f, SB-30-o*40];}
+    const f=s-3;return [SR-40, SB-30-o*40-(SB-ST-90-o*80)*f];}
+  const P=[];const r=SIM.rng(4);for(let i=0;i<180;i++)P.push({s:r()*4,o:r()});
+  SIM.loop('s13',(tm,dt)=>{
+    const s=str();
+    g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
+    // 바다
+    const gr=g.createLinearGradient(SL,0,SR,0);gr.addColorStop(0,'#1e3a8a');gr.addColorStop(1,'#0e7490');g.fillStyle=gr;g.fillRect(SL,ST,SR-SL,SB-ST);
+    g.fillStyle='#78350f';g.fillRect(SL,SB,SR-SL,30);
+    // 해빙, 융해수
+    if(cool>3){g.fillStyle='rgba(255,255,255,.9)';g.fillRect(SL,ST-12,40+cool*14,16);}
+    if(melt>0.5){g.fillStyle='rgba(186,230,253,'+(0.2+melt*0.06)+')';g.fillRect(SL,ST,60+melt*30,20+melt*6);g.fillStyle='#e0f2fe';g.font=SIM.font(18);g.textAlign='left';g.fillText('담수(빙하 융해수) → 염분 ↓',SL+8,ST+44+melt*6);}
+    // 태양열
+    g.fillStyle='#facc15';g.beginPath();g.arc(SR-60,60,26,0,7);g.fill();g.fillStyle='#fde68a';g.font=SIM.font(20);g.textAlign='center';g.fillText('가열',SR-60,104);
+    g.fillStyle='#bae6fd';g.fillText('냉각·결빙 ❄',SL+90,60);
+    P.forEach(p=>{p.s=(p.s+dt*0.12*s*(p.s>=3?0.5:1))%4;const [x,y]=path(p.s,p.o);const warm=p.s<1||p.s>3.6;g.fillStyle=warm?'#fca5a5':'#93c5fd';g.beginPath();g.arc(x,y,4,0,7);g.fill();});
+    g.fillStyle='#fff';g.font=SIM.font(22);g.textAlign='center';g.fillText('← 표층수 (따뜻함)',(SL+SR)/2,ST+90);g.fillText('심층수의 이동 →',(SL+SR)/2,SB-80);
+    g.save();g.translate(SL+150,(ST+SB)/2);g.fillText('침강 ↓',0,0);g.restore();g.fillText('용승 ↑',SR-130,(ST+SB)/2);
+    g.fillStyle='#cbd5e1';g.font=SIM.font(20);g.fillText('극지방 (고위도)',SL+90,SB+28);g.fillText('적도 지방 (저위도)',SR-110,SB+28);
+  });
+})();
+
+/* ========== SIM J: 열 수송 ========== */
+(function(){
+  const c=document.getElementById('cJ'),g=c.getContext('2d'),W=1060,H=610;let k=100;
+  const r=document.getElementById('rJ');
+  function out(){document.getElementById('vJ').textContent=k+' %';r.value=k;document.querySelectorAll('#s19 [data-j]').forEach(b=>b.classList.toggle('on',+b.dataset.j===k));
+    document.getElementById('oJ').innerHTML='<h4>열 수송량</h4><div>저위도 → 고위도로 옮기는 열: <span class="sim-big">'+k+'</span> %</div><div>'+(k>80?'열이 잘 분배되고 있어요.':k>30?'고위도가 <b class="hl">식고</b>, 저위도는 <b class="or">더워져요.</b>':'위도별 온도 차가 <b class="or">크게 증가</b>했어요!')+'</div>';}
+  r.oninput=e=>{k=+e.target.value;out();};document.querySelectorAll('#s19 [data-j]').forEach(b=>b.onclick=()=>{k=+b.dataset.j;out();});out();
+  let hi=0,lo=0,ph=0;
+  SIM.loop('s19',(tm,dt)=>{
+    const f=k/100;hi+=((f-1)*1-hi)*dt*1.5;lo+=((1-f)*1-lo)*dt*1.5;ph+=dt*f;
+    g.clearRect(0,0,W,H);
+    // 지구 단면 띠: 왼쪽 고위도, 오른쪽 저위도
+    const X0=60,X1=1000,Yb=300;
+    const gr=g.createLinearGradient(X0,0,X1,0);gr.addColorStop(0,'rgb('+Math.round(147+60*hi)+','+Math.round(197+40*hi)+',253)');gr.addColorStop(1,'rgb(253,'+Math.round(186-60*lo)+','+Math.round(116-60*lo)+')');
+    g.fillStyle=gr;g.fillRect(X0,Yb-100,X1-X0,200);g.strokeStyle='#334155';g.lineWidth=3;g.strokeRect(X0,Yb-100,X1-X0,200);
+    // 해류 화살표 (열 운반)
+    const n=8;for(let i=0;i<n;i++){const x=X1-60-(((ph*120)+i*(X1-X0-120)/n)%(X1-X0-120));g.globalAlpha=0.25+0.75*f;g.fillStyle='#dc2626';g.beginPath();g.moveTo(x,Yb-40);g.lineTo(x-34,Yb-24);g.lineTo(x,Yb-8);g.fill();g.fillStyle='#2563eb';const x2=X0+60+(((ph*120)+i*(X1-X0-120)/n)%(X1-X0-120));g.beginPath();g.moveTo(x2,Yb+40);g.lineTo(x2+34,Yb+24);g.lineTo(x2,Yb+8);g.fill();}g.globalAlpha=1;
+    g.fillStyle='#1e293b';g.font=SIM.font(24);g.textAlign='center';g.fillText('← 표층: 따뜻한 해류가 열을 고위도로 운반',(X0+X1)/2,Yb-60);g.fillText('심층: 차가운 해수가 되돌아옴 →',(X0+X1)/2,Yb+74);
+    g.font=SIM.font(26);g.fillText('고위도',X0+80,Yb-120);g.fillText('저위도',X1-80,Yb-120);
+    // 온도계
+    const th=(x,val,lab)=>{const y0=430,h=120;g.fillStyle='#e2e8f0';g.fillRect(x-14,y0,28,h);g.fillStyle=val>=0?'#dc2626':'#2563eb';const hh=Math.abs(val)*h/2;g.fillRect(x-14,val>=0?y0+h/2-hh:y0+h/2,28,hh);g.strokeStyle='#334155';g.lineWidth=2;g.strokeRect(x-14,y0,28,h);g.beginPath();g.moveTo(x-22,y0+h/2);g.lineTo(x+22,y0+h/2);g.stroke();
+      g.fillStyle='#1e293b';g.font=SIM.font(22);g.fillText(lab+(Math.abs(val)<0.05?' 변화 없음':val>0?' 온도 ↑':' 온도 ↓'),x,y0+h+34);};
+    th(X0+120,hi,'고위도');th(X1-120,lo,'저위도');
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

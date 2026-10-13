@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>엘니뇨·라니냐 판별 연습</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s18">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>엘니뇨·라니냐 판별 연습기</div>
+            <div class="ppt-subtitle">막대를 드래그해 월별 수온 편차를 정하고, <span class="or">3개월 이동 평균</span>으로 판별해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cE3" width="1060" height="610" style="cursor:ns-resize"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>연습 자료 불러오기 (가상 자료)</h4>
+                        <div class="sim-btns"><button class="sim-btn" data-ex="el">예시 A</button><button class="sim-btn" data-ex="la">예시 B</button><button class="sim-btn" data-ex="no">예시 C</button><button class="sim-btn orange" data-ex="zero">초기화</button></div>
+                    </div>
+                    <div class="sim-box key" id="oE3" style="font-size:25px"></div>
+                    <div class="sim-note">※ 연습용 가상 자료예요. 판별 기준: 3개월 이동 평균 편차가 +0.5 ℃ 이상(−0.5 ℃ 이하)인 달이 5개월 이상 지속되면 엘니뇨(라니냐).</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">바람과 바다가 주고받는 영향, 엘니뇨와 라니냐</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">06. 대기와 해양의 상호작용</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:linear-gradient(180deg,#e0f2fe,#0c4a6e);">
+                    <div style="display:flex; gap:30px; align-items:center;">
+                        <img data-noimg="" style="height:330px;border-radius:16px;border:4px solid rgba(255,255,255,.85)">
+                        <img data-noimg="" style="height:330px;border-radius:16px;border:4px solid rgba(255,255,255,.85)">
+                    </div>
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">용승과 침강, 엘니뇨 남방진동(ENSO), 그리고 우리 생활</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">오늘은 <span class="or">대기와 해양이 서로 영향을 주는</span> 현상을 알아봐요.</div>
+            <div class="main">
+                <div class="col" style="width:1050px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div>대기와 해양의 상호작용 사례로서 해수의 <b>용승과 침강</b>, <b>엘니뇨 남방진동(ENSO)</b>의 진행 과정 및 관련 현상을 설명할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>엘니뇨 남방진동(ENSO)이 <b>우리 생활</b>에 미치는 영향을 설명할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:600px;border-radius:16px;border:2px solid #e2e8f0">
+                    <div class="cap">무역풍이 약할 때와 강할 때의 열대 태평양</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: “올해는 극심한 가뭄!” vs “여기는 홍수!”</div>
+            <div class="ppt-subtitle">같은 해에 어떤 곳은 가뭄, 어떤 곳은 홍수가 나는 까닭은?</div>
+            <div class="main">
+                <div class="imgbox" style="width:700px"><img data-noimg="" style="max-height:600px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>엘니뇨와 라니냐는 <b>우리나라 날씨</b>에 어떤 영향을 미칠까?</div>
+                    <div class="card key" data-step="2">지역마다 강수량은 해마다 다르지만 <b>어느 정도의 주기성</b>이 있고, 엘니뇨·라니냐와 관련이 있다는 것이 분석되었어요.</div>
+                    <div class="card soft" data-step="3">온난화로 발생 주기가 짧아지고 변화 폭이 커지면서 영향이 더 <b>심각</b>해지고 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">용승: 깊은 곳의 찬물이 올라오는 현상</div>
+            <div class="ppt-subtitle">바람이 표층 해수를 밀어내면 <span class="or">빈자리를 채우려고</span> 심층의 찬물이 올라와요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">대기의 현상은 해양에 영향을 주고, 해양은 다시 대기에 영향을 주며 <b>끊임없이 상호작용</b>해요.</div>
+                    <div class="card key" data-step="2"><span class="tag">전향력 효과</span>지속적인 바람이 불면 지구 자전에 의한 전향력 때문에 표층 해수는<br><b>북반구: 바람 방향의 오른쪽 90°</b>, <b>남반구: 왼쪽 90°</b>로 이동해요.</div>
+                    <div class="card soft" data-step="3">→ 표층수가 <b>발산</b>하는 곳: <b>용승</b> / 표층수가 <b>수렴</b>하는 곳: <b>침강</b></div>
+                </div>
+                <div style="width:560px;flex:none;display:flex;align-items:center;justify-content:center">
+                    <svg viewBox="0 0 520 520" width="520" height="520">
+                        <rect x="10" y="10" width="500" height="500" rx="20" fill="#e0f2fe"/>
+                        <g data-step="1"><line x1="260" y1="440" x2="260" y2="140" stroke="#eab308" stroke-width="22"/><path d="M260 90 L225 150 L295 150Z" fill="#eab308"/><text x="300" y="300" font-size="28" fill="#a16207" font-weight="bold">바람</text></g>
+                        <g data-step="2"><line x1="260" y1="270" x2="420" y2="270" stroke="#1d4ed8" stroke-width="12"/><path d="M460 270 L410 245 L410 295Z" fill="#1d4ed8"/><text x="350" y="330" font-size="26" fill="#1d4ed8" font-weight="bold" text-anchor="middle">표층 해수 이동</text>
+                        <path d="M300 270 A40 40 0 0 0 260 230" fill="none" stroke="#334155" stroke-width="3"/><text x="300" y="225" font-size="24" fill="#334155">90°</text>
+                        <text x="260" y="490" font-size="24" text-anchor="middle" fill="#334155">북반구 (위에서 본 모습)</text></g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">연안 용승과 연안 침강</div>
+            <div class="ppt-subtitle">북반구 대륙의 <span class="or">서쪽 연안</span>에서 바람 방향에 따라 달라져요.</div>
+            <div class="main">
+                <div class="col grow" style="align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:440px"></div>
+                    <div class="card soft" data-step="1" style="font-size:26px;margin-top:12px"><span class="tag b">북풍</span>표층 해수가 오른쪽(서쪽, 바다 쪽)으로 → 해안에서 멀어짐 → <b>연안 용승</b></div>
+                </div>
+                <div class="col grow" style="align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:440px"></div>
+                    <div class="card soft" data-step="2" style="font-size:26px;margin-top:12px"><span class="tag r">남풍</span>표층 해수가 오른쪽(동쪽, 해안 쪽)으로 모임 → <b>연안 침강</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s6">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>바람의 방향을 바꾸면? 연안 용승 vs 연안 침강</div>
+            <div class="ppt-subtitle">대륙 <span class="or">서쪽 연안</span>에서 바람 방향과 반구를 바꿔 보세요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cE1" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>바람 방향</h4>
+                        <div class="sim-btns"><button class="sim-btn on" data-wd="N">북풍</button><button class="sim-btn" data-wd="S">남풍</button></div>
+                        <h4 style="margin-top:10px">반구</h4>
+                        <div class="sim-btns"><button class="sim-btn on" data-hs="N">북반구</button><button class="sim-btn" data-hs="S">남반구</button></div>
+                    </div>
+                    <div class="sim-box key" id="oE1" style="font-size:26px"></div>
+                    <div class="sim-note">※ 왼쪽: 위에서 본 모습, 오른쪽: 해안의 단면 (개념 모형)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">적도 용승: 무역풍이 적도에서 바닷물을 나눠요</div>
+            <div class="ppt-subtitle">북동 무역풍과 남동 무역풍 → 적도 주변 표층 해수가 <span class="or">발산</span></div>
+            <div class="main">
+                <div class="imgbox tight" style="width:760px"><img data-noimg="" style="width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">적도 부근에는 <b>동풍(무역풍)</b>이 불어요.</div>
+                    <div class="card" data-step="2">적도 <b>북쪽</b>에서는 오른쪽인 <b>북쪽</b>으로, 적도 <b>남쪽</b>에서는 왼쪽인 <b>남쪽</b>으로 해수가 이동해요.</div>
+                    <div class="card key" data-step="3">→ 적도에서 표층수가 <b>발산</b> → 심층 해수가 상승 = <b>적도 용승</b></div>
+                    <div class="note" data-step="3">그 밖에 태풍의 저기압성 바람, 해산·섬 같은 해저 지형에 의해서도 용승이 일어나요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">해 보기) 용승 지역의 특성 파악하기</div>
+            <div class="ppt-subtitle">같은 날 동해의 <span class="or">해수면 온도(가)</span>와 <span class="or">엽록소 농도(나)</span>를 비교해 봐요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:480px"></div>
+                    <div class="cap">(자료 출처: 국립 수산 과학원, 한국 해양 과학 기술원, 2017)</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft qa"><b>Q1.</b> 용승이 일어나는 지역과 근거는?</div>
+                    <div class="card key qa" data-step="1">동해 <b>남서쪽 연안</b>: 주변보다 <span class="a">수온이 낮고(가)</span>, <span class="a">엽록소 농도가 높아요(나)</span>.</div>
+                    <div class="card soft qa" data-step="2"><b>관측 원리</b> (가) 적외선으로 해수면 온도, (나) 가시광선으로 해색(엽록소) 관측</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">용승과 침강은 우리 생활에 어떤 영향을 줄까?</div>
+            <div class="ppt-subtitle">용승과 침강은 <span class="or">바람·기온·강수량</span>과 서로 영향을 주고받아요.</div>
+            <div class="main">
+                <div class="gcard" data-step="1" style="font-size:27px"><h3 style="color:#2563eb">⬆ 용승 해역</h3>
+                    <div>🌡 수온이 <b>낮고</b> 산소가 풍부</div><div>🐟 심층의 <b>영양염</b> 공급 → 플랑크톤 번성 → <b>좋은 어장</b></div><div>🌫 낮은 수온으로 대기 <b>안정</b> → <b>안개</b>가 잦고 강수량이 적어 <b>건조</b></div><div>⚠ 동해: 급격한 수온 감소로 양식장 생물 질병 → 정확한 예측 필요</div><img data-noimg="" style="max-height:250px;max-width:80%;align-self:center;border-radius:12px;margin-top:6px"></div>
+                <div class="gcard orange" data-step="2" style="font-size:27px"><h3 style="color:#ea580c">⬇ 침강 해역</h3>
+                    <div>바람에 의해 표층 해수가 모여드는 <b>수렴 지역</b>, 밀도가 높은 물이 생기는 <b>극 지역</b></div><div>🫧 산소가 풍부한 표층 해수 침강 → 해양 생물에게 <b>산소 공급</b></div><div>🧊 이산화 탄소를 많이 가진 극 지역 찬 해수 침강 → 심해에 <b>이산화 탄소 저장</b></div><img data-noimg="" style="max-height:250px;max-width:80%;align-self:center;border-radius:12px;margin-top:6px"></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">엘니뇨와 라니냐</div>
+            <div class="ppt-subtitle">무역풍의 세기가 변하면 <span class="or">동태평양의 수온</span>이 달라져요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="tag">평상시</span>무역풍 → 페루 해역 <b>연안 용승</b>, 적도 중앙 태평양 <b>적도 용승</b></div>
+                    <div class="card" data-step="2" style="border-color:#fca5a5;background:#fef2f2"><span class="tag r">엘니뇨</span>무역풍 <b>약화</b> → 용승 약화 → 동태평양과 적도 중앙부 수온이 평상시보다 <b>0.5 ℃ 이상 높은</b> 상태가 수개월 지속</div>
+                    <div class="card" data-step="3" style="border-color:#93c5fd;background:#eff6ff"><span class="tag b">라니냐</span>무역풍 <b>강화</b> → 용승 활발 → 동·중태평양 수온이 평년보다 <b>더 낮아짐</b></div>
+                    <div class="card key" data-step="4">엘니뇨와 라니냐는 <b>2년~5년</b>을 주기로 반복해서 나타나요.</div>
+                </div>
+                <div class="col" style="width:500px;align-items:center;justify-content:center">
+                    <img data-noimg="" style="width:460px;border-radius:12px;border:2px solid #e2e8f0">
+                    <div class="cap">엘니뇨 감시 구역 (Nino 3.4: 5°S~5°N, 170°W~120°W)</div>
+                    <div class="note" style="margin-top:10px">우리나라: Nino 3.4의 3개월 이동 평균 수온 편차가 +0.5 ℃ 이상인 달이 5개월 이상 지속되면 엘니뇨</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s11">
+            <div class="ppt-title">평상시 · 엘니뇨 · 라니냐 ① 무역풍과 해수면 높이</div>
+            <div class="ppt-subtitle">해수면 높이 편차: 평년보다 높으면 <span style="color:#dc2626;font-weight:bold">붉은색</span>, 낮으면 <span style="color:#2563eb;font-weight:bold">파란색</span></div>
+            <div class="main">
+                <div class="imgbox tight" style="width:900px"><img data-noimg="" style="max-height:640px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1" style="font-size:26px"><b>엘니뇨</b>: 약한 무역풍 → 약한 용승 → 동태평양 수온 약층이 <b>깊어짐</b>, 해수면 <b>상승</b></div>
+                    <div class="card soft" data-step="2" style="font-size:26px"><b>라니냐</b>: 강한 무역풍 → 강한 용승 → 동태평양 수온 약층이 <b>얕아짐</b>, 해수면 <b>하강</b></div>
+                    <div class="card key" data-step="3" style="font-size:26px">해수면 높이는 수온이 높을수록 <b>부피 팽창</b>으로 높아져요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">평상시 · 엘니뇨 · 라니냐 ② 해수면 온도와 수온 편차</div>
+            <div class="ppt-subtitle">수온 편차 = 관측 수온 − 평균 수온 (+면 평균보다 높음)</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:960px"><img data-noimg="" style="max-height:640px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1" style="font-size:26px"><span class="tag">2014년 1월</span>평상시: 동태평양이 서태평양보다 약간 낮음</div>
+                    <div class="card soft" data-step="2" style="font-size:26px"><span class="tag r">2016년 1월</span>엘니뇨: 중앙·동태평양 수온 편차 <b>+</b></div>
+                    <div class="card soft" data-step="3" style="font-size:26px"><span class="tag b">2021년 1월</span>라니냐: 중앙·동태평양 수온 편차 <b>−</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s13">
+            <div class="ppt-title">한눈에 비교: 평상시 · 엘니뇨 · 라니냐</div>
+            <div class="ppt-subtitle">동·서 태평양의 <span class="or">차이</span>가 줄어들까, 커질까?</div>
+            <div class="main" style="align-items:center">
+                <table class="ppt-table" style="font-size:29px">
+                    <thead><tr><th style="width:24%">구분</th><th style="background:#dc2626">엘니뇨</th><th style="background:#475569">평상시</th><th>라니냐</th></tr></thead>
+                    <tbody>
+                    <tr data-step="1"><td class="rowh">무역풍</td><td>약함</td><td>보통</td><td>강함</td></tr>
+                    <tr data-step="2"><td class="rowh">동태평양 용승</td><td>약함</td><td>보통</td><td>강함</td></tr>
+                    <tr data-step="3"><td class="rowh">동태평양 수온</td><td>높아짐 (편차 +)</td><td>서태평양보다 낮음</td><td>낮아짐 (편차 −)</td></tr>
+                    <tr data-step="4"><td class="rowh">동태평양 수온 약층</td><td>깊어짐</td><td>얕음</td><td>더 얕아짐</td></tr>
+                    <tr data-step="5"><td class="rowh">동−서 수온 약층 깊이 차</td><td><b>감소</b></td><td>—</td><td><b>증가</b></td></tr>
+                    <tr data-step="6"><td class="rowh">동−서 해수면 경사</td><td><b>완만</b></td><td>—</td><td><b>급함</b></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s14">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>무역풍 세기로 엘니뇨·라니냐 만들기</div>
+            <div class="ppt-subtitle">무역풍을 조절하며 <span class="or">수온 약층, 해수면, 상승 기류, 기압</span>의 변화를 관찰해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cE2" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>무역풍의 세기</h4>
+                        <div class="sim-row"><span class="lbl" style="width:60px">약</span><input type="range" class="sim-range" id="rE2" min="0" max="2" step="0.01" value="1"><span class="lbl" style="width:40px;text-align:right">강</span></div>
+                        <div class="sim-btns"><button class="sim-btn orange" data-tw="0.25">엘니뇨</button><button class="sim-btn on" data-tw="1">평상시</button><button class="sim-btn" data-tw="1.8">라니냐</button></div>
+                    </div>
+                    <div class="sim-box" id="oE2" style="font-size:25px"></div>
+                    <div class="sim-note">※ 교과서 그림 43, 44를 바탕으로 한 단순화 모형이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">남방진동: 시소처럼 움직이는 기압</div>
+            <div class="ppt-subtitle">해수면 온도 편차에 따라 <span class="or">기압 분포와 대기의 흐름</span>이 달라져요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:820px"><img data-noimg="" style="width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card soft" data-step="1" style="font-size:25px"><b>평상시</b>: 서태평양 기압 낮고 강한 상승 기류, 수온 낮은 동태평양 하강 기류·고기압</div>
+                    <div class="card soft" data-step="2" style="font-size:25px"><b>엘니뇨</b>: 중앙·동쪽 수온 편차 + → 기압 <b>↓</b>, 서태평양 하강 기류 발달 / <b>라니냐</b>: 서태평양 기압 ↓, 동태평양 기압 ↑</div>
+                    <table class="sim-table" data-step="3" style="font-size:23px"><tr><th>기압 편차</th><th>서태평양</th><th>중·동태평양</th></tr><tr><td>엘니뇨</td><td>+</td><td>−</td></tr><tr><td>라니냐</td><td>−</td><td>+</td></tr></table>
+                    <div class="card key" data-step="4" style="font-size:25px">엘니뇨·라니냐(해양 수온) + 남방진동(대기 기압) = <b>엘니뇨 남방진동(엔소, ENSO)</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">생각해 보기: 엘니뇨 때 서태평양의 비가 줄어드는 까닭은?</div>
+            <div class="ppt-subtitle">수온 → 기압 → 공기의 상승·하강 → <span class="or">강수</span>로 이어서 생각해 봐요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:10px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>엘니뇨 시기 서태평양의 수온이 평상시보다 <b>낮아짐</b> (수온 편차 −)</div></div>
+                <div class="arrow-down" data-step="2">▼</div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div><b>상승 기류가 약해지고</b> 하강 기류가 발달 (기압 ↑)</div></div>
+                <div class="arrow-down" data-step="3">▼</div>
+                <div class="card key" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">3</span><div>구름이 덜 생겨 <b>강수량 감소</b> → 인도네시아·오스트레일리아 북부 <b>가뭄</b></div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">탐구 활동) 엘니뇨, 라니냐 판별하기</div>
+            <div class="ppt-subtitle">기상청 기후 정보 포털(climate.go.kr) › 엘니뇨·라니냐 › 월별 해수면 온도 편차</div>
+            <div class="main">
+                <div class="col" style="width:900px;justify-content:center;gap:12px">
+                    <img data-noimg="" style="width:100%;border-radius:12px;border:2px solid #e2e8f0">
+                    <img data-noimg="" style="width:100%;border-radius:12px;border:2px solid #e2e8f0">
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="formula" data-step="1" style="font-size:30px;text-align:left">편차 +0.5 ℃ 이상 수개월 → <span style="color:#dc2626">엘니뇨</span><br>편차 −0.5 ℃ 이하 수개월 → <span style="color:#2563eb">라니냐</span></div>
+                    <div class="card soft qa" data-step="2">2023년 8월: 동태평양 수온 편차 약 <b>+3 ℃</b> → <span class="a">엘니뇨 시기</span></div>
+                    <div class="card soft qa" data-step="3" style="font-size:25px">월별 자료는 하루하루 변동이 크므로 <b>3개월 이동 평균</b>한 자료로 확인해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s19">
+            <div class="ppt-title">엘니뇨·라니냐가 세계 날씨에 미치는 영향</div>
+            <div class="ppt-subtitle">바람·해류·수온·기압이 달라져 <span class="or">평년과 다른 기상 현상</span>이 나타나요. (북반구 겨울철)</div>
+            <div class="main">
+                <div class="col" style="width:960px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:100%"></div>
+                    <div class="cap">엘니뇨와 라니냐로 나타나는 기상 변화(겨울철) (『2016 엘니뇨 백서』, 2017)</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1" style="font-size:26px"><span class="tag r">엘니뇨</span>오스트레일리아 북부·인도네시아: 강수량 <b>감소</b> / 열대 동·중태평양: 강수량 <b>증가</b></div>
+                    <div class="card" data-step="2" style="font-size:26px"><span class="tag b">라니냐</span>인도네시아: 강수량 <b>증가</b> / 열대 동·중태평양: <b>감소</b> / 남미 북부 증가, 중·동부 감소 / 북반구 대체로 기온 <b>낮은</b> 경향</div>
+                    <div class="card key" data-step="3" style="font-size:26px">수온 변화 → 저기압·고기압의 <b>위치가 변해서</b> 평년과 다른 날씨가 나타나요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">우리나라에는 어떤 영향을 줄까?</div>
+            <div class="ppt-subtitle">엘니뇨 때는 <span class="or">따뜻하고 비가 많은</span> 편, 라니냐 때는 <span class="or">건조하고 한파</span>가 오기도 해요.</div>
+            <div class="main">
+                <div class="col" style="width:900px;justify-content:center;align-items:center">
+                    <img data-noimg="" style="width:100%;border-radius:14px">
+                    <div class="cap">엘니뇨 시기에 발생한 폭우(왼쪽)와 라니냐 시기에 발생한 가뭄(가운데)</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1" style="border-color:#fca5a5;background:#fef2f2"><span class="tag r">엘니뇨</span>겨울: 평년보다 <b>따뜻</b>하고 강수량 많은 편 / 여름: 강수량 증가 → <b>폭우</b></div>
+                    <div class="card" data-step="2" style="border-color:#93c5fd;background:#eff6ff"><span class="tag b">라니냐</span>겨울·여름 강수량 <b>감소</b> → 건조, 특히 겨울 <b>한파</b></div>
+                    <div class="card key" data-step="3">기온·강수량 변화는 <b>산업이나 질병</b>에도 영향 → 사회 전체가 미리 대비해야 해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">탐구 활동) 엘니뇨, 라니냐가 우리 생활에 미치는 영향</div>
+            <div class="ppt-subtitle">엘니뇨·라니냐 시기 세계 각국의 기상 이변을 조사해 봐요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:880px"><img data-noimg="" style="width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:10px">
+                    <div class="card soft qa" data-step="1" style="font-size:24px"><span class="tag r">가</span>2009년 인도 가뭄: <b>엘니뇨</b> → 서태평양 지역 강수량 감소</div>
+                    <div class="card soft qa" data-step="2" style="font-size:24px"><span class="tag b">나</span>2011년 우리나라 한파: <b>라니냐</b> → 한랭하고 건조한 겨울</div>
+                    <div class="card soft qa" data-step="3" style="font-size:24px"><span class="tag r">다</span>2015년 파라과이 홍수: <b>엘니뇨</b> → 열대 동태평양 쪽 강수량 증가</div>
+                    <div class="card soft qa" data-step="4" style="font-size:24px"><span class="tag b">라</span>2021년 미국 잦은 산불: <b>라니냐</b> → 강수량 감소, 건조</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">기상 이변은 사회와 경제까지 흔들어요</div>
+            <div class="ppt-subtitle">엘니뇨·라니냐가 <span class="or">곡물·어업·사회</span>에 미치는 영향</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:10px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>평년과 다른 기상 → 전 세계 곡창 지대 <b>곡물 생산량 감소</b> → 곡물값 상승</div></div>
+                <div class="arrow-down" data-step="2">▼</div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div>일부 국가에서 폭동 등 <b>사회적 불안</b> → 정치적 불안 증가</div></div>
+                <div class="arrow-down" data-step="3">▼</div>
+                <div class="card key" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">3</span><div>엘니뇨: 용승 약화 → 영양염 부족 → <b>어획량 감소</b> → 사료 가격 폭등 → <b>육류 가격 상승</b></div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s23">
+            <div class="ppt-title">세로처럼 깊게) 엘니뇨, 라니냐와 남방진동</div>
+            <div class="ppt-subtitle">해양과 대기는 서로를 <span class="or">원인이자 결과</span>로 만들어요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card soft" data-step="1" style="font-size:25px">1924년 <b>워커</b>: 남방진동 확인 → 1966년 <b>비야크네스</b>: 엘니뇨와 남방진동의 상관관계 입증</div>
+                    <div class="card soft" data-step="2" style="font-size:25px">엘니뇨는 라니냐를, 라니냐는 엘니뇨를 유발할 수 있어요. (라니냐 → 용승 활발 → 수온 감소 → 무역풍 약화 요인 → 엘니뇨)</div>
+                    <div class="card soft" data-step="3" style="font-size:25px">엘니뇨 시기 적도 수온 상승 → <b>해들리 순환과 제트류 강화</b> → 기압 분포 변화가 전 지구로 퍼짐</div>
+                    <div class="card key" data-step="4" style="font-size:25px">영향이 해마다 같지 않아 해황과 대기를 꾸준히 <b>관측·예측</b>하여 대비해야 해요.</div>
+                </div>
+                <div class="col" style="width:560px;align-items:center;justify-content:center">
+                    <img data-noimg="" style="width:520px;border-radius:12px;border:2px solid #e2e8f0">
+                    <div class="cap">엘니뇨가 발생할 때 우리나라 주변의 기압 배치: 시베리아 고기압이 북쪽으로 이동 → 강원 영동에 많은 눈, 평년보다 따뜻</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s24">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column; gap:20px">
+                <div style="display:flex; gap:24px; align-items:stretch">
+                    <div class="card" style="flex:1; font-size:29px; line-height:1.85"><h3 style="color:#dc2626">엘니뇨</h3>
+                        <div>무역풍이 평상시보다 <span class="blank" style="min-width:80px">약</span>하게 불 때</div>
+                        <div>동태평양·적도 중앙부 수온이 평년보다 <span class="blank" style="min-width:100px">높아</span>짐</div></div>
+                    <div class="card" style="flex:1; font-size:29px; line-height:1.85"><h3 style="color:#2563eb">라니냐</h3>
+                        <div>무역풍이 평상시보다 <span class="blank" style="min-width:80px">강</span>하게 불 때</div>
+                        <div>동태평양·적도 중앙부 수온이 평년보다 <span class="blank" style="min-width:100px">낮아</span>짐</div></div>
+                </div>
+                <div class="card" style="font-size:29px;line-height:1.85"><h3>남방진동 · ENSO</h3>동−서 기압은 한쪽에서 상승하면 다른 쪽에서 <span class="blank" style="min-width:100px">하강</span>하는 시소처럼 진동 → 엘니뇨·라니냐(해양) + 남방진동(대기) = <span class="blank" style="min-width:110px">ENSO</span></div>
+                <div class="note" style="text-align:right">빈칸을 누르면 정답이 나타나요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s25">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card q" data-a="c"><div class="qrow">해안선에 평행한 바람이 표층수를 해안에서 밀어낼 때 생기는 용승은? <button class="sim-btn" data-v="c">연안 용승</button><button class="sim-btn" data-v="e">적도 용승</button><span class="res"></span></div></div>
+                <div class="card q" data-a="u"><div class="qrow">엘니뇨 시기 동태평양의 수온은? <button class="sim-btn" data-v="u">상승</button><button class="sim-btn" data-v="d">하강</button><span class="res"></span></div></div>
+                <div class="card q" data-a="l"><div class="qrow">그때 동태평양의 기압은? <button class="sim-btn" data-v="h">높아짐</button><button class="sim-btn" data-v="l">낮아짐</button><span class="res"></span></div><div class="why" style="display:none">서태평양의 수온은 하강하여 그 지역의 기압이 높아져요.</div></div>
+                <div class="card key" style="font-size:27px"><b>생각해 보기</b> 엘니뇨가 장기화되면? → 수온 상승 폭 증가, 용승 약화로 표층의 <b>영양염 부족 → 어획량 감소</b></div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ========== SIM E1: 연안 용승 ========== */
+(function(){
+  const c=document.getElementById('cE1'),g=c.getContext('2d'),W=1060,H=610;let wd='N',hs='N';
+  function out(){document.querySelectorAll('#s6 [data-wd]').forEach(b=>b.classList.toggle('on',b.dataset.wd===wd));document.querySelectorAll('#s6 [data-hs]').forEach(b=>b.classList.toggle('on',b.dataset.hs===hs));
+    const up=up_();document.getElementById('oE1').innerHTML='<h4>'+(hs==='N'?'북반구':'남반구')+' · '+(wd==='N'?'북풍':'남풍')+'</h4><div>표층 해수는 바람 방향의 <b>'+(hs==='N'?'오른쪽':'왼쪽')+' 90°</b>로 이동 → 해안에서 '+(up?'<b>멀어져요</b>':'<b>모여요</b>')+'.</div><div style="margin-top:6px">결과: <span class="sim-big" style="color:'+(up?'#2563eb':'#dc2626')+'">'+(up?'연안 용승':'연안 침강')+'</span></div>';}
+  function up_(){return (wd==='N')!==(hs==='S');} // 북반구 북풍 → 서쪽(바다)으로 수송 → 용승
+  document.querySelectorAll('#s6 [data-wd]').forEach(b=>b.onclick=()=>{wd=b.dataset.wd;out();});document.querySelectorAll('#s6 [data-hs]').forEach(b=>b.onclick=()=>{hs=b.dataset.hs;out();});out();
+  SIM.loop('s6',(tm)=>{
+    const up=up_();g.clearRect(0,0,W,H);
+    // 위에서 본 모습 (왼쪽 패널) : 바다 x 20..380, 육지 x 380..500
+    g.fillStyle='#bae6fd';g.fillRect(20,40,360,540);g.fillStyle='#a3a3a3';g.fillRect(380,40,120,540);g.fillStyle='#65a30d';g.fillRect(384,40,116,540);
+    g.fillStyle='#14532d';g.font=SIM.font(22);g.textAlign='center';g.fillText('대륙',440,320);g.fillStyle='#0c4a6e';g.fillText('바다',120,575);
+    g.fillStyle='#334155';g.font=SIM.font(20);g.fillText('위에서 본 모습 (위 = 북쪽)',260,30);
+    if(up){g.fillStyle='rgba(37,99,235,.35)';g.fillRect(300,40,80,540);}else{g.fillStyle='rgba(220,38,38,.18)';g.fillRect(300,40,80,540);}
+    // 바람
+    const dir=wd==='N'?1:-1;g.strokeStyle='#eab308';g.fillStyle='#eab308';g.lineWidth=14;const y0=310-dir*150,y1=310+dir*120;g.beginPath();g.moveTo(200,y0);g.lineTo(200,y1);g.stroke();g.beginPath();g.moveTo(200,y1+dir*30);g.lineTo(178,y1-dir*4);g.lineTo(222,y1-dir*4);g.fill();
+    g.font=SIM.font(24);g.fillStyle='#a16207';g.fillText(wd==='N'?'북풍':'남풍',250,y0+dir*10);
+    // 표층 해수 이동 화살표
+    const sx=up?-1:1,ph=(tm/30)%60;g.strokeStyle='#1d4ed8';g.fillStyle='#1d4ed8';g.lineWidth=4;
+    for(let k=0;k<6;k++){const y=80+k*90,x0=200+sx*(20+ph),x1=x0+sx*60;g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();g.beginPath();g.moveTo(x1+sx*12,y);g.lineTo(x1,y-8);g.lineTo(x1,y+8);g.fill();}
+    // 단면 (오른쪽 패널)
+    const X0=560,X1=1040,S=120,B=560;g.fillStyle='#e0f2fe';g.fillRect(X0,40,X1-X0,S-40);
+    const gr=g.createLinearGradient(0,S,0,B);gr.addColorStop(0,'#38bdf8');gr.addColorStop(1,'#1e3a8a');g.fillStyle=gr;g.fillRect(X0,S,X1-X0,B-S);
+    g.fillStyle='#a16207';g.beginPath();g.moveTo(X1-140,S-10);g.lineTo(X1,S-30);g.lineTo(X1,B);g.lineTo(X0+120,B);g.closePath();g.fill();
+    g.fillStyle='#334155';g.font=SIM.font(20);g.textAlign='center';g.fillText('해안의 단면 (오른쪽 = 대륙)',(X0+X1)/2,30);
+    const landX=y=>X0+120+(X1-140-(X0+120))*(B-y)/(B-S);
+    if(up){g.fillStyle='rgba(30,64,175,.6)';g.beginPath();g.moveTo(landX(B-140)-120,B-140);g.quadraticCurveTo(landX(S+60)-90,S+60,landX(S+4)-60,S+4);g.lineTo(landX(S+4),S+4);g.lineTo(landX(B-140),B-140);g.closePath();g.fill();}
+    g.strokeStyle='#fff';g.fillStyle='#fff';g.lineWidth=4;
+    const P=[[X0+40,B-150],[landX(B-150)-40,B-150],[landX(S+40)-40,S+40],[X0+40,S+24]];
+    const seg=(p)=>{const pts=up?P:P.slice().reverse();const k=Math.min(2.999,p*3),i=Math.floor(k),f=k-i;return [pts[i][0]+(pts[i+1][0]-pts[i][0])*f,pts[i][1]+(pts[i+1][1]-pts[i][1])*f];};
+    for(let k=0;k<6;k++){const p=((tm/2200)+k/6)%1;const [x,y]=seg(p);g.beginPath();g.arc(x,y,7,0,7);g.fill();}
+    g.fillStyle='#fff';g.font=SIM.font(30);g.textAlign='center';g.fillText(up?'⬆ 용승 (찬물 상승)':'⬇ 침강',X0+170,S+90);
+  });
+})();
+
+/* ========== SIM E2: 엘니뇨·라니냐 ========== */
+(function(){
+  const c=document.getElementById('cE2'),g=c.getContext('2d'),W=1060,H=610;let tw=1,cur=1;
+  const r=document.getElementById('rE2');
+  function state(v){return v<0.6?'엘니뇨':v>1.4?'라니냐':'평상시';}
+  function out(){r.value=tw;document.querySelectorAll('#s14 [data-tw]').forEach(b=>b.classList.toggle('on',state(+b.dataset.tw)===state(tw)));
+    const s=state(tw);const t={엘니뇨:'<h4 style="color:#dc2626">엘니뇨</h4><div>무역풍 약 → 동태평양 용승 약화</div><div>동태평양 수온 ↑, 수온 약층 <b>깊어짐</b>, 해수면 ↑</div><div>동−서 수온 약층 깊이 차·해수면 경사 <b>감소</b></div><div>기압 편차: 서 <b>+</b> / 중·동 <b>−</b></div>',평상시:'<h4>평상시</h4><div>무역풍 → 페루 연안 용승, 적도 용승</div><div>따뜻한 물은 서태평양, 서쪽에 상승 기류</div><div>동태평양 하강 기류·고기압</div>',라니냐:'<h4 style="color:#2563eb">라니냐</h4><div>무역풍 강 → 동태평양 용승 강화</div><div>동태평양 수온 ↓, 수온 약층 <b>얕아짐</b>, 해수면 ↓</div><div>동−서 깊이 차·해수면 경사 <b>증가</b></div><div>기압 편차: 서 <b>−</b> / 중·동 <b>+</b></div>'};document.getElementById('oE2').innerHTML=t[s];}
+  r.oninput=e=>{tw=+e.target.value;out();};document.querySelectorAll('#s14 [data-tw]').forEach(b=>b.onclick=()=>{tw=+b.dataset.tw;out();});out();
+  SIM.loop('s14',(tm,dt)=>{
+    cur+=(tw-cur)*Math.min(1,dt*2.5);const k=cur; // 0 약 ~ 2 강
+    g.clearRect(0,0,W,H);
+    const L=60,R=1000,SEA=300,BOT=560;
+    // 하늘
+    g.fillStyle='#f0f9ff';g.fillRect(L,20,R-L,SEA-20);
+    // 해수: 수온 약층 기울기
+    const thW=SEA+60+60*k,thE=SEA+170-90*k; // 서·동 수온 약층 깊이(px)
+    const lvW=SEA-6*k,lvE=SEA+6*k-6;
+    g.fillStyle='#1e3a8a';g.fillRect(L,SEA-12,R-L,BOT-SEA+12);
+    const grd=g.createLinearGradient(L,0,R,0);const eastWarm=Math.max(0,1-k)*0.9;grd.addColorStop(0,'#f97316');grd.addColorStop(0.5,k<0.6?'#fb923c':'#fbbf24');grd.addColorStop(1,'rgb('+Math.round(56+190*eastWarm)+','+Math.round(189-40*eastWarm)+','+Math.round(248-200*eastWarm)+')');
+    g.fillStyle=grd;g.beginPath();g.moveTo(L,lvW);g.lineTo(R,lvE);g.lineTo(R,thE);g.bezierCurveTo((L+R)/2+150,thE,(L+R)/2-100,thW,L,thW);g.closePath();g.fill();
+    g.strokeStyle='#fff';g.setLineDash([10,8]);g.lineWidth=3;g.beginPath();g.moveTo(L,thW);g.bezierCurveTo((L+R)/2-100,thW,(L+R)/2+150,thE,R,thE);g.stroke();g.setLineDash([]);
+    g.fillStyle='#fff';g.font=SIM.font(20);g.textAlign='left';g.fillText('수온 약층',L+330,(thW+thE)/2+30);
+    // 해수면 선
+    g.strokeStyle='#0c4a6e';g.lineWidth=3;g.beginPath();g.moveTo(L,lvW);g.lineTo(R,lvE);g.stroke();
+    // 육지
+    g.fillStyle='#a16207';g.fillRect(L-40,SEA-30,40,BOT-SEA+30);g.fillRect(R,SEA-30,40,BOT-SEA+30);
+    g.fillStyle='#334155';g.font=SIM.font(20);g.textAlign='center';g.fillText('서태평양',L+90,BOT+30);g.fillText('동태평양 (페루)',R-110,BOT+30);
+    // 무역풍
+    const n=Math.max(1,Math.round(k*3));g.strokeStyle='#7c3aed';g.fillStyle='#7c3aed';g.lineWidth=3+k*3;for(let i=0;i<n;i++){const x=R-120-((tm/12*(0.3+k)+i*260)%700),y=SEA-40-i*12;g.beginPath();g.moveTo(x,y);g.lineTo(x-80,y);g.stroke();g.beginPath();g.moveTo(x-96,y);g.lineTo(x-78,y-10);g.lineTo(x-78,y+10);g.fill();}
+    g.fillStyle='#6d28d9';g.font=SIM.font(20);g.fillText('무역풍 '+(k<0.6?'약함':k>1.4?'강함':'보통'),(L+R)/2+150,SEA-70);
+    // 상승 기류 위치 & 구름
+    const cx=L+120+(1-Math.min(1,k))*420; // 엘니뇨면 중앙으로 이동
+    g.fillStyle='rgba(148,163,184,.9)';[[0,-200,60],[-40,-170,50],[40,-170,50],[0,-130,55]].forEach(([dx,dy,rr])=>{g.beginPath();g.arc(cx+dx,SEA+dy,rr*(0.7+0.3*(k<1?1:1/k)),0,7);g.fill();});
+    g.strokeStyle='#dc2626';g.fillStyle='#dc2626';g.lineWidth=4;g.beginPath();g.moveTo(cx,SEA-30);g.lineTo(cx,SEA-100);g.stroke();g.beginPath();g.moveTo(cx,SEA-112);g.lineTo(cx-9,SEA-96);g.lineTo(cx+9,SEA-96);g.fill();
+    g.strokeStyle='#2563eb';g.fillStyle='#2563eb';const dx=k<0.6?L+60:R-140;g.beginPath();g.moveTo(dx,SEA-210);g.lineTo(dx,SEA-120);g.stroke();g.beginPath();g.moveTo(dx,SEA-108);g.lineTo(dx-9,SEA-124);g.lineTo(dx+9,SEA-124);g.fill();
+    g.fillStyle='#1e293b';g.font=SIM.font(18);g.fillText('상승 기류·비',cx,SEA-245);g.fillText('하강 기류',dx,SEA-222);
+    // 용승
+    const upS=Math.max(0,k);g.strokeStyle='rgba(191,219,254,'+(0.3+0.35*upS)+')';g.lineWidth=2+upS*3;for(let i=0;i<3;i++){const x=R-60-i*40,y=BOT-((tm/20*(0.2+upS)+i*50)%(BOT-thE+40));g.beginPath();g.moveTo(x,y+30);g.lineTo(x,y);g.stroke();}
+    g.fillStyle='#e0f2fe';g.font=SIM.font(18);g.fillText('용승 '+(k<0.6?'약':k>1.4?'강':''),R-90,BOT-10);
+    // 기압 시소
+    const pw=k<0.6?1:k>1.4?-1:0,X0=440,Y0=60;g.fillStyle='#334155';g.font=SIM.font(18);g.textAlign='center';g.fillText('기압 편차 시소',X0+90,Y0-28);
+    g.save();g.translate(X0+90,Y0+10);g.rotate(-pw*0.25);g.fillStyle='#64748b';g.fillRect(-90,-5,180,10);g.fillStyle='#0f172a';g.font=SIM.font(16);g.fillText('서',-80,-12);g.fillText('동',80,-12);g.restore();g.beginPath();g.moveTo(X0+90,Y0+15);g.lineTo(X0+78,Y0+38);g.lineTo(X0+102,Y0+38);g.fillStyle='#334155';g.fill();
+    g.fillStyle=pw>0?'#dc2626':pw<0?'#2563eb':'#334155';g.font=SIM.font(16);g.fillText(pw>0?'서 +, 동 −':pw<0?'서 −, 동 +':'평상시',X0+90,Y0+60);
+    // 상태 라벨
+    g.font=SIM.font(36);g.textAlign='left';g.fillStyle='#fff';g.fillText(state(k),L+16,BOT-20);
+  });
+})();
+
+/* ========== SIM E3: 판별 연습기 ========== */
+(function(){
+  const c=document.getElementById('cE3'),g=c.getContext('2d'),W=1060,H=610;
+  const MON=['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18'];const N=18;let v=new Array(N).fill(0),drag=-1;
+  const EX={el:[0.1,0.3,0.5,0.8,1.0,1.3,1.5,1.6,1.4,1.2,0.9,0.6,0.3,0.1,-0.1,0,0.1,0],la:[0,-0.2,-0.4,-0.7,-0.9,-1.1,-1.2,-1.0,-0.9,-0.8,-0.7,-0.5,-0.3,-0.1,0,0.1,0,0],no:[0.2,0.6,0.7,0.3,0.1,-0.2,-0.6,-0.4,0,0.3,0.6,0.2,-0.1,-0.4,-0.6,-0.2,0.1,0.2],zero:new Array(N).fill(0)};
+  const L=90,R=1020,T=60,B=500,X=i=>L+(i+0.5)*(R-L)/N,Y=val=>(T+B)/2-val/2.5*((B-T)/2);
+  function run(){const m=[];for(let i=0;i<N;i++){if(i===0||i===N-1){m.push(null);continue;}m.push((v[i-1]+v[i]+v[i+1])/3);}return m;}
+  function judge(){const m=run();let best={type:null,len:0},curT=null,len=0,start=0,res=[];for(let i=0;i<N;i++){const t=m[i]==null?null:m[i]>=0.5?'el':m[i]<=-0.5?'la':null;if(t&&t===curT)len++;else{if(curT&&len>=5)res.push({type:curT,start,len});curT=t;len=t?1:0;start=i;}}if(curT&&len>=5)res.push({type:curT,start,len});return {m,res};}
+  function out(){const {res}=judge();document.getElementById('oE3').innerHTML='<h4>판별 결과</h4>'+(res.length?res.map(r=>'<div><b style="color:'+(r.type==='el'?'#dc2626':'#2563eb')+'">'+(r.type==='el'?'엘니뇨':'라니냐')+'</b>: '+(r.start+1)+'~'+(r.start+r.len)+'번째 달 ('+r.len+'개월 지속)</div>').join(''):'<div>기준을 만족하는 기간이 없어요 → <b>평상시</b></div>')+'<div class="sim-note">회색 막대: 월별 편차, 검은 선: 3개월 이동 평균</div>';}
+  document.querySelectorAll('#s18 [data-ex]').forEach(b=>b.onclick=()=>{v=EX[b.dataset.ex].slice();out();});
+  const idx=e=>{const p=SIM.pos(e,c);return {i:Math.floor((p.x-L)/((R-L)/N)),y:p.y};};
+  c.addEventListener('pointerdown',e=>{const q=idx(e);if(q.i>=0&&q.i<N){drag=q.i;c.setPointerCapture(e.pointerId);v[drag]=Math.max(-2.5,Math.min(2.5,Math.round(((T+B)/2-q.y)/((B-T)/2)*2.5*10)/10));out();}});
+  c.addEventListener('pointermove',e=>{if(drag<0)return;const q=idx(e);v[drag]=Math.max(-2.5,Math.min(2.5,Math.round(((T+B)/2-q.y)/((B-T)/2)*2.5*10)/10));out();});
+  c.addEventListener('pointerup',()=>drag=-1);
+  v=EX.el.slice();out();
+  SIM.loop('s18',()=>{
+    g.clearRect(0,0,W,H);const {m,res}=judge();
+    res.forEach(r=>{g.fillStyle=r.type==='el'?'rgba(220,38,38,.12)':'rgba(37,99,235,.12)';g.fillRect(L+r.start*(R-L)/N,T,r.len*(R-L)/N,B-T);});
+    g.strokeStyle='#e2e8f0';g.lineWidth=1;for(let val=-2;val<=2;val+=0.5){g.beginPath();g.moveTo(L,Y(val));g.lineTo(R,Y(val));g.stroke();}
+    g.strokeStyle='#dc2626';g.setLineDash([8,6]);g.lineWidth=2;g.beginPath();g.moveTo(L,Y(0.5));g.lineTo(R,Y(0.5));g.stroke();g.strokeStyle='#2563eb';g.beginPath();g.moveTo(L,Y(-0.5));g.lineTo(R,Y(-0.5));g.stroke();g.setLineDash([]);
+    g.strokeStyle='#334155';g.lineWidth=2;g.beginPath();g.moveTo(L,Y(0));g.lineTo(R,Y(0));g.stroke();g.strokeRect(L,T,R-L,B-T);
+    g.fillStyle='#334155';g.font=SIM.font(17,false);g.textAlign='right';for(let val=-2;val<=2;val+=1)g.fillText((val>0?'+':'')+val,L-10,Y(val)+6);
+    g.fillStyle='#dc2626';g.fillText('+0.5',L-10,Y(0.5)+6);g.fillStyle='#2563eb';g.fillText('−0.5',L-10,Y(-0.5)+6);
+    g.save();g.translate(28,(T+B)/2);g.rotate(-Math.PI/2);g.fillStyle='#334155';g.textAlign='center';g.font=SIM.font(19);g.fillText('수온 편차 (℃)',0,0);g.restore();
+    const bw=(R-L)/N*0.6;for(let i=0;i<N;i++){const x=X(i);g.fillStyle=v[i]>=0?'rgba(248,113,113,.75)':'rgba(96,165,250,.75)';g.fillRect(x-bw/2,Math.min(Y(0),Y(v[i])),bw,Math.abs(Y(v[i])-Y(0)));g.fillStyle='#334155';g.font=SIM.font(15,false);g.textAlign='center';g.fillText(MON[i],x,B+22);}
+    g.fillText('달 (순서)',(L+R)/2,B+48);
+    g.strokeStyle='#0f172a';g.lineWidth=4;g.beginPath();let st=false;m.forEach((val,i)=>{if(val==null)return;const x=X(i),y=Y(val);st?g.lineTo(x,y):g.moveTo(x,y);st=true;});g.stroke();
+    m.forEach((val,i)=>{if(val==null)return;g.fillStyle='#0f172a';g.beginPath();g.arc(X(i),Y(val),5,0,7);g.fill();});
+    g.fillStyle='#64748b';g.font=SIM.font(18);g.textAlign='left';g.fillText('막대를 위아래로 드래그해 보세요',L+8,T-16);
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>
