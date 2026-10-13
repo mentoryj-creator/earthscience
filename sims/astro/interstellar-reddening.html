@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>성간 티끌을 통과한 별빛의 스펙트럼 (성간 적색화)</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+
+<style>
+        /* 기본 바디 설정 (검은 배경, 스크롤 방지) */
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #020617; /* 아주 어두운 배경 */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 1920x1080 고정 해상도 컨테이너 (JS로 스케일링됨) */
+        #presentation-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1920px;
+            height: 1080px;
+            transform-origin: center center;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* 슬라이드 전환용 클래스 */
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 140px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* PPT 전용 큼직한 텍스트 디자인 클래스 */
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px;}
+        .ppt-subtitle { display: inline-block; font-size: 42px; font-weight: 700; background-color: #fff7ed; border-left: 8px solid #f97316; color: #c2410c; padding: 15px 35px; border-radius: 0 20px 20px 0; margin-bottom: 40px; align-self: flex-start;}
+        .ppt-text { font-size: 40px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all;}
+        .ppt-list { font-size: 40px; color: #1e293b; line-height: 1.7; background-color: #f8fafc; padding: 40px 50px; border-radius: 20px; border: 2px solid #e2e8f0; }
+        .ppt-list li { margin-bottom: 25px; display: flex; align-items: flex-start; }
+        .ppt-list li::before { content: '•'; color: #3b82f6; font-weight: bold; margin-right: 20px; font-size: 45px; line-height: 1.5; }
+        .ppt-list li:last-child { margin-bottom: 0; }
+        
+        .math-box { font-size: 55px; background-color: #eff6ff; border-left: 8px solid #3b82f6; padding: 30px; text-align: center; border-radius: 0 20px 20px 0; margin: 40px 0; font-weight: bold;}
+
+        /* 시각 자료(SVG)를 꽉 채우기 위한 컨테이너 */
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 30px; min-height: 0; margin-top: 20px;}
+        .svg-content { width: 100%; height: 100%; object-fit: contain; }
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 26px; color: #64748b; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+
+        /* 표 디자인 */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 38px; margin-top: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 25px; border: 2px solid #93c5fd; font-weight: bold;}
+        .ppt-table td { padding: 30px 25px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+
+        /* 컨트롤 패널 */
+        .controls { position: absolute; bottom: 0; left: 0; w-full; height: 110px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 30px; padding: 15px 40px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; font-family: 'Gowun Dodum', sans-serif;}
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 34px; font-weight: bold; color: #64748b; }
+        
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: rgba(255,255,255,0.9); border: 2px solid #cbd5e1; border-radius: 10px; cursor: pointer; font-family: 'Gowun Dodum', sans-serif; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #e2e8f0; }
+
+        @keyframes flow { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
+        @keyframes pulse-light { 0%, 100% { opacity: 0.7; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px) translateX(0px); } 50% { transform: translateY(-20px) translateX(15px); } }
+        @keyframes float-rev { 0%, 100% { transform: translateY(0px) translateX(0px); } 50% { transform: translateY(20px) translateX(-15px); } }
+        @keyframes scatter-up { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(40px, -50px); } }
+        @keyframes scatter-down { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(40px, 50px); } }
+        @keyframes spin-flip { 0%, 30% { transform: scaleY(1); fill: #3b82f6;} 50%, 80% { transform: scaleY(-1); fill: #e74c3c;} 100% { transform: scaleY(1); fill: #3b82f6;} }
+        @keyframes emit-wave { 0% { opacity: 0; transform: translateX(0) scale(0.8); } 20% { opacity: 1; transform: scale(1.1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(150px) scale(0.8); } }
+
+        .anim-wave { stroke-dasharray: 15, 15; animation: flow 1s linear infinite; }
+        .anim-wave-fast { stroke-dasharray: 10, 10; animation: flow 0.5s linear infinite; }
+        .anim-wave-slow { stroke-dasharray: 20, 20; animation: flow 2s linear infinite; }
+        .anim-pulse { animation: pulse-light 3s ease-in-out infinite; transform-origin: center; }
+        .anim-pulse-fast { animation: pulse-light 1.5s ease-in-out infinite; transform-origin: center; }
+        .anim-float { animation: float 6s ease-in-out infinite; }
+        .anim-float-rev { animation: float-rev 7s ease-in-out infinite; }
+        .anim-scatter-up { animation: scatter-up 1.5s linear infinite; }
+        .anim-scatter-down { animation: scatter-down 1.5s linear infinite; }
+        .anim-spin-flip { animation: spin-flip 4s ease-in-out infinite; transform-origin: center; }
+        .anim-emit { animation: emit-wave 3s ease-in-out infinite; transform-origin: center;}
+    
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+    </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="simC">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>성간 티끌을 통과한 별빛의 스펙트럼</div>
+            <div class="ppt-subtitle">파장이 짧은 빛일수록 더 많이 줄어들어 별이 붉어집니다.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cC" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>조건 설정</h4>
+                        <div class="sim-row"><span class="lbl">별의 표면 온도</span><input type="range" class="sim-range" id="rC1" min="3500" max="30000" step="100" value="10000"><span class="sim-val" id="vC1">10000 K</span></div>
+                        <div class="sim-row"><span class="lbl">티끌의 양 (A<sub>V</sub>)</span><input type="range" class="sim-range" id="rC2" min="0" max="4" step="0.1" value="1.5"><span class="sim-val" id="vC2">1.5 등급</span></div>
+                        <div class="sim-btns" style="margin-top:6px"><button class="sim-btn on" data-mode="shape">모양 비교 (밝기 맞춤)</button><button class="sim-btn" data-mode="real">실제 밝기</button></div>
+                    </div>
+                    <div class="sim-box">
+                        <h4>색지수와 색초과</h4>
+                        <table class="sim-table">
+                            <tbody>
+                                <tr><td style="text-align:left">고유 색지수 (B−V)<sub>0</sub></td><td id="oC1" style="font-weight:bold">-</td></tr>
+                                <tr><td style="text-align:left">관측 색지수 (B−V)</td><td id="oC2" style="font-weight:bold;color:#dc2626">-</td></tr>
+                                <tr><td style="text-align:left;background:#fff7ed"><b>색초과</b> = 관측 − 고유</td><td id="oC3" class="sim-big" style="background:#fff7ed;font-size:32px">-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="sim-box key" style="font-size:25px">
+                        <b>파란빛(B)</b>이 노란빛(V)보다 더 많이 줄어 B 등급 값이 커짐 → 색지수 증가 → <b>색초과 &gt; 0</b>
+                    </div>
+                    <div class="sim-note">※ 흑체 복사와 단순한 소광 법칙을 이용한 근사 모형</div>
+                </div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT') a.blur(); });
+    </script>
+<script>
+
+
+    /* ===================== 시뮬레이션 C: 성간 적색화 ===================== */
+    (function () {
+        const c = document.getElementById('cC'), g = c.getContext('2d');
+        const W = 1060, H = 610, L = 90, R = 1030, T = 40, B = 380, L0 = 300, L1 = 1000;
+        let Tst = 10000, AV = 1.5, mode = 'shape';
+        document.querySelectorAll('#simC [data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; document.querySelectorAll('#simC [data-mode]').forEach(x => x.classList.toggle('on', x === b)); });
+        const planck = (l, T) => Math.pow(l, -5) / (Math.exp(1.4388e7 / (l * T)) - 1);
+        const Alam = l => AV * Math.pow(550 / l, 1.3);
+        const BVc = 2.5 * Math.log10(planck(440, 9600) / planck(550, 9600));
+        const bv = (T, av) => -2.5 * Math.log10(planck(440, T) / planck(550, T)) + BVc + av * (Math.pow(550 / 440, 1.3) - 1);
+        const X = l => L + (l - L0) / (L1 - L0) * (R - L);
+        function out() {
+            document.getElementById('vC1').textContent = Tst + ' K';
+            document.getElementById('vC2').textContent = AV.toFixed(1) + ' 등급';
+            const b0 = bv(Tst, 0), b1 = bv(Tst, AV);
+            document.getElementById('oC1').textContent = b0.toFixed(2);
+            document.getElementById('oC2').textContent = b1.toFixed(2);
+            document.getElementById('oC3').textContent = '+' + (b1 - b0).toFixed(2);
+        }
+        document.getElementById('rC1').oninput = e => { Tst = +e.target.value; out(); };
+        document.getElementById('rC2').oninput = e => { AV = +e.target.value; out(); };
+        out();
+        function star(x, y, rgb, bright, label, sub) {
+            const rad = 30 + 22 * Math.sqrt(bright);
+            const gr = g.createRadialGradient(x, y, 3, x, y, rad * 1.8);
+            gr.addColorStop(0, 'rgba(255,255,255,' + Math.min(1, bright + .2).toFixed(2) + ')');
+            gr.addColorStop(.3, 'rgba(' + rgb.join(',') + ',' + Math.min(1, .25 + bright).toFixed(2) + ')');
+            gr.addColorStop(1, 'rgba(' + rgb.join(',') + ',0)');
+            g.fillStyle = gr; g.beginPath(); g.arc(x, y, rad * 1.8, 0, 7); g.fill();
+            g.fillStyle = '#fff'; g.font = SIM.font(24); g.textAlign = 'left'; g.fillText(label, x + 75, y - 4);
+            g.fillStyle = '#94a3b8'; g.font = SIM.font(20, false); g.fillText(sub, x + 75, y + 26);
+        }
+        SIM.loop('simC', (t) => {
+            g.fillStyle = '#0f172a'; g.fillRect(0, 0, W, H);
+            // 정규화
+            let mx = 0; for (let l = L0; l <= L1; l += 5) mx = Math.max(mx, planck(l, Tst));
+            const Y = v => B - v / mx * (B - T - 20);
+            // B, V 필터 띠
+            [[440, 'B'], [550, 'V']].forEach(f => { g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(X(f[0] - 45), T, X(f[0] + 45) - X(f[0] - 45), B - T); g.fillStyle = '#94a3b8'; g.font = SIM.font(22); g.textAlign = 'center'; g.fillText(f[1] + ' 필터', X(f[0]), T + 20); });
+            // 관측 스펙트럼 (무지개 채우기) — 모양 비교 모드에서는 V(550nm)에서 밝기를 맞춤
+            const sc = mode === 'shape' ? Math.pow(10, 0.4 * Alam(550)) : 1;
+            for (let l = L0; l < L1; l += 2) {
+                const v = sc * planck(l, Tst) * Math.pow(10, -0.4 * Alam(l)); const rgb = SIM.wl2rgb(l);
+                const vis = l >= 380 && l <= 780; g.fillStyle = vis ? 'rgba(' + rgb.join(',') + ',.85)' : 'rgba(148,163,184,.35)';
+                g.fillRect(X(l), Y(v), X(l + 2) - X(l) + .5, B - Y(v));
+            }
+            // 원래 스펙트럼 (점선)
+            g.setLineDash([10, 8]); g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath();
+            for (let l = L0; l <= L1; l += 4) { const y = Y(planck(l, Tst)); l === L0 ? g.moveTo(X(l), y) : g.lineTo(X(l), y); } g.stroke(); g.setLineDash([]);
+            // 축
+            g.strokeStyle = '#94a3b8'; g.lineWidth = 2; g.beginPath(); g.moveTo(L, T); g.lineTo(L, B); g.lineTo(R, B); g.stroke();
+            g.fillStyle = '#cbd5e1'; g.font = SIM.font(20, false); g.textAlign = 'center';
+            for (let l = 300; l <= 1000; l += 100) g.fillText(l, X(l), B + 26);
+            g.font = SIM.font(22); g.fillText('파장 (nm)', (L + R) / 2, B + 56);
+            g.save(); g.translate(40, (T + B) / 2); g.rotate(-Math.PI / 2); g.fillText('빛의 세기', 0, 0); g.restore();
+            g.textAlign = 'left'; g.font = SIM.font(22);
+            g.fillStyle = '#fff'; g.fillText('- - - 원래 별빛', R - 330, T + 56);
+            g.fillStyle = '#fca5a5'; g.fillText(mode === 'shape' ? '■ 통과한 별빛 (V에서 밝기 맞춤)' : '■ 티끌을 통과한 별빛', R - 330, T + 88);
+            if (mode === 'shape') { g.fillStyle = '#93c5fd'; g.font = SIM.font(20, false); g.fillText('짧은 파장 쪽이 낮아지고, 긴 파장 쪽이 높아져요', R - 470, T + 120); }
+            // 별 색 비교
+            const base = SIM.bbRGB(Tst);
+            const tr = [610, 550, 460].map(l => Math.pow(10, -0.4 * Alam(l)));
+            let obs = base.map((v, i) => v * tr[i]); const m2 = Math.max(...obs) || 1; obs = obs.map(v => Math.round(v / m2 * 255));
+            const bright = Math.pow(10, -0.4 * AV);
+            star(180, 525, base, 1, '원래 별빛', '표면 온도 ' + Tst + ' K');
+            star(640, 525, obs, Math.max(0.3, bright), '관측된 별빛', '더 어둡고, 더 붉게');
+            g.strokeStyle = '#64748b'; g.lineWidth = 3; g.beginPath(); g.moveTo(420, 525); g.lineTo(560, 525); g.stroke();
+            g.fillStyle = '#64748b'; g.beginPath(); g.moveTo(572, 525); g.lineTo(556, 515); g.lineTo(556, 535); g.fill();
+        });
+    })();
+
+
+</script>
+
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+</script>
+</body>
+</html>
