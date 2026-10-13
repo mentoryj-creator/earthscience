@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일식 실험실</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s11">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>일식 실험실: 달의 거리와 관측 위치를 바꿔 봐요</div>
+            <div class="ppt-subtitle">달의 거리가 달라지면 <span class="or">달의 겉보기 크기</span>가, 관측 위치가 달라지면 <span class="or">가려지는 정도</span>가 달라져요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cE1" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:120px">달의 거리</span><input type="range" class="sim-range" id="rE1d" min="356400" max="406700" step="100" value="362000"><span class="sim-val" id="vE1d" style="min-width:140px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:120px">관측 위치</span><input type="range" class="sim-range" id="rE1o" min="0" max="0.6" step="0.005" value="0"><span class="sim-val" id="vE1o" style="min-width:140px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bE1p">▶ 일식 진행</button><button class="sim-btn" data-pre="near">가까운 달</button><button class="sim-btn" data-pre="far">먼 달</button></div>
+                    </div>
+                    <div class="sim-box key" id="oE1" style="font-size:23px"></div>
+                    <div class="sim-note">※ 달 지름 3474 km, 태양 시지름 약 0.53°로 계산했어요. 관측 위치는 그림자 중심선에서 벗어난 정도(하늘에서 본 각거리)예요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">달이 태양을 가리면 지구에서는 무엇이 보일까?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">01. 태양-지구-달 시스템과 식 현상</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:#000">
+                    <img data-noimg="" style="width:100%;height:100%;object-fit:contain">
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">일식 · 월식 · 본그림자와 반그림자 · 식이 일어나는 조건</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">태양, 지구, 달이 <span class="or">일직선</span>에 놓일 때 생기는 현상을 알아봐요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div>태양-지구-달 시스템에서의 <b>식 현상</b>을 이해할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>천체 관측 시뮬레이션 프로그램으로 식 현상을 <b>관찰</b>할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:700px;border-radius:14px;border:2px solid #e2e8f0">
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: 태양, 달, 지구가 나란히 늘어서면?</div>
+            <div class="ppt-subtitle">달이 태양을 가리게 되면 지구에서는 <span class="or">어떤 현상</span>이 보일까?</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:760px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>일식은 지구의 <b>어느 곳에서나 똑같이</b> 볼 수 있을까?</div>
+                    <div class="card" data-step="2">행성과 위성은 정해진 궤도를 따라 운동하지만, 한 천체가 다른 천체의 <b>앞을 지나는 일</b>은 비교적 자주 일어나요.</div>
+                    <div class="card key" data-step="3">식 현상은 달의 위상 변화와는 <b>다른 현상</b>이에요. 천체의 공전 궤도와 그림자로 설명해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">일식: 달이 태양을 가리는 현상</div>
+            <div class="ppt-subtitle">작은 달이 거대한 태양을 가릴 수 있는 까닭은 <span class="or">크기의 비와 거리의 비가 비슷</span>하기 때문이에요.</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <svg viewBox="0 0 1760 330" width="100%" height="330">
+                    <defs><radialGradient id="sg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fef08a"/><stop offset="1" stop-color="#f97316"/></radialGradient></defs>
+                    <rect x="0" y="0" width="1760" height="330" rx="20" fill="#0f172a"/>
+                    <circle cx="1640" cy="165" r="150" fill="url(#sg)"/>
+                    <circle cx="110" cy="165" r="38" fill="#2563eb"/><text x="110" y="240" fill="#fff" font-size="26" text-anchor="middle">지구</text>
+                    <circle cx="190" cy="165" r="10" fill="#cbd5e1"/><text x="190" y="140" fill="#fff" font-size="24" text-anchor="middle">달</text>
+                    <line x1="110" y1="165" x2="1500" y2="165" stroke="#fde68a" stroke-dasharray="10 8" stroke-width="2"/>
+                    <line x1="110" y1="165" x2="1640" y2="18" stroke="#94a3b8" stroke-width="2"/><line x1="110" y1="165" x2="1640" y2="312" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="1640" y="175" fill="#7c2d12" font-size="30" text-anchor="middle" font-weight="bold">태양</text>
+                    <g data-step="1"><text x="800" y="120" fill="#fde68a" font-size="32" text-anchor="middle">지구–달 거리 : 지구–태양 거리 ≈ 1 : 400</text></g>
+                    <g data-step="2"><text x="800" y="235" fill="#93c5fd" font-size="32" text-anchor="middle">달의 지름 : 태양의 지름 ≈ 1 : 400</text></g>
+                    <text x="800" y="310" fill="#94a3b8" font-size="20" text-anchor="middle">※ 크기와 거리는 실제 비율과 다르게 그렸어요.</text>
+                </svg>
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="1" style="flex:1"><b>일식</b>: 지구에서 볼 때 달이 태양의 앞면을 지나며 태양의 전체 또는 일부를 가려 보이지 않는 현상</div>
+                    <div class="card key" data-step="3" style="flex:1">태양은 달보다 약 <b>400배</b> 크지만 약 <b>400배</b> 멀리 있어서 → 지구에서 둘은 <b>거의 같은 크기</b>로 보여요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">숫자로 확인해요: 태양과 달의 크기와 거리</div>
+            <div class="ppt-subtitle">한국 천문 연구원 역서(2024)의 평균값으로 비를 직접 계산해 봐요. (지도서 자료)</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <table style="width:100%;border-collapse:collapse;font-size:34px;text-align:center;line-height:1.7">
+                    <tr style="background:#eff6ff"><th style="border:2px solid #cbd5e1;padding:10px">천체</th><th style="border:2px solid #cbd5e1">평균 반지름</th><th style="border:2px solid #cbd5e1">지구로부터의 평균 거리</th></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">☀ 태양</td><td style="border:2px solid #cbd5e1">6.955 × 10⁵ km</td><td style="border:2px solid #cbd5e1">1.496 × 10⁸ km</td></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">🌙 달</td><td style="border:2px solid #cbd5e1">1.738 × 10³ km</td><td style="border:2px solid #cbd5e1">3.844 × 10⁵ km</td></tr>
+                    <tr data-step="1" style="background:#fff7ed"><td style="border:2px solid #cbd5e1;font-weight:bold;color:#c2410c">태양 ÷ 달</td><td style="border:2px solid #cbd5e1;color:#c2410c;font-weight:bold">약 400배</td><td style="border:2px solid #cbd5e1;color:#c2410c;font-weight:bold">약 389배</td></tr>
+                </table>
+                <div class="card key" data-step="2">크기의 비와 거리의 비가 비슷 → 태양과 달의 <b>시지름(겉보기 지름)</b>이 약 0.5°로 거의 같아요.</div>
+                <div class="note" data-step="2">시지름: 지구에서 본 천체의 겉보기 지름 (시직경, 각지름이라고도 해요)</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s6">
+            <div class="ppt-title">탐구 활동) 천체 관측 프로그램으로 일식 시뮬레이션하기</div>
+            <div class="ppt-subtitle">2024년 4월 8일, 미국 뉴욕주 <span class="or">버팔로(Buffalo)</span>에서 관측된 일식을 재현해 봐요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:880px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:10px">
+                    <div class="card" data-step="1" style="font-size:26px"><span class="tag">1</span>‘위치’ 메뉴: 관측 장소를 버팔로로 설정</div>
+                    <div class="card" data-step="2" style="font-size:26px"><span class="tag">2</span>‘날짜/시간’: 2024년 4월 8일 13시</div>
+                    <div class="card" data-step="3" style="font-size:26px"><span class="tag">3</span>태양을 화면 중앙에 두고, 태양과 달의 <b>시지름</b>이 같아 보일 때까지 확대</div>
+                    <div class="card" data-step="4" style="font-size:26px"><span class="tag">4</span>13시~17시, <b>5분 간격</b>으로 태양의 모습 관찰</div>
+                    <div class="card soft" data-step="5" style="font-size:26px"><span class="tag">5</span>실제 일식 사진·동영상과 비교 (한국 천문 연구원 kasi.re.kr)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">탐구 정리) 태양은 오른쪽부터 가려져요</div>
+            <div class="ppt-subtitle">일식이 진행되는 동안 태양의 모습 변화 (지도서 예시 답안)</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <img data-noimg="" style="width:100%;max-height:330px;object-fit:contain;border-radius:16px;background:#000">
+                <div style="display:flex;gap:14px">
+                    <div class="card" data-step="1" style="flex:1;font-size:27px">달이 태양의 <b>오른쪽</b>부터 가리기 시작 → 점점 더 많이 가림 → 완전히 가려짐 → 다시 <b>오른쪽</b>부터 보이기 시작</div>
+                    <div class="card" data-step="2" style="flex:1;font-size:27px">전체 과정 약 <b>2시간 30분</b>, 완전히 가려진 시간 약 <b>4분 30초</b> (최대 약 7.5분)</div>
+                    <div class="card key" data-step="3" style="flex:1;font-size:27px">완전히 가려지면 태양 둘레에 밝게 빛나는 <b>코로나</b>(태양 대기의 가장 바깥층)가 보여요.</div>
+                </div>
+                <div class="note" data-step="3">⚠ 태양을 맨눈으로 보면 눈이 상할 수 있어요. 실제 일식은 태양 필터, 바늘구멍 투영기 등으로 안전하게 관측해요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">일식이 일어나는 원리</div>
+            <div class="ppt-subtitle">달이 <span class="or">삭</span>의 위치에서 태양–달–지구 순서로 일직선에 놓이면 지구 표면에 달의 그림자가 생겨요.</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px">
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">본그림자 속에서는 개기일식, 반그림자 속에서는 부분일식</div>
+            <div class="ppt-subtitle">어디에 서 있느냐에 따라 <span class="or">같은 일식도 다르게</span> 보여요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:880px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="border-color:#94a3b8;background:#f1f5f9"><span class="tag">A 본그림자</span>태양 빛이 <b>전혀</b> 닿지 않는 곳 → <b>개기일식</b>: 태양이 완전히 가려짐</div>
+                    <div class="card" data-step="2" style="border-color:#fdba74;background:#fff7ed"><span class="tag o">B 반그림자</span>태양 빛의 <b>일부</b>가 닿는 곳 → <b>부분일식</b>: 태양의 일부가 가려짐</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">일식이 보이는 지역은 동쪽으로 이동해요</div>
+            <div class="ppt-subtitle">본그림자의 이동 경로에 있으면 <span class="or">부분일식 → 개기일식 → 부분일식</span>을 차례로 볼 수 있어요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:620px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">2009년 7월 22일 일식의 경로 (한국 천문 연구원, 2009)</div>
+                    <div class="card" data-step="2">보라색 띠: <b>개기일식 경로</b> / 그 바깥: 가리는 면적 비율(%)이 줄어드는 <b>부분일식</b> 지역</div>
+                    <div class="card key" data-step="3">한 지역에서 개기일식이 지속되는 시간은 보통 <b>몇 분</b>에 불과해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">금환일식: 태양이 금빛 고리처럼 보여요</div>
+            <div class="ppt-subtitle">달의 궤도는 <span class="or">타원</span>이라 달이 멀리 있으면 태양보다 작게 보여 다 가리지 못해요.</div>
+            <div class="main">
+                <img data-noimg="" style="height:600px;flex:none;align-self:center;border-radius:16px">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="font-size:27px">달의 크기 비교: 2023년 9월 1일(가까울 때) vs 2023년 1월 7일(멀 때)</div>
+                    <div class="card" data-step="2" style="font-size:27px">달이 지구에서 멀어짐 → 지구에서 보는 달이 조금 작아짐 → 태양을 <b>완전히 가리지 못함</b></div>
+                    <div class="card key" data-step="3" style="font-size:27px">태양이 <b>고리 모양</b>으로 보이는 일식 = <b>금환일식</b> (본그림자가 지표면에 닿지 않아요)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s13">
+            <div class="ppt-title">혼성일식: 개기일식과 금환일식이 함께!</div>
+            <div class="ppt-subtitle">지구 표면은 <span class="or">둥글어서</span> 지역에 따라 달의 시지름이 미세하게 달라져요.</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <img data-noimg="" style="width:100%;max-height:420px;object-fit:contain">
+                <div class="cap">혼성일식이 일어나는 원리 · 2023년 4월 20일에 일어난 혼성일식</div>
+                <div style="display:flex;gap:14px">
+                    <div class="card" data-step="1" style="flex:1">개기일식이 일어나는 경로에 있는 지역 중 어떤 곳에서는 달의 시지름이 태양보다 <b>미세하게 작게</b> 관측돼요.</div>
+                    <div class="card key" data-step="2" style="flex:1">→ 어떤 곳은 <b>개기일식</b>, 다른 곳은 <b>금환일식</b>이 일어나는 경우 = <b>혼성일식</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s14">
+            <div class="ppt-title">수성이나 금성도 일식을 일으킬 수 있을까?</div>
+            <div class="ppt-subtitle">지구와 태양 사이를 움직이는 <span class="or">내행성</span>을 생각해 봐요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:20px">
+                <div class="card soft" style="font-size:34px"><span class="look">Q</span>태양–수성(금성)–지구가 일직선에 놓이면 일식이 일어날까?</div>
+                <div class="card" data-step="1" style="font-size:32px">위치 관계는 일식과 비슷하지만, 지구에서 본 수성·금성의 <b>시지름이 달보다 훨씬 작아요</b>.</div>
+                <div class="card key" data-step="2" style="font-size:32px">→ 태양을 가리지 못하고, 태양 앞을 지나가는 <b>검은 점</b>처럼 보여요. 이를 <b>일면통과(transit)</b>라고 해요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">월식: 달이 지구의 그림자에 가려지는 현상</div>
+            <div class="ppt-subtitle">아리스토텔레스는 월식 때 보인 지구 그림자의 <span class="or">둥근 가장자리</span>로 지구가 둥글다고 주장했어요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:900px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:10px">
+                    <div class="card soft" data-step="1" style="font-size:26px"><b>탐구 활동</b> 천체 관측 프로그램으로 월식 시뮬레이션하기</div>
+                    <div class="card" data-step="2" style="font-size:26px"><span class="tag">1</span>위치: 내가 사는 지역, 날짜: <b>2025년 9월 8일</b></div>
+                    <div class="card" data-step="3" style="font-size:26px"><span class="tag">2</span>달의 시지름을 알맞게 설정하고 후광 효과 해제</div>
+                    <div class="card" data-step="4" style="font-size:26px"><span class="tag">3</span>남쪽을 중앙에 두고 1시~5시, <b>10분 간격</b>으로 관찰</div>
+                    <div class="card" data-step="5" style="font-size:26px"><span class="tag">4</span>실제 월식 사진·동영상과 비교</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">탐구 정리) 달은 왼쪽부터 가려지고, 붉게 변해요</div>
+            <div class="ppt-subtitle">월식이 진행되는 동안 달의 모습과 색 변화 (지도서 예시 답안)</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <img data-noimg="" style="width:100%;max-height:360px;object-fit:contain;border-radius:16px;background:#000">
+                <div style="display:flex;gap:14px">
+                    <div class="card" data-step="1" style="flex:1;font-size:27px">달의 <b>왼쪽</b>부터 가려지기 시작 → 완전히 가려지면 <b>붉게</b> 보임 → 다시 <b>왼쪽</b>부터 보이기 시작</div>
+                    <div class="card" data-step="2" style="flex:1;font-size:27px">전체 과정 약 <b>3시간 30분</b>, 완전히 가려진 시간 약 <b>1시간 40분</b></div>
+                    <div class="card key" data-step="3" style="flex:1;font-size:27px">월식은 <b>특별한 장비 없이</b> 맨눈으로도 쉽게 관측할 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">월식이 일어나는 원리</div>
+            <div class="ppt-subtitle">달이 <span class="or">망</span>의 위치에서 태양–지구–달 순서로 일직선에 놓이면 월식이 일어날 수 있어요.</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px">
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">개기월식 · 부분월식 · 반영식</div>
+            <div class="ppt-subtitle">달이 지구의 <span class="or">본그림자</span>와 <span class="or">반그림자</span> 중 어디를 지나는지에 따라 달라요.</div>
+            <div class="main" style="gap:20px">
+                <div class="gcard" data-step="1" style="font-size:28px"><h3 style="color:#b91c1c">🌕 개기월식</h3><div>달 전체가 지구의 <b>본그림자</b> 속에 완전히 들어갈 때</div><div class="note">달이 사라지지 않고 <b>검붉게</b> 보여요.</div></div>
+                <div class="gcard" data-step="2" style="font-size:28px"><h3>🌗 부분월식</h3><div>달의 <b>일부</b>가 본그림자 속에 있을 때</div></div>
+                <div class="gcard" data-step="3" style="font-size:28px"><h3 style="color:#64748b">🌕 반영식</h3><div>달이 지구의 <b>반그림자만</b> 지날 때</div><div class="note">달빛이 약간 흐려지는 정도예요. (반그림자 → 부분월식이 아니에요!)</div></div>
+                <div class="gcard orange" data-step="4" style="font-size:26px"><h3>❓ 왜 붉을까?</h3><div>햇빛이 지구 대기를 통과할 때 파장이 짧은 푸른빛은 대부분 산란되고, 파장이 긴 <b>붉은빛</b>이 대기에 <b>굴절</b>되어 일부가 달에 닿은 뒤 반사되어 우리 눈에 들어와요.</div></div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s19">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>월식 실험실: 달이 지나는 길을 바꿔 봐요</div>
+            <div class="ppt-subtitle">지구 그림자의 <span class="or">중심에서 얼마나 떨어진 곳</span>을 지나느냐에 따라 월식의 종류가 정해져요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cE2" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:150px">달이 지나는 길</span><input type="range" class="sim-range" id="rE2" min="0" max="6" step="0.05" value="0.5"><span class="sim-val" id="vE2" style="min-width:110px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:150px">시간</span><input type="range" class="sim-range" id="rE2t" min="0" max="1" step="0.002" value="0.5"></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bE2p">▶ 월식 진행</button><button class="sim-btn" data-lp="0.3">개기</button><button class="sim-btn" data-lp="2.6">부분</button><button class="sim-btn" data-lp="4.3">반영식</button></div>
+                    </div>
+                    <div class="sim-box key" id="oE2" style="font-size:23px"></div>
+                    <div class="sim-note">※ 달 위치에서 지구 본그림자 반지름 ≈ 달 반지름의 2.7배, 반그림자 ≈ 4.6배로 단순화했어요(근삿값).</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">일식과 월식을 비교해요</div>
+            <div class="ppt-subtitle">빈칸을 눌러 확인해 봐요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <table style="width:100%;border-collapse:collapse;font-size:32px;text-align:center;line-height:1.7">
+                    <tr style="background:#eff6ff"><th style="border:2px solid #cbd5e1;padding:10px">구분</th><th style="border:2px solid #cbd5e1">개기일식</th><th style="border:2px solid #cbd5e1">개기월식</th></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">위치 관계</td><td style="border:2px solid #cbd5e1">태양 – <span class="blank" style="min-width:60px">달</span> – <span class="blank" style="min-width:60px">지구</span></td><td style="border:2px solid #cbd5e1">태양 – <span class="blank" style="min-width:60px">지구</span> – <span class="blank" style="min-width:60px">달</span></td></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">달의 위상</td><td style="border:2px solid #cbd5e1"><span class="blank" style="min-width:60px">삭</span></td><td style="border:2px solid #cbd5e1"><span class="blank" style="min-width:60px">망</span></td></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">관측 지역</td><td style="border:2px solid #cbd5e1">달의 <span class="blank" style="min-width:120px">본그림자</span> 지역</td><td style="border:2px solid #cbd5e1">달이 보이는(<span class="blank" style="min-width:60px">밤</span>인) 모든 지역</td></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">지속 시간</td><td style="border:2px solid #cbd5e1"><span class="blank" style="min-width:80px">짧다</span> (몇 분)</td><td style="border:2px solid #cbd5e1"><span class="blank" style="min-width:80px">길다</span></td></tr>
+                </table>
+                <div class="card key" data-step="1">지구의 그림자가 달보다 크기 때문에 개기월식이 개기일식보다 <b>오래</b> 지속돼요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">일식과 월식, 어느 것을 더 자주 볼 수 있을까?</div>
+            <div class="ppt-subtitle">‘일어나는 횟수’와 ‘관측할 수 있는 횟수’는 달라요.</div>
+            <div class="main" style="gap:24px">
+                <div class="gcard" data-step="1" style="font-size:34px;justify-content:center"><h3>☀ 일식</h3><div>태양–지구–달 시스템에서는 일식이 월식보다 <b>자주 일어나요</b>.</div><div>하지만 지구의 <b>일부 지역</b>에서만 볼 수 있어요.</div></div>
+                <div class="gcard orange" data-step="2" style="font-size:34px;justify-content:center"><h3>🌙 월식</h3><div>지구에서 <b>밤이 되는 모든 지역</b>에서 볼 수 있어요.</div><div class="kw">→ 월식이 더 자주 관측돼요!</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">삭과 망마다 식이 일어나지 않는 까닭</div>
+            <div class="ppt-subtitle">달의 공전 궤도면은 지구의 공전 궤도면과 약 <span class="or">5°</span> 기울어져 있어요.</div>
+            <div class="main">
+                <img data-noimg="" style="height:620px;flex:none;align-self:center;border-radius:14px">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="font-size:26px"><span class="tag">가·다</span>삭이어도 태양과 달의 방향이 어긋남, 망이어도 지구 그림자가 달을 비켜 감 → 식이 <b>안 일어남</b></div>
+                    <div class="card" data-step="2" style="font-size:26px"><span class="tag o">나·라</span>두 궤도면이 만나는 <b>교선</b>에서 태양·지구·달이 일직선 → 일식과 월식</div>
+                    <div class="card key" data-step="3" style="font-size:26px">식은 교선 근처에서 <b>삭(일식)</b> 또는 <b>망(월식)</b>이 될 때만 일어나요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s23">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>언제 식이 일어날까? 5° 기울어진 달 궤도</div>
+            <div class="ppt-subtitle">지구를 공전시켜 <span class="or">교선</span>이 태양 쪽을 향할 때를 찾아봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cE3" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:120px">지구 위치</span><input type="range" class="sim-range" id="rE3" min="0" max="360" step="1" value="40"></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bE3p">▶ 공전</button></div>
+                    </div>
+                    <div class="sim-box key" id="oE3" style="font-size:23px"></div>
+                    <div class="sim-note">※ 개념 모형이에요. 오른쪽 옆모습 그림은 위아래 어긋남을 과장해서 그렸어요. 실제 교선은 천천히 회전하지만 여기서는 고정했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s24">
+            <div class="ppt-title">역사 속 월식: 콜럼버스의 예측</div>
+            <div class="ppt-subtitle">1503년, 자메이카 해안에 좌초한 콜럼버스는 <span class="or">개기월식</span>을 이용했어요. (지도서 참고 자료)</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:12px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>원주민들의 위협을 받자, 천문 현상이 기록된 책을 보고 <b>개기월식을 예측</b>했어요.</div></div>
+                <div class="arrow-down" data-step="2">▼</div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div>“신이 화가 나서 달빛이 사라질 것이다.” → 실제로 보름달이 <b>검붉게</b> 변했어요.</div></div>
+                <div class="arrow-down" data-step="3">▼</div>
+                <div class="card key" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">?</span><div>콜럼버스가 이용한 개기월식의 특징은? → 달이 지구 그림자 속으로 들어가 서서히 보이지 않다가 <b>검붉게</b> 변하는 모습</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s25">
+            <div class="ppt-title">우리나라에서 볼 수 있는 일식과 월식</div>
+            <div class="ppt-subtitle">한국 천문 연구원 천문우주지식정보 기준 (지도서 참고 자료)</div>
+            <div class="main" style="gap:24px">
+                <div class="gcard" data-step="1" style="font-size:32px;justify-content:center"><h3>☀ 21세기 일식</h3><div><b>개기일식</b>: 2035년 9월 2일, 2063년 8월 24일</div><div><b>금환일식</b>: 2041년 10월 25일, 2095년 11월 27일</div></div>
+                <div class="gcard orange" data-step="2" style="font-size:32px;justify-content:center"><h3>🌙 월식</h3><div>2025년 9월 8일 개기월식 (탐구 활동)</div><div>2026년 3월 3일 개기월식, 2026년 8월 28일 부분월식, 2027년 2월 21일 반영식</div><div class="note">월식은 일식보다 자주 관측되므로 날짜를 골라 시뮬레이션해 봐요.</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s26">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <div style="display:flex;gap:20px">
+                    <div class="card" style="flex:1;font-size:28px;line-height:1.8"><h3 style="color:#ea580c">일식 (태양–달–지구)</h3>
+                        <div>개기일식: 태양이 달에 의해 완전히 가려짐</div>
+                        <div><span class="blank" style="min-width:120px">부분일식</span>: 태양의 일부가 가려짐</div>
+                        <div>금환일식: 태양의 가장자리가 <span class="blank" style="min-width:80px">고리</span>처럼 보임</div></div>
+                    <div class="card" style="flex:1;font-size:28px;line-height:1.8"><h3 style="color:#2563eb">월식 (태양–지구–달)</h3>
+                        <div>관측 지역: 지구에서 <span class="blank" style="min-width:60px">밤</span>이 되는 모든 지역</div>
+                        <div>개기월식: 달 전체가 지구의 <span class="blank" style="min-width:120px">본그림자</span>에 가려져 검붉게</div>
+                        <div>반영식: 달이 지구의 반그림자만 지남</div></div>
+                </div>
+                <div class="card key" style="font-size:28px">달의 공전 궤도면이 약 <span class="blank" style="min-width:60px">5°</span> 기울어져 있어서 두 궤도면이 만나는 <span class="blank" style="min-width:80px">교선</span> 근처에서만 식이 일어나요.</div>
+                <div class="note" style="text-align:right">빈칸을 누르면 정답이 나타나요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s27">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="gap:20px">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card q" data-a="a"><div class="qrow">달이 멀어져 태양이 고리 형태로 보이는 일식은? <button class="sim-btn" data-v="a">금환일식</button><button class="sim-btn" data-v="h">혼성일식</button><span class="res"></span></div></div>
+                    <div class="card q" data-a="p"><div class="qrow">달이 지구의 반그림자만 지날 때는? <button class="sim-btn" data-v="b">부분월식</button><button class="sim-btn" data-v="p">반영식</button><span class="res"></span></div></div>
+                    <div class="card q" data-a="2"><div class="qrow">개기월식의 진행 순서(오른쪽 사진)는? <button class="sim-btn" data-v="1">A→B→C</button><button class="sim-btn" data-v="2">B→C→A</button><span class="res"></span></div><div class="why" style="display:none">달은 왼쪽부터 가려지기 시작하고(B), 완전히 가려지면 붉어지고(C), 다시 왼쪽부터 벗어나요(A).</div></div>
+                    <div class="card q" data-a="l"><div class="qrow">개기월식과 개기일식 중 지속 시간이 긴 것은? <button class="sim-btn" data-v="s">개기일식</button><button class="sim-btn" data-v="l">개기월식</button><span class="res"></span></div></div>
+                </div>
+                <div class="col" style="width:600px;flex:none;justify-content:center;align-items:center;gap:6px">
+                    <img data-noimg="" style="width:100%;border-radius:12px">
+                    <div style="display:flex;justify-content:space-around;width:100%;font-size:30px;font-weight:bold"><span>A</span><span>B</span><span>C</span></div>
+                </div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ========== SIM E1: 일식 실험실 ========== */
+(function(){
+  const c=document.getElementById('cE1'),g=c.getContext('2d'),W=1060,H=610;
+  const rd=document.getElementById('rE1d'),ro=document.getElementById('rE1o');let d=362000,o=0,t=0.5,play=false;
+  const RS=0.533/2, MOON=3474/2, DEG=180/Math.PI;
+  const Rm=()=>Math.atan(MOON/d)*DEG;
+  function overlap(r1,r2,dd){ // 겹친 면적
+    if(dd>=r1+r2)return 0;if(dd<=Math.abs(r1-r2))return Math.PI*Math.min(r1,r2)**2;
+    const a=r1*r1*Math.acos((dd*dd+r1*r1-r2*r2)/(2*dd*r1)),b=r2*r2*Math.acos((dd*dd+r2*r2-r1*r1)/(2*dd*r2)),k=0.5*Math.sqrt((-dd+r1+r2)*(dd+r1-r2)*(dd-r1+r2)*(dd+r1+r2));return a+b-k;}
+  function kind(){const rm=Rm();if(o<rm-RS)return '개기일식';if(o<RS-rm)return '금환일식';if(o<RS+rm)return '부분일식';return '일식 없음';}
+  function out(){rd.value=d;ro.value=o;document.getElementById('vE1d').textContent=Math.round(d/100)/10+'천 km';document.getElementById('vE1o').textContent=o.toFixed(2)+'°';
+    const rm=Rm(),x=(0.75-1.5*t),dd=Math.hypot(x,o),cov=overlap(RS,rm,dd)/(Math.PI*RS*RS);
+    const L=MOON*2*1.496e8/(1.392e6-MOON*2);
+    document.getElementById('oE1').innerHTML='<div>달의 시지름 <b>'+(2*rm).toFixed(3)+'°</b> / 태양 <b>'+(2*RS).toFixed(3)+'°</b></div><div>달 '+(rm>RS?'<b style="color:#2563eb">더 크게</b>':'<b style="color:#ea580c">더 작게</b>')+' 보여요.</div><div style="margin-top:6px">이 위치의 일식: <span class="sim-big">'+kind()+'</span></div><div>지금 가려진 면적: <b>'+Math.round(cov*100)+' %</b></div>';}
+  rd.oninput=e=>{d=+e.target.value;out();};ro.oninput=e=>{o=+e.target.value;out();};
+  document.querySelectorAll('#s11 [data-pre]').forEach(b=>b.onclick=()=>{d=b.dataset.pre==='near'?362000:404000;o=0;t=0.5;out();});
+  document.getElementById('bE1p').onclick=()=>{play=true;t=0;};out();
+  SIM.loop('s11',(tm,dt)=>{
+    if(play){t+=dt/8;if(t>=1){t=1;play=false;}out();}
+    const rm=Rm(),x=(0.75-1.5*t),dd=Math.hypot(x,o),cov=overlap(RS,rm,dd)/(Math.PI*RS*RS),tot=dd<=rm-RS;
+    g.clearRect(0,0,W,H);
+    // 왼쪽: 옆에서 본 모습 (개념)
+    g.fillStyle='#0b1020';g.fillRect(0,0,500,H);
+    const EX=430,EY=300,ER=55,k=300/406700,MX=EX-k*d,MR=12;
+    const sg=g.createRadialGradient(-260,EY,10,-260,EY,330);sg.addColorStop(0,'#fef08a');sg.addColorStop(1,'#f97316');g.fillStyle=sg;g.beginPath();g.arc(-260,EY,320,0,7);g.fill();
+    const L=k*(MOON*2*1.496e8/(1.392e6-MOON*2));
+    g.fillStyle='rgba(148,163,184,.25)';g.beginPath();g.moveTo(MX,EY-MR);g.lineTo(EX+40,EY-MR-70);g.lineTo(EX+40,EY+MR+70);g.lineTo(MX,EY+MR);g.fill();
+    g.fillStyle='rgba(15,23,42,.85)';g.beginPath();g.moveTo(MX,EY-MR);g.lineTo(MX+L,EY);g.lineTo(MX,EY+MR);g.fill();
+    g.fillStyle='#2563eb';g.beginPath();g.arc(EX,EY,ER,0,7);g.fill();
+    g.fillStyle='#cbd5e1';g.beginPath();g.arc(MX,EY,MR,0,7);g.fill();
+    const oy=EY-o/0.6*ER*0.95,ox=EX-Math.sqrt(Math.max(0,ER*ER-(oy-EY)**2));g.fillStyle='#facc15';g.beginPath();g.arc(ox,oy,7,0,7);g.fill();
+    g.fillStyle='#e2e8f0';g.font=SIM.font(18);g.textAlign='center';g.fillText('달',MX,EY-24);g.fillText('지구',EX+20,EY+ER+26);g.fillText('관측자',ox-40,oy-12);
+    g.fillText(MX+L>EX-ER?'본그림자가 지표에 닿음':'본그림자가 지표에 못 미침',250,560);g.fillStyle='#94a3b8';g.font=SIM.font(16);g.fillText('옆에서 본 모습 (거리는 실제 비율, 크기는 과장)',250,40);
+    // 오른쪽: 관측자가 본 하늘
+    const CX=780,CY=300,S=520; // px per degree
+    const sky=Math.max(0.05,1-cov);g.fillStyle='rgb('+Math.round(30+90*sky)+','+Math.round(60+120*sky)+','+Math.round(110+130*sky)+')';g.fillRect(510,0,550,H);
+    if(tot){const cg=g.createRadialGradient(CX,CY,RS*S,CX,CY,RS*S*2.4);cg.addColorStop(0,'rgba(255,255,255,.85)');cg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=cg;g.beginPath();g.arc(CX,CY,RS*S*2.4,0,7);g.fill();}
+    g.fillStyle='#fbbf24';g.beginPath();g.arc(CX,CY,RS*S,0,7);g.fill();
+    g.fillStyle='#111827';g.beginPath();g.arc(CX+x*S,CY-o*S,rm*S,0,7);g.fill();
+    g.fillStyle='#fff';g.font=SIM.font(20);g.textAlign='center';g.fillText('관측자가 본 하늘 (남쪽)',CX,40);g.font=SIM.font(17);g.fillText('← 동',560+30,580);g.fillText('서 →',1010,580);
+    if(tot){g.fillStyle='#fde68a';g.font=SIM.font(22);g.fillText('코로나가 보여요!',CX,560);}
+  });
+})();
+
+/* ========== SIM E2: 월식 실험실 ========== */
+(function(){
+  const c=document.getElementById('cE2'),g=c.getContext('2d'),W=1060,H=610;
+  const r=document.getElementById('rE2'),rt=document.getElementById('rE2t');let off=0.5,t=0.5,play=false;
+  const U=2.7,P=4.6,S=58,CX=530,CY=300;
+  function kind(){if(off+1<=U)return '개기월식';if(off-1<U)return '부분월식';if(off-1<P)return '반영식';return '월식 없음';}
+  function state(){const x=(1-2*t)*8,dd=Math.hypot(x,off);if(dd+1<=U)return '본그림자 속 (검붉게)';if(dd-1<U)return '일부가 본그림자 속';if(dd-1<P)return '반그림자 속 (약간 흐려짐)';return '그림자 밖';}
+  function out(){r.value=off;rt.value=t;document.getElementById('vE2').textContent=off.toFixed(2);
+    document.getElementById('oE2').innerHTML='<div>이 길로 지나가면</div><div><span class="sim-big">'+kind()+'</span></div><div style="margin-top:6px">지금 달: <b>'+state()+'</b></div><div class="sim-note">달은 서→동(화면 오른쪽→왼쪽)으로 움직여 <b>왼쪽부터</b> 가려져요.</div>';}
+  r.oninput=e=>{off=+e.target.value;out();};rt.oninput=e=>{t=+e.target.value;play=false;out();};
+  document.querySelectorAll('#s19 [data-lp]').forEach(b=>b.onclick=()=>{off=+b.dataset.lp;t=0;play=true;out();});
+  document.getElementById('bE2p').onclick=()=>{t=0;play=true;};out();
+  const stars=[];const rnd=SIM.rng(3);for(let i=0;i<90;i++)stars.push([rnd()*W,rnd()*H,rnd()*1.6+0.3]);
+  SIM.loop('s19',(tm,dt)=>{
+    if(play){t+=dt/12;if(t>=1){t=1;play=false;}out();}
+    g.fillStyle='#020617';g.fillRect(0,0,W,H);g.fillStyle='#e2e8f0';stars.forEach(s=>{g.globalAlpha=0.6;g.beginPath();g.arc(s[0],s[1],s[2],0,7);g.fill();});g.globalAlpha=1;
+    g.strokeStyle='rgba(148,163,184,.6)';g.setLineDash([8,6]);g.lineWidth=2;g.beginPath();g.arc(CX,CY,P*S,0,7);g.stroke();g.strokeStyle='rgba(248,113,113,.7)';g.beginPath();g.arc(CX,CY,U*S,0,7);g.stroke();g.setLineDash([]);
+    g.fillStyle='#94a3b8';g.font=SIM.font(18);g.textAlign='center';g.fillText('반그림자',CX,CY-P*S+24);g.fillStyle='#fca5a5';g.fillText('본그림자',CX,CY-U*S+24);
+    // 경로
+    g.strokeStyle='rgba(250,204,21,.5)';g.setLineDash([4,6]);g.beginPath();g.moveTo(40,CY-off*S);g.lineTo(W-40,CY-off*S);g.stroke();g.setLineDash([]);
+    const mx=CX+(1-2*t)*8*S,my=CY-off*S,mr=S;
+    g.save();g.beginPath();g.arc(mx,my,mr,0,7);g.clip();
+    g.fillStyle='#e5e7eb';g.fillRect(mx-mr,my-mr,2*mr,2*mr);
+    g.fillStyle='rgba(148,163,184,.45)';[[-.3,-.2,.25],[.25,.1,.2],[-.1,.4,.15]].forEach(([a,b,cr])=>{g.beginPath();g.arc(mx+a*mr,my+b*mr,cr*mr,0,7);g.fill();});
+    g.fillStyle='rgba(15,23,42,.35)';g.beginPath();g.arc(CX,CY,P*S,0,7);g.fill();
+    const full=Math.hypot(mx-CX,my-CY)+mr<=U*S;
+    g.fillStyle=full?'rgba(127,29,29,.88)':'rgba(30,10,10,.9)';g.beginPath();g.arc(CX,CY,U*S,0,7);g.fill();
+    g.restore();
+    g.fillStyle='#cbd5e1';g.font=SIM.font(18);g.textAlign='left';g.fillText('← 동',20,590);g.textAlign='right';g.fillText('서 →',W-20,590);g.textAlign='center';g.fillText('지구 그림자 (달이 있는 거리에서)',CX,30);
+  });
+})();
+
+/* ========== SIM E3: 교선과 식 ========== */
+(function(){
+  const c=document.getElementById('cE3'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rE3');let th=40,play=false;
+  const NODE=0; // 교선 방향(도)
+  const rad=a=>a*Math.PI/180;
+  function lat(){const b=5*Math.sin(rad(th+180-NODE));return {nw:b,fu:-b};}
+  function out(){r.value=Math.round(th);const L=lat();const ok=Math.abs(L.nw)<1.0;
+    document.getElementById('oE3').innerHTML='<div>삭일 때 달은 황도면보다 <b>'+Math.abs(L.nw).toFixed(1)+'°</b> '+(L.nw>=0?'위':'아래')+'</div><div>망일 때 달은 <b>'+Math.abs(L.fu).toFixed(1)+'°</b> '+(L.fu>=0?'위':'아래')+'</div><div style="margin-top:6px"><span class="sim-big" style="color:'+(ok?'#16a34a':'#64748b')+'">'+(ok?'교선 근처: 식이 일어날 수 있어요!':'식이 일어나지 않아요')+'</span></div>';}
+  r.oninput=e=>{th=+e.target.value;play=false;out();};document.getElementById('bE3p').onclick=()=>{play=!play;};out();
+  SIM.loop('s23',(tm,dt)=>{
+    if(play){th=(th+dt*30)%360;out();}
+    g.fillStyle='#0b1020';g.fillRect(0,0,W,H);
+    // 위에서 본 모습
+    const SX=290,SY=300,RO=220;
+    g.strokeStyle='rgba(148,163,184,.5)';g.lineWidth=2;g.beginPath();g.ellipse(SX,SY,RO,RO*0.55,0,0,7);g.stroke();
+    const sg=g.createRadialGradient(SX,SY,4,SX,SY,40);sg.addColorStop(0,'#fef08a');sg.addColorStop(1,'#f97316');g.fillStyle=sg;g.beginPath();g.arc(SX,SY,34,0,7);g.fill();
+    const ex=SX+RO*Math.cos(rad(th)),ey=SY+RO*0.55*Math.sin(rad(th));
+    // 교선 (모든 위치에서 같은 방향)
+    const nx=Math.cos(rad(NODE)),ny=Math.sin(rad(NODE))*0.55;
+    g.strokeStyle='#22c55e';g.setLineDash([6,5]);g.beginPath();g.moveTo(ex-nx*70,ey-ny*70);g.lineTo(ex+nx*70,ey+ny*70);g.stroke();g.setLineDash([]);
+    // 달 궤도 (위쪽 반은 실선)
+    g.strokeStyle='#cbd5e1';g.lineWidth=2;for(let a=0;a<360;a+=6){const b=Math.sin(rad(a-NODE));const x1=ex+50*Math.cos(rad(a)),y1=ey+28*Math.sin(rad(a))-b*10,x2=ex+50*Math.cos(rad(a+6)),y2=ey+28*Math.sin(rad(a+6))-Math.sin(rad(a+6-NODE))*10;g.globalAlpha=b>=0?1:0.35;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();}g.globalAlpha=1;
+    g.fillStyle='#3b82f6';g.beginPath();g.arc(ex,ey,12,0,7);g.fill();
+    // 태양 방향 선
+    g.strokeStyle='rgba(250,204,21,.6)';g.beginPath();g.moveTo(SX,SY);g.lineTo(ex,ey);g.stroke();
+    g.fillStyle='#94a3b8';g.font=SIM.font(17);g.textAlign='center';g.fillText('위에서 본 모습 (초록 점선: 교선)',SX,40);
+    // 옆에서 본 모습
+    const L=lat(),X0=600,X1=1040;g.fillStyle='rgba(30,41,59,.9)';g.fillRect(X0,70,X1-X0,460);
+    const mid=300,sc=26;g.strokeStyle='rgba(148,163,184,.5)';g.setLineDash([6,6]);g.beginPath();g.moveTo(X0+10,mid);g.lineTo(X1-10,mid);g.stroke();g.setLineDash([]);
+    g.fillStyle='#94a3b8';g.textAlign='left';g.fillText('황도면',X0+14,mid-8);
+    g.fillStyle='#f97316';g.beginPath();g.arc(X0+40,mid,28,0,7);g.fill();
+    g.fillStyle='#3b82f6';g.beginPath();g.arc(X0+300,mid,16,0,7);g.fill();
+    // 삭 (태양 쪽)
+    const yN=mid-L.nw*sc,yF=mid-L.fu*sc;
+    g.fillStyle='rgba(15,23,42,.6)';g.beginPath();g.moveTo(X0+300,mid-14);g.lineTo(X1-10,mid-6);g.lineTo(X1-10,mid+6);g.lineTo(X0+300,mid+14);g.fill();
+    g.fillStyle='#e5e7eb';g.beginPath();g.arc(X0+200,yN,8,0,7);g.fill();g.beginPath();g.arc(X0+400,yF,8,0,7);g.fill();
+    g.fillStyle='#e2e8f0';g.font=SIM.font(17);g.textAlign='center';g.fillText('삭',X0+200,yN-16);g.fillText('망',X0+400,yF-16);g.fillText('지구',X0+300,mid+40);g.fillText('지구 그림자 →',X0+520>X1?X1-80:X0+380,mid+70);
+    g.fillStyle='#94a3b8';g.fillText('옆에서 본 모습 (높이 과장)',(X0+X1)/2,100);
+    const ok=Math.abs(L.nw)<1.0;g.fillStyle=ok?'#4ade80':'#94a3b8';g.font=SIM.font(22);g.fillText(ok?'일직선! → 일식·월식 가능':'달이 위아래로 비켜 가요',(X0+X1)/2,500);
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>밀란코비치 실험실</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .sorter{display:flex;flex-direction:column;gap:16px;width:100%}
+            .sort-pool{display:flex;flex-wrap:wrap;gap:12px;min-height:70px;padding:14px;border:2px dashed #cbd5e1;border-radius:18px;background:#f8fafc}
+            .sort-chip{border:2px solid #94a3b8;background:#fff;border-radius:14px;padding:8px 18px;font-size:26px;font-weight:bold;color:#334155;cursor:pointer;font-family:inherit;transition:transform .15s}
+            .sort-chip.sel{border-color:#ea580c;background:#fff7ed;color:#c2410c;transform:scale(1.06)}
+            .sort-chip.bad{animation:shake .4s}
+            .sort-chip.ok{cursor:default;border-color:#93c5fd;background:#eff6ff;color:#1d4ed8;font-size:23px;padding:6px 14px}
+            @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+            .sort-bins{display:flex;gap:16px}
+            .sort-bin{flex:1;border:3px solid #cbd5e1;border-radius:18px;padding:12px 14px;min-height:250px;background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+            .sort-bin h4{font-size:28px;font-weight:800;margin-bottom:4px}
+            .sort-bin .items{display:flex;flex-wrap:wrap;gap:8px}
+            .sort-bin.hl{border-color:#ea580c;background:#fffbf5}
+            .sort-msg{font-size:26px;font-weight:bold;min-height:36px;color:#334155}
+            .tree{display:flex;gap:20px;align-items:stretch}
+            .tree .br{flex:1;border:2px solid #cbd5e1;border-radius:18px;padding:14px 18px;background:#f8fafc}
+            .tree h4{font-size:30px;font-weight:800;margin-bottom:8px}
+            .tree li{font-size:26px;line-height:1.6;margin-left:28px}
+        </style><style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s14">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>밀란코비치 실험실: 세 가지 운동을 조합해 봐요</div>
+            <div class="ppt-subtitle">이심률·경사 방향·기울기를 바꾸며 우리나라 <span class="or">여름과 겨울의 일사량 차이</span>를 비교해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cM2" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:120px">이심률</span><input type="range" class="sim-range" id="rM2e" min="0" max="0.06" step="0.001" value="0.017"><span class="sim-val" id="vM2e" style="min-width:90px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:120px">기울기</span><input type="range" class="sim-range" id="rM2t" min="22.1" max="24.5" step="0.1" value="23.5"><span class="sim-val" id="vM2t" style="min-width:90px"></span></div>
+                        <h4 style="margin-top:6px">자전축 경사 방향</h4>
+                        <div class="sim-btns"><button class="sim-btn on" data-pr="0">현재</button><button class="sim-btn orange" data-pr="1">약 13000년 후</button></div>
+                    </div>
+                    <div class="sim-box key" id="oM2" style="font-size:23px"></div>
+                    <div class="sim-note">※ 북위 37.5°, 하지·동지가 각각 근일점·원일점에 있다고 단순화한 계산이에요. 궤도 그림의 납작함은 과장했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">지구의 기후는 왜 변할까?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">07. 지구의 기후 변화</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:linear-gradient(180deg,#e0f2fe,#0c4a6e);">
+                    <div style="display:flex; gap:30px; align-items:center;">
+                        <img data-noimg="" style="height:330px;border-radius:16px;border:4px solid rgba(255,255,255,.85)">
+                        <img data-noimg="" style="height:330px;border-radius:16px;border:4px solid rgba(255,255,255,.85)">
+                    </div>
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">자연적 요인과 인위적 요인, 그리고 과학적 해결 방법</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">기후 변화의 <span class="or">원인</span>을 나누어 보고, <span class="or">해결 방법</span>을 찾아봐요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div>기후 변화의 원인을 <b>자연적 요인</b>과 <b>인위적 요인</b>으로 구분하여 설명할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>인간 활동에 의한 기후 변화 문제를 <b>과학적으로 해결하는 방법</b>을 탐색할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:640px;border-radius:16px;border:2px solid #e2e8f0">
+                    <div class="cap">인간 활동으로 증가한 온실 기체</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: 전라남도 나주에서 한라봉이?</div>
+            <div class="ppt-subtitle">한라봉, 멜론, 무화과 같은 농작물의 재배지가 <span class="or">점점 북상</span>하는 까닭은?</div>
+            <div class="main">
+                <div class="imgbox" style="width:640px"><img data-noimg="" style="max-height:600px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>제주도에서만 재배되던 한라봉을 이제 <b>전라남도 나주</b>에서도 재배할 수 있게 된 까닭은 무엇일까?</div>
+                    <div class="card key" data-step="2">우리나라도 온난화로 <b>기온이 상승</b>하는 변화가 일어나 재배 가능한 지역이 넓어졌어요.</div>
+                    <div class="card" data-step="3">이런 환경 변화를 잘 파악하여 <b>적절한 적응 방안</b>을 마련해야 해요. 그러려면 먼저 기후가 <b>왜</b> 변하는지 알아야겠죠?</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">지구의 기온은 상승과 하강을 반복해 왔어요</div>
+            <div class="ppt-subtitle">과거의 기후는 <span class="or">빙하 속에 든 과거의 공기</span>를 분석하여 알아내기도 해요.</div>
+            <div class="main">
+                <div class="col" style="width:960px;flex:none;justify-content:center;align-items:center;gap:14px">
+                    <div style="display:flex;gap:18px;align-items:center">
+                        <img data-noimg="" style="height:200px;border-radius:16px">
+                        <img data-noimg="" style="height:200px;border-radius:12px;border:2px solid #e2e8f0">
+                    </div>
+                    <div class="cap">빙하 코어(왼쪽)와 과거 80만 년 동안 지구의 기온 변화(오른쪽) (자료 출처: 「Orbital and Millennial Antarctic Climate Variability over the Past 800,000 Years」, 2007)</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">지구의 역사 동안 기온은 <b>상승과 하강을 반복</b>했고, 이에 따라 기후도 변해 왔어요.</div>
+                    <div class="card soft" data-step="2" style="font-size:27px">고기후를 알아내는 단서: 빙하 내 <b>기포</b>(대기 성분), 빙하·퇴적물의 <b>산소 동위원소</b>(기온), 나무의 <b>나이테</b> 폭 등</div>
+                    <div class="card key" data-step="3">기온은 지구에 들어오는 태양 복사 에너지가 <b>흡수·재흡수·분배</b>되는 정도에 따라 달라져요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">빙하 코어 속 기온과 온실 기체는 함께 오르내렸어요</div>
+            <div class="ppt-subtitle">남극 보스톡 빙하 표본 속 <span class="or">기체</span>를 분석한 자료를 읽어 봐요.</div>
+            <div class="main">
+                <div class="col" style="width:880px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:560px"></div>
+                    <div class="cap">남극 보스톡 빙하 표본 내 기체를 분석하여 얻은 이산화 탄소량(청색), 메테인양(연두색), 상대적 온도(적색)</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1"><span class="look">관찰</span>세 그래프의 봉우리와 골짜기가 나타나는 <b>시기</b>를 비교해 봐요.</div>
+                    <div class="card key" data-step="2">기온이 높은 시기와 이산화 탄소량, 메테인양이 많은 시기가 <b>일치</b>해요.</div>
+                    <div class="card soft" data-step="3" style="font-size:27px">대기 중 기체 함량은 빙하 내 <b>기포</b>를 분석해서, 기온은 빙하나 퇴적물 속 <b>산소 동위원소</b>를 분석해서 알아내요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s6">
+            <div class="ppt-title"><span class="sim-tag">활동</span>탐구 활동) 기후 변화의 원인을 분류해 봐요</div>
+            <div class="ppt-subtitle">요인을 하나 누르고, 알맞은 <span class="or">상자</span>를 눌러 넣어 보세요.</div>
+            <div class="main" style="flex-direction:column">
+                <div class="sorter" id="sortA">
+                    <div class="sort-pool"></div>
+                    <div class="sort-bins">
+                        <div class="sort-bin" data-bin="ext"><h4 style="color:#ca8a04">자연적 요인 · 지구 외적</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="int"><h4 style="color:#0d9488">자연적 요인 · 지구 내적</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="hum"><h4 style="color:#dc2626">인위적 요인</h4><div class="items"></div></div>
+                    </div>
+                    <div class="sort-msg"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">기후 변화의 원인은 크게 두 가지로 나뉘어요</div>
+            <div class="ppt-subtitle">인류 활동과 관련 없는 <span class="or">자연적 요인</span>, 인간 활동에 의한 <span class="or">인위적 요인</span></div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <div class="tree">
+                    <div class="br" data-step="1" style="border-color:#fde68a;background:#fefce8"><h4 style="color:#a16207">자연적 요인 ① 지구 외적 요인</h4><ul><li>태양 활동(흑점 수)</li><li>지구 자전축 기울기</li><li>지구 자전축 경사 방향(세차 운동)</li><li>지구 공전 궤도 이심률</li></ul></div>
+                    <div class="br" data-step="2" style="border-color:#99f6e4;background:#f0fdfa"><h4 style="color:#0f766e">자연적 요인 ② 지구 내적 요인</h4><ul><li>대규모 화산 분출</li><li>빙하 면적</li><li>대륙과 해양의 분포(수륙 분포)</li></ul></div>
+                    <div class="br" data-step="3" style="border-color:#fca5a5;background:#fef2f2"><h4 style="color:#b91c1c">인위적 요인</h4><ul><li>온실 기체 증가</li><li>에어로졸</li></ul></div>
+                </div>
+                <div class="card key" data-step="4">자전축 기울기·세차 운동·공전 궤도 이심률처럼 <b>지구 운동의 장주기 변화</b>로 기후 변화를 설명한 사람이 <b>밀란코비치(Milankovitch)</b>예요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">지구 외적 요인 ① 태양 흑점이 적으면 지구가 추워져요</div>
+            <div class="ppt-subtitle">태양이 방출하는 복사 에너지량은 <span class="or">흑점 수</span>와 관련이 있어요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:100%"></div>
+                    <div class="cap">400년 동안의 태양 흑점 수 변화 (전 세계 관측 자료의 월평균 흑점 수, 1749년 이전에는 간헐적으로 관측)</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">흑점이 <b>적은</b> 시기 → 태양 활동이 약함 → 방출되는 복사 에너지량 <b>감소</b> → 지구 기온 <b>하강</b></div>
+                    <div class="card key" data-step="2">소빙하기로 알려진 중세의 혹한기는 태양 흑점이 <b>적었던 시기</b>와 일치해요.</div>
+                    <div class="card soft" data-step="3" style="font-size:27px">그래프에서 1650년~1700년 무렵, 흑점이 거의 관측되지 않은 구간을 찾아보세요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">지구 외적 요인 ② 지구의 운동도 주기적으로 변해요</div>
+            <div class="ppt-subtitle">밀란코비치 주기(Milankovitch cycle): <span class="or">세 가지 운동</span>이 서로 다른 주기로 변해요.</div>
+            <div class="main">
+                <div class="col" style="width:960px;justify-content:center;align-items:center;gap:8px">
+                    <img data-noimg="" style="width:100%;border-radius:12px;border:2px solid #e2e8f0">
+                    <div class="cap">밀란코비치 주기 (지도서 자료)</div>
+                    <img data-noimg="" style="height:250px;border-radius:12px;border:2px solid #e2e8f0" data-step="4">
+                    <div class="cap" data-step="4">35만 년 전부터 현재까지 계산한 일사량·온도·CO₂ 농도 (노란색: 간빙기)</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1"><span class="tag b">자전축 기울기</span>약 <b>41000년</b> 주기</div>
+                    <div class="card" data-step="2"><span class="tag o">세차 운동</span>약 <b>26000년</b> 주기</div>
+                    <div class="card" data-step="3"><span class="tag g">공전 궤도 이심률</span>약 <b>10만 년</b> 주기</div>
+                    <div class="card key" data-step="4" style="font-size:26px">계산된 일사량 변화가 과거 빙하기·간빙기 자료와 <b>잘 일치</b>해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">자전축 기울기가 커지면 연교차가 커져요</div>
+            <div class="ppt-subtitle">현재 23.5°인 자전축 기울기는 약 41000년을 주기로 <span class="or">약 22.1°~24.5°</span> 사이에서 변해요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:100%"></div>
+                    <div class="cap">지구 자전축 기울기에 따라 우리나라에서 나타나는 태양 복사의 입사각 변화</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">기울기가 변하면 계절에 따라 지표에 입사하는 태양 복사 에너지 <b>세기(W/m²)</b>가 달라져요.</div>
+                    <div class="card" data-step="2">23.5°보다 커지면 → 여름: 태양이 더 <b>높이</b>, 겨울: 더 <b>낮게</b> 떠요.</div>
+                    <div class="card key" data-step="3">중·고위도: 여름 기온 <b>상승</b>, 겨울 기온 <b>하강</b> → <b>연교차 증가</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s11">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>자전축을 기울여 우리나라의 여름·겨울 비교하기</div>
+            <div class="ppt-subtitle">기울기를 바꾸며 <span class="or">남중 고도</span>와 <span class="or">하루 동안 받는 태양 에너지</span>를 비교해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cM1" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>자전축 기울기</h4>
+                        <div class="sim-row"><input type="range" class="sim-range" id="rM1" min="22.1" max="24.5" step="0.1" value="23.5"><span class="sim-val" id="vM1" style="min-width:100px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" data-t="22.1">22.1°</button><button class="sim-btn" data-t="23.5">23.5°</button><button class="sim-btn" data-t="24.5">24.5°</button></div>
+                    </div>
+                    <div class="sim-box key" id="oM1" style="font-size:24px"></div>
+                    <div class="sim-note">※ 북위 37.5°, 하지·동지의 대기 상단 하루 평균 일사량을 계산(태양 상수 1361 W/m², 궤도는 원으로 가정)한 값이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">세차 운동: 자전축이 팽이처럼 돌아요</div>
+            <div class="ppt-subtitle">자전축 <span class="or">경사 방향</span>은 약 26000년을 주기로 회전해요.</div>
+            <div class="main">
+                <div class="col" style="width:900px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:100%"></div>
+                    <div class="cap">세차 운동과 계절 변화: 현재 북반구는 원일점 부근에서 여름, 13000년 후에는 근일점 부근에서 여름</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1"><span class="tag b">현재</span>북반구는 <b>근일점</b> 근처에서 겨울, <b>원일점</b> 근처에서 여름</div>
+                    <div class="card" data-step="2"><span class="tag o">약 13000년 후</span>경사 방향이 반대 → 북반구는 <b>근일점</b> 부근에서 여름</div>
+                    <div class="card key" data-step="3">여름은 태양에 더 가까워 더 덥고, 겨울은 더 멀어 더 추움 → <b>연교차 증가</b></div>
+                    <div class="note" data-step="3">여름·겨울을 결정하는 것은 거리보다 <b>태양의 남중 고도</b>예요. 거리는 그 차이를 조금 키우거나 줄여요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s13">
+            <div class="ppt-title">공전 궤도가 납작해지면 (현재) 연교차가 줄어요</div>
+            <div class="ppt-subtitle">공전 궤도는 약 10만 년을 주기로 <span class="or">원에 가까운 형태 ↔ 납작한 타원</span>으로 바뀌어요.</div>
+            <div class="main">
+                <div class="col" style="width:620px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:100%"></div>
+                    <div class="cap">지구 공전 궤도 이심률 변화</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1" style="font-size:27px"><span class="tag">이심률(e)</span>타원의 중심에서 한 초점까지 거리 c를 긴반지름 a로 나눈 값 (e = c/a). 0에 가까울수록 원, 클수록 납작해요.</div>
+                    <div class="card" data-step="2">납작한 타원일수록 근일점은 태양에 더 <b>가까워지고</b>, 원일점은 더 <b>멀어져요</b>.</div>
+                    <div class="card key" data-step="3">현재처럼 북반구가 근일점에서 겨울이라면 → 겨울은 더 <b>따뜻</b>, 여름은 더 <b>시원</b> → 북반구 중위도 <b>연교차 감소</b></div>
+                    <div class="note" data-step="3">※ 다른 조건은 같고 공전 궤도만 더 납작해진 경우예요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">지구 내적 요인 ① 화산 분출은 지구를 식히기도, 데우기도 해요</div>
+            <div class="ppt-subtitle">대규모 화산 분출은 많은 양의 <span class="or">화산재</span>와 <span class="or">화산 가스</span>를 방출해요.</div>
+            <div class="main">
+                <div class="col" style="width:520px;justify-content:center;align-items:center">
+                    <img data-noimg="" style="max-height:600px;max-width:100%;border-radius:16px">
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1" style="border-color:#93c5fd;background:#eff6ff"><span class="tag b">화산재</span>성층권까지 올라감 → 태양 복사의 <b>반사율 증가</b>, 대기 <b>투과율 감소</b> → 지구 기온 <b>하강</b></div>
+                    <div class="card" data-step="2" style="border-color:#fca5a5;background:#fef2f2"><span class="tag r">화산 가스</span>수증기, 이산화 탄소 등 → <b>온실효과</b> 강화 → 지구 기온 <b>상승</b> 요인</div>
+                    <div class="card key" data-step="3">화산 가스와 화산재의 <b>양</b>, 분출 후 <b>시간이 얼마나 흘렀는지</b>에 따라 기온에 미치는 영향이 다르게 나타날 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">지구 내적 요인 ② 빙하 면적과 수륙 분포</div>
+            <div class="ppt-subtitle">지표의 <span class="or">반사율</span>과 <span class="or">비열</span>, <span class="or">해류</span>가 달라지면 기후가 변해요.</div>
+            <div class="main" style="gap:24px">
+                <div class="gcard" data-step="1" style="font-size:32px;justify-content:center;gap:16px">
+                    <h3>🧊 빙하 면적</h3>
+                    <div>빙하 면적 <b>증가</b> → 지표의 <b>반사율 증가</b></div>
+                    <div>→ 지구가 흡수하는 태양 복사 에너지량 <b>감소</b></div>
+                    <div>→ 지구의 기온 <b>하강</b></div>
+                    <div class="note" style="margin-top:8px">반대로 빙하가 감소하면 반사율이 줄어 지구가 흡수하는 에너지가 증가해요.</div>
+                </div>
+                <div class="gcard orange" data-step="2" style="font-size:32px;justify-content:center;gap:16px">
+                    <h3>🌏 대륙과 해양의 분포</h3>
+                    <div>대륙과 해양은 <b>비열</b>과 <b>반사율</b>이 달라 분포에 따라 <b>에너지 출입</b>이 달라져요.</div>
+                    <div>대륙의 분포에 따라 <b>해류의 방향</b>이 달라져 기후에 영향을 줘요.</div>
+                    <div class="note" style="margin-top:8px">예) 초대륙 판게아 시기: 내륙에 건조 지대 발달 / 대륙이 나뉜 뒤: 해양성 기후 지역 증가</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s17">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>얼음이 녹으면 더 빨리 따뜻해질까? (되먹임)</div>
+            <div class="ppt-subtitle">처음 변화의 결과가 다시 원인이 되어 변화를 <span class="or">증폭</span>하는 과정을 관찰해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cM3" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>처음 변화 주기</h4>
+                        <div class="sim-btns"><button class="sim-btn orange" data-fb="1">조금 따뜻하게</button><button class="sim-btn" data-fb="-1">조금 차갑게</button><button class="sim-btn" data-fb="0">원래대로</button></div>
+                        <h4 style="margin-top:8px">되먹임</h4>
+                        <div class="sim-btns"><button class="sim-btn on" data-loop="1">켜기</button><button class="sim-btn" data-loop="0">끄기</button></div>
+                    </div>
+                    <div class="sim-box key" id="oM3" style="font-size:23px"></div>
+                    <div class="sim-note">※ 개념 모형이에요. 수치는 상대적인 크기만 나타내요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">인위적 요인 ① 온실 기체가 온실효과를 강화해요</div>
+            <div class="ppt-subtitle">온실 기체: <span class="or">수증기, 이산화 탄소, 메테인, 산화 이질소</span> 등</div>
+            <div class="main">
+                <div class="col" style="width:900px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:100%"></div>
+                    <div class="cap">인간 활동으로 증가한 온실 기체</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:27px">태양의 <b>단파 복사</b>는 대부분 투과, 지구의 <b>장파 복사</b>는 흡수 → 지표로 <b>재복사</b> → 지표 온도 상승 = <b>온실효과</b></div>
+                    <div class="card soft" data-step="2" style="font-size:27px">수증기는 자연적인 온실효과의 주된 역할을 하지만 인간 활동의 영향을 <b>거의 받지 않아요</b>.</div>
+                    <div class="card key" data-step="3" style="font-size:27px">이산화 탄소·메테인·산화 이질소는 산업 혁명 이후 화석 연료 사용 등으로 농도가 <b>급격히 증가</b> → 온실효과 강화 → 기온 상승</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s19">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>온실 기체가 늘면 지표는 왜 따뜻해질까?</div>
+            <div class="ppt-subtitle"><span class="or">노란 빛(단파)</span>은 통과하고, <span class="or">붉은 빛(장파)</span>은 온실 기체에 붙잡혀요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cM4" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>대기 중 온실 기체의 양</h4>
+                        <div class="sim-row"><span class="lbl" style="width:60px">적음</span><input type="range" class="sim-range" id="rM4" min="0" max="3" step="1" value="1"><span class="lbl" style="width:60px;text-align:right">많음</span></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bM4">처음부터 다시</button></div>
+                    </div>
+                    <div class="sim-box key" id="oM4" style="font-size:23px"></div>
+                    <div class="sim-note">※ 개념 모형이에요. 빛 알갱이는 에너지 흐름을 나타내요. 지표 온도는 대기를 한 층으로 단순화한 모형(장파 흡수율 0.1~0.9)으로 계산한 상대값이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">대기 중 이산화 탄소 농도는 지금도 오르고 있어요</div>
+            <div class="ppt-subtitle">하와이 마우나로아 관측소의 이산화 탄소 농도 곡선 = <span class="or">킬링 곡선(Keeling curve)</span></div>
+            <div class="main">
+                <div class="col" style="width:820px;justify-content:center;align-items:center;gap:6px">
+                    <img data-noimg="" style="width:100%;border-radius:12px;border:2px solid #e2e8f0">
+                    <div class="cap">킬링 곡선 (지도서 자료)</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="stat" data-step="1"><span class="tag b">2024.5.17.</span><span class="cnt">425<span style="font-size:44px">.28 ppm</span></span><span>관측을 시작한 이래 <b>100 ppm 이상</b> 증가했어요.</span></div>
+                    <div class="stat" data-step="2"><span class="tag o">IPCC AR6</span><span class="cnt" style="color:#ea580c">1.1<span style="font-size:44px"> ℃</span></span><span>2011~2020년 전 지구 지표 온도는 산업화 이전(1850~1900년)보다 1.1 ℃ 상승했어요.</span></div>
+                    <div class="note" data-step="3">해마다 톱니처럼 오르내리는 것은 계절에 따른 변화이고, 전체적으로는 꾸준히 증가하는 경향이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">인위적 요인 ② 에어로졸은 빛을 반사하거나 흡수해요</div>
+            <div class="ppt-subtitle">공기 중에 떠 있는 <span class="or">0.001 μm ~ 100 μm</span> 정도의 고체·액체 입자</div>
+            <div class="main">
+                <div class="col" style="width:640px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:500px"></div>
+                    <div class="cap">에어로졸의 발생과 영향</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:27px"><span class="tag g">자연적</span>황사, 화산재, 해염 &nbsp; <span class="tag r">인위적</span>도시 산업 시설, 소각, 자동차 → 최근 계속 <b>증가</b></div>
+                    <div class="card" data-step="2" style="font-size:27px">밝은 에어로졸: 빛을 <b>반사</b> / 어두운 에어로졸: 빛을 <b>흡수</b> / 구름 형성의 <b>씨앗</b>으로 작용</div>
+                    <div class="card key" data-step="3" style="font-size:27px">태양 빛을 우주로 반사하거나 구름 생성을 촉진 → 지표에 도달하는 복사 에너지 <b>감소</b> → 지구를 <b>냉각</b>시키는 방향</div>
+                    <div class="note" data-step="3">온실 기체(온난화)와 에어로졸(냉각)의 상반된 영향이 기후 변화 문제를 더 복잡하게 만들어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">탐구 활동) 지구시스템 모델로 원인 분석하기</div>
+            <div class="ppt-subtitle">4가지 조건으로 모의실험한 기온 변화와 <span class="or">실제 관측 기온</span>을 비교해 봐요. (기준: 1850~1900년)</div>
+            <div class="main">
+                <div class="col" style="width:900px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:560px"></div>
+                    <div class="cap">지구시스템 모델로 모의실험한 지구의 기온 변화와 실제 관측 기온</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:10px">
+                    <div class="card soft qa" data-step="1" style="font-size:24px"><span class="tag">1</span>관측 기온: 1950년대에 다소 감소하기도 했지만 <b>1960년대 이후 가파르게 상승</b></div>
+                    <div class="card soft qa" data-step="2" style="font-size:24px"><span class="tag">2</span>자연적 요인만: 1950년까지는 비슷하지만 이후 <b>일정하거나 다소 감소</b> → 관측과 다름</div>
+                    <div class="card soft qa" data-step="3" style="font-size:24px"><span class="tag">3</span>자연적 + 인위적 요인: 관측값과 <b>가장 유사</b></div>
+                    <div class="card soft qa" data-step="4" style="font-size:24px"><span class="tag">4</span>온실 기체만: 관측보다 <b>더 크게 상승</b> / 에어로졸만: 기온이 오히려 <b>낮아짐</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s23">
+            <div class="ppt-title">최근의 온난화는 인위적 요인 때문이에요</div>
+            <div class="ppt-subtitle">자연적 요인만으로는 최근 수십 년의 기온 상승을 <span class="or">재현하지 못했어요</span>.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:12px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>자연적 요인과 인위적 요인을 함께 고려했을 때 모델은 관측 기온 상승을 <b>잘 재현</b>해요. → 최근 온난화는 <b>인위적 요인</b>에 의해 나타났어요.</div></div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div>2023년 3월 IPCC 제6차 종합보고서: <b>“지구 온난화는 전적으로 인간 활동에 의해 초래됐다”</b></div></div>
+                <div class="card key" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">?</span><div><b>대기질 개선</b>을 위해 에어로졸을 줄이면? 에어로졸의 냉각 효과가 줄어 지표 기온이 <b>상승</b>할 수 있어요. → 온난화가 <b>가속</b>되지 않도록 주의해야 해요.</div></div>
+                <div class="note" data-step="3">지구시스템 모델: 대기·해양·육지·해빙·생물·인간 활동 등으로 이루어진 지구시스템의 변화를 컴퓨터로 모의하는 프로그램</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s24">
+            <div class="ppt-title">1.5 ℃~2 ℃ 더 오르면 어떤 일이 생길까?</div>
+            <div class="ppt-subtitle">IPCC 보고서에 따른 <span class="or">산업 혁명 이전 대비</span> 기온 상승 시 예상 피해</div>
+            <div class="main" style="flex-direction:column;gap:14px">
+                <div style="display:flex;gap:14px">
+                    <div class="card" data-step="1" style="flex:1;font-size:24px"><b style="color:#0369a1">🧊 북극해</b><br>1.5 ℃: 100년에 한 번 여름철 얼음이 모두 녹음<br>2 ℃: 10년에 한 번</div>
+                    <div class="card" data-step="2" style="flex:1;font-size:24px"><b style="color:#dc2626">🌡 극한 기상</b><br>여러 지역 극한 고온, 호우의 빈도·강도·강수량 증가, 일부 지역 가뭄 증가</div>
+                    <div class="card" data-step="3" style="flex:1;font-size:24px"><b style="color:#16a34a">🌾 생물·식량</b><br>곡물 수확량 감소, 1.5 ℃: 곤충 6 %·식물 8 %·척추동물 4 % 감소 (2 ℃: 18 %·16 %·8 %)</div>
+                    <div class="card" data-step="4" style="flex:1;font-size:24px"><b style="color:#7c3aed">🌊 바다</b><br>해양 온난화·산성화로 어업 생산량 감소, 산호초 70 %~90 % 이상 감소, 2100년까지 해수면 0.26 m~0.77 m 상승</div>
+                </div>
+                <img data-noimg="" style="width:100%;height:300px;object-fit:cover;border-radius:16px" data-step="5">
+                <div class="cap" data-step="5">자료 출처: 『지구 온난화 1.5 ℃』, 2018 → 대규모 자연재해에 대비하는 체계적이고 과학적인 노력이 필요해요.</div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s25">
+            <div class="ppt-title"><span class="sim-tag">활동</span>기후 변화 대응: 완화일까, 적응일까?</div>
+            <div class="ppt-subtitle"><span class="or">완화</span>: 온실 기체 배출을 줄이거나 흡수 / <span class="or">적응</span>: 기후 변화로 생긴 위험을 최소화하고 활용</div>
+            <div class="main" style="flex-direction:column">
+                <div class="sorter" id="sortB">
+                    <div class="sort-pool"></div>
+                    <div class="sort-bins">
+                        <div class="sort-bin" data-bin="mit"><h4 style="color:#16a34a">완화</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="both"><h4 style="color:#15803d">완화와 적응</h4><div class="items"></div></div>
+                        <div class="sort-bin" data-bin="ada"><h4 style="color:#0d9488">적응</h4><div class="items"></div></div>
+                    </div>
+                    <div class="sort-msg"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s26">
+            <div class="ppt-title">세계와 우리나라는 이렇게 대응하고 있어요</div>
+            <div class="ppt-subtitle">환경 협약을 맺고, <span class="or">완화</span>와 <span class="or">적응</span>을 함께 준비해요.</div>
+            <div class="main">
+                <div class="col" style="width:960px;justify-content:center;align-items:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:540px"></div>
+                    <div class="cap">기후 변화 적응 방안 (『제3차 국가 기후 변화 적응 대책(2021~2025)』, 2020)</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:26px"><span class="tag g">완화</span>신재생 에너지 개발, 에너지 효율 개선, 탄소 배출을 줄이는 기술, <b>숲 보호와 산림 조성</b></div>
+                    <div class="card" data-step="2" style="font-size:26px"><span class="tag b">적응</span>재배 작물 변화, 홍수·가뭄 대비 시설, 지역 변화 예측, 상·하수도 정비</div>
+                    <div class="card key" data-step="3" style="font-size:26px"><span class="look o">나는?</span>기후 변화 완화를 위해 생활 속에서 내가 실천하고 있는 방법은 무엇일까?</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s27">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요? (고려하는 요인 외의 조건은 같다고 가정)</div>
+            <div class="main" style="flex-direction:column; gap:18px">
+                <div style="display:flex; gap:22px; align-items:stretch">
+                    <div class="card" style="flex:1.3; font-size:27px; line-height:1.85"><h3 style="color:#a16207">자연적 요인 · 지구 외적</h3>
+                        <div>흑점이 적은 시기 → 지구의 기온 <span class="blank" style="min-width:90px">하강</span></div>
+                        <div>자전축 기울기가 커질수록 우리나라 연교차 <span class="blank" style="min-width:90px">증가</span></div>
+                        <div>경사 방향이 현재와 반대 → 연교차 <span class="blank" style="min-width:90px">증가</span></div>
+                        <div>궤도가 납작한 타원일수록 → 연교차 <span class="blank" style="min-width:90px">감소</span></div></div>
+                    <div class="card" style="flex:1; font-size:27px; line-height:1.85"><h3 style="color:#0f766e">자연적 요인 · 지구 내적</h3>
+                        <div>화산재: 기온 <span class="blank" style="min-width:80px">하강</span>, 화산 가스: 기온 상승</div>
+                        <div>빙하 면적 감소 → 기온 <span class="blank" style="min-width:80px">증가</span></div>
+                        <div>수륙 분포에 따라 기온이 변함</div></div>
+                </div>
+                <div class="card" style="font-size:27px;line-height:1.85"><h3 style="color:#b91c1c">인위적 요인</h3>온실 기체가 증가할수록 <span class="blank" style="min-width:140px">온실효과</span>가 커져 기온 증가 / <span class="blank" style="min-width:120px">에어로졸</span>: 태양 복사 에너지를 차단하거나 흡수하여 기후 변화 발생</div>
+                <div class="note" style="text-align:right">빈칸을 누르면 정답이 나타나요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s28">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card q" data-a="g"><div class="qrow">수증기·이산화 탄소·메테인처럼 온실효과를 일으키는 요인은? <button class="sim-btn" data-v="g">온실 기체</button><button class="sim-btn" data-v="a">에어로졸</button><span class="res"></span></div></div>
+                <div class="card q" data-a="u"><div class="qrow">자전축 기울기가 23.5°보다 커지면 중위도의 <b>여름</b> 기온은? <button class="sim-btn" data-v="u">상승</button><button class="sim-btn" data-v="d">하강</button><span class="res"></span></div></div>
+                <div class="card q" data-a="d"><div class="qrow">같은 조건에서 중위도의 <b>겨울</b> 기온은? <button class="sim-btn" data-v="u">상승</button><button class="sim-btn" data-v="d">하강</button><span class="res"></span></div><div class="why" style="display:none">여름과 겨울에 받는 태양 복사 에너지량의 차이가 커져 연교차가 증가해요.</div></div>
+                <div class="card q" data-a="h"><div class="qrow">지구시스템 모델에서 최근 기온 상승을 잘 재현한 조건은? <button class="sim-btn" data-v="n">자연적 요인만</button><button class="sim-btn" data-v="h">자연적 + 인위적 요인</button><span class="res"></span></div></div>
+                <div class="card key" style="font-size:27px"><b>생각해 보기</b> 세차 운동으로 경사 방향만 현재와 반대가 되면, 우리나라의 여름과 겨울은 궤도의 어디에 위치할까? 그림으로 그려 설명해 봐요.</div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ========== 분류 활동 공통 ========== */
+function makeSorter(id,items,names){
+  const root=document.getElementById(id),pool=root.querySelector('.sort-pool'),msg=root.querySelector('.sort-msg');let sel=null,done=0;
+  const fb=items.map(it=>it);
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function reset(){pool.innerHTML='';root.querySelectorAll('.sort-bin .items').forEach(x=>x.innerHTML='');done=0;sel=null;msg.innerHTML='요인을 하나 누른 뒤, 알맞은 상자를 눌러 보세요.';
+    shuffle(fb.slice()).forEach(it=>{const b=document.createElement('button');b.className='sort-chip';b.textContent=it.t;b.dataset.bin=it.b;b.dataset.why=it.w||'';b.onclick=e=>{e.stopPropagation();if(b.classList.contains('ok'))return;pool.querySelectorAll('.sort-chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.add('hl'));};pool.appendChild(b);});}
+  root.querySelectorAll('.sort-bin').forEach(bin=>bin.onclick=()=>{if(!sel)return;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.remove('hl'));
+    if(sel.dataset.bin===bin.dataset.bin){sel.classList.remove('sel');sel.classList.add('ok');bin.querySelector('.items').appendChild(sel);done++;msg.innerHTML='⭕ 정답! '+(sel.dataset.why?'<span style="font-weight:normal">'+sel.dataset.why+'</span>':'');msg.style.color='#2563eb';
+      if(done===items.length){msg.innerHTML='🎉 모두 분류했어요! <button class="sim-btn orange" style="margin-left:12px">다시 하기</button>';msg.querySelector('button').onclick=reset;}}
+    else{const s=sel;s.classList.remove('sel');s.classList.add('bad');setTimeout(()=>s.classList.remove('bad'),450);msg.innerHTML='❌ 다시 생각해 봐요. ('+s.textContent+' → '+names[bin.dataset.bin]+'?)';msg.style.color='#ea580c';}
+    sel=null;});
+  reset();
+}
+makeSorter('sortA',[
+  {t:'태양의 활동',b:'ext',w:'흑점 수에 따라 태양이 방출하는 복사 에너지량이 달라져요.'},
+  {t:'지구 자전축 기울기',b:'ext',w:'약 41000년 주기로 변해요.'},
+  {t:'지구 공전 궤도 이심률',b:'ext',w:'약 10만 년 주기로 변해요.'},
+  {t:'세차 운동(자전축 경사 방향)',b:'ext',w:'약 26000년 주기로 변해요.'},
+  {t:'지구의 화산 활동',b:'int',w:'화산재와 화산 가스를 방출해요.'},
+  {t:'지구의 수륙 분포',b:'int',w:'비열·반사율·해류가 달라져요.'},
+  {t:'해양의 순환',b:'int',w:'저위도의 에너지를 고위도로 운반해요.'},
+  {t:'빙하 면적',b:'int',w:'지표의 반사율이 달라져요.'},
+  {t:'인간 활동에 의한 온실 기체',b:'hum',w:'화석 연료 사용 등으로 증가했어요.'},
+  {t:'인위적 에어로졸',b:'hum',w:'산업 시설, 소각, 자동차 등에서 발생해요.'}
+],{ext:'지구 외적 요인',int:'지구 내적 요인',hum:'인위적 요인'});
+makeSorter('sortB',[
+  {t:'🚲 자전거·대중교통 이용하기',b:'mit',w:'연료 사용을 줄여 온실 기체 배출을 감소시켜요.'},
+  {t:'☀ 신재생 에너지 사용',b:'mit',w:'에너지 생산 과정의 온실 기체 배출이 적어요.'},
+  {t:'♻ 분리수거·재활용',b:'mit'},
+  {t:'🌿 옥상 정원 활용',b:'both',w:'온실 기체 흡수(완화) + 건물 온도 상승을 줄임(적응)'},
+  {t:'🌳 가로수 조성',b:'both'},
+  {t:'💧 빗물·중수 활용',b:'both'},
+  {t:'🥵 폭염 시 야외 활동 자제',b:'ada'},
+  {t:'🌊 범람 지역 정비',b:'ada'},
+  {t:'🐸 외래종 관리',b:'ada'}
+],{mit:'완화',both:'완화와 적응',ada:'적응'});
+
+/* ========== 일사량 계산 (대기 상단 하루 평균) ========== */
+const S0=1361,PHI=37.5*Math.PI/180;
+function Qday(decDeg,distFac){const d=decDeg*Math.PI/180;let x=-Math.tan(PHI)*Math.tan(d);x=Math.max(-1,Math.min(1,x));const h0=Math.acos(x);return S0/Math.PI*distFac*(h0*Math.sin(PHI)*Math.sin(d)+Math.cos(PHI)*Math.cos(d)*Math.sin(h0));}
+
+/* ========== SIM M1: 자전축 기울기 ========== */
+(function(){
+  const c=document.getElementById('cM1'),g=c.getContext('2d'),W=1060,H=610;let tilt=23.5,cur=23.5;const r=document.getElementById('rM1');
+  const base={s:Qday(23.5,1),w:Qday(-23.5,1)};
+  function out(){r.value=tilt;document.getElementById('vM1').textContent=tilt.toFixed(1)+'°';document.querySelectorAll('#s11 [data-t]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.t-tilt)<0.05));
+    const s=Qday(tilt,1),w=Qday(-tilt,1),d=s-w,d0=base.s-base.w;
+    document.getElementById('oM1').innerHTML='<h4>북위 37.5° (우리나라 중부)</h4><div>하지 남중 고도 <b>'+(90-37.5+tilt).toFixed(1)+'°</b> / 동지 <b>'+(90-37.5-tilt).toFixed(1)+'°</b></div><div>하지 일사량 <b style="color:#dc2626">'+s.toFixed(0)+'</b>, 동지 <b style="color:#2563eb">'+w.toFixed(0)+'</b> W/m²</div><div>여름−겨울 차이: <span class="sim-big">'+d.toFixed(0)+' W/m²</span></div><div>23.5°일 때보다 '+(Math.abs(d-d0)<1?'<b>같음</b>':(d>d0?'<b style="color:#dc2626">'+(d-d0).toFixed(0)+' 큼 → 연교차 증가</b>':'<b style="color:#2563eb">'+(d0-d).toFixed(0)+' 작음 → 연교차 감소</b>'))+'</div>';}
+  r.oninput=e=>{tilt=+e.target.value;out();};document.querySelectorAll('#s11 [data-t]').forEach(b=>b.onclick=()=>{tilt=+b.dataset.t;out();});out();
+  function scene(x0,label,alt,col,tm){
+    const gx=x0+40,gy=420,w=380;
+    g.fillStyle='#e0f2fe';g.fillRect(x0,30,460,gy-30);g.fillStyle='#86efac';g.fillRect(x0,gy,460,50);g.fillStyle='#65a30d';g.fillRect(x0,gy+50,460,10);
+    const a=alt*Math.PI/180,cx=x0+230,R=230;const sx=cx-R*Math.cos(a),sy=gy-R*Math.sin(a);
+    // 빛 다발 (폭 = 지면에 닿는 폭)
+    const beam=70,foot=beam/Math.sin(a);
+    g.fillStyle=col==='s'?'rgba(250,204,21,.45)':'rgba(250,204,21,.3)';g.beginPath();
+    const px=-Math.sin(a)*beam/2,py=Math.cos(a)*beam/2;g.moveTo(sx+px,sy+py);g.lineTo(sx-px,sy-py);g.lineTo(cx+foot/2,gy);g.lineTo(cx-foot/2,gy);g.closePath();g.fill();
+    g.fillStyle='rgba(234,88,12,.85)';g.fillRect(cx-foot/2,gy-4,foot,8);
+    // 빛 알갱이
+    for(let k=0;k<5;k++){const p=((tm/1600)+k/5)%1;const x=sx+(cx-sx)*p+((k-2)/4)*px*1.6,y=sy+(gy-sy)*p+((k-2)/4)*py*1.6;g.fillStyle='#f59e0b';g.beginPath();g.arc(x,y,5,0,7);g.fill();}
+    // 태양
+    const gr=g.createRadialGradient(sx,sy,4,sx,sy,34);gr.addColorStop(0,'#fef08a');gr.addColorStop(1,'#f97316');g.fillStyle=gr;g.beginPath();g.arc(sx,sy,30,0,7);g.fill();
+    // 각도 호
+    g.strokeStyle='#334155';g.lineWidth=2;g.beginPath();g.arc(cx,gy,70,Math.PI,Math.PI+a);g.stroke();
+    g.fillStyle='#0f172a';g.font=SIM.font(22);g.textAlign='center';g.fillText(alt.toFixed(1)+'°',cx-110,gy-24);
+    g.font=SIM.font(28);g.fillStyle=col==='s'?'#dc2626':'#2563eb';g.fillText(label,x0+230,64);
+    g.font=SIM.font(19);g.fillStyle='#7c2d12';g.fillText('같은 빛이 닿는 폭: '+(foot/beam).toFixed(2)+'배',cx,gy+86);
+  }
+  SIM.loop('s11',(tm,dt)=>{cur+=(tilt-cur)*Math.min(1,dt*6);g.clearRect(0,0,W,H);
+    scene(40,'하지(여름)',90-37.5+cur,'s',tm);scene(560,'동지(겨울)',90-37.5-cur,'w',tm);
+    g.fillStyle='#334155';g.font=SIM.font(20);g.textAlign='center';g.fillText('남중 고도가 낮을수록 같은 양의 빛이 넓게 퍼져 단위 면적당 에너지가 줄어요',W/2,590);
+  });
+})();
+
+/* ========== SIM M2: 밀란코비치 실험실 ========== */
+(function(){
+  const c=document.getElementById('cM2'),g=c.getContext('2d'),W=1060,H=610;let e=0.017,tilt=23.5,pr=0,ang=0;
+  const re=document.getElementById('rM2e'),rt=document.getElementById('rM2t');
+  function calc(){const peri=1/((1-e)*(1-e)),aph=1/((1+e)*(1+e));const sF=pr?peri:aph,wF=pr?aph:peri;return {s:Qday(tilt,sF),w:Qday(-tilt,wF)};}
+  const ref=(()=>{const peri=1/((1-0.017)**2),aph=1/((1+0.017)**2);return Qday(23.5,aph)-Qday(-23.5,peri);})();
+  function out(){re.value=e;rt.value=tilt;document.getElementById('vM2e').textContent=e.toFixed(3);document.getElementById('vM2t').textContent=tilt.toFixed(1)+'°';
+    document.querySelectorAll('#s14 [data-pr]').forEach(b=>b.classList.toggle('on',+b.dataset.pr===pr));
+    const q=calc(),d=q.s-q.w;
+    document.getElementById('oM2').innerHTML='<div>북반구 여름 위치: <b>'+(pr?'근일점':'원일점')+'</b></div><div>여름 <b style="color:#dc2626">'+q.s.toFixed(0)+'</b> / 겨울 <b style="color:#2563eb">'+q.w.toFixed(0)+'</b> W/m²</div><div>여름−겨울 차이 <span class="sim-big">'+d.toFixed(0)+'</span> W/m²</div><div>현재 조건('+ref.toFixed(0)+')보다 '+(Math.abs(d-ref)<1?'<b>비슷</b>':(d>ref?'<b style="color:#dc2626">큼 → 연교차 증가</b>':'<b style="color:#2563eb">작음 → 연교차 감소</b>'))+'</div>';}
+  re.oninput=ev=>{e=+ev.target.value;out();};rt.oninput=ev=>{tilt=+ev.target.value;out();};
+  document.querySelectorAll('#s14 [data-pr]').forEach(b=>b.onclick=()=>{pr=+b.dataset.pr;out();});out();
+  function earth(x,y,summerNH,label){
+    // 자전축: 북반구 여름이면 태양 쪽(가운데)으로 북극이 기울어짐
+    const toSun=x<CX?1:-1;const lean=(summerNH?toSun:-toSun)*tilt*Math.PI/180;
+    g.save();g.translate(x,y);
+    g.fillStyle='#1e3a8a';g.beginPath();g.arc(0,0,24,0,7);g.fill();
+    // 낮/밤
+    g.fillStyle='rgba(255,255,255,.35)';g.beginPath();g.arc(0,0,24,toSun>0?-Math.PI/2:Math.PI/2,toSun>0?Math.PI/2:Math.PI*1.5);g.fill();
+    g.rotate(lean);g.strokeStyle='#0f172a';g.lineWidth=3;g.beginPath();g.moveTo(0,-40);g.lineTo(0,40);g.stroke();g.fillStyle='#0f172a';g.font=SIM.font(15);g.textAlign='center';g.fillText('N',0,-44);
+    g.restore();
+    g.fillStyle='rgba(255,255,255,.92)';g.fillRect(x-62,y+48,124,54);g.fillStyle=summerNH?'#dc2626':'#2563eb';g.font=SIM.font(20);g.textAlign='center';g.fillText(label,x,y+68);g.fillText(summerNH?'북반구 여름':'북반구 겨울',x,y+92);
+  }
+  const CX=340,CY=290,A=240;
+  SIM.loop('s14',(tm,dt)=>{g.clearRect(0,0,W,H);
+    const ev=Math.min(0.9,e*10); // 그림용 과장
+    const B=A*Math.sqrt(1-ev*ev),cfx=A*ev; // 태양은 오른쪽 초점에
+    const sunX=CX+cfx;
+    g.strokeStyle='#64748b';g.lineWidth=3;g.setLineDash([]);g.beginPath();g.ellipse(CX,CY,A,B,0,0,7);g.stroke();
+    const gr=g.createRadialGradient(sunX,CY,4,sunX,CY,40);gr.addColorStop(0,'#fef08a');gr.addColorStop(1,'#f97316');g.fillStyle=gr;g.beginPath();g.arc(sunX,CY,36,0,7);g.fill();
+    g.fillStyle='#7c2d12';g.font=SIM.font(20);g.textAlign='center';g.fillText('태양',sunX,CY+62);
+    // 근일점(오른쪽 끝), 원일점(왼쪽 끝)
+    earth(CX+A,CY,pr===1,'근일점');earth(CX-A,CY,pr===0,'원일점');
+    // 움직이는 지구
+    ang+=dt*0.6;const ex=CX+A*Math.cos(ang),ey=CY+B*Math.sin(ang);g.fillStyle='rgba(30,58,138,.5)';g.beginPath();g.arc(ex,ey,10,0,7);g.fill();
+    g.fillStyle='#334155';g.font=SIM.font(18);g.textAlign='center';g.fillText('이심률 '+e.toFixed(3)+(Math.abs(e-0.017)<0.0015?' (현재 근처)':''),CX,40);
+    // 막대 그래프
+    const q=calc(),bx=700,by=540,sc=0.75;g.strokeStyle='#334155';g.lineWidth=2;g.beginPath();g.moveTo(bx-20,by);g.lineTo(bx+320,by);g.stroke();
+    [[q.s,'#ef4444','여름'],[q.w,'#3b82f6','겨울']].forEach(([v,col,l],i)=>{const x=bx+20+i*160,h=v*sc;g.fillStyle=col;g.fillRect(x,by-h,100,h);g.fillStyle='#0f172a';g.font=SIM.font(22);g.textAlign='center';g.fillText(v.toFixed(0),x+50,by-h-10);g.font=SIM.font(20);g.fillText(l,x+50,by+28);});
+    g.font=SIM.font(19);g.fillStyle='#334155';g.fillText('하루 평균 일사량 (W/m²)',bx+150,70);
+    const d=q.s-q.w;g.strokeStyle='#ea580c';g.setLineDash([6,5]);g.beginPath();g.moveTo(bx+70,by-q.s*sc);g.lineTo(bx+300,by-q.s*sc);g.moveTo(bx+190,by-q.w*sc);g.lineTo(bx+300,by-q.w*sc);g.stroke();g.setLineDash([]);
+    g.beginPath();g.moveTo(bx+300,by-q.s*sc);g.lineTo(bx+300,by-q.w*sc);g.lineWidth=4;g.stroke();g.fillStyle='#ea580c';g.textAlign='left';g.font=SIM.font(20);g.fillText('차이',bx+250,by-(q.s+q.w)/2*sc-10);g.fillText(d.toFixed(0),bx+250,by-(q.s+q.w)/2*sc+16);
+  });
+})();
+
+/* ========== SIM M3: 얼음-알베도 되먹임 ========== */
+(function(){
+  const c=document.getElementById('cM3'),g=c.getContext('2d'),W=1060,H=610;let F=0,loop=1,T=0,ice=0.6;const ICE0=0.6;const hist=[];let ht=0;
+  function out(){document.querySelectorAll('#s17 [data-fb]').forEach(b=>b.classList.toggle('on',+b.dataset.fb===F));document.querySelectorAll('#s17 [data-loop]').forEach(b=>b.classList.toggle('on',+b.dataset.loop===loop));}
+  document.querySelectorAll('#s17 [data-fb]').forEach(b=>b.onclick=()=>{F=+b.dataset.fb;out();});
+  document.querySelectorAll('#s17 [data-loop]').forEach(b=>b.onclick=()=>{loop=+b.dataset.loop;T=0;ice=ICE0;hist.length=0;out();});out();
+  const rays=[];for(let i=0;i<14;i++)rays.push({x:60+i*36,p:Math.random()});
+  SIM.loop('s17',(tm,dt)=>{
+    // 모형: 반사율 a = 0.6*ice + 0.1*(1-ice), 흡수 = 1-a
+    const alb=0.6*ice+0.1*(1-ice),abs=1-alb,abs0=1-(0.6*ICE0+0.1*(1-ICE0));
+    const dT=(0.35*F+(loop?3.0*(abs-abs0):0)-0.5*T)*dt*1.5;T+=dT;T=Math.max(-3,Math.min(3,T));
+    const target=Math.max(0.05,Math.min(0.95,ICE0-0.25*T));ice+=(target-ice)*dt*0.6;
+    ht+=dt;if(ht>0.15){ht=0;hist.push(T);if(hist.length>140)hist.shift();}
+    g.clearRect(0,0,W,H);
+    // 장면 (왼쪽)
+    const X0=40,X1=560,SEA=380;g.fillStyle='#e0f2fe';g.fillRect(X0,30,X1-X0,SEA-30);g.fillStyle='#1e40af';g.fillRect(X0,SEA,X1-X0,180);
+    const iw=(X1-X0)*ice;g.fillStyle='#f8fafc';g.fillRect(X0,SEA-14,iw,44);g.strokeStyle='#94a3b8';g.lineWidth=2;g.strokeRect(X0,SEA-14,iw,44);
+    g.fillStyle='#0f172a';g.font=SIM.font(20);g.textAlign='left';g.fillText('해빙(얼음) 면적 '+Math.round(ice*100)+'%',X0+10,SEA-26);g.fillStyle='#e0f2fe';g.textAlign='right';g.fillText('바다',X1-10,SEA+44);
+    g.fillStyle='#fde047';g.beginPath();g.arc(X0+40,62,26,0,7);g.fill();g.fillStyle='#0f172a';g.font=SIM.font(18);g.textAlign='left';g.fillText('🟡 햇빛  ↗ 얼음에서 반사  🔴 바다에 흡수',X0+80,68);
+    rays.forEach(r=>{r.p+=dt*0.45;if(r.p>1.4)r.p=0;const onIce=(r.x-X0)<iw;const y=r.p<1?30+(SEA-14-30)*r.p:SEA-14-(SEA-44)*(r.p-1)/0.4*0.4;
+      if(r.p<1){g.fillStyle='#f59e0b';g.beginPath();g.arc(r.x,y,6,0,7);g.fill();}
+      else if(onIce){const yy=SEA-14-(r.p-1)*600;g.fillStyle='#facc15';g.beginPath();g.arc(r.x+(r.p-1)*60,yy,6,0,7);g.fill();}
+      else{g.fillStyle='rgba(239,68,68,'+(1.4-r.p)*2+')';g.beginPath();g.arc(r.x,SEA+20+(r.p-1)*150,7,0,7);g.fill();}});
+    // 막대 (오른쪽)
+    const bars=[['얼음 면적',ice,'#60a5fa'],['반사율',alb/0.6,'#facc15'],['흡수 에너지',abs/0.9,'#f97316']];
+    bars.forEach(([l,v,col],i)=>{const x=620+i*140,y0=330,h=220*Math.max(0,Math.min(1,v));g.fillStyle='#f1f5f9';g.fillRect(x,y0-220,90,220);g.fillStyle=col;g.fillRect(x,y0-h,90,h);g.fillStyle='#0f172a';g.font=SIM.font(19);g.textAlign='center';g.fillText(l,x+45,y0+26);});
+    g.fillStyle='#334155';g.font=SIM.font(19);g.textAlign='center';g.fillText('상대적인 크기',830,82);
+    // 기온 그래프
+    const GX=600,GY=400,GW=420,GH=180;g.strokeStyle='#cbd5e1';g.lineWidth=1;g.strokeRect(GX,GY,GW,GH);g.beginPath();g.moveTo(GX,GY+GH/2);g.lineTo(GX+GW,GY+GH/2);g.stroke();
+    g.strokeStyle='#dc2626';g.lineWidth=3;g.beginPath();hist.forEach((v,i)=>{const x=GX+i*GW/140,y=GY+GH/2-v/3*GH/2;i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();
+    g.fillStyle='#334155';g.font=SIM.font(17);g.textAlign='left';g.fillText('기온 변화 (상대적)',GX+6,GY+20);
+    const st=F===0&&Math.abs(T)<0.05?'평형':T>0?'따뜻해지는 중':'차가워지는 중';
+    document.getElementById('oM3').innerHTML='<h4>'+(loop?'되먹임 켜짐':'되먹임 꺼짐')+' · '+st+'</h4>'+(F>0?'<div>기온 ↑ → 얼음 녹음 → 반사율 ↓ → 흡수 에너지 ↑ → 기온 더 ↑</div>':F<0?'<div>기온 ↓ → 얼음 증가 → 반사율 ↑ → 흡수 에너지 ↓ → 기온 더 ↓</div>':'<div>처음 변화를 주어 보세요.</div>')+'<div style="margin-top:6px">기온 변화: <span class="sim-big">'+(T>=0?'+':'')+T.toFixed(2)+'</span></div><div class="sim-note">되먹임을 끄고 같은 변화를 주면 기온 변화가 더 작아요 → <b>양의 되먹임</b></div>';
+  });
+})();
+
+/* ========== SIM M4: 온실효과 ========== */
+(function(){
+  const c=document.getElementById('cM4'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rM4');let lv=1;
+  const TOP=40,A0=150,A1=330,GND=520;let P=[],E=0,spawn=0,mols=[],flash=[];const rnd=SIM.rng(7);
+  const Ebase=28; // 온실 기체가 없을 때의 평형 에너지(상대)
+  function setMols(){mols=[];const n=[4,14,28,46][lv];for(let i=0;i<n;i++)mols.push({x:40+rnd()*980,y:A0+15+rnd()*(A1-A0-30),k:rnd()});}
+  function reset(){P=[];E=Ebase;setMols();}
+  r.oninput=e=>{lv=+e.target.value;setMols();};document.getElementById('bM4').onclick=()=>{lv=+r.value;reset();Ts=1;warm&&warm();};reset();
+  let Ts=1;
+  function step(dt){
+    // 태양 단파
+    spawn+=dt*22;while(spawn>1){spawn--;P.push({x:60+Math.random()*940,y:TOP,vx:0,vy:260,t:'s'});}
+    // 지표 장파 방출: 에너지에 비례
+    const emit=E*0.55*dt;if(Math.random()<emit%1)P.push(mk());for(let i=0;i<Math.floor(emit);i++)P.push(mk());
+    function mk(){E=Math.max(0,E-1);const a=(Math.random()-0.5)*1.0;return {x:40+Math.random()*980,y:GND-4,vx:Math.sin(a)*200,vy:-Math.cos(a)*200,t:'l'};}
+    const kAbs=[0.117,0.77,1.54,2.56][lv];
+    P.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;
+      if(p.t==='s'&&p.y>=GND){if(Math.random()<0.3){p.vy=-260;p.t='r';}else{p.dead=1;E+=1;}}
+      if(p.t==='l'){if(p.y>A0&&p.y<A1&&Math.random()<kAbs*dt){const a=Math.random()*Math.PI*2;p.vx=Math.cos(a)*200;p.vy=Math.sin(a)*200;flash.push({x:p.x,y:p.y,t:0.3});}
+        if(p.y>=GND){p.dead=1;E+=1;}}
+      if(p.y<TOP-10||p.x<0||p.x>W)p.dead=1;});
+    P=P.filter(p=>!p.dead);
+    const eps=[0.1,0.5,0.75,0.9][lv],Tt=Math.pow(2/(2-eps),0.25)/Math.pow(2/1.9,0.25);Ts+=(Tt-Ts)*Math.min(1,dt*0.6);
+  }
+  function warm(){for(let i=0;i<360;i++)step(1/60);flash=[];}
+  warm();
+  SIM.loop('s19',(tm,dt)=>{step(dt);
+    g.clearRect(0,0,W,H);
+    const sky=g.createLinearGradient(0,0,0,GND);sky.addColorStop(0,'#0b1020');sky.addColorStop(1,'#1e3a8a');g.fillStyle=sky;g.fillRect(0,0,W,GND);
+    g.fillStyle='rgba(148,163,184,.12)';g.fillRect(0,A0,W,A1-A0);g.fillStyle='#cbd5e1';g.font=SIM.font(18);g.textAlign='left';g.fillText('대기 (온실 기체 분자)',12,A0+22);
+    mols.forEach(m=>{g.fillStyle='#94a3b8';g.beginPath();g.arc(m.x-7,m.y,6,0,7);g.arc(m.x+7,m.y,6,0,7);g.fill();g.fillStyle='#e2e8f0';g.beginPath();g.arc(m.x,m.y,7,0,7);g.fill();});
+    flash=flash.filter(f=>(f.t-=dt)>0);flash.forEach(f=>{g.strokeStyle='rgba(248,113,113,'+f.t*3+')';g.lineWidth=3;g.beginPath();g.arc(f.x,f.y,22-f.t*40,0,7);g.stroke();});
+    const tc=Math.max(0,Math.min(1,(Ts-1)*8));g.fillStyle='rgb('+Math.round(101+130*tc)+','+Math.round(163-60*tc)+','+Math.round(13+10*tc)+')';g.fillRect(0,GND,W,H-GND);
+    g.fillStyle='#fff';g.font=SIM.font(20);g.fillText('지표',12,GND+30);
+    P.forEach(p=>{if(p.t==='s'||p.t==='r'){g.fillStyle='#facc15';g.beginPath();g.arc(p.x,p.y,5,0,7);g.fill();}else{g.fillStyle='#f87171';g.beginPath();g.arc(p.x,p.y,5,0,7);g.fill();g.strokeStyle='rgba(248,113,113,.5)';g.lineWidth=2;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x-p.vx*0.05,p.y-p.vy*0.05);g.stroke();}});
+    g.fillStyle='#fde68a';g.font=SIM.font(20);g.textAlign='right';g.fillText('☀ 태양 복사 (단파)',W-14,28);
+    // 온도계
+    const tx=1000,ty=GND+20;
+    const lvTxt=['적음','보통','많음','매우 많음'][lv];
+    document.getElementById('oM4').innerHTML='<h4>온실 기체: '+lvTxt+'</h4><div>지표 온도 (상대값)</div><div><span class="sim-big">'+(Ts*100).toFixed(0)+'</span> <span style="font-size:20px">(‘적음’일 때 = 100)</span></div><div style="margin-top:6px">붉은 빛이 대기에 흡수된 뒤 <b>다시 방출</b>되어 일부가 지표로 돌아와요 → 지표가 받는 에너지 증가</div>';
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

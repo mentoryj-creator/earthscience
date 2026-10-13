@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분광형 탐정</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s13">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>분광형 탐정: 흡수선 세기로 온도 맞히기</div>
+            <div class="ppt-subtitle">온도를 바꾸며 흡수선 세기 그래프와 별의 색을 관찰하고, <span class="or">미지의 별</span>을 판별해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cB2" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:130px;white-space:nowrap">표면 온도</span><input type="range" class="sim-range" id="rB2" min="0" max="1" step="0.002" value="0.6"><span class="sim-val" id="vB2" style="min-width:120px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bB2q">미지의 별 문제</button><button class="sim-btn" id="bB2a">정답 보기</button></div>
+                    </div>
+                    <div class="sim-box key" id="oB2" style="font-size:23px"></div>
+                    <div class="sim-note">※ 그림 15의 곡선 모양을 단순화한 개념 모형이에요. 분광형별 온도 범위는 표 1 값을 따랐어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">별의 색깔이 서로 다른 까닭은?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">03. 별의 분류와 여러 가지 물리량</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:#fff">
+                    <img data-noimg="" style="width:100%;height:100%;object-fit:contain">
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">흑체 복사 · 빈의 변위 법칙 · 분광형 · 광도 · 슈테판·볼츠만 법칙</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">별빛 하나로 별의 <span class="or">온도, 밝기, 크기</span>까지 알아낼 수 있어요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div>별의 <b>분광형</b> 결정 및 별의 분류 과정을 설명할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div><b>흑체 복사 법칙</b>을 이용하여 별의 물리량을 추론할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:720px;border-radius:14px;border:2px solid #e2e8f0">
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: 베텔게우스는 붉고, 리겔은 푸르다</div>
+            <div class="ppt-subtitle">별의 물리적 특성에는 무엇이 있고, 이를 이용해 별을 <span class="or">어떻게 분류</span>할 수 있을까?</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:660px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>오리온자리의 베텔게우스는 <b>붉은색</b>, 리겔은 <b>청백색</b>이에요. 왜 색이 다를까?</div>
+                    <div class="card key" data-step="2">별마다 <b>표면 온도</b>가 다르기 때문이에요.</div>
+                    <div class="card" data-step="3">별의 색과 표면 온도의 관계는 <b>흑체</b>의 성질로 설명할 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">흑체: 받은 에너지를 모두 흡수하고 모두 방출하는 물체</div>
+            <div class="ppt-subtitle">별은 <span class="or">흑체에 가까운</span> 성질을 띠고 있어요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <div class="card" data-step="1" style="font-size:33px"><b>흑체(black body)</b>: 입사되는 에너지를 <b>모두 흡수</b>하고, 흡수한 만큼의 에너지를 복사의 형태로 <b>모두 방출</b>하는 이상적인 물체</div>
+                <div class="card soft" data-step="2" style="font-size:31px"><span class="look">Q</span>흑체는 검은색일까? → 모든 빛을 흡수한다는 뜻에서 ‘black’이 붙었지만, 흑체도 전자기파를 <b>방출</b>하므로 완전히 검지는 않아요. (지도서)</div>
+                <div class="card key" data-step="3" style="font-size:31px">흑체 복사의 특성은 <b>온도와 파장</b>에 의해서만 결정되고, 흑체를 이루는 물질의 종류와는 무관해요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">온도가 높을수록 더 많이, 더 짧은 파장에서 내보내요</div>
+            <div class="ppt-subtitle">흑체가 방출하는 복사 에너지의 분포 = <span class="or">플랑크 곡선</span></div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1100px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="font-size:27px">온도가 높을수록 <b>모든 파장</b>에서 더 많은 에너지를 방출해요.</div>
+                    <div class="card" data-step="2" style="font-size:27px">고온일수록 에너지를 최대로 방출하는 파장(λ<sub>max</sub>)이 <b>짧아져요</b>.</div>
+                    <div class="card key" data-step="3" style="font-size:27px"><b>빈의 변위 법칙</b><br>λ<sub>max</sub> = a / T<br><span style="font-size:23px">(a = 2.898×10⁶ nm·K)</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s6">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>흑체 복사 실험실: 온도를 바꿔 봐요</div>
+            <div class="ppt-subtitle">온도에 따라 <span class="or">곡선의 높이</span>, <span class="or">봉우리 위치</span>, <span class="or">별의 색</span>이 어떻게 변할까?</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cB1" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:130px;white-space:nowrap">표면 온도</span><input type="range" class="sim-range" id="rB1" min="2500" max="30000" step="50" value="5800"><span class="sim-val" id="vB1" style="min-width:120px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" data-t="3600">베텔게우스</button><button class="sim-btn" data-t="5800">태양</button><button class="sim-btn" data-t="9600">베가</button><button class="sim-btn" data-t="12000">리겔</button></div>
+                        <div class="sim-btns" style="margin-top:6px"><button class="sim-btn orange" id="bB1k">현재 곡선 남기기</button><button class="sim-btn" id="bB1c">지우기</button></div>
+                    </div>
+                    <div class="sim-box key" id="oB1" style="font-size:24px"></div>
+                    <div class="sim-note">※ 플랑크 법칙으로 계산했어요. 세로축은 그려진 곡선 중 가장 높은 값에 맞춰 자동으로 바뀌어요. 별 온도는 대략적인 값이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">표면 온도가 높은 별은 파랗고, 낮은 별은 붉어요</div>
+            <div class="ppt-subtitle">별의 표면 온도에 따른 복사 에너지 분포 곡선</div>
+            <div class="main" style="flex-direction:column;gap:14px">
+                <img data-noimg="" style="width:100%;max-height:450px;object-fit:contain">
+                <div style="display:flex;gap:14px">
+                    <div class="card" data-step="1" style="flex:1;font-size:27px">고온의 별: λ<sub>max</sub>가 <b>짧아</b> 파란색 쪽 빛이 강함 → <b>파랗게</b></div>
+                    <div class="card" data-step="2" style="flex:1;font-size:27px">저온의 별: λ<sub>max</sub>가 <b>길어</b> 붉은색 쪽 빛이 강함 → <b>붉게</b></div>
+                    <div class="card soft" data-step="3" style="flex:1;font-size:24px">※ 두 그래프는 세로축 단위가 달라요. 같은 단위면 13000 K 곡선이 훨씬 높이 치솟아요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">빈의 변위 법칙으로 계산해 봐요</div>
+            <div class="ppt-subtitle">λ<sub>max</sub> = 2.898×10⁶ nm·K ÷ T</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <div class="card q" data-a="b"><div class="qrow">표면 온도가 약 5800 K인 태양의 λ<sub>max</sub>는? <button class="sim-btn" data-v="a">약 250 nm</button><button class="sim-btn" data-v="b">약 500 nm</button><button class="sim-btn" data-v="c">약 1000 nm</button><span class="res"></span></div><div class="why" style="display:none">2.898×10⁶ ÷ 5800 ≈ 500 nm (가시광선 영역)</div></div>
+                <div class="card q" data-a="c"><div class="qrow">λ<sub>max</sub>가 약 966 nm인 별의 표면 온도는? <button class="sim-btn" data-v="a">약 9000 K</button><button class="sim-btn" data-v="b">약 6000 K</button><button class="sim-btn" data-v="c">약 3000 K</button><span class="res"></span></div><div class="why" style="display:none">2.898×10⁶ ÷ 966 ≈ 3000 K (적외선 영역이 최대 → 붉은 별)</div></div>
+                <div class="card q" data-a="h"><div class="qrow">표면 온도가 2배가 되면 λ<sub>max</sub>는? <button class="sim-btn" data-v="d">2배</button><button class="sim-btn" data-v="h">½배</button><span class="res"></span></div><div class="why" style="display:none">λ<sub>max</sub>와 T는 반비례해요.</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">스펙트럼에는 세 종류가 있어요</div>
+            <div class="ppt-subtitle">별빛을 파장별로 나눈 것 = <span class="or">스펙트럼</span>, 분광기로 관측하는 방법 = <span class="or">분광 관측</span></div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:24px"><canvas class="spec" data-k="c" width="520" height="70" style="border-radius:8px;flex:none"></canvas><div><b>연속 스펙트럼</b>: 백열전구 같은 광원의 빛 → 무지개처럼 연속적인 색의 띠</div></div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:24px"><canvas class="spec" data-k="a" width="520" height="70" style="border-radius:8px;flex:none"></canvas><div><b>흡수 스펙트럼</b>: 연속 스펙트럼의 빛이 <b>저온의 기체</b>를 지나며 특정 파장이 흡수 → 어두운 <b>흡수선</b></div></div>
+                <div class="card" data-step="3" style="display:flex;align-items:center;gap:24px"><canvas class="spec" data-k="e" width="520" height="70" style="border-radius:8px;flex:none"></canvas><div><b>방출 스펙트럼</b>: <b>고온의 기체</b>가 방출하는 불연속적인 파장의 빛 → 밝은 <b>방출선</b></div></div>
+                <div class="note" data-step="3">예시로 그린 선은 수소의 선 (656, 486, 434, 410 nm)이에요. 같은 원소는 흡수선과 방출선의 위치가 같아요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">별의 스펙트럼은 흡수 스펙트럼이에요</div>
+            <div class="ppt-subtitle">별의 표면에서 나온 고온의 빛이 상대적으로 <span class="or">온도가 낮은 별의 대기</span>를 통과하기 때문이에요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:880px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">별의 표면: <b>연속 스펙트럼</b>의 빛</div>
+                    <div class="card" data-step="2">별의 대기(상대적으로 저온) → 대기 속 원소들이 특정 파장의 빛을 <b>흡수</b></div>
+                    <div class="card key" data-step="3">→ 지구에서는 <b>흡수선</b>이 있는 스펙트럼으로 관측돼요.</div>
+                    <div class="note" data-step="3">프라운호퍼는 태양과 시리우스의 스펙트럼이 서로 다르다는 것을 밝혔어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s11">
+            <div class="ppt-title">분광형: O B A F G K M</div>
+            <div class="ppt-subtitle">흡수선의 <span class="or">종류와 세기</span>로 별을 분류해요. O형이 가장 뜨겁고 M형으로 갈수록 차가워요.</div>
+            <div class="main">
+                <img data-noimg="" style="height:620px;flex:none;align-self:center;border-radius:12px">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">별의 스펙트럼을 분석하면 별을 <b>분광형</b>으로 분류하고 <b>표면 온도</b>를 추정할 수 있어요.</div>
+                    <div class="card" data-step="2">각 분광형은 다시 고온의 <b>0</b>에서 저온의 <b>9</b>까지 10단계로 나눠요.</div>
+                    <div class="card key" data-step="3">태양: 표면 온도 약 <b>5800 K</b> → <b>G2</b>형</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">온도에 따라 강하게 나타나는 흡수선이 달라요</div>
+            <div class="ppt-subtitle">온도에 따라 원소가 <span class="or">이온화되는 정도</span>와 <span class="or">들뜬 원자의 비율</span>이 달라지기 때문이에요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1020px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:26px"><span class="tag b">O형</span>이온화된 <b>헬륨(He II)</b> 흡수선이 강해요.</div>
+                    <div class="card" data-step="2" style="font-size:26px"><span class="tag">A형</span>중성 수소 <b>H I</b> 흡수선이 가장 강해요.</div>
+                    <div class="card" data-step="3" style="font-size:26px"><span class="tag o">G·K·M형</span><b>금속 원소</b>와 여러 <b>분자</b>(TiO 등)의 흡수선이 강해요.</div>
+                    <div class="note" data-step="3">태양(G2): Ca II 흡수선이 가장 강해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s14">
+            <div class="ppt-title">베가(A0)와 알타이르(A7), 어느 별이 더 뜨거울까?</div>
+            <div class="ppt-subtitle">여름철 밤하늘에서 잘 보이는 두 별의 분광형으로 비교해 봐요.</div>
+            <div class="main">
+                <img data-noimg="" style="height:560px;flex:none;align-self:center;border-radius:16px">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card soft" data-step="1">두 별 모두 <b>A형</b>이에요. 그다음 숫자를 비교해요.</div>
+                    <div class="card" data-step="2">숫자는 0(고온) → 9(저온)</div>
+                    <div class="card key" data-step="3"><b>A0</b>인 베가의 표면 온도가 <b>A7</b>인 알타이르보다 높아요. (지도서 예시 답안)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">광도: 별의 실제 밝기</div>
+            <div class="ppt-subtitle">광도 = 별이 <span class="or">단위 시간 동안 방출하는 에너지양</span></div>
+            <div class="main" style="flex-direction:column;gap:14px">
+                <img data-noimg="" style="width:100%;max-height:380px;object-fit:contain;border-radius:16px">
+                <div style="display:flex;gap:14px">
+                    <div class="card" data-step="1" style="flex:1;font-size:26px"><b>겉보기 등급</b>: 지구에서 보이는 밝기 → 거리에 따라 달라서 실제 밝기는 알 수 없어요.</div>
+                    <div class="card" data-step="2" style="flex:1;font-size:26px"><b>절대 등급</b>: 모든 별이 <b>10 pc</b>(약 32.6광년)에 있다고 가정한 밝기</div>
+                    <div class="card key" data-step="3" style="flex:1;font-size:26px">광도가 <b>클수록</b> 절대 등급은 <b>작아져요</b>.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">절대 등급으로 광도를 구해요</div>
+            <div class="ppt-subtitle">1등급인 별은 6등급인 별보다 <span class="or">100배</span> 밝아요. → 1등급 차이마다 100<sup>1/5</sup> ≈ <span class="or">2.5배</span></div>
+            <div class="main">
+                <div class="imgbox tight" style="width:880px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1" style="font-size:27px">태양(절대 등급 M<sub>☉</sub>, 광도 L<sub>☉</sub>)과 비교하면</div>
+                    <div class="card key" data-step="2" style="font-size:30px;text-align:center">L = L<sub>☉</sub> × 10<sup>(2/5)(M<sub>☉</sub> − M)</sup></div>
+                    <div class="card soft" data-step="3" style="font-size:26px">예) 절대 등급이 태양보다 <b>5등급 작은</b> 별 → 광도는 태양의 <b>100배</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">슈테판·볼츠만 법칙: 에너지는 온도의 4제곱에 비례</div>
+            <div class="ppt-subtitle">흑체가 단위 시간 동안 단위 면적에서 방출하는 에너지양 E = σT⁴ <span style="font-size:26px">(σ = 5.670×10⁻⁸ W·m⁻²·K⁻⁴)</span></div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px">
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">광도와 온도를 알면 반지름을 구할 수 있어요</div>
+            <div class="ppt-subtitle">별의 광도 = 별의 표면적 × 단위 면적에서 방출하는 에너지양</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:18px">
+                <div class="card key" style="font-size:44px;text-align:center;padding:30px">L = 4πR² · σT⁴</div>
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="1" style="flex:1;font-size:29px">광도는 반지름의 <b>제곱</b>에, 표면 온도의 <b>4제곱</b>에 비례해요.</div>
+                    <div class="card" data-step="2" style="flex:1;font-size:29px">표면 온도가 같아도 <b>크기가 다르면</b> 광도가 달라요.</div>
+                    <div class="card" data-step="3" style="flex:1;font-size:29px"><span class="look">Q</span>반지름을 구하려면? → <b>광도(L)</b>와 <b>표면 온도(T)</b>!</div>
+                </div>
+                <div class="note" data-step="3">표면 온도 ← 스펙트럼(분광형, 빈의 법칙) / 광도 ← 절대 등급</div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s19">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>별 만들기: 반지름과 온도로 광도 계산하기</div>
+            <div class="ppt-subtitle">L/L<sub>☉</sub> = (R/R<sub>☉</sub>)² × (T/T<sub>☉</sub>)⁴ 를 직접 확인해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cB3" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-row"><span class="lbl" style="width:130px">반지름</span><input type="range" class="sim-range" id="rB3r" min="-1" max="3" step="0.01" value="0"><span class="sim-val" id="vB3r" style="min-width:130px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:130px;white-space:nowrap">표면 온도</span><input type="range" class="sim-range" id="rB3t" min="2500" max="30000" step="50" value="5800"><span class="sim-val" id="vB3t" style="min-width:130px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn" data-pr="sun">태양</button><button class="sim-btn" data-pr="q">확인 문제 별</button><button class="sim-btn" data-pr="hot">작고 뜨거운 별</button><button class="sim-btn" data-pr="big">크고 차가운 별</button></div>
+                    </div>
+                    <div class="sim-box key" id="oB3" style="font-size:24px"></div>
+                    <div class="sim-note">※ 태양 기준(T<sub>☉</sub> = 5800 K, 절대 등급 약 4.8)으로 계산했어요. 반지름 비교 그림은 로그 눈금으로 줄였어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">해 보기) 베텔게우스와 벨라트릭스의 물리량 추론하기</div>
+            <div class="ppt-subtitle">두 별의 복사 에너지 분포 (거리는 고려하지 않음)</div>
+            <div class="main" style="justify-content:center;align-items:center">
+                <img data-noimg="" style="max-height:640px;max-width:100%;border-radius:16px">
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">해 보기) 추론하고 확인해요</div>
+            <div class="ppt-subtitle">지도서 예시 답안</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:12px">
+                <div class="card qa" data-step="1" style="font-size:27px"><b>1. 어느 별이 더 뜨거울까?</b> 최대 복사 파장이 (다) <b>벨라트릭스</b>가 더 짧아요. → 빈의 법칙에 따라 벨라트릭스가 더 고온</div>
+                <div class="card qa" data-step="2" style="font-size:27px"><b>2. 그런데 베텔게우스의 광도가 더 큰 까닭은?</b> L = 4πR²σT⁴ → 베텔게우스의 <b>반지름</b>이 훨씬 크기 때문</div>
+                <table data-step="3" style="width:100%;border-collapse:collapse;font-size:25px;text-align:center;line-height:1.5">
+                    <tr style="background:#eff6ff"><th style="border:2px solid #cbd5e1;padding:6px">별</th><th style="border:2px solid #cbd5e1">색</th><th style="border:2px solid #cbd5e1">표면 온도</th><th style="border:2px solid #cbd5e1">반지름</th><th style="border:2px solid #cbd5e1">광도</th><th style="border:2px solid #cbd5e1">절대 등급</th></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">베텔게우스</td><td style="border:2px solid #cbd5e1;color:#dc2626">붉은색</td><td style="border:2px solid #cbd5e1">3600~3800 K</td><td style="border:2px solid #cbd5e1">640~1021 R<sub>☉</sub></td><td style="border:2px solid #cbd5e1">90000~150000 L<sub>☉</sub></td><td style="border:2px solid #cbd5e1">−5.85</td></tr>
+                    <tr><td style="border:2px solid #cbd5e1;font-weight:bold">벨라트릭스</td><td style="border:2px solid #cbd5e1;color:#2563eb">푸른색</td><td style="border:2px solid #cbd5e1">21800 K</td><td style="border:2px solid #cbd5e1">5.75 R<sub>☉</sub></td><td style="border:2px solid #cbd5e1">9211 L<sub>☉</sub></td><td style="border:2px solid #cbd5e1">−2.78</td></tr>
+                </table>
+                <div class="note" data-step="3">(지도서 조사 예시 자료) 베텔게우스는 팽창과 수축을 계속해 반지름이 변해요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <div style="display:flex;gap:20px">
+                    <div class="card" style="flex:1;font-size:27px;line-height:1.85"><h3 style="color:#2563eb">스펙트럼과 분광형</h3>
+                        <div>방출 스펙트럼: 고온의 기체 → <span class="blank" style="min-width:90px">방출선</span></div>
+                        <div><span class="blank" style="min-width:150px">흡수 스펙트럼</span>: 저온의 기체가 특정 파장을 흡수</div>
+                        <div>분광형: O, B, A, F, G, K, M</div>
+                        <div>광도: 단위 시간 동안 방출하는 <span class="blank" style="min-width:90px">에너지</span>양</div></div>
+                    <div class="card" style="flex:1;font-size:27px;line-height:1.85"><h3 style="color:#ea580c">흑체 복사 법칙</h3>
+                        <div>빈의 변위 법칙: λ<sub>max</sub>와 T는 <span class="blank" style="min-width:90px">반비례</span></div>
+                        <div>슈테판·볼츠만 법칙: E는 T의 <span class="blank" style="min-width:40px">4</span>제곱에 비례</div>
+                        <div>광도 L = 4πR²·σT⁴</div></div>
+                </div>
+                <div class="note" style="text-align:right">빈칸을 누르면 정답이 나타나요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s23">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
+                <div class="card q" data-a="s"><div class="qrow">흡수선의 위치와 세기에 따라 별을 분류한 것은? <button class="sim-btn" data-v="s">분광형</button><button class="sim-btn" data-v="l">광도</button><span class="res"></span></div></div>
+                <div class="card q" data-a="o"><div class="qrow">표면 온도가 가장 높은 분광형은? <button class="sim-btn" data-v="o">O형</button><button class="sim-btn" data-v="m">M형</button><span class="res"></span></div></div>
+                <div class="card q" data-a="4"><div class="qrow">표면 온도가 태양과 같고 광도가 태양의 16배인 별의 반지름은? <button class="sim-btn" data-v="2">2R<sub>☉</sub></button><button class="sim-btn" data-v="4">4R<sub>☉</sub></button><button class="sim-btn" data-v="16">16R<sub>☉</sub></button><span class="res"></span></div><div class="why" style="display:none">L ∝ R² (T 같음) → R² = 16 → R = 4R<sub>☉</sub></div></div>
+                <div class="card key" style="font-size:27px"><b>생각해 보기</b> 광도가 클수록 절대 등급이 작아지는 까닭은? → 절대 등급은 같은 거리(10 pc)에서 비교한 밝기이고, 등급은 <b>밝을수록 작은 값</b>이기 때문이에요.</div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ===== 공통: 플랑크 ===== */
+const PLK=(lam,T)=>{const l=lam*1e-9;const h=6.626e-34,c=2.998e8,k=1.381e-23;return 2*h*c*c/Math.pow(l,5)/(Math.exp(h*c/(l*k*T))-1);};
+const WIEN=2.898e6;
+function starRGB(T){const c=SIM.bbRGB(T);return 'rgb('+c.join(',')+')';}
+
+/* ===== 스펙트럼 그림 ===== */
+document.querySelectorAll('canvas.spec').forEach(cv=>{const g=cv.getContext('2d'),W=cv.width,H=cv.height,k=cv.dataset.k;const L0=380,L1=720,X=l=>(l-L0)/(L1-L0)*W;const lines=[656.3,486.1,434.0,410.2];
+  if(k==='e'){g.fillStyle='#000';g.fillRect(0,0,W,H);lines.forEach(l=>{const c=SIM.wl2rgb(l);g.fillStyle='rgb('+c+')';g.fillRect(X(l)-3,0,6,H);});return;}
+  for(let x=0;x<W;x++){const l=L0+x/W*(L1-L0);const c=SIM.wl2rgb(l);g.fillStyle='rgb('+c+')';g.fillRect(x,0,1,H);}
+  if(k==='a'){g.fillStyle='#000';lines.forEach(l=>g.fillRect(X(l)-3,0,6,H));}});
+
+/* ===== SIM B1: 플랑크 ===== */
+(function(){
+  const c=document.getElementById('cB1'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rB1');let T=5800,cur=5800,kept=[];
+  const L=80,R=1020,TOP=40,BOT=500,LMAX=2000;const X=l=>L+l/LMAX*(R-L);
+  function out(){r.value=T;document.getElementById('vB1').textContent=Math.round(T)+' K';document.querySelectorAll('#s6 [data-t]').forEach(b=>b.classList.toggle('on',+b.dataset.t===T));
+    const lm=WIEN/T;const band=lm<380?'자외선':lm<=780?'가시광선':'적외선';
+    document.getElementById('oB1').innerHTML='<div>λ<sub>max</sub> = 2.898×10⁶ ÷ '+Math.round(T)+'</div><div><span class="sim-big">'+lm.toFixed(0)+' nm</span> ('+band+')</div><div style="margin-top:6px">단위 면적당 에너지 (태양=1): <b>'+Math.pow(T/5800,4).toFixed(2)+'배</b></div><div class="sim-note">온도가 2배 → λ<sub>max</sub>는 ½, 에너지는 16배</div>';}
+  r.oninput=e=>{T=+e.target.value;out();};document.querySelectorAll('#s6 [data-t]').forEach(b=>b.onclick=()=>{T=+b.dataset.t;out();});
+  document.getElementById('bB1k').onclick=()=>{kept.push(T);if(kept.length>4)kept.shift();};document.getElementById('bB1c').onclick=()=>kept=[];out();
+  SIM.loop('s6',(tm,dt)=>{cur+=(T-cur)*Math.min(1,dt*6);
+    const all=kept.concat([cur]);const ymax=Math.max(...all.map(t=>PLK(WIEN/t,t)))*1.08;const Y=v=>BOT-v/ymax*(BOT-TOP);
+    g.clearRect(0,0,W,H);
+    for(let x=X(380);x<X(780);x++){const l=(x-L)/(R-L)*LMAX;const cc=SIM.wl2rgb(l);g.fillStyle='rgba('+cc+',.35)';g.fillRect(x,TOP,1,BOT-TOP);}
+    g.fillStyle='#64748b';g.font=SIM.font(18);g.textAlign='center';g.fillText('자외선',X(190),TOP+24);g.fillText('가시광선',X(580),TOP+24);g.fillText('적외선',X(1300),TOP+24);
+    g.strokeStyle='#334155';g.lineWidth=2;g.beginPath();g.moveTo(L,TOP);g.lineTo(L,BOT);g.lineTo(R,BOT);g.stroke();
+    g.fillStyle='#334155';g.font=SIM.font(17,false);for(let l=0;l<=LMAX;l+=250){g.fillText(l,X(l),BOT+24);}g.font=SIM.font(19);g.fillText('파장 (nm)',(L+R)/2,BOT+52);
+    g.save();g.translate(30,(TOP+BOT)/2);g.rotate(-Math.PI/2);g.fillText('복사 에너지의 상대 세기',0,0);g.restore();
+    const draw=(t,col,w)=>{g.strokeStyle=col;g.lineWidth=w;g.beginPath();for(let l=40;l<=LMAX;l+=5){const y=Y(PLK(l,t));l===40?g.moveTo(X(l),y):g.lineTo(X(l),y);}g.stroke();const lm=WIEN/t;if(lm<LMAX){g.fillStyle=col;g.beginPath();g.arc(X(lm),Y(PLK(lm,t)),6,0,7);g.fill();g.font=SIM.font(17);g.fillText(Math.round(t)+' K',X(lm),Y(PLK(lm,t))-14);}};
+    kept.forEach(t=>draw(t,'rgba(100,116,139,.8)',2));
+    const lm=WIEN/cur;g.strokeStyle='#ea580c';g.setLineDash([6,5]);g.lineWidth=2;g.beginPath();g.moveTo(X(lm),BOT);g.lineTo(X(lm),Y(PLK(lm,cur)));g.stroke();g.setLineDash([]);
+    draw(cur,'#dc2626',4);
+    // 별
+    const sx=900,sy=150,rr=48;const gr=g.createRadialGradient(sx,sy,4,sx,sy,rr*1.8);gr.addColorStop(0,'#fff');gr.addColorStop(0.35,starRGB(cur));gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(sx,sy,rr*1.8,0,7);g.fill();
+    g.fillStyle='#334155';g.font=SIM.font(18);g.fillText('별의 색',sx,sy+rr*1.8+10);
+  });
+})();
+
+/* ===== SIM B2: 분광형 ===== */
+(function(){
+  const c=document.getElementById('cB2'),g=c.getContext('2d'),W=1060,H=610;const r=document.getElementById('rB2');let u=0.6,q=null,show=false;
+  // u: 0(O5, 50000K) → 1(M7, 2700K) log scale
+  const T=u=>Math.exp(Math.log(50000)+(Math.log(2700)-Math.log(50000))*u);
+  const uT=t=>(Math.log(t)-Math.log(50000))/(Math.log(2700)-Math.log(50000));
+  const LN=[['He II','#0ea5e9',uT(42000),0.09],['He I','#14b8a6',uT(20000),0.10],['H I','#dc2626',uT(9500),0.13],['Ca II','#f97316',uT(5000),0.17],['Fe I','#7c3aed',uT(4200),0.17],['TiO','#16a34a',uT(3000),0.07]];
+  const strength=(ln,uu)=>Math.exp(-Math.pow((uu-ln[2])/ln[3],2));
+  function sp(t){if(t>30000)return 'O';if(t>10000)return 'B';if(t>7500)return 'A';if(t>6000)return 'F';if(t>5200)return 'G';if(t>3700)return 'K';return 'M';}
+  const COL={O:'파란색',B:'청백색',A:'흰색',F:'황백색',G:'황색',K:'주황색',M:'붉은색'};
+  function out(){r.value=u;const t=T(u);document.getElementById('vB2').textContent=Math.round(t/100)*100+' K';
+    const strong=LN.map(l=>[l[0],strength(l,u)]).sort((a,b)=>b[1]-a[1])[0];
+    let h='<div>분광형: <span class="sim-big">'+sp(t)+'형</span> ('+COL[sp(t)]+')</div><div>가장 강한 흡수선: <b>'+strong[0]+'</b></div>';
+    if(q!==null){h+='<div style="margin-top:8px;color:#c2410c"><b>미지의 별</b>: 회색 점선 막대의 흡수선 세기를 보고 온도를 맞혀 보세요.</div>';if(show)h+='<div>정답: <b>'+sp(T(q))+'형</b>, 약 '+Math.round(T(q)/100)*100+' K</div>';}
+    document.getElementById('oB2').innerHTML=h;}
+  r.oninput=e=>{u=+e.target.value;out();};
+  document.getElementById('bB2q').onclick=()=>{q=0.05+Math.random()*0.9;show=false;out();};document.getElementById('bB2a').onclick=()=>{if(q!==null){show=true;u=q;out();}};out();
+  SIM.loop('s13',()=>{
+    const L=70,R=1010,TOP=40,BOT=360;const X=uu=>L+uu*(R-L);
+    g.clearRect(0,0,W,H);
+    // 분광형 띠
+    [['O',50000,30000],['B',30000,10000],['A',10000,7500],['F',7500,6000],['G',6000,5200],['K',5200,3700],['M',3700,2700]].forEach(([n,a,b],i)=>{g.fillStyle=i%2?'#f8fafc':'#f1f5f9';g.fillRect(X(uT(a)),TOP,X(uT(b))-X(uT(a)),BOT-TOP);g.fillStyle='#475569';g.font=SIM.font(22);g.textAlign='center';g.fillText(n,(X(uT(a))+X(uT(b)))/2,BOT+30);});
+    LN.forEach(ln=>{g.strokeStyle=ln[1];g.lineWidth=3;g.beginPath();for(let x=0;x<=200;x++){const uu=x/200;const y=BOT-strength(ln,uu)*(BOT-TOP-30);x?g.lineTo(X(uu),y):g.moveTo(X(uu),y);}g.stroke();
+      g.fillStyle=ln[1];g.font=SIM.font(19);g.fillText(ln[0],X(ln[2]),TOP+18+(ln[0]==='Fe I'?22:0));});
+    g.strokeStyle='#0f172a';g.lineWidth=3;g.beginPath();g.moveTo(X(u),TOP);g.lineTo(X(u),BOT);g.stroke();
+    g.fillStyle='#334155';g.font=SIM.font(17);g.textAlign='center';g.fillText('분광형 (왼쪽: 고온 → 오른쪽: 저온)',(L+R)/2,BOT+56);
+    g.save();g.translate(32,(TOP+BOT)/2);g.rotate(-Math.PI/2);g.fillText('흡수선의 상대 세기',0,0);g.restore();
+    // 막대: 현재 별
+    const bars=(uu,x0,label,dash)=>{g.fillStyle='#0f172a';g.font=SIM.font(18);g.textAlign='left';g.fillText(label,x0,440);LN.forEach((ln,i)=>{const h=strength(ln,uu)*110;const x=x0+i*62;g.fillStyle=dash?'rgba(100,116,139,.6)':ln[1];g.fillRect(x,575-h,44,h);g.fillStyle='#334155';g.font=SIM.font(14);g.textAlign='center';g.fillText(ln[0],x+22,597);});};
+    bars(u,70,'지금 별의 흡수선 세기',false);
+    // 별 원
+    const t=T(u);const gr=g.createRadialGradient(520,515,3,520,515,70);gr.addColorStop(0,'#fff');gr.addColorStop(0.4,starRGB(t));gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(520,515,70,0,7);g.fill();
+    if(q!==null)bars(q,640,'미지의 별',true);
+  });
+})();
+
+/* ===== SIM B3: 별 만들기 ===== */
+(function(){
+  const c=document.getElementById('cB3'),g=c.getContext('2d'),W=1060,H=610;const rr=document.getElementById('rB3r'),rt=document.getElementById('rB3t');let lr=0,T=5800;
+  const P={sun:[0,5800],q:[Math.log10(4),5800],hot:[Math.log10(0.5),20000],big:[Math.log10(500),3500]};
+  function out(){rr.value=lr;rt.value=T;const R=Math.pow(10,lr),Lr=R*R*Math.pow(T/5800,4),M=4.8-2.5*Math.log10(Lr);
+    document.getElementById('vB3r').textContent=(R<10?R.toFixed(2):Math.round(R))+' R☉';document.getElementById('vB3t').textContent=Math.round(T)+' K';
+    document.getElementById('oB3').innerHTML='<div>(R/R☉)² = '+(R*R<100?(R*R).toFixed(2):Math.round(R*R))+', (T/T☉)⁴ = '+Math.pow(T/5800,4).toFixed(2)+'</div><div>광도: <span class="sim-big">'+(Lr<10?Lr.toFixed(2):Lr<1e4?Math.round(Lr):Lr.toExponential(1))+' L☉</span></div><div>절대 등급: 약 <b>'+M.toFixed(1)+'</b></div>';}
+  rr.oninput=e=>{lr=+e.target.value;out();};rt.oninput=e=>{T=+e.target.value;out();};
+  document.querySelectorAll('#s19 [data-pr]').forEach(b=>b.onclick=()=>{[lr,T]=P[b.dataset.pr];out();});out();
+  const stars=[];const rnd=SIM.rng(9);for(let i=0;i<120;i++)stars.push([rnd()*W,rnd()*H,rnd()*1.4+0.3]);
+  SIM.loop('s19',(tm)=>{
+    g.fillStyle='#020617';g.fillRect(0,0,W,H);g.fillStyle='rgba(255,255,255,.6)';stars.forEach(s=>{g.beginPath();g.arc(s[0],s[1],s[2],0,7);g.fill();});
+    const pxR=l=>30+(l+1)*70; // 로그 눈금
+    const cx=360,cy=300;
+    // 태양 기준 원
+    g.strokeStyle='rgba(250,204,21,.8)';g.setLineDash([6,6]);g.lineWidth=2;g.beginPath();g.arc(cx,cy,pxR(0),0,7);g.stroke();g.setLineDash([]);
+    const rp=pxR(lr);const gr=g.createRadialGradient(cx,cy,2,cx,cy,rp);gr.addColorStop(0,'#fff');gr.addColorStop(0.5,starRGB(T));gr.addColorStop(1,starRGB(T));g.fillStyle=gr;g.globalAlpha=0.92;g.beginPath();g.arc(cx,cy,Math.min(rp,330),0,7);g.fill();g.globalAlpha=1;
+    g.strokeStyle='rgba(250,204,21,.9)';g.setLineDash([6,6]);g.beginPath();g.arc(cx,cy,pxR(0),0,7);g.stroke();g.setLineDash([]);
+    g.fillStyle='#fde68a';g.font=SIM.font(17);g.textAlign='center';g.fillText('점선: 태양 크기',cx,cy+pxR(0)+20);
+    // 광도 막대 (로그)
+    const R=Math.pow(10,lr),Lr=R*R*Math.pow(T/5800,4);const BX=820,BT=60,BB=540;const Yl=v=>BB-(Math.log10(v)+3)/9*(BB-BT);
+    g.fillStyle='rgba(30,41,59,.9)';g.fillRect(BX-90,30,280,560);
+    g.strokeStyle='#94a3b8';g.lineWidth=2;g.beginPath();g.moveTo(BX,BT);g.lineTo(BX,BB);g.stroke();
+    g.fillStyle='#cbd5e1';g.font=SIM.font(15,false);g.textAlign='right';for(let e=-3;e<=6;e++){g.fillText('10'+(e<0?'⁻':'')+'⁰¹²³⁴⁵⁶'[Math.abs(e)],BX-8,Yl(Math.pow(10,e))+5);}
+    const yb=Yl(Math.max(1e-3,Math.min(1e6,Lr)));g.fillStyle='#f97316';g.fillRect(BX+10,yb,50,BB-yb);
+    g.fillStyle='#fde68a';g.fillRect(BX+70,Yl(1)-2,40,4);g.textAlign='left';g.font=SIM.font(15);g.fillText('태양',BX+70,Yl(1)-8);
+    g.fillStyle='#e2e8f0';g.font=SIM.font(17);g.textAlign='center';g.fillText('광도 (L☉, 로그)',BX+50,580);
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

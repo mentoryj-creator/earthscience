@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>건층으로 지층 대비하기</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s17">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>건층을 찾아 지층을 대비해 봐요</div>
+            <div class="ppt-subtitle">네 지역에서 <span class="or">응회암층</span>을 눌러 연결하고, 가장 오래된·최근의 지층이 있는 지역을 찾아요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cL2" width="1060" height="610" style="cursor:pointer"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>문제</h4>
+                        <div class="sim-btns"><button class="sim-btn orange" id="bL2">새 문제</button><button class="sim-btn" id="bL2a">정답 보기</button></div>
+                    </div>
+                    <div class="sim-box key" id="oL2" style="font-size:23px"></div>
+                    <div class="sim-note">※ 가상의 지역이에요. 아래 지층일수록 먼저 쌓였고, 지층은 역전되지 않았다고 가정해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">지층은 언제, 어떤 순서로 만들어졌을까?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">01. 지층의 선후 관계와 암석의 나이</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px;">
+                    <img data-noimg="" style="width:100%;height:100%;object-fit:cover">
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">지사학의 법칙 · 상대연령과 지층 대비 · 절대연령</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">지층의 <span class="or">순서</span>와 암석의 <span class="or">나이</span>를 알아내는 방법을 배워요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div>지층 형성의 선후 관계를 결정짓는 법칙들을 활용하여 <b>상대연령</b>을 비교할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div><b>방사성 동위원소</b>를 이용해 암석의 <b>절대연령</b>을 구할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:700px;border-radius:16px;border:2px solid #e2e8f0">
+                    <div class="cap">방사성 동위원소의 붕괴 곡선</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: 책장의 책은 어떤 순서로 꽂혔을까?</div>
+            <div class="ppt-subtitle">지층의 생성 순서는 어떻게 알아낼까? 암석의 생성 시기도 알 수 있을까?</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:960px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q</span>책이 기울어지고 휘어진 책장을 보고 <b>무슨 일이 일어났는지</b> 추리할 수 있을까?</div>
+                    <div class="card" data-step="2">지층도 마찬가지예요. 쌓인 모양, 잘린 모양, 화석을 보면 <b>일어난 순서</b>를 추리할 수 있어요.</div>
+                    <div class="card key" data-step="3">순서(상대연령)를 넘어 <b>몇 년 전</b>인지(절대연령)도 알아낼 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s4">
+            <div class="ppt-title">“현재는 과거의 열쇠” : 동일과정의 원리</div>
+            <div class="ppt-subtitle">지금 일어나는 지각 변화는 과거에도 <span class="or">같은 과정과 속도</span>로 일어났다고 가정해요.</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <img data-noimg="" style="width:100%;height:440px;object-fit:cover;border-radius:18px">
+                <div class="cap" style="margin-top:-8px">영국, 하틀랜드 퀘이</div>
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="1" style="flex:1">지사학의 기본 원리 = <b>동일과정의 원리</b> (허턴, Hutton)</div>
+                    <div class="card key" data-step="2" style="flex:1.3">이를 바탕으로 <b>지사학의 법칙</b> 5가지를 이용해 지층 형성의 선후 관계를 결정해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">법칙 ① 수평퇴적의 법칙</div>
+            <div class="ppt-subtitle">퇴적물은 보통 <span class="or">수평</span>으로 퇴적된다.</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <img data-noimg="" style="width:100%;height:470px;object-fit:cover;object-position:50% 70%;border-radius:18px">
+                <div style="display:flex;gap:16px">
+                    <div class="card" data-step="1" style="flex:1">퇴적물은 <b>중력</b>의 영향을 받아 수평면과 나란하게 쌓여 지층을 만들어요.</div>
+                    <div class="card key" data-step="2" style="flex:1">지층이 <b>기울어져</b> 있거나 휘어져 있다면 → 생성된 이후 <b>지각 변동</b>을 받은 거예요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s6">
+            <div class="ppt-title">법칙 ② 지층 누중의 법칙</div>
+            <div class="ppt-subtitle">먼저 쌓인 지층이 나중에 쌓인 지층보다 <span class="or">아래</span>에 위치한다.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:900px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">새로운 퇴적물은 이전에 쌓였던 퇴적물 <b>위에 차곡차곡</b> 쌓여 지층이 돼요.</div>
+                    <div class="card key" data-step="2">→ 아래로 갈수록 <b>더 먼저</b> 퇴적된 지층</div>
+                    <div class="note" data-step="3">단, 지층이 <b>뒤집히지(역전) 않았을 때</b>만 적용할 수 있어요. (호주, 카리지니)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">법칙 ③ 관입의 법칙</div>
+            <div class="ppt-subtitle">관입한 암석은 관입당한 암석보다 <span class="or">나중에</span> 생성되었다.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:900px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">마그마가 주변 암석이나 지층의 <b>약한 틈</b>으로 관입하여 굳으면 주변 암석과 <b>뚜렷한 경계</b>를 이뤄요.</div>
+                    <div class="card soft" data-step="2">관입할 때의 <b>열</b>로 기존 암석이 <b>변성 작용</b>을 받은 부분이 나타날 수 있어요.</div>
+                    <div class="card key" data-step="3">사진: 어두운색 A 암석이 생긴 뒤 밝은색 B 암석이 관입 (경기도 화성 우음도)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s8">
+            <div class="ppt-title">법칙 ④ 부정합의 법칙</div>
+            <div class="ppt-subtitle">부정합면을 경계로 위아래 두 지층 사이에는 <span class="or">큰 시간 차이</span>가 있다.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:900px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">퇴적이 <b>중단</b>되거나, 먼저 쌓인 지층이 <b>풍화·침식</b>으로 깎여 나간 뒤 다시 지층이 쌓일 때 만들어져요.</div>
+                    <div class="card soft" data-step="2">부정합면 위아래 지층은 암석의 조성이나 <b>지질 구조</b>가 다른 경우가 많아요.</div>
+                    <div class="card key" data-step="3">Q. 위층과 아래층 사이에 긴 시간 간격이 있음을 알려 주는 법칙은? → <b>부정합의 법칙</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">법칙 ⑤ 동물군천이의 법칙</div>
+            <div class="ppt-subtitle">화석의 <span class="or">종류와 진화 정도</span>에 따라 지층의 생성 순서를 밝힐 수 있다.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:960px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">각 지층에는 <b>고유한 동물 화석군</b>이 있어요.</div>
+                    <div class="card" data-step="2">연속된 지층에서는 위로 갈수록 더 <b>복잡하고 진화된</b> 화석이 발견돼요.</div>
+                    <div class="card key" data-step="3">예) 암모나이트가 발견된 지층은 삼엽충이 발견된 지층보다 <b>나중에</b> 생긴 지층이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s10">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>지층의 역사를 직접 만들어 봐요</div>
+            <div class="ppt-subtitle">퇴적·기울이기·융기와 침식·관입을 차례로 일으키고, <span class="or">어떤 법칙</span>으로 순서를 알 수 있는지 확인해요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cL1" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>퇴적</h4>
+                        <div class="sim-btns"><button class="sim-btn" data-dep="2">사암</button><button class="sim-btn" data-dep="3">셰일</button><button class="sim-btn" data-dep="4">석회암</button><button class="sim-btn" data-dep="1">역암</button></div>
+                        <h4 style="margin-top:8px">지각 변동</h4>
+                        <div class="sim-btns"><button class="sim-btn" data-act="tilt">기울이기</button><button class="sim-btn" data-act="erode">융기·침식</button><button class="sim-btn" data-act="intrude">마그마 관입</button></div>
+                        <div class="sim-btns" style="margin-top:6px"><button class="sim-btn orange" data-act="reset">처음부터</button></div>
+                    </div>
+                    <div class="sim-box key" id="oL1" style="font-size:22px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s11">
+            <div class="ppt-title">상대연령: 무엇이 먼저이고 무엇이 나중일까?</div>
+            <div class="ppt-subtitle">지사학의 법칙으로 생성 시기와 사건의 <span class="or">선후 관계를 상대적으로</span> 나타낸 것</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>지층이 역전되지 않았다면 <b>아래쪽 지층</b>이 더 오래되었어요. (지층 누중)</div></div>
+                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div><b>관입당한 암석</b>이 관입한 암석보다 오래되었어요. (관입)</div></div>
+                <div class="card" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum">3</span><div><b>삼엽충</b> 화석이 나온 지층은 <b>암모나이트</b> 화석이 나온 지층보다 오래되었어요. (동물군천이)</div></div>
+                <div class="card key" data-step="4">생성 순서를 알면 과거에 일어난 <b>사건을 재구성</b>할 수 있어 지구의 역사를 연구하는 데 매우 중요해요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">해 보기) 지층의 생성 순서 파악하기</div>
+            <div class="ppt-subtitle">그림은 어느 지역의 지층 단면이에요. <span class="or">빈칸</span>을 눌러 순서를 완성해 봐요.</div>
+            <div class="main">
+                <img data-noimg="" style="width:1180px;flex:none;align-self:center;border-radius:14px;border:2px solid #e2e8f0">
+                <div class="card" style="font-size:27px;line-height:1.75;flex:1;align-self:center">암석 B 생성<br>→ 화성암 <span class="blank" style="min-width:60px">A</span> 관입<br>→ 부정합 <span class="blank" style="min-width:90px">P-Q</span> 형성<br>→ 지층 C와 D 퇴적<br>→ 지각 변동으로 지층 경사<br>→ 부정합 <span class="blank" style="min-width:90px">X-Y</span> 형성<br>→ 지층 <span class="blank" style="min-width:60px">E</span> 퇴적<br>→ 지층 F 퇴적</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s13">
+            <div class="ppt-title">해 보기) 어떤 법칙을 이용했을까?</div>
+            <div class="ppt-subtitle">지층 단면 속 <span class="or">지질학적 사건</span>을 순서대로 이야기해 봐요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1000px;flex:none"><img data-noimg="" style="width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card soft" data-step="1" style="font-size:26px"><span class="tag">지층 누중</span>C → D, E → F 순으로 쌓였어요.</div>
+                    <div class="card soft" data-step="2" style="font-size:26px"><span class="tag o">관입</span>암석 B에 마그마가 관입하여 A가 생겼어요.</div>
+                    <div class="card soft" data-step="3" style="font-size:26px"><span class="tag g">부정합</span>P-Q, X-Y 부정합면 위아래에는 큰 시간 간격이 있어요.</div>
+                    <div class="card key" data-step="4" style="font-size:26px">부정합 2번(융기·침강) + 지금 육지로 드러남 → 이 지역은 <b>적어도 3번 융기</b>했어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s14">
+            <div class="ppt-title">멀리 떨어진 지층은 어떻게 비교할까? 지층 대비</div>
+            <div class="ppt-subtitle">암석의 종류·특징, 화석을 이용해 지층의 상대연령을 알아내는 것 = <span class="or">지층 대비</span></div>
+            <div class="main" style="gap:24px">
+                <div class="gcard" data-step="1" style="font-size:31px;justify-content:center;gap:14px">
+                    <h3>🪨 암상에 의한 대비</h3>
+                    <div>암석의 <b>종류, 성분, 조직, 색, 지질 구조</b> 등을 비교</div>
+                    <div>비교적 <b>가까운</b> 거리의 지층 대비에 이용</div>
+                    <div>기준층 = <b>건층(열쇠층)</b>: 응회암층, 석탄층 등</div>
+                </div>
+                <div class="gcard orange" data-step="2" style="font-size:31px;justify-content:center;gap:14px">
+                    <h3>🐚 화석에 의한 대비</h3>
+                    <div>특정 시기에만 전 지구적으로 번성한 생물의 <b>화석</b>을 비교</div>
+                    <div>같은 화석 → <b>같은 시기</b>에 생성</div>
+                    <div>가까운 곳은 물론 <b>멀리 떨어진</b> 지층 대비에도 이용</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s15">
+            <div class="ppt-title">암상에 의한 대비: 건층을 찾아 연결해요</div>
+            <div class="ppt-subtitle">짧은 시간에 넓은 지역에 쌓인 <span class="or">응회암층</span>은 좋은 기준이 돼요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:820px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">응회암 = <b>화산재</b>가 굳어 생긴 암석 → 화산 분출 때 <b>넓은 지역에 동시에</b> 쌓여요.</div>
+                    <div class="card" data-step="2">석탄층도 육상식물이 번성한 지역에 넓게 분포해 건층으로 이용돼요.</div>
+                    <div class="card key" data-step="3">Q. 건층으로 응회암층이나 석탄층을 주로 이용하는 까닭은? → 다른 층과 <b>쉽게 구분</b>되고, <b>짧은 시간에 넓은 지역</b>에 쌓이기 때문</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">화석에 의한 대비: 같은 화석은 같은 시기</div>
+            <div class="ppt-subtitle">멀리 떨어진 지층이라도 <span class="or">같은 종류의 화석</span>이 나오면 같은 시기에 생성되었다고 판단해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:820px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">그림에서 점선은 <b>삼엽충</b> 화석이 나오는 지층을 연결한 것이에요.</div>
+                    <div class="card" data-step="2">삼엽충은 <b>고생대</b>에 번성한 생물 → 세 지역의 해당 지층은 같은 시기에 생성</div>
+                    <div class="card key" data-step="3">화석에 의한 대비는 가까운 거리뿐만 아니라 <b>멀리 떨어진</b> 지층의 대비에도 이용할 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s18">
+            <div class="ppt-title">탐구 활동 1) 암상에 의한 대비</div>
+            <div class="ppt-subtitle">비교적 가까운 A~D 지역의 지질 단면도에서 <span class="or">건층</span>을 찾아 연결해 봐요.</div>
+            <div class="main" style="flex-direction:column;align-items:center;gap:14px">
+                <img data-noimg="" style="width:1500px;max-width:100%;border-radius:14px;border:2px solid #e2e8f0">
+                <div style="display:flex;gap:16px;width:100%">
+                    <div class="card" data-step="1" style="flex:1">건층: <b>응회암층</b> → 응회암층을 기준으로 아래로 갈수록 오래된 지층</div>
+                    <div class="card key" data-step="2" style="flex:1">오래된 지층이 있는 지역부터: <b>B → A → D → C</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s19">
+            <div class="ppt-title">탐구 활동 2) 화석에 의한 대비</div>
+            <div class="ppt-subtitle">E~G 지역에서 <span class="or">같은 종류의 화석</span>이 나오는 지층을 연결해 봐요.</div>
+            <div class="main" style="flex-direction:column;align-items:center;gap:14px">
+                <img data-noimg="" style="width:1500px;max-width:100%;border-radius:14px;border:2px solid #e2e8f0">
+                <div style="display:flex;gap:16px;width:100%">
+                    <div class="card" data-step="1" style="flex:1">같은 화석(삼엽충, 고사리, 암모나이트, 화폐석)이 나오는 층끼리 점선으로 연결해요.</div>
+                    <div class="card key" data-step="2" style="flex:1">가장 최근에 퇴적된 지층이 있는 지역: <b>E 지역</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">절대연령: 정확히 몇 년 전에 생겼을까?</div>
+            <div class="ppt-subtitle">광물 속 <span class="or">방사성 동위원소의 반감기</span>를 이용해 구해요.</div>
+            <div class="main">
+                <div class="col" style="width:880px;flex:none;justify-content:center;align-items:center;gap:10px">
+                    <img data-noimg="" style="width:760px;border-radius:14px">
+                    <div class="cap">¹⁴C의 중성자 하나가 양성자로 변해 ¹⁴N이 돼요.</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:27px"><span class="tag">동위원소</span>양성자수는 같지만 <b>중성자수</b>가 달라 질량수가 다른 원소</div>
+                    <div class="card" data-step="2" style="font-size:27px"><span class="tag o">방사성 동위원소</span>스스로 붕괴해 안정한 원소로 바뀌는 동위원소 (모원소 → 자원소)</div>
+                    <div class="card key" data-step="3" style="font-size:27px">외부의 <b>온도나 압력과 관계없이</b> 항상 일정한 비율로 붕괴해요.</div>
+                    <div class="card soft" data-step="4" style="font-size:27px"><b>반감기</b>: 처음 양의 <b>절반</b>이 되는 데 걸리는 시간</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">방사성 동위원소마다 반감기가 달라요</div>
+            <div class="ppt-subtitle">암석의 나이에는 반감기가 <span class="or">긴</span> 원소, 수만 년 이내의 과거에는 <span class="or">¹⁴C</span>를 주로 이용해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:640px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">지질학: 반감기가 긴 <b>²³⁸U</b>(44.7억 년), <b>⁸⁷Rb</b>(492억 년) 등</div>
+                    <div class="card" data-step="2">고고학(수만 년 정도의 과거): <b>¹⁴C</b>(5730년)</div>
+                    <div class="card key" data-step="3">측정하려는 시간 규모에 맞는 반감기의 동위원소를 골라야 해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">반감기가 지날 때마다 모원소는 절반씩 줄어요</div>
+            <div class="ppt-subtitle">반감기 1회 → 1/2, 2회 → 1/4, 3회 → 1/8</div>
+            <div class="main">
+                <div class="col" style="width:1240px;flex:none;justify-content:center;align-items:center;gap:8px">
+                    <img data-noimg="" style="width:100%;border-radius:14px;border:2px solid #e2e8f0">
+                    <div class="cap">방사성 동위원소의 붕괴 곡선 (자료 출처: 『지사학』, 2012)</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card" data-step="1">1회 → 모원소 : 자원소 = <b>1 : 1</b></div>
+                    <div class="card" data-step="2">2회 → <b>1 : 3</b></div>
+                    <div class="card" data-step="3">3회 → <b>1 : 7</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s23">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>원자 100개의 붕괴를 지켜봐요</div>
+            <div class="ppt-subtitle">각 원자가 <span class="or">언제</span> 붕괴할지는 모르지만, 전체는 반감기마다 <span class="or">절반</span>씩 줄어요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cL3" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <div class="sim-btns"><button class="sim-btn on" id="bL3p">▶ 재생</button><button class="sim-btn" id="bL3s">반감기 1회 진행</button><button class="sim-btn orange" id="bL3r">새 광물</button></div>
+                        <div class="sim-row" style="margin-top:6px"><span class="lbl" style="width:90px">속도</span><input type="range" class="sim-range" id="rL3" min="0.1" max="1" step="0.05" value="0.35"></div>
+                    </div>
+                    <div class="sim-box key" id="oL3" style="font-size:24px"></div>
+                    <div class="sim-note">※ 개별 원자의 붕괴는 확률적으로 일어나도록 계산했어요. 실선은 이론 곡선(½)ⁿ이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s24">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>절대연령 계산기</div>
+            <div class="ppt-subtitle">모원소의 비율을 측정하면 → <span class="or">반감기 횟수</span> → <span class="or">절대연령</span></div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cL4" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>방사성 동위원소</h4>
+                        <div class="sim-btns"><button class="sim-btn on" data-iso="X">X (5000만 년)</button><button class="sim-btn" data-iso="U">²³⁸U</button><button class="sim-btn" data-iso="K">⁴⁰K</button><button class="sim-btn" data-iso="C">¹⁴C</button></div>
+                        <h4 style="margin-top:8px">모원소 : 자원소</h4>
+                        <div class="sim-btns"><button class="sim-btn" data-r="1">1 : 1</button><button class="sim-btn on" data-r="3">1 : 3</button><button class="sim-btn" data-r="7">1 : 7</button><button class="sim-btn" data-r="15">1 : 15</button></div>
+                        <div class="sim-row"><span class="lbl" style="width:130px">모원소 %</span><input type="range" class="sim-range" id="rL4" min="3" max="100" step="0.5" value="25"><span class="sim-val" id="vL4" style="min-width:90px"></span></div>
+                    </div>
+                    <div class="sim-box key" id="oL4" style="font-size:24px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s25">
+            <div class="ppt-title">절대연령은 암석마다 의미가 달라요</div>
+            <div class="ppt-subtitle">측정한 나이가 <span class="or">무엇이 일어난 시기</span>인지 생각해 봐요.</div>
+            <div class="main" style="gap:20px">
+                <div class="gcard" data-step="1" style="font-size:36px;justify-content:center"><h3>🌋 화성암</h3><div>마그마에서 <b>광물이 생성된 시기</b></div></div>
+                <div class="gcard" data-step="2" style="font-size:36px;justify-content:center"><h3>💎 변성암</h3><div><b>변성 작용을 받은 시기</b></div></div>
+                <div class="gcard orange" data-step="3" style="font-size:33px;justify-content:center"><h3>🏖 퇴적암</h3><div>여러 시기의 퇴적물이 섞여 있어 <b>정확히 측정하기 어려워요</b>.</div><div style="font-size:29px">→ 퇴적물이 기원한 화성암·변성암의 나이를 측정한 뒤 <b>생성 순서를 비교</b>하는 간접적인 방법</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s26">
+            <div class="ppt-title">탐구 활동) 지층과 암석의 절대연령 구하기</div>
+            <div class="ppt-subtitle">화성암 A와 E에 든 방사성 동위원소 X의 반감기는 <span class="or">5000만 년</span>이에요.</div>
+            <div class="main" style="flex-direction:column;align-items:center;gap:12px">
+                <img data-noimg="" style="width:1500px;max-width:100%;border-radius:14px;border:2px solid #e2e8f0">
+                <div style="display:flex;gap:14px;width:100%">
+                    <div class="card" data-step="1" style="flex:1;font-size:26px">① 생성 순서: A → 부정합 → B → C → D → <b>E 관입</b> → 부정합 → F</div>
+                    <div class="card" data-step="2" style="flex:1;font-size:26px">② E는 1 : 3 → 반감기 <b>2회</b> → <b>1억 년</b></div>
+                    <div class="card" data-step="3" style="flex:1;font-size:26px">③ A는 1 : 7 → 반감기 <b>3회</b> → <b>1억 5000만 년</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s27">
+            <div class="ppt-title">탐구 정리) 퇴적암 B, C, D는 언제 쌓였을까?</div>
+            <div class="ppt-subtitle">퇴적암의 나이는 <span class="or">앞뒤 화성암의 절대연령</span>으로 범위를 정해요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1040px;flex:none"><img data-noimg="" style="width:100%"></div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card" data-step="1" style="font-size:27px">B, C, D는 화성암 A(1억 5000만 년)보다 <b>나중</b>, 화성암 E(1억 년)보다 <b>먼저</b> 생성</div>
+                    <div class="card key" data-step="2" style="font-size:27px">→ <b>1억 5000만 년 전 ~ 1억 년 전</b> 사이에 퇴적</div>
+                    <div class="card soft" data-step="3" style="font-size:25px">사건 순서: A 형성 → 융기·침강(부정합) → B, C, D 퇴적 → E 관입 → 융기·침강(부정합) → F 퇴적 → 융기하여 육지로</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s28">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column; gap:20px">
+                <div style="display:flex; gap:22px; align-items:stretch">
+                    <div class="card" style="flex:1; font-size:28px; line-height:1.9"><h3 style="color:#2563eb">상대연령</h3>
+                        <div>지사학의 법칙: 수평퇴적, 지층 누중, 관입, <span class="blank" style="min-width:90px">부정합</span>, 동물군천이의 법칙</div>
+                        <div><span class="blank" style="min-width:200px">암상에 의한 대비</span>: 가까운 거리, 건층 이용</div>
+                        <div><span class="blank" style="min-width:200px">화석에 의한 대비</span>: 멀리 떨어진 지층도 가능</div></div>
+                    <div class="card" style="flex:1; font-size:28px; line-height:1.9"><h3 style="color:#ea580c">절대연령</h3>
+                        <div>방사성 동위원소의 <span class="blank" style="min-width:100px">반감기</span>를 이용하여 구함</div>
+                        <div>온도·압력과 <span class="blank" style="min-width:100px">관계없이</span> 일정한 비율로 붕괴</div>
+                        <div>모원소 : 자원소 = 1 : 7 → 반감기 <span class="blank" style="min-width:60px">3</span>회</div></div>
+                </div>
+                <div class="note" style="text-align:right">빈칸을 누르면 정답이 나타나요.</div>
+            </div>
+        </div>
+        <div class="slide-x" id="s29">
+            <div class="ppt-title">확인 문제</div>
+            <div class="ppt-subtitle">알맞은 답을 골라 보세요.</div>
+            <div class="main" style="flex-direction:column;justify-content:center;gap:16px">
+                <div class="card q" data-a="s"><div class="qrow">먼저 쌓인 지층이 나중에 쌓인 지층보다 아래에 위치한다. <button class="sim-btn" data-v="s">지층 누중의 법칙</button><button class="sim-btn" data-v="h">수평퇴적의 법칙</button><span class="res"></span></div></div>
+                <div class="card q" data-a="i"><div class="qrow">관입한 암석은 관입당한 암석보다 나중에 생성되었다. <button class="sim-btn" data-v="i">관입의 법칙</button><button class="sim-btn" data-v="u">부정합의 법칙</button><span class="res"></span></div></div>
+                <div class="card q" data-a="k"><div class="qrow">넓은 지역에 분포하여 지층 대비의 기준이 되는 층은? <button class="sim-btn" data-v="k">건층(열쇠층)</button><button class="sim-btn" data-v="b">기저 역암</button><span class="res"></span></div></div>
+                <div class="card q" data-a="h"><div class="qrow">방사성 동위원소가 붕괴하여 처음 양의 절반이 되는 데 걸리는 시간은? <button class="sim-btn" data-v="h">반감기</button><button class="sim-btn" data-v="a">절대연령</button><span class="res"></span></div></div>
+                <div class="card key" style="font-size:27px"><b>생각해 보기</b> 암석의 생성 시기를 연구하는 것은 왜 중요할까? 지구의 역사를 재구성하는 데 어떻게 쓰일지 이야기해 봐요.</div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ========== 암석 무늬 공통 ========== */
+const ROCK={0:null,
+ 1:{n:'역암',c:'#d6c7a1',p:'cg'},2:{n:'사암',c:'#f1d48a',p:'dot'},3:{n:'셰일',c:'#a7b8a0',p:'line'},4:{n:'석회암',c:'#a9c4dd',p:'brick'},
+ 5:{n:'화성암',c:'#f19aa5',p:'cross'},6:{n:'응회암',c:'#b9a7c9',p:'v'},7:{n:'이암',c:'#c9a98c',p:'dash'}};
+function rockCell(g,t,x,y,s,ox,oy,dark){const R=ROCK[t];g.fillStyle=R.c;g.fillRect(x,y,s,s);g.fillStyle=dark?'rgba(30,20,10,.75)':'rgba(60,50,40,.55)';
+  if(dark){g.fillStyle='rgba(60,30,20,.45)';g.fillRect(x,y,s,s);g.fillStyle='rgba(30,20,10,.7)';}
+  const q=s/5;
+  switch(R.p){
+    case 'dot': if(((ox*7+oy*13)%5)===0)g.fillRect(x+2*q,y+2*q,1.4*q,1.4*q);break;
+    case 'line': if(oy%3===0)g.fillRect(x,y+s-1.2*q,s,1.2*q);break;
+    case 'brick': if(oy%3===0)g.fillRect(x,y,s,1*q);else if(((ox+(Math.floor(oy/3)%2)*2)%4)===0)g.fillRect(x,y,1*q,s);break;
+    case 'cg': if((ox%3===1)&&(oy%3===1)){g.beginPath();g.arc(x+s/2,y+s/2,s*0.55,0,7);g.fill();}break;
+    case 'cross': if(((ox+oy*2)%5)===0){g.fillRect(x+2*q,y,1*q,s);g.fillRect(x,y+2*q,s,1*q);}break;
+    case 'v': if(((ox*3+oy*5)%4)===0){g.fillRect(x+q,y+q,1*q,2*q);g.fillRect(x+3*q,y+q,1*q,2*q);}break;
+    case 'dash': if(oy%3===1&&ox%3!==0)g.fillRect(x,y+2*q,s,1*q);break;
+  }
+}
+
+/* ========== SIM L1: 지층의 역사 만들기 ========== */
+(function(){
+  const c=document.getElementById('cL1'),g=c.getContext('2d'),W=1060,H=610,S=5,GW=W/S,GH=Math.floor((H-30)/S),N=GW*GH;
+  let T,E,F,OX,OY,eid,log,msg,tiltSum;
+  const LET='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function newA(){return {T:new Uint8Array(N),E:new Int16Array(N),F:new Uint8Array(N),OX:new Int16Array(N),OY:new Int16Array(N)};}
+  function reset(){const a=newA();T=a.T;E=a.E;F=a.F;OX=a.OX;OY=a.OY;eid=0;log=[];tiltSum=0;deposit(4,true);deposit(3,true);deposit(2,true);deposit(1,true);msg='<b>처음 상태</b>: 지층 A, B, C, D가 차례로 쌓였어요. 버튼을 눌러 사건을 일으켜 보세요.';draw();}
+  const id=(i,j)=>j*GW+i;
+  function topRow(i){for(let j=0;j<GH;j++)if(T[id(i,j)])return j;return GH;}
+  function minTop(){let m=GH;for(let i=0;i<GW;i++)m=Math.min(m,topRow(i));return m;}
+  function deposit(t,quiet){const th=17,L=minTop()-th;if(L<4){msg='⚠ 더 쌓을 공간이 없어요. <b>융기·침식</b>을 먼저 일으켜 보세요.';draw();return;}
+    const e=++eid;for(let i=0;i<GW;i++){const tr=topRow(i);for(let j=L;j<tr;j++){const k=id(i,j);T[k]=t;E[k]=e;F[k]=0;OX[k]=i;OY[k]=j;}}
+    log.push({e,txt:ROCK[t].n+' 퇴적',kind:'dep'});
+    if(!quiet){msg='<b>'+LET[e-1]+' '+ROCK[t].n+' 퇴적</b><br><span class="tag b">지층 누중의 법칙</span>나중에 쌓인 지층이 위에 놓여요.';draw();}}
+  function tilt(){if(Math.abs(tiltSum)>=30){msg='이미 충분히 기울어졌어요.';draw();return;}const th=(tiltSum>=0?1:-1)*10*Math.PI/180;tiltSum+=th>0?10:-10;
+    const a=newA(),cx=GW/2,cy=GH,cs=Math.cos(th),sn=Math.sin(th);
+    for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const x=i-cx,y=j-cy;const xu=Math.round(cs*x+sn*y+cx),yu=Math.round(-sn*x+cs*y+cy);if(yu<0)continue;const xs=Math.max(0,Math.min(GW-1,xu)),ys=Math.min(GH-1,yu);const s=id(xs,ys),k=id(i,j);a.T[k]=T[s];a.E[k]=E[s];a.F[k]=(xu===xs&&yu===ys)?F[s]:0;a.OX[k]=OX[s]+(xu-xs);a.OY[k]=OY[s]+(yu-ys);}
+    T=a.T;E=a.E;F=a.F;OX=a.OX;OY=a.OY;log.push({e:0,txt:'지각 변동으로 지층 기울어짐',kind:'tilt'});
+    msg='<b>지층이 기울어졌어요</b><br><span class="tag b">수평퇴적의 법칙</span>원래 수평으로 쌓였으니, 기울어진 것은 <b>퇴적 이후</b> 지각 변동을 받은 거예요.';draw();}
+  function erode(){const mt=minTop();if(mt>=GH-8){msg='침식할 지층이 거의 없어요. 먼저 퇴적시켜 보세요.';draw();return;}
+    const base=Math.min(GH-8,Math.max(mt+12,30)),p1=Math.random()*6,p2=Math.random()*6;
+    for(let i=0;i<GW;i++){const ye=Math.round(base+2.2*Math.sin(i/9+p1)+1.3*Math.sin(i/3.6+p2));for(let j=0;j<ye;j++){const k=id(i,j);T[k]=0;E[k]=0;F[k]=0;}const k=id(i,ye);if(T[k])F[k]|=1;}
+    log.push({e:0,txt:'융기 → 풍화·침식 → 침강 (부정합면 형성)',kind:'unc'});
+    msg='<b>융기·침식</b>: 지층이 깎여 나갔어요. 이제 새 지층을 쌓으면 <b>부정합</b>이 돼요.<br><span class="tag g">부정합의 법칙</span>부정합면(붉은 선) 위아래는 큰 시간 차이';draw();}
+  function intrude(){const e=++eid,cx=Math.round(GW*(0.3+0.4*Math.random())),tr=topRow(cx),stop=tr+4,ph=Math.random()*6;
+    if(stop>=GH-4){msg='관입할 지층이 없어요.';eid--;draw();return;}
+    for(let j=GH-1;j>=stop;j--){const xc=cx+2.5*Math.sin(j/7+ph),w=3.5*Math.min(1,(j-stop+1)/6)+0.5;for(let i=Math.floor(xc-w);i<=Math.ceil(xc+w);i++){if(i<0||i>=GW)continue;const k=id(i,j);if(T[k]){T[k]=5;E[k]=e;F[k]=0;OX[k]=i;OY[k]=j;}}}
+    for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const k=id(i,j);if(T[k]&&T[k]!==5){for(const d of [-2,-1,1,2]){const ii=i+d;if(ii>=0&&ii<GW&&T[id(ii,j)]===5&&E[id(ii,j)]===e){F[k]|=2;break;}}}}
+    log.push({e,txt:'마그마 관입 → 화성암',kind:'int'});
+    msg='<b>'+LET[e-1]+' 화성암 관입</b><br><span class="tag o">관입의 법칙</span>관입한 암석은 관입당한 지층보다 <b>나중</b>에 생겼어요. 경계의 어두운 부분 = 열에 의한 <b>변성</b>';draw();}
+  function draw(){g.clearRect(0,0,W,H);const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#e0f2fe');sky.addColorStop(1,'#f8fafc');g.fillStyle=sky;g.fillRect(0,0,W,GH*S);
+    for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const k=id(i,j),t=T[k];if(!t)continue;rockCell(g,t,i*S,j*S,S,OX[k],OY[k],F[k]&2);}
+    g.fillStyle='#b91c1c';for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const k=id(i,j);if(F[k]&1&&T[k]){g.fillRect(i*S,j*S-1,S,3);}}
+    // 지표 풀
+    g.fillStyle='#65a30d';for(let i=0;i<GW;i++){const tr=topRow(i);if(tr<GH)g.fillRect(i*S,tr*S-2,S,3);}
+    // 라벨
+    const sx={},sy={},cn={};for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const e=E[id(i,j)];if(!e)continue;sx[e]=(sx[e]||0)+i;sy[e]=(sy[e]||0)+j;cn[e]=(cn[e]||0)+1;}
+    for(const e in cn){if(cn[e]<25)continue;let x=sx[e]/cn[e],y=sy[e]/cn[e];if(T[id(Math.round(x),Math.round(y))]===0||E[id(Math.round(x),Math.round(y))]!=e){for(let k=0;k<N;k++)if(E[k]==e){x=k%GW;y=Math.floor(k/GW)+1;break;}}
+      g.fillStyle='rgba(255,255,255,.9)';g.beginPath();g.arc(x*S,y*S,17,0,7);g.fill();g.strokeStyle='#0f172a';g.lineWidth=2;g.stroke();g.fillStyle='#0f172a';g.font=SIM.font(22);g.textAlign='center';g.fillText(LET[e-1],x*S,y*S+8);}
+    // 범례
+    g.font=SIM.font(19);g.textAlign='left';let lx=10;[[2,'사암'],[3,'셰일'],[4,'석회암'],[1,'역암'],[5,'화성암']].forEach(([t,n])=>{for(let a=0;a<4;a++)for(let b=0;b<3;b++)rockCell(g,t,lx+a*5,GH*S+8+b*5,5,a,b,false);g.fillStyle='#334155';g.fillText(n,lx+26,GH*S+23);lx+=118;});
+    g.fillStyle='#b91c1c';g.fillRect(lx,GH*S+14,24,4);g.fillStyle='#334155';g.fillText('부정합면',lx+30,GH*S+23);lx+=130;g.fillStyle='rgba(60,30,20,.6)';g.fillRect(lx,GH*S+10,20,14);g.fillStyle='#334155';g.fillText('접촉 변성',lx+26,GH*S+23);
+    const st=Math.max(0,log.length-6);let h='<div>'+msg+'</div><div style="margin-top:8px;font-size:20px"><b>일어난 순서</b> (먼저 → 나중)'+(st?' · 최근 6개':'')+'</div><ol start="'+(st+1)+'" style="margin-left:30px;font-size:19px;line-height:1.4">';
+    log.slice(st).forEach(l=>{h+='<li>'+(l.e?'<b>'+LET[l.e-1]+'</b> ':'')+l.txt+'</li>';});h+='</ol>';document.getElementById('oL1').innerHTML=h;}
+  document.querySelectorAll('#s10 [data-dep]').forEach(b=>b.onclick=()=>deposit(+b.dataset.dep));
+  document.querySelectorAll('#s10 [data-act]').forEach(b=>b.onclick=()=>({tilt,erode,intrude,reset})[b.dataset.act]());
+  reset();
+})();
+
+/* ========== SIM L2: 건층 연결하기 ========== */
+(function(){
+  const c=document.getElementById('cL2'),g=c.getContext('2d'),W=1060,H=610;
+  const MASTER=[1,2,3,4,6,2,7,4,3]; const TUFF=4; // 아래(오래됨) → 위
+  const XS=[60,320,580,840],CWd=180,BOT=525;let cols,found,shown;
+  function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+  function gen(){let ok=false;while(!ok){cols=XS.map(()=>{const s=rnd(0,3),e=rnd(5,8);const th=[];for(let k=s;k<=e;k++)th.push(k===TUFF?26:rnd(44,62));return {s,e,th};});
+      const ss=cols.map(c=>c.s),ee=cols.map(c=>c.e);const mn=Math.min(...ss),mx=Math.max(...ee);ok=ss.filter(v=>v===mn).length===1&&ee.filter(v=>v===mx).length===1&&cols.every(c=>c.th.reduce((a,b)=>a+b,0)<480);}
+    found=[false,false,false,false];shown=false;out('각 지역에서 <b>응회암층</b>(보라색, ∨ 무늬)을 눌러 보세요.');}
+  function layers(ci){const cc=cols[ci];let y=BOT;const L=[];for(let k=cc.s;k<=cc.e;k++){const h=cc.th[k-cc.s];L.push({k,t:MASTER[k],y0:y-h,y1:y});y-=h;}return L;}
+  function out(m){const done=found.every(v=>v);let h='<div>'+m+'</div>';
+    if(done||shown){const ss=cols.map(c=>c.s),ee=cols.map(c=>c.e);const o=ss.indexOf(Math.min(...ss)),r=ee.indexOf(Math.max(...ee));
+      h+='<div style="margin-top:8px">가장 <b>오래된</b> 지층이 있는 지역: <span class="sim-big" style="font-size:30px">'+'가나다라'[o]+'</span></div><div>가장 <b>최근</b> 지층이 있는 지역: <span class="sim-big" style="font-size:30px">'+'가나다라'[r]+'</span></div><div class="sim-note">건층 아래에 지층이 더 많이(더 깊이) 남아 있는 지역일수록 더 오래된 지층이 있어요.</div>';}
+    document.getElementById('oL2').innerHTML=h;}
+  c.addEventListener('pointerdown',e=>{const p=SIM.pos(e,c);XS.forEach((x,ci)=>{if(p.x<x||p.x>x+CWd)return;layers(ci).forEach(l=>{if(p.y>=l.y0&&p.y<=l.y1){if(l.k===TUFF){found[ci]=true;out(found.every(v=>v)?'🎉 모두 찾았어요! 점선이 같은 시기에 쌓인 층을 이어요.':'⭕ 응회암층이에요! 다른 지역도 찾아보세요.');}else out('❌ '+ROCK[l.t].n+'층이에요. 응회암층을 찾아보세요.');}});});});
+  document.getElementById('bL2').onclick=gen;document.getElementById('bL2a').onclick=()=>{found=[true,true,true,true];shown=true;out('정답을 표시했어요.');};
+  gen();
+  SIM.loop('s17',(tm)=>{g.clearRect(0,0,W,H);g.fillStyle='#f8fafc';g.fillRect(0,0,W,H);
+    const tl=[];
+    XS.forEach((x,ci)=>{const L=layers(ci);L.forEach(l=>{const h=l.y1-l.y0;for(let yy=0;yy<h;yy+=5)for(let xx=0;xx<CWd;xx+=5)rockCell(g,l.t,x+xx,l.y0+yy,5,xx/5,Math.round((l.y0+yy)/5),false);g.strokeStyle='#475569';g.lineWidth=1;g.strokeRect(x,l.y0,CWd,h);
+        if(l.k===TUFF){tl[ci]=l;if(found[ci]){g.strokeStyle='#7c3aed';g.lineWidth=5;g.strokeRect(x-2,l.y0-2,CWd+4,h+4);}}});
+      const top=L[L.length-1].y0;g.fillStyle='#65a30d';g.fillRect(x-6,top-8,CWd+12,8);
+      g.fillStyle='#0f172a';g.font=SIM.font(24);g.textAlign='center';g.fillText('('+'가나다라'[ci]+') 지역',x+CWd/2,BOT+34);});
+    if(found.every(v=>v)){g.strokeStyle='#7c3aed';g.lineWidth=3;g.setLineDash([10,7]);g.lineDashOffset=-tm/40;for(let ci=0;ci<3;ci++){const a=tl[ci],b=tl[ci+1];g.beginPath();g.moveTo(XS[ci]+CWd,a.y0);g.lineTo(XS[ci+1],b.y0);g.moveTo(XS[ci]+CWd,a.y1);g.lineTo(XS[ci+1],b.y1);g.stroke();}g.setLineDash([]);}
+    g.font=SIM.font(20);g.textAlign='left';let lx=30;[[1,'역암'],[2,'사암'],[3,'셰일'],[4,'석회암'],[6,'응회암'],[7,'이암']].forEach(([t,n])=>{for(let a=0;a<5;a++)for(let b=0;b<3;b++)rockCell(g,t,lx+a*5,572+b*5,5,a,b,false);g.strokeStyle='#94a3b8';g.strokeRect(lx,572,25,15);g.fillStyle='#334155';g.fillText(n,lx+32,588);lx+=170;});
+  });
+})();
+
+/* ========== SIM L3: 원자 100개의 붕괴 ========== */
+(function(){
+  const c=document.getElementById('cL3'),g=c.getContext('2d'),W=1060,H=610;let tdec,t=0,play=true,target=null,hist=[];
+  const r=document.getElementById('rL3');
+  function reset(){tdec=[];for(let i=0;i<100;i++)tdec.push(-Math.log(1-Math.random())/Math.LN2);t=0;hist=[[0,100]];target=null;}
+  reset();
+  document.getElementById('bL3p').onclick=e=>{play=!play;e.target.textContent=play?'⏸ 정지':'▶ 재생';e.target.classList.toggle('on',play);};
+  document.getElementById('bL3p').textContent='⏸ 정지';
+  document.getElementById('bL3s').onclick=()=>{target=Math.floor(t+1e-6)+1;play=true;const b=document.getElementById('bL3p');b.textContent='⏸ 정지';b.classList.add('on');};
+  document.getElementById('bL3r').onclick=reset;
+  SIM.loop('s23',(tm,dt)=>{
+    if(play&&t<5){t+=dt*(+r.value);if(target!=null&&t>=target){t=target;target=null;play=false;const b=document.getElementById('bL3p');b.textContent='▶ 재생';b.classList.remove('on');}
+      const n=tdec.filter(v=>v>t).length;if(!hist.length||t-hist[hist.length-1][0]>0.03)hist.push([t,n]);}
+    if(t>=5)t=5;
+    const P=tdec.filter(v=>v>t).length;
+    g.clearRect(0,0,W,H);
+    // 원자 격자
+    g.fillStyle='#334155';g.font=SIM.font(24);g.textAlign='center';g.fillText('광물 속 방사성 원자 100개',245,40);
+    for(let i=0;i<100;i++){const x=60+(i%10)*40,y=80+Math.floor(i/10)*40,alive=tdec[i]>t;g.fillStyle=alive?'#84cc16':'#7c3aed';g.beginPath();g.arc(x,y,15,0,7);g.fill();if(!alive&&t-tdec[i]<0.15){g.strokeStyle='#facc15';g.lineWidth=4;g.beginPath();g.arc(x,y,15+(t-tdec[i])*80,0,7);g.stroke();}}
+    g.fillStyle='#84cc16';g.beginPath();g.arc(80,520,12,0,7);g.fill();g.fillStyle='#334155';g.textAlign='left';g.font=SIM.font(24);g.fillText('모원소 '+P,100,529);
+    g.fillStyle='#7c3aed';g.beginPath();g.arc(260,520,12,0,7);g.fill();g.fillStyle='#334155';g.fillText('자원소 '+(100-P),280,529);
+    // 그래프
+    const GX=540,GY=60,GW2=480,GH2=440;g.strokeStyle='#cbd5e1';g.lineWidth=1;for(let k=0;k<=5;k++){const x=GX+k*GW2/5;g.beginPath();g.moveTo(x,GY);g.lineTo(x,GY+GH2);g.stroke();}
+    [0,25,50,75,100].forEach(v=>{const y=GY+GH2-v/100*GH2;g.beginPath();g.moveTo(GX,y);g.lineTo(GX+GW2,y);g.stroke();g.fillStyle='#334155';g.font=SIM.font(20,false);g.textAlign='right';g.fillText(v,GX-8,y+6);});
+    for(let k=0;k<=5;k++){g.textAlign='center';g.fillText(k,GX+k*GW2/5,GY+GH2+26);}
+    g.font=SIM.font(21);g.fillText('반감기 횟수 (회)',GX+GW2/2,GY+GH2+48);g.save();g.translate(GX-52,GY+GH2/2);g.rotate(-Math.PI/2);g.fillText('모원소 수 (개)',0,0);g.restore();
+    g.strokeStyle='#dc2626';g.lineWidth=3;g.beginPath();for(let k=0;k<=100;k++){const tt=k/20,x=GX+tt*GW2/5,y=GY+GH2-100*Math.pow(0.5,tt)/100*GH2;k?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();
+    g.fillStyle='#16a34a';hist.forEach(([tt,n])=>{g.beginPath();g.arc(GX+tt*GW2/5,GY+GH2-n/100*GH2,3.5,0,7);g.fill();});
+    g.strokeStyle='#0f172a';g.lineWidth=2;g.setLineDash([5,5]);const cx=GX+t*GW2/5;g.beginPath();g.moveTo(cx,GY);g.lineTo(cx,GY+GH2);g.stroke();g.setLineDash([]);
+    const ratio=P>0?(100-P)/P:Infinity;
+    document.getElementById('oL3').innerHTML='<div>경과: 반감기 <span class="sim-big">'+t.toFixed(2)+'</span> 회</div><div>모원소 <b style="color:#65a30d">'+P+'</b> : 자원소 <b style="color:#7c3aed">'+(100-P)+'</b></div><div>이론값: 모원소 '+(100*Math.pow(0.5,t)).toFixed(1)+'개</div><div style="font-size:20px;margin-top:6px">초록 점(실제 개수)이 붉은 이론 곡선 근처에서 흩어지는 것은 붕괴가 <b>확률적</b>이기 때문이에요. 원자 수가 많을수록 곡선에 더 가까워져요.</div>';
+  });
+})();
+
+/* ========== SIM L4: 절대연령 계산기 ========== */
+(function(){
+  const c=document.getElementById('cL4'),g=c.getContext('2d'),W=1060,H=610;
+  const ISO={X:{n:'X',d:'',T:0.5,u:'억 년'},U:{n:'²³⁸U',d:'²⁰⁶Pb',T:44.7,u:'억 년'},K:{n:'⁴⁰K',d:'⁴⁰Ar',T:12.7,u:'억 년'},C:{n:'¹⁴C',d:'¹⁴N',T:5730,u:'년'}};
+  let iso='X',P=25,cur=25;const r=document.getElementById('rL4');
+  function fmt(v,u){if(u==='년')return Math.round(v).toLocaleString()+' 년';if(v<1)return (v*10000).toFixed(0)+'만 년';const e=Math.floor(v),m=Math.round((v-e)*10000);return (e?e+'억 ':'')+(m?m+'만 ':'')+'년';}
+  function out(){r.value=P;document.getElementById('vL4').textContent=P.toFixed(1)+'%';document.querySelectorAll('#s24 [data-iso]').forEach(b=>b.classList.toggle('on',b.dataset.iso===iso));
+    document.querySelectorAll('#s24 [data-r]').forEach(b=>b.classList.toggle('on',Math.abs(100/(1+ +b.dataset.r)-P)<0.3));
+    const I=ISO[iso],n=Math.log2(100/P),age=n*I.T,D=100-P;
+    document.getElementById('oL4').innerHTML='<div>모원소 : 자원소 = 1 : <b>'+(D/P).toFixed(2)+'</b></div><div>반감기 횟수 n = log₂(100 / '+P.toFixed(1)+') = <b>'+n.toFixed(2)+'</b> 회</div><div>반감기 '+(I.u==='년'?I.T.toLocaleString()+'년':fmt(I.T,I.u))+' × '+n.toFixed(2)+'</div><div>절대연령 ≈ <span class="sim-big">'+fmt(age,I.u)+'</span></div>';}
+  r.oninput=e=>{P=+e.target.value;out();};
+  document.querySelectorAll('#s24 [data-iso]').forEach(b=>b.onclick=()=>{iso=b.dataset.iso;out();});
+  document.querySelectorAll('#s24 [data-r]').forEach(b=>b.onclick=()=>{P=100/(1+ +b.dataset.r);out();});
+  out();
+  SIM.loop('s24',(tm,dt)=>{cur+=(P-cur)*Math.min(1,dt*8);g.clearRect(0,0,W,H);const I=ISO[iso];
+    const GX=110,GY=50,GW=880,GH=420,NM=5;
+    g.strokeStyle='#e2e8f0';g.lineWidth=1;for(let k=0;k<=NM;k++){const x=GX+k*GW/NM;g.beginPath();g.moveTo(x,GY);g.lineTo(x,GY+GH);g.stroke();}
+    [0,12.5,25,50,75,100].forEach(v=>{const y=GY+GH-v/100*GH;g.beginPath();g.moveTo(GX,y);g.lineTo(GX+GW,y);g.stroke();g.fillStyle='#334155';g.font=SIM.font(20,false);g.textAlign='right';g.fillText(v,GX-8,y+6);});
+    g.textAlign='center';for(let k=0;k<=NM;k++){g.fillStyle='#334155';g.font=SIM.font(21);g.fillText(k+'회',GX+k*GW/NM,GY+GH+26);g.font=SIM.font(17,false);g.fillStyle='#64748b';g.fillText(fmt(k*I.T,I.u),GX+k*GW/NM,GY+GH+46);}
+    g.save();g.translate(GX-66,GY+GH/2);g.rotate(-Math.PI/2);g.font=SIM.font(21);g.fillStyle='#334155';g.fillText('모원소의 비율 (%)',0,0);g.restore();
+    g.strokeStyle='#dc2626';g.lineWidth=4;g.beginPath();for(let k=0;k<=200;k++){const n=k/200*NM,x=GX+n*GW/NM,y=GY+GH-100*Math.pow(0.5,n)/100*GH;k?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();
+    const n=Math.log2(100/cur),px=GX+Math.min(NM,n)*GW/NM,py=GY+GH-cur/100*GH;
+    g.strokeStyle='#2563eb';g.lineWidth=2;g.setLineDash([7,6]);g.beginPath();g.moveTo(GX,py);g.lineTo(px,py);g.lineTo(px,GY+GH);g.stroke();g.setLineDash([]);
+    g.fillStyle='#2563eb';g.beginPath();g.arc(px,py,10,0,7);g.fill();
+    g.fillStyle='#0f172a';g.font=SIM.font(24);g.textAlign='left';g.fillText('n = '+n.toFixed(2)+'회',Math.min(px+14,GX+GW-120),py-14);
+    // 막대(모원소/자원소)
+    const bx=GX,by=GY+GH+70,bw=GW;g.fillStyle='#84cc16';g.fillRect(bx,by,bw*cur/100,30);g.fillStyle='#7c3aed';g.fillRect(bx+bw*cur/100,by,bw*(1-cur/100),30);
+    g.fillStyle='#fff';g.font=SIM.font(21);g.textAlign='left';if(cur>12)g.fillText('모원소 '+I.n,bx+10,by+22);g.textAlign='right';if(cur<88)g.fillText('자원소 '+(I.d||''),bx+bw-10,by+22);
+  });
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>

@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중위도 저기압이 지나가면</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+        button, input { font-family: 'Gowun Dodum', sans-serif; }
+        p, h3, figure { margin: 0; }
+        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
+        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
+        .slide.active { display: flex; }
+
+        /* 표지 (03~05단원과 동일) */
+        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
+        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+
+        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
+        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
+        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
+        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+
+        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
+        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
+        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
+        #fullscreen-btn:hover { background-color: #1e293b; }
+
+        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
+        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
+        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
+        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .grow { flex: 1; min-width: 0; }
+        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
+        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
+        .card.key { background: #fff7ed; border-color: #fdba74; }
+        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
+        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
+        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
+        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
+        .hl { color: #2563eb; font-weight: bold; }
+        .or { color: #ea580c; font-weight: bold; }
+        .ppt-subtitle .or { color: #ea580c; }
+        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
+        .look.o { background: #ea580c; }
+        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
+        figure { position: relative; }
+        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
+        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
+        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
+        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
+        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
+        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
+        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
+        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
+        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
+        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
+        .blank.on { color: #ea580c; border-bottom-style: solid; }
+        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
+        .barrow .bl { width: 340px; }
+        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
+        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
+        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
+        .qrow { display: flex; align-items: center; gap: 16px; }
+        .q { font-size: 32px; padding: 18px 28px; }
+        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
+        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
+        .q .why { margin-top: 6px; font-size: 26px; }
+        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
+        .sim-btn.tool { border-color: var(--c); color: var(--c); }
+        .sim-row span { font-size: 26px; }
+        .pulse { animation: pulse 1.4s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
+        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
+        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
+        svg [data-step] { transform: none !important; }
+        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .slide.active .ppt-title { animation: rise .6s both; }
+        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+        .slide.active .main { animation: rise .6s .2s both; }
+
+        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
+        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .sim-stage canvas { display: block; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
+        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box p, .sim-box div { margin: 0; }
+        .sim-box.key h4 { color: #c2410c; }
+        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
+        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btn:hover { background: #e2e8f0; }
+        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
+        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
+        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+
+        /* ===== 3.01 / 3.02 추가 요소 ===== */
+        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
+        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
+        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
+        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
+        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
+        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
+        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
+        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
+        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
+        .flow { display: flex; flex-direction: column; gap: 14px; }
+        .flow .card { display: flex; align-items: center; gap: 20px; }
+        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
+        .ans { color: #dc2626; font-weight: 800; }
+        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* ===== 1단원 추가 요소 ===== */
+        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
+        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
+        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
+        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
+        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
+        #toc.on { display: flex; }
+        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
+        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
+        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
+        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
+        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
+        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
+        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
+        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
+        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
+        .imgbox.tight { padding: 6px; }
+        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
+        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
+        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
+        .qa { font-size: 29px; }
+        .qa .a { color: #c2410c; font-weight: bold; }
+        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
+        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
+        .row { display: flex; gap: 24px; }
+        svg text { font-family: 'Gowun Dodum', sans-serif; }
+        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
+        @keyframes drawline { to { stroke-dashoffset: 0; } }
+        .float { animation: floaty 3s ease-in-out infinite; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat .tag { align-self: flex-start; }
+        .stat { font-size: 30px; }
+        .stat .cnt { font-size: 96px; }
+        .sim-stage { align-self: flex-start; }
+
+        /* 그림 크게 보기 */
+        .slide img.zoomable { cursor: zoom-in; }
+        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
+        #zoom.on { display: flex; animation: zin .2s ease; }
+        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
+        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+<style>
+            .slide-x{display:none!important}
+            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
+        </style>
+<style id="standalone">
+  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
+  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
+    overflow: hidden !important; display: block !important; background: #ffffff; }
+  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
+    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
+    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
+  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+    padding: 34px 60px 40px 60px !important; }
+  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
+  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
+  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  .slide-x { display: none !important; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<div class="slide sim-slide active" id="s15">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>중위도 저기압이 우리 동네를 지나가면?</div>
+            <div class="ppt-subtitle">저기압이 서쪽에서 동쪽으로 지날 때 관측소의 <span class="or">기압·기온·풍향</span>을 기록해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cL" width="1060" height="610"></canvas></div>
+                <div class="sim-panel" style="gap:12px">
+                    <div class="sim-box blue">
+                        <h4>관측소 위치</h4>
+                        <div class="sim-btns"><button class="sim-btn on" data-st="s">남쪽 (전선 통과)</button><button class="sim-btn" data-st="n">북쪽 (중심 북쪽)</button></div>
+                        <div class="sim-btns" style="margin-top:10px"><button class="sim-btn orange on" id="bL">❚❚ 멈춤</button><button class="sim-btn" id="bL2">↺ 처음부터</button></div>
+                    </div>
+                    <div class="sim-box key" id="oL" style="font-size:25px;min-height:230px"></div>
+                    <div class="sim-note">※ 교과서 그림 21의 날씨 변화를 단순화한 모형이에요. 그래프 값은 개념 이해용이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x cover-slide" id="s1">
+            <div class="cover-card">
+                <div class="ppt-title" style="font-size: 70px;">맑던 하늘에 왜 갑자기 비가 올까?</div>
+                <div class="ppt-subtitle" style="font-size: 50px;">03. 기압과 날씨의 변화</div>
+                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px; background:linear-gradient(180deg,#bae6fd,#e0f2fe);">
+                    <div style="display:flex; gap:36px; align-items:center;">
+                        <img data-noimg="" style="height:400px;border-radius:16px;border:4px solid rgba(255,255,255,.9)">
+                        <img data-noimg="" style="height:400px;border-radius:16px;border:4px solid rgba(255,255,255,.9)">
+                    </div>
+                </div>
+                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">중위도 저기압과 고기압, 일기도·위성·레이더로 날씨를 읽다</p>
+            </div>
+        </div>
+        <div class="slide-x" id="s2">
+            <div class="ppt-title">오늘의 학습 목표</div>
+            <div class="ppt-subtitle">오늘은 <span class="or">저기압과 고기압</span>이 지날 때의 날씨를 예측해 봐요.</div>
+            <div class="main">
+                <div class="col" style="width:1000px; justify-content:center">
+                    <div class="card goal" data-step="1"><span class="gnum">1</span><div><b>중위도 저기압</b>의 구조와 생성 과정을 설명할 수 있다.</div></div>
+                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>중위도 저기압과 고기압이 통과할 때의 날씨 변화를 <b>일기도, 위성 영상, 레이더 영상</b>을 종합하여 예측할 수 있다.</div></div>
+                </div>
+                <div class="col grow" style="justify-content:center; align-items:center">
+                    <img data-noimg="" style="width:520px;border-radius:16px">
+                    <div class="cap">지표 부근의 기온 분포 (2023년 4월 29일)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s3">
+            <div class="ppt-title">생각 열기: “오늘은 쨍쨍한데, 오후에 비가 온대!”</div>
+            <div class="ppt-subtitle">날씨는 하루, 이틀 사이에도 <span class="or">왜 이렇게 변할까요?</span></div>
+            <div class="main">
+                <div class="imgbox" style="width:640px"><img data-noimg="" style="max-height:620px"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1"><span class="look">Q1</span>때로는 <b>수 시간 만에 기온이 크게 떨어지는</b> 까닭은 무엇일까?</div>
+                    <div class="card soft" data-step="2"><span class="look">Q2</span>일기 예보를 활용할 때 고려해야 할 점은 무엇일까?</div>
+                    <div class="card key" data-step="3">기압 분포는 날씨 변화를 일으키는 중요한 요인이에요. <b>고기압</b>의 영향 → 대체로 <b>맑음</b>, <b>저기압</b>의 영향 → <b>흐리거나 비</b>. 우리나라는 <b>편서풍</b> 때문에 서쪽에서 동쪽으로 이동하는 기압계의 영향을 받아요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s4">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>저기압은 흐리고, 고기압은 맑은 까닭</div>
+            <div class="ppt-subtitle">북반구에서 바람이 부는 방향과 <span class="or">공기의 상승·하강</span>을 관찰해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cN" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue"><h4>보기</h4><div class="sim-btns"><button class="sim-btn on" id="bN1">위에서 본 모습</button><button class="sim-btn" id="bN2">옆에서 본 모습</button></div></div>
+                    <div class="sim-box" style="font-size:26px"><div><b class="hl">저기압</b>: 바람이 <b>시계 반대 방향</b>으로 불어 들어와 <b>수렴</b> → <b>상승 기류</b> → 구름·비</div><div style="margin-top:8px"><b class="or">고기압</b>: 바람이 <b>시계 방향</b>으로 불어 나가 <b>발산</b> → <b>하강 기류</b> → 맑고 바람 약함</div></div>
+                    <div class="sim-box key" style="font-size:25px">고기압이 발달한 지역은 맑고 바람이 약해 <b>기단의 발원지</b>가 되기도 해요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s5">
+            <div class="ppt-title">중위도: 찬 공기와 따뜻한 공기가 만나는 곳</div>
+            <div class="ppt-subtitle">전선을 동반한 저기압을 <span class="or">중위도 저기압</span>이라고 해요.</div>
+            <div class="main">
+                <div class="col" style="width:640px;align-items:center;justify-content:center">
+                    <img data-noimg="" style="width:500px;border-radius:16px">
+                    <div class="cap">지표 부근의 기온 분포 (2023.4.29.) 파랑 = 차가움, 빨강 = 따뜻함</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">북쪽의 <b class="hl">찬 공기</b>가 남하하면서 남쪽의 <b class="or">따뜻한 공기</b>와 만나 <b>파동처럼</b> 보이는 흐름이 생겨요.</div>
+                    <div class="card soft" data-step="2">이때 하층에 <b>시계 반대 방향</b>의 바람이 부는 저기압이 생성돼요. 이 중 <b>전선을 동반한</b> 저기압 = <b>중위도 저기압</b></div>
+                    <div class="card key" data-step="3">중위도 저기압은 <b>생성 → 발달 → 소멸</b> 단계를 거치며 <b>동쪽으로 이동</b>해요. 따뜻한 공기는 북쪽, 찬 공기는 남쪽으로 → 열을 북쪽으로 수송!</div>
+                    <div class="note" data-step="3">우리나라는 몽골·동중국에서 발생한 저기압이 주로 통과하며, 봄철에 가장 자주(월 4~5회) 영향을 받아요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s6">
+            <div class="ppt-title">일기도의 전선 기호 익히기</div>
+            <div class="ppt-subtitle">전선 = 밀도(기온)가 다른 두 <span class="or">기단의 경계</span></div>
+            <div class="main" style="flex-direction:column;gap:18px;justify-content:center">
+                <div class="row">
+                    <div class="gcard" data-step="1"><svg viewBox="0 0 400 70" width="100%" height="70"><path d="M10 50 H390" stroke="#dc2626" stroke-width="6"/><g fill="#dc2626"><path d="M40 50 a20 20 0 0 1 40 0Z"/><path d="M140 50 a20 20 0 0 1 40 0Z"/><path d="M240 50 a20 20 0 0 1 40 0Z"/><path d="M340 50 a20 20 0 0 1 40 0Z"/></g></svg><h3 style="color:#dc2626">온난 전선</h3><div>따뜻한 공기가 찬 공기를 <b>타고 오름</b></div></div>
+                    <div class="gcard" data-step="2"><svg viewBox="0 0 400 70" width="100%" height="70"><path d="M10 50 H390" stroke="#2563eb" stroke-width="6"/><g fill="#2563eb"><path d="M40 50 L60 14 L80 50Z"/><path d="M140 50 L160 14 L180 50Z"/><path d="M240 50 L260 14 L280 50Z"/><path d="M340 50 L360 14 L380 50Z"/></g></svg><h3 style="color:#2563eb">한랭 전선</h3><div>찬 공기가 따뜻한 공기를 <b>밀어 올림</b></div></div>
+                </div>
+                <div class="row">
+                    <div class="gcard" data-step="3"><svg viewBox="0 0 400 70" width="100%" height="70"><path d="M10 50 H390" stroke="#7c3aed" stroke-width="6"/><g fill="#7c3aed"><path d="M30 50 a18 18 0 0 1 36 0Z"/><path d="M90 50 L108 16 L126 50Z"/><path d="M150 50 a18 18 0 0 1 36 0Z"/><path d="M210 50 L228 16 L246 50Z"/><path d="M270 50 a18 18 0 0 1 36 0Z"/><path d="M330 50 L348 16 L366 50Z"/></g></svg><h3 style="color:#7c3aed">폐색 전선</h3><div>빠른 한랭 전선이 온난 전선을 <b>따라잡아</b> 겹침</div></div>
+                    <div class="gcard" data-step="4"><svg viewBox="0 0 400 80" width="100%" height="70"><path d="M10 40 H390" stroke="#334155" stroke-width="6"/><g><path d="M30 40 a18 18 0 0 1 36 0Z" fill="#dc2626"/><path d="M90 40 L108 74 L126 40Z" fill="#2563eb"/><path d="M150 40 a18 18 0 0 1 36 0Z" fill="#dc2626"/><path d="M210 40 L228 74 L246 40Z" fill="#2563eb"/><path d="M270 40 a18 18 0 0 1 36 0Z" fill="#dc2626"/><path d="M330 40 L348 74 L366 40Z" fill="#2563eb"/></g></svg><h3 style="color:#334155">정체 전선</h3><div>두 기단의 세력이 비슷해 <b>거의 머무름</b> (장마 전선)</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s7">
+            <div class="ppt-title">중위도 저기압의 생성, 발달, 소멸</div>
+            <div class="ppt-subtitle">우리나라 주변을 지나며 <span class="or">①~⑥ 단계</span>를 거쳐요.</div>
+            <div class="main" style="flex-direction:column;gap:12px">
+                <div class="imgbox tight" style="height:250px"><img data-noimg="" style="max-height:236px"></div>
+                <div class="row" style="flex:1;min-height:0">
+                    <div class="imgbox tight" style="flex:1.1"><img data-noimg="" style="max-height:370px"></div>
+                    <div class="imgbox tight" style="flex:1"><img data-noimg="" style="max-height:370px"></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s8">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>중위도 저기압의 일생 따라가기</div>
+            <div class="ppt-subtitle">단계를 움직이며 <span class="or">전선과 바람, 강수 구역</span>의 변화를 관찰해 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage light"><canvas id="cK" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>단계</h4>
+                        <div class="sim-row"><input type="range" class="sim-range" id="rK" min="1" max="6" step="0.01" value="1"><span class="sim-val" id="vK" style="min-width:90px"></span></div>
+                        <div class="sim-btns"><button class="sim-btn on" id="bK">▶ 자동 재생</button><button class="sim-btn" id="bK2">강수 구역</button></div>
+                    </div>
+                    <div class="sim-box key" id="oK" style="font-size:27px;min-height:250px"></div>
+                    <div class="sim-note">※ 교과서 그림을 단순화한 평면 모형이에요. (북반구, 위가 북쪽)</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s9">
+            <div class="ppt-title">심화) 중위도 저기압의 에너지는 어디서 올까?</div>
+            <div class="ppt-subtitle">찬 공기와 따뜻한 공기의 <span class="or">온도 차</span>가 만든 위치 에너지 → 운동 에너지</div>
+            <div class="main">
+                <div style="width:900px;flex:none;display:flex;align-items:center">
+                    <svg viewBox="0 0 900 560" width="900" height="560">
+                        <rect x="20" y="20" width="860" height="500" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="3"/>
+                        <rect x="22" y="22" width="856" height="496" fill="#fca5a5" opacity=".7"/>
+                        <polygon id="cold9" points="22,22 450,22 450,518 22,518" fill="#60a5fa" opacity=".85"/>
+                        <rect id="wall9" x="444" y="20" width="12" height="500" fill="#334155"/>
+                        <text id="tc9" x="236" y="280" font-size="36" text-anchor="middle" font-weight="bold" fill="#fff">찬 공기</text>
+                        <text id="tw9" x="664" y="280" font-size="36" text-anchor="middle" font-weight="bold" fill="#7f1d1d">따뜻한 공기</text>
+                        <circle id="cg9" cx="450" cy="270" r="12" fill="#facc15" stroke="#1e293b" stroke-width="3"/>
+                        <text x="450" y="550" font-size="22" text-anchor="middle" fill="#334155">● = 전체 공기의 무게중심</text>
+                    </svg>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">남북의 <b>기온 차(기온 경도)</b>가 큰 곳에서 위치 에너지가 생겨요. (보통 북쪽으로 100 km 갈 때 약 1 ℃ 낮아짐)</div>
+                    <div class="card" data-step="2">찬 공기는 아래로 파고들고 따뜻한 공기는 위로 올라가며 <b>무게중심이 낮아져요.</b></div>
+                    <div class="card key" data-step="3">→ 줄어든 위치 에너지가 <b>강한 바람과 상승 기류(운동 에너지)</b>로 바뀌어요!</div>
+                    <button class="sim-btn orange" id="b9" style="align-self:flex-start;font-size:30px">▶ 칸막이 치우기</button>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s10">
+            <div class="ppt-title">중위도 저기압의 입체적인 공기 흐름</div>
+            <div class="ppt-subtitle">세 개의 주요한 <span class="or">공기 흐름</span>이 구름과 비를 만들어요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:1000px"><img data-noimg="" style="max-height:600px"></div>
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <div class="card soft" data-step="1" style="font-size:26px"><span class="tag r">①</span>남쪽의 <b>따뜻하고 습윤한 공기</b>가 온난 전선면을 타고 상승 → 구름, 비</div>
+                    <div class="card soft" data-step="2" style="font-size:26px"><span class="tag b">②</span>온난 전선 앞의 <b>찬 공기</b>가 저기압 중심으로 수렴하여 상승 → 비</div>
+                    <div class="card soft" data-step="3" style="font-size:26px"><span class="tag">③</span>한랭 전선 뒤의 <b>차고 건조한 공기</b>가 상층에서 하강하며 따뜻한 공기를 밀어 올림</div>
+                    <div class="note" data-step="3">※ 관측·모델링 기술의 발전으로 새롭게 제시된 ‘컨베이어 벨트 모형’이에요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s11">
+            <div class="ppt-title">한랭 전선: 좁은 지역에 강한 비</div>
+            <div class="ppt-subtitle">저기압 중심의 <span class="or">남서쪽</span>, 찬 공기가 따뜻한 공기를 <span class="or">밀어 올려요.</span></div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <div class="imgbox tight" style="height:430px"><img data-noimg="" style="max-height:415px"></div>
+                <div class="row">
+                    <div class="card soft" data-step="1" style="flex:1;font-size:27px"><span class="tag b">구름·비</span><b>적운형</b> 구름, <b>좁은</b> 지역에 <b>강한</b> 비</div>
+                    <div class="card soft" data-step="2" style="flex:1;font-size:27px"><span class="tag">통과 후</span>기온 <b>하강</b>, 풍향 남서풍 → <b>북서풍</b></div>
+                    <div class="card key" data-step="3" style="flex:1;font-size:27px"><span class="tag o">기압</span>다가올 때 <b>감소</b>, 통과 후 <b>증가</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s12">
+            <div class="ppt-title">온난 전선: 넓은 지역에 약한 비</div>
+            <div class="ppt-subtitle">저기압 중심의 <span class="or">남동쪽</span>, 따뜻한 공기가 찬 공기를 <span class="or">타고 올라요.</span></div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <div class="imgbox tight" style="height:430px"><img data-noimg="" style="max-height:415px"></div>
+                <div class="row">
+                    <div class="card soft" data-step="1" style="flex:1;font-size:27px"><span class="tag r">구름·비</span><b>층운형</b> 구름, <b>넓은</b> 지역에 <b>약한</b> 비</div>
+                    <div class="card soft" data-step="2" style="flex:1;font-size:27px"><span class="tag">통과 후</span>기온 <b>상승</b>, 풍향 남동풍 → <b>남서풍</b></div>
+                    <div class="card key" data-step="3" style="flex:1;font-size:27px"><span class="tag o">기압</span>다가올 때 <b>감소</b>, 통과 후에도 감소하는 경향</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s13">
+            <div class="ppt-title">중위도 저기압 주변의 날씨</div>
+            <div class="ppt-subtitle">전선 부근에서는 <span class="or">풍향이 급변</span>하고 강수가 집중돼요.</div>
+            <div class="main">
+                <div class="col" style="width:820px;align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="width:780px"></div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <table class="ppt-table" style="font-size:24px">
+                        <thead><tr><th>구분</th><th style="background:#dc2626">온난 전선</th><th>한랭 전선</th></tr></thead>
+                        <tbody>
+                        <tr data-step="1"><td class="rowh">위치</td><td>중심의 남동쪽</td><td>중심의 남서쪽</td></tr>
+                        <tr data-step="2"><td class="rowh">구름</td><td>층운형</td><td>적운형</td></tr>
+                        <tr data-step="3"><td class="rowh">강수</td><td>넓은 지역, 약한 비</td><td>좁은 지역, 강한 비</td></tr>
+                        <tr data-step="4"><td class="rowh">통과 후 기온</td><td>상승</td><td>하강</td></tr>
+                        <tr data-step="5"><td class="rowh">풍향 변화</td><td>남동풍 → 남서풍</td><td>남서풍 → 북서풍</td></tr>
+                        <tr data-step="6"><td class="rowh">기압</td><td>계속 감소 경향</td><td>감소 → 통과 후 증가</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="card key" data-step="7" style="font-size:25px">두 전선 사이 = <b>따뜻한 구역</b>(남서풍). 중심에 가까울수록 기압이 <b>낮아요.</b></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s14">
+            <div class="ppt-title">일기도의 일기 기호 읽기</div>
+            <div class="ppt-subtitle">원 하나에 <span class="or">풍향·풍속·구름의 양</span>이 모두 담겨 있어요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:420px"><img data-noimg="" style="max-height:600px;width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1"><span class="look">풍향</span>깃대는 바람이 <b>불어오는 쪽</b>을 가리켜요. (예: 북동쪽을 향하면 <b>북동풍</b>)</div>
+                    <div class="card" data-step="2"><span class="look">풍속</span>깃 날개의 모양과 개수로 풍속(m/s)을 나타내요. (1, 2, 5, 25 m/s 기호)</div>
+                    <div class="card" data-step="3"><span class="look">구름</span>원 안을 칠한 정도 = 구름의 양: 맑음 → 구름 조금 → 구름 많음 → 흐림</div>
+                    <div class="card key" data-step="4">다음 시뮬레이션에서 관측소의 일기 기호가 어떻게 바뀌는지 확인해 봐요!</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s16">
+            <div class="ppt-title">궁금해요! 전선에 대한 질문</div>
+            <div class="ppt-subtitle">학생들이 자주 묻는 질문을 함께 해결해 봐요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center;gap:10px;font-size:26px">
+                    <div class="card soft qa" style="font-size:26px;padding:12px 24px"><b>Q1.</b> 한랭 전선이 온난 전선보다 더 빨리 이동하는 까닭은?</div>
+                    <div class="card key qa" data-step="1" style="font-size:26px;padding:12px 24px">전선 부근에는 전선을 가로지르는 공기 흐름이 생기는데, 지표 부근에서는 찬 기단에서 따뜻한 기단 쪽으로 흘러요. 이 흐름이 한랭 전선의 이동에 <b>더해지기</b> 때문이에요. → 그래서 결국 <b>폐색 전선</b>이 생겨요.</div>
+                    <div class="card soft qa" style="font-size:26px;padding:12px 24px"><b>Q2.</b> 전선면은 안정한데 왜 비가 올까?</div>
+                    <div class="card key qa" data-step="2" style="font-size:26px;padding:12px 24px">위에는 따뜻한 공기, 아래에는 찬 공기가 있어 전선면 자체는 <b>안정</b>해요. 하지만 이 경계면을 따라 공기가 <b>상승</b>하여 구름과 비가 만들어져요.</div>
+                    <div class="card soft qa" style="font-size:26px;padding:12px 24px"><b>Q3.</b> 열대 지역에서는 왜 중위도 저기압이 생기지 않을까?</div>
+                    <div class="card key qa" data-step="3" style="font-size:26px;padding:12px 24px">열대는 기온의 <b>수평 차이가 크지 않아</b> 전선이 만들어지기 어려워요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s17">
+            <div class="ppt-title">기상 위성 영상: 가시 · 적외 · 수증기</div>
+            <div class="ppt-subtitle">같은 시각, 다른 파장으로 보면 <span class="or">다른 정보</span>가 보여요.</div>
+            <div class="main" style="flex-direction:column;gap:16px">
+                <div class="imgbox tight" style="height:420px"><img data-noimg="" style="max-height:405px"></div>
+                <div class="row">
+                    <div class="card soft" data-step="1" style="flex:1;font-size:25px"><span class="tag">가시</span><b>햇빛의 반사</b> 강도. 적운형 구름이 층운형보다 <b>밝음</b>. 밤에는 관측 불가</div>
+                    <div class="card soft" data-step="2" style="flex:1;font-size:25px"><span class="tag r">적외</span>물체가 <b>방출하는 적외선</b>. 온도가 낮은 <b>상층운</b>을 더 밝게. 밤에도 관측 가능</div>
+                    <div class="card soft" data-step="3" style="flex:1;font-size:25px"><span class="tag b">수증기</span>수증기에 잘 흡수되는 파장. 수증기가 많을수록 <b>밝게</b> → 구름 없는 곳의 <b>대기 흐름</b>도 파악</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x sim-slide" id="s18">
+            <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>위성 영상 판독 연습</div>
+            <div class="ppt-subtitle">영상 종류와 낮·밤을 바꾸며 <span class="or">구름 ①~④</span>의 정체를 맞혀 봐요.</div>
+            <div class="sim-wrap">
+                <div class="sim-stage"><canvas id="cM" width="1060" height="610"></canvas></div>
+                <div class="sim-panel">
+                    <div class="sim-box blue">
+                        <h4>영상 종류</h4>
+                        <div class="sim-btns"><button class="sim-btn on" data-m="vis">가시 영상</button><button class="sim-btn" data-m="ir">적외 영상</button><button class="sim-btn" data-m="wv">수증기 영상</button></div>
+                        <div class="sim-btns" style="margin-top:10px"><button class="sim-btn on" id="bM1">☀ 낮</button><button class="sim-btn orange" id="bM2">정답 보기</button></div>
+                    </div>
+                    <div class="sim-box" id="oM" style="font-size:25px"></div>
+                    <div class="sim-note">※ 실제 영상이 아닌 개념 모형이에요. 밝기 규칙은 교과서 설명을 따랐어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s19">
+            <div class="ppt-title">레이더 영상: 비와 눈의 분포를 자세히</div>
+            <div class="ppt-subtitle">비나 눈에 부딪혀 <span class="or">되돌아오는 전파</span>로 강수 강도를 파악해요.</div>
+            <div class="main">
+                <div class="col" style="width:520px;align-items:center;justify-content:center">
+                    <img data-noimg="" style="width:470px;border-radius:14px;border:2px solid #e2e8f0">
+                    <div class="cap">레이더 영상: 충남 약한 비, 경남·경북 시간당 30 mm 이상</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1">산악 지대나 바다에서는 지상 관측이 어려워 강수의 지역 차이를 알기 어려워요 → 레이더가 <b>상세한 분포</b>를 보완해요.</div>
+                    <div class="card" data-step="2">시간당 강수량이 <b>많을수록 빨간색</b>, <b>적을수록 파란색</b>에 가까워요.</div>
+                    <div class="card soft" data-step="3"><b>도플러 레이더</b>: 강수 입자가 다가오거나 멀어지면 되돌아온 전파의 주파수가 변해요 → 레이더 주변의 <b>바람 분포</b>도 구할 수 있어요.</div>
+                    <div class="note" data-step="3">레이더 강수가 원형으로 보이는 까닭: 가장자리 레이더의 관측 가능 경계가 원형이기 때문</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s20">
+            <div class="ppt-title">탐구 활동) 일기도·위성·레이더 영상으로 날씨 분석하기</div>
+            <div class="ppt-subtitle">(가) 9시 → (나) 21시 → (다) 다음 날 9시, 12시간 간격의 일기도와 적외 영상</div>
+            <div class="main">
+                <div class="col" style="width:1000px;align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:520px"></div>
+                    <div class="cap">(자료 출처: 기상청, 2016)</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:12px">
+                    <div class="card soft qa" style="font-size:25px"><b>1. 이동 경로</b> <span data-step="1" class="a">남중국 → 한반도 → 동해상</span></div>
+                    <div class="row" style="gap:12px;align-items:center"><img data-noimg="" style="width:190px;border-radius:10px;border:2px solid #e2e8f0"><div class="card soft qa" style="font-size:25px;flex:1"><b>3. 이 레이더 영상은?</b> <span data-step="2" class="a">(나) 21시</span></div></div>
+                    <div class="card key qa" data-step="3" style="font-size:25px">북부~동해의 강한 비: 저기압 <b>중심 부근</b>과 <b>온난 전선 앞</b>의 상승 운동. 남부의 비: 두 전선 사이 <b>따뜻한 구역</b>의 상승</div>
+                    <div class="note">※ 실제 강수 분포는 모형과 다소 다를 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s21">
+            <div class="ppt-title">중규모 저기압: 작지만 무서운 저기압</div>
+            <div class="ppt-subtitle">대부분 <span class="or">전선을 동반하지 않지만</span> 상승 운동으로 큰 날씨 변화를 일으켜요.</div>
+            <div class="main">
+                <div class="col grow" style="justify-content:center;gap:14px">
+                    <table class="ppt-table" data-step="1" style="font-size:27px">
+                        <thead><tr><th>구분</th><th>종관 규모 저기압</th><th>중규모 저기압</th></tr></thead>
+                        <tbody><tr><td class="rowh">수평 규모</td><td>1000 km 이상</td><td>수십 km ~ 100 km</td></tr><tr><td class="rowh">예</td><td>중위도 저기압</td><td>소나기(스콜), 폭설, 뇌우</td></tr><tr><td class="rowh">전선</td><td>동반</td><td>대부분 동반하지 않음</td></tr></tbody>
+                    </table>
+                    <div class="card soft" data-step="2" style="font-size:26px">대기 불안정이나 지형의 영향으로 발생, 하층의 강한 바람으로 <b>수증기가 유입</b>되면 더 발달 → <b>단시간, 좁은 지역</b>에 큰 피해</div>
+                    <div class="card key" data-step="3" style="font-size:26px">2023년 7월 폭우: 북태평양 고기압 가장자리를 따라 들어온 <b>따뜻하고 습한 공기</b> + 상층의 <b>찬 공기</b> → 대기 불안정</div>
+                    <div class="note">겨울에는 발해만·동해에서 자주 발생: 찬 기단이 따뜻한 바다에서 열을 공급받아 상승</div>
+                </div>
+                <div class="col" style="width:560px;align-items:center;justify-content:center">
+                    <img data-noimg="" style="width:440px;border-radius:50%">
+                    <div class="cap">2023년 7월 중규모 저기압에 의해 폭우가 발생한 날의 위성 영상</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s22">
+            <div class="ppt-title">고기압과 날씨 ① 정체성 고기압</div>
+            <div class="ppt-subtitle">중심부가 <span class="or">오랫동안 한곳에 머무르는</span> 고기압</div>
+            <div class="main">
+                <div class="col" style="width:1000px;align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:500px"></div>
+                    <div class="cap">(왼쪽) 여름철 북태평양 고기압 2018.7.18. (오른쪽) 겨울철 시베리아 고기압 2022.12.23.</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card soft" data-step="1" style="font-size:26px">우리나라 주변: <b>시베리아 고기압, 북태평양 고기압, 오호츠크해 고기압</b></div>
+                    <div class="card" data-step="2" style="font-size:26px"><span class="tag r">여름</span>장마 후 북태평양 고기압 확장 → 따뜻한 남풍 계열 → <b>무더위, 열대야</b></div>
+                    <div class="card" data-step="3" style="font-size:26px"><span class="tag b">겨울</span>시베리아 고기압 남동쪽 확장 → 차고 건조한 북풍 계열 → <b>한파</b></div>
+                    <div class="note" data-step="3">수증기 수송·태풍 이동은 북태평양 고기압의 <b>가장자리</b>를 따라 → 가장자리에 강수 집중</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s23">
+            <div class="ppt-title">고기압과 날씨 ② 이동성 고기압</div>
+            <div class="ppt-subtitle">편서풍을 타고 <span class="or">동쪽으로 이동</span>하는 비교적 작은 고기압 (봄·가을)</div>
+            <div class="main">
+                <div class="col" style="width:1000px;align-items:center;justify-content:center">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:470px"></div>
+                    <div class="cap">이동성 고기압이 우리나라 서쪽에서 남쪽으로 이동 (2019년 4월 3일 → 4일)</div>
+                </div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card" data-step="1" style="font-size:26px">영향을 받으면 <b>2~3일 맑은 날씨</b>가 이어져요.</div>
+                    <div class="card soft" data-step="2" style="font-size:26px">고기압 가장자리에 들어가거나 뒤따르는 저기압이 오면 <b>흐리거나 비</b></div>
+                    <div class="card key" data-step="3" style="font-size:26px">봄·가을: 이동성 고기압과 저기압이 <b>교대로</b> 지나가 변덕스러운 날씨. <b>꽃샘추위, 황사</b>도!</div>
+                    <img data-noimg="" data-step="3" style="width:100%;border-radius:12px">
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s24">
+            <div class="ppt-title">생각해 보기: 폭염은 왜 고기압 아래에서 생길까?</div>
+            <div class="ppt-subtitle">저기압 vs 고기압, <span class="or">하늘과 공기의 움직임</span>을 비교해 봐요.</div>
+            <div class="main">
+                <div class="gcard" data-step="1" style="font-size:28px"><h3 style="color:#2563eb">저기압</h3><div>상승 기류 → <b>구름</b> 생성</div><div>→ 태양 복사를 <b>차단</b></div><svg viewBox="0 0 300 220" width="100%" height="220"><ellipse cx="150" cy="70" rx="120" ry="45" fill="#94a3b8"/><ellipse cx="110" cy="60" rx="60" ry="38" fill="#cbd5e1"/><g stroke="#2563eb" stroke-width="6" fill="#2563eb"><line x1="90" y1="200" x2="90" y2="130"/><path d="M78 135 L90 115 L102 135Z"/><line x1="210" y1="200" x2="210" y2="130"/><path d="M198 135 L210 115 L222 135Z"/></g></svg></div>
+                <div class="gcard orange" data-step="2" style="font-size:28px"><h3 style="color:#ea580c">고기압</h3><div>하강 기류 → <b>맑은 하늘</b> → 많은 일사가 지표에 도달</div><div>하강하는 공기의 <b>단열 압축</b>으로 기온 상승</div><svg viewBox="0 0 300 220" width="100%" height="220"><circle cx="150" cy="55" r="38" fill="#facc15"/><g stroke="#ea580c" stroke-width="6" fill="#ea580c"><line x1="80" y1="110" x2="80" y2="185"/><path d="M68 180 L80 200 L92 180Z"/><line x1="220" y1="110" x2="220" y2="185"/><path d="M208 180 L220 200 L232 180Z"/></g></svg></div>
+                <div class="col" style="width:520px;justify-content:center"><div class="card key" data-step="3">우리나라 폭염의 원인 고기압: <b>북태평양 고기압</b>, <b>티베트 고기압</b>이 평년보다 강하게 발달할 때 (예: 1994년, 2018년)</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s25">
+            <div class="ppt-title">탐구 활동) 일기 예보 작성하기</div>
+            <div class="ppt-subtitle">기상청 날씨누리·국가 기상 위성 센터의 자료로 <span class="or">내일 날씨</span>를 예보해 봐요.</div>
+            <div class="main">
+                <div class="col" style="width:900px;align-items:center;justify-content:center;gap:12px">
+                    <div class="imgbox tight"><img data-noimg="" style="max-height:300px"></div>
+                    <div class="card soft" style="font-size:24px;width:100%">안녕하세요? 날씨 예보관 ○○○입니다. 내일 우리 지역은 고기압의 영향으로 맑겠고, 기온이 33 ℃ 내외로 올라 무덥겠습니다. 늦은 오후에는 대기 불안정으로 소나기가 내릴 수 있으니 우산을 준비하세요.</div>
+                </div>
+                <div class="col grow" style="justify-content:center;gap:10px">
+                    <div class="card soft" style="font-size:25px"><span class="gnum s">①</span>weather.go.kr / nmsc.kma.go.kr 접속</div>
+                    <div class="card soft" style="font-size:25px"><span class="gnum s">②</span>24시간 전, 12시간 전, 현재 일기도·위성 영상 정리</div>
+                    <div class="card soft" style="font-size:25px"><span class="gnum s">③</span>지난 24시간 날씨 요약 (기온, 구름, 바람, 강수)</div>
+                    <div class="card soft" style="font-size:25px"><span class="gnum s">④</span>고기압·저기압 위치 예상 → 내일 날씨 예측</div>
+                    <div class="card key" style="font-size:25px"><span class="gnum s">⑤</span>기상 뉴스 대본 작성! <span class="note">(기압계는 하루에 경도 약 10°씩 동쪽으로 이동)</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-x" id="s26">
+            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
+            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
+            <div class="main" style="flex-direction:column; gap:20px">
+                <div style="display:flex; gap:24px; align-items:stretch">
+                    <div class="card" style="flex:1; font-size:30px; line-height:1.85"><h3>중위도 저기압</h3>
+                        <div>① <span class="blank" style="min-width:110px">정체</span> 전선을 사이에 두고 반대 방향의 바람 → 저기압성 회전</div>
+                        <div>② 한랭·온난 전선 발달, 전선 부근 강수</div>
+                        <div>③ 폐색 전선 양쪽에 찬 공기 → <span class="blank" style="min-width:200px">중위도 저기압</span>의 세력 약화</div></div>
+                    <div class="card" style="flex:1; font-size:30px; line-height:1.85"><h3>중규모 저기압 · 고기압</h3>
+                        <div>중규모 저기압: 전선 대부분 없음, 소나기·폭설·뇌우</div>
+                        <div><span class="blank" style="min-width:120px">정체성</span> 고기압: 한곳에 오래 머무름</div>
+                        <div><span class="blank" style="min-width:120px">이동성</span> 고기압: 편서풍 따라 동쪽으로</div></div>
+                </div>
+                <div class="card soft q" data-a="c" style="font-size:29px"><div class="qrow"><b>확인!</b> 좁은 지역에 강한 비를 내리는 전선은? <button class="sim-btn" data-v="w">온난 전선</button><button class="sim-btn" data-v="c">한랭 전선</button><span class="res"></span></div><div class="why" style="display:none">한랭 전선 부근에는 적운형 구름이 발달하여 좁은 지역에 강한 비가 내려요.</div></div>
+            </div>
+        </div>
+        <div class="slide-x" id="s27">
+            <div class="ppt-title">확인 문제: A~C 지점의 날씨는?</div>
+            <div class="ppt-subtitle">중위도 저기압이 우리나라를 지나가는 모습이에요.</div>
+            <div class="main">
+                <div class="imgbox tight" style="width:640px"><img data-noimg="" style="width:100%"></div>
+                <div class="col grow" style="justify-content:center">
+                    <div class="card qa" data-step="1"><span class="tag b">A</span>한랭 전선 뒤: <b>적운형 구름</b>, 좁은 지역에 짧은 시간 <b>강한 비</b></div>
+                    <div class="card qa" data-step="2"><span class="tag o">B</span>두 전선 사이 따뜻한 구역: <b>맑은 날씨</b></div>
+                    <div class="card qa" data-step="3"><span class="tag r">C</span>온난 전선 앞: <b>층운형 구름</b>, 넓은 지역에 오랜 시간 <b>약한 비</b></div>
+                    <div class="card key qa" data-step="4">날씨 예측이 정확해지면 → 우산·나들이 계획, <b>폭설·집중 호우·태풍</b> 같은 재난 대응 계획을 미리 세울 수 있어요.</div>
+                </div>
+            </div>
+        </div>
+</div>
+<script>
+    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    window.SIM = {
+        FONT: "'Gowun Dodum', sans-serif",
+        // 해당 슬라이드가 화면에 보일 때만 그리기
+        loop(slideId, fn) {
+            const el = document.getElementById(slideId);
+            let last = performance.now();
+            function f(t) {
+                const dt = Math.min(0.05, (t - last) / 1000); last = t;
+                if (el && el.classList.contains('active')) fn(t, dt);
+                requestAnimationFrame(f);
+            }
+            requestAnimationFrame(f);
+        },
+        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+        // 파장(nm) → 화면 색
+        wl2rgb(w) {
+            let r = 0, g = 0, b = 0;
+            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
+            else if (w < 490) { g = (w - 440) / 50; b = 1; }
+            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
+            else if (w < 580) { r = (w - 510) / 70; g = 1; }
+            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
+            else if (w <= 780) { r = 1; }
+            let f = 1;
+            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
+            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+        },
+        // 흑체 온도(K) → 대략적인 색
+        bbRGB(T) {
+            const t = T / 100; let r, g, b;
+            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+            const c = v => Math.max(0, Math.min(255, Math.round(v)));
+            return [c(r), c(g), c(b)];
+        },
+        fmtExp(v, digits) {
+            if (!isFinite(v) || v <= 0) return '0';
+            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+        }
+    };
+    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
+    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+
+</script>
+<script>
+window.STEP=window.STEP||{};
+
+
+/* ========== SIM N: 고기압·저기압 ========== */
+(function(){
+  const c=document.getElementById('cN'),g=c.getContext('2d'),W=1060,H=610;let side=false;
+  const b1=document.getElementById('bN1'),b2=document.getElementById('bN2');
+  b1.onclick=()=>{side=false;b1.classList.add('on');b2.classList.remove('on');};b2.onclick=()=>{side=true;b2.classList.add('on');b1.classList.remove('on');};
+  const r=SIM.rng(9),L=[],Hh=[];for(let i=0;i<90;i++){L.push({r:40+r()*200,a:r()*6.28});Hh.push({r:r()*200,a:r()*6.28});}
+  const C1=[270,320],C2=[790,320];
+  SIM.loop('s4',(tm,dt)=>{
+    g.clearRect(0,0,W,H);
+    if(!side){
+      [[C1,'저','#2563eb'],[C2,'고','#dc2626']].forEach(([C,t,col])=>{for(let k=1;k<=4;k++){g.strokeStyle='rgba(100,116,139,.35)';g.lineWidth=2;g.beginPath();g.arc(C[0],C[1],k*55,0,7);g.stroke();}g.fillStyle=col;g.font=SIM.font(54);g.textAlign='center';g.fillText(t,C[0],C[1]+18);});
+      L.forEach(p=>{p.a+=dt*(60/p.r);p.r-=dt*28;if(p.r<30){p.r=240;p.a=r()*6.28;}const x=C1[0]+p.r*Math.cos(p.a),y=C1[1]-p.r*Math.sin(p.a),dx=-Math.sin(p.a)*8-Math.cos(p.a)*4,dy=-Math.cos(p.a)*8+Math.sin(p.a)*4;g.strokeStyle='#2563eb';g.lineWidth=2.5;g.beginPath();g.moveTo(x-dx,y-dy);g.lineTo(x,y);g.stroke();g.fillStyle='#2563eb';g.beginPath();g.arc(x,y,3,0,7);g.fill();});
+      Hh.forEach(p=>{p.a-=dt*(50/(p.r+40));p.r+=dt*28;if(p.r>240){p.r=10;p.a=r()*6.28;}const x=C2[0]+p.r*Math.cos(p.a),y=C2[1]-p.r*Math.sin(p.a);g.fillStyle='#dc2626';g.beginPath();g.arc(x,y,3,0,7);g.fill();});
+      // 구름/해
+      g.globalAlpha=.85;g.fillStyle='#94a3b8';[[-30,-10,40],[10,-20,46],[40,0,36],[0,15,40]].forEach(([dx,dy,rr])=>{g.beginPath();g.arc(C1[0]+dx,C1[1]+dy-70,rr,0,7);g.fill();});g.globalAlpha=1;
+      g.fillStyle='#facc15';g.beginPath();g.arc(C2[0],C2[1]-80,30,0,7);g.fill();
+      g.fillStyle='#1e293b';g.font=SIM.font(26);g.fillText('반시계 방향 · 수렴',C1[0],H-24);g.fillText('시계 방향 · 발산',C2[0],H-24);
+    } else {
+      const gy=520;g.fillStyle='#86efac';g.fillRect(0,gy,W,H-gy);g.fillStyle='#e0f2fe';g.fillRect(0,0,W,gy);
+      const t=(tm/1000)%3/3;
+      // 저기압 단면
+      g.strokeStyle='#2563eb';g.fillStyle='#2563eb';g.lineWidth=5;
+      for(let s=-1;s<=1;s+=2){const x0=C1[0]+s*200;g.beginPath();g.moveTo(x0,gy-30);g.lineTo(C1[0]+s*30,gy-30);g.lineTo(C1[0]+s*30,140);g.stroke();const px=C1[0]+s*(200-170*Math.min(1,t*2)),py=t<.5?gy-30:gy-30-(gy-170)*(t-.5)*2;g.beginPath();g.arc(t<.5?px:C1[0]+s*30,py,9,0,7);g.fill();}
+      g.globalAlpha=.9;g.fillStyle='#94a3b8';[[-60,0,50],[0,-20,60],[60,0,50]].forEach(([dx,dy,rr])=>{g.beginPath();g.arc(C1[0]+dx,110+dy,rr,0,7);g.fill();});g.globalAlpha=1;
+      g.fillStyle='#3b82f6';for(let i=0;i<12;i++){const x=C1[0]-80+i*14,y=170+((tm/6+i*37)%300);if(y<gy)g.fillRect(x,y,2,14);}
+      // 고기압
+      g.strokeStyle='#dc2626';g.fillStyle='#dc2626';
+      for(let s=-1;s<=1;s+=2){g.beginPath();g.moveTo(C2[0]+s*30,140);g.lineTo(C2[0]+s*30,gy-30);g.lineTo(C2[0]+s*200,gy-30);g.stroke();const py=t<.5?140+(gy-170)*t*2:gy-30,px=t<.5?C2[0]+s*30:C2[0]+s*(30+170*(t-.5)*2);g.beginPath();g.arc(px,py,9,0,7);g.fill();}
+      g.fillStyle='#facc15';g.beginPath();g.arc(C2[0],90,36,0,7);g.fill();
+      g.fillStyle='#1e293b';g.font=SIM.font(28);g.textAlign='center';g.fillText('저기압: 상승 기류',C1[0],H-30);g.fillText('고기압: 하강 기류',C2[0],H-30);
+    }
+  });
+})();
+
+/* ========== SIM K: 중위도 저기압의 일생 ========== */
+(function(){
+  const c=document.getElementById('cK'),g=c.getContext('2d'),W=1060,H=610;let s=1,play=true,rain=true;
+  const TXT=['','<b>① 정체 전선 형성</b><br>북쪽의 찬 기단과 남쪽의 따뜻한 기단이 만나 정체 전선이 형성돼요.','<b>② 파동 형성</b><br>정체 전선을 사이에 두고 남북에서 서로 반대 방향으로 바람이 불며 저기압성 회전이 생기고, 한랭 전선과 온난 전선이 형성돼요.','<b>③ 중위도 저기압 발달</b><br>온난 전선과 한랭 전선이 발달하며 저기압이 발달하고, 전선 부근에 강수가 나타나요.','<b>④ 폐색 시작</b><br>이동 속도가 빠른 한랭 전선이 온난 전선 쪽으로 이동하며 폐색 전선이 형성되기 시작해요. 세력이 <b>최대</b>, 넓은 지역에 강수!','<b>⑤ 폐색 전선 발달</b><br>폐색 전선의 양쪽에 찬 공기가 자리 잡으며 세력이 점차 약해져요.','<b>⑥ 중위도 저기압 소멸</b><br>따뜻한 공기는 찬 공기 위로 올라가고, 저기압이 소멸돼요.'];
+  const rk=document.getElementById('rK'),bk=document.getElementById('bK');
+  let last=0;function out(){const k=Math.min(6,Math.floor(s+0.0001));document.getElementById('vK').textContent=k+' 단계';rk.value=s;if(k!==last){document.getElementById('oK').innerHTML=TXT[k];last=k;}}
+  rk.oninput=e=>{s=+e.target.value;play=false;bk.textContent='▶ 자동 재생';bk.classList.remove('on');out();};
+  bk.onclick=()=>{play=!play;if(play&&s>=5.99)s=1;bk.textContent=play?'❚❚ 멈춤':'▶ 자동 재생';bk.classList.toggle('on',play);};
+  document.getElementById('bK2').onclick=e=>{rain=!rain;e.target.classList.toggle('on',rain);};document.getElementById('bK2').classList.add('on');
+  out();
+  const O=[530,290];
+  const sm=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+  function frontPts(f){ // f: 0..1 along warm/cold
+  }
+  function symbols(pts,type){ // pts: 배열, 전선 기호
+    const col={w:'#dc2626',c:'#2563eb',o:'#7c3aed'}[type]||'#334155';
+    g.strokeStyle=type==='s'?'#334155':col;g.lineWidth=5;g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();
+    let acc=0,k=0;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],d=Math.hypot(b[0]-a[0],b[1]-a[1]);acc+=d;if(acc>46){acc=0;k++;const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);let t=type;if(type==='o')t=k%2?'w':'c';if(type==='s')t=k%2?'w':'c';
+        const side=(type==='s'&&t==='c')?1:-1; // 정체 전선: 온난 기호 북쪽, 한랭 기호 남쪽
+        g.save();g.translate(b[0],b[1]);g.rotate(ang);g.fillStyle=type==='o'?'#7c3aed':(t==='w'?'#dc2626':'#2563eb');g.beginPath();
+        if(t==='w'){g.arc(0,0,11,Math.PI,0,side>0);}else{g.moveTo(-11,0);g.lineTo(0,side*-18);g.lineTo(11,0);}g.closePath();g.fill();g.restore();}}
+  }
+  SIM.loop('s8',(tm,dt)=>{
+    if(play){s=Math.min(6,s+dt*0.32);if(s>=6){play=false;bk.textContent='▶ 자동 재생';bk.classList.remove('on');}out();}
+    const a=sm(1,2.6,s),occ=sm(3.4,5.6,s),fade=1-sm(5.6,6,s)*0.7;
+    g.clearRect(0,0,W,H);
+    // 기단 배경
+    g.fillStyle='#dbeafe';g.fillRect(0,0,W,H);
+    // 전선 기하
+    const P=t=>[O[0]+t*360,O[1]+a*(60*t+120*t*t)]; // 온난 전선 (동남동)
+    const Cc=t=>[O[0]-t*(250-130*occ),O[1]+a*(100*t+170*t*t)+t*(1-a)*0]; // 한랭 전선
+    const Wst=t=>[O[0]-t*380,O[1]]; // 정체 전선 서쪽
+    const tp=occ*0.55; // 폐색점 위치(온난 전선 위)
+    const T=P(tp);
+    // 따뜻한 구역 (전선의 남쪽)
+    const CE=(()=>{const q=Cc(1);return [q[0],q[1]];})(),PE=P(1);
+    g.fillStyle='rgba(252,165,165,'+(0.75*fade)+')';g.beginPath();g.moveTo(0,CE[1]);
+    for(let t=1;t>=0;t-=0.02){const q=Cc(t);g.lineTo(q[0]+(T[0]-O[0])*(1-t),q[1]+(T[1]-O[1])*(1-t));}
+    for(let t=tp;t<=1.0001;t+=0.02){const p=P(t);g.lineTo(p[0],p[1]);}
+    g.lineTo(W,PE[1]);g.lineTo(W,H);g.lineTo(0,H);g.closePath();g.fill();
+    if(a<0.9){g.globalAlpha=(1-a)*fade;g.strokeStyle='#334155';g.lineWidth=4;g.setLineDash([14,10]);g.beginPath();g.moveTo(0,CE[1]);g.lineTo(CE[0],CE[1]);g.moveTo(PE[0],PE[1]);g.lineTo(W,PE[1]);g.stroke();g.setLineDash([]);g.globalAlpha=1;}
+    // 강수 구역
+    if(rain&&a>0.3){g.fillStyle='rgba(34,197,94,'+(0.28*fade*Math.min(1,(a-0.3)*2))+')';g.beginPath();g.moveTo(O[0]-60,O[1]-70);for(let t=0;t<=1;t+=0.05){const p=P(t);g.lineTo(p[0]+10,p[1]-60-90*(1-t));}const pe=P(1);g.lineTo(pe[0],pe[1]);for(let t=1;t>=tp;t-=0.05){const p=P(t);g.lineTo(p[0],p[1]);}for(let t=0;t<=1;t+=0.1){const q=Cc(t);g.lineTo(q[0]+(T[0]-O[0])*(1-t)+18,q[1]+(T[1]-O[1])*(1-t));}for(let t=1;t>=0;t-=0.1){const q=Cc(t);g.lineTo(q[0]+(T[0]-O[0])*(1-t)-22,q[1]+(T[1]-O[1])*(1-t));}g.closePath();g.fill();}
+    // 전선 그리기
+    g.globalAlpha=fade;
+    if(a<0.05){const sp=[];for(let x=20;x<=W-20;x+=10)sp.push([x,O[1]]);symbols(sp,'s');}
+    else{
+      if(occ>0.01){const op=[];for(let t=0;t<=tp+0.001;t+=0.02)op.push(P(t));symbols(op,'o');}
+      const wp=[];for(let t=tp;t<=1;t+=0.02)wp.push(P(t));symbols(wp,'w');
+      const cp=[];for(let t=0;t<=1;t+=0.02){const q=Cc(t);cp.push([q[0]+(T[0]-O[0])*(1-t),q[1]+(T[1]-O[1])*(1-t)]);}symbols(cp,'c');
+      if(a<0.95){const sp=[];for(let t=0;t<=1;t+=0.05)sp.push([P(1)[0]+t*(W-60-P(1)[0]),P(1)[1]]);}
+    }
+    g.globalAlpha=1;
+    // 바람
+    if(a<0.2){g.fillStyle='#1e3a8a';g.font=SIM.font(24);g.textAlign='center';g.fillText('찬 공기 ←',300,O[1]-80);g.fillStyle='#991b1b';g.fillText('→ 따뜻한 공기',760,O[1]+90);
+      g.strokeStyle='#2563eb';g.lineWidth=4;for(let i=0;i<4;i++){const x=900-((tm/12+i*200)%800);g.beginPath();g.moveTo(x,O[1]-40);g.lineTo(x-40,O[1]-40);g.stroke();}
+      g.strokeStyle='#dc2626';for(let i=0;i<4;i++){const x=100+((tm/12+i*200)%800);g.beginPath();g.moveTo(x,O[1]+40);g.lineTo(x+40,O[1]+40);g.stroke();}}
+    else{const rr=120,sp=tm/900*(0.4+a)*fade;g.strokeStyle='rgba(30,41,59,'+(0.6*fade)+')';g.lineWidth=4;for(let k=0;k<3;k++){const a0=-sp+k*2.09;g.beginPath();g.arc(O[0],O[1],rr,a0-1.2,a0,false);g.stroke();const ex=O[0]+rr*Math.cos(a0-1.2),ey=O[1]+rr*Math.sin(a0-1.2);g.fillStyle='rgba(30,41,59,'+(0.6*fade)+')';g.beginPath();g.arc(ex,ey,7,0,7);g.fill();}
+      g.fillStyle='#1d4ed8';g.font=SIM.font(48);g.textAlign='center';g.globalAlpha=fade;g.fillText('저',O[0],O[1]+16);g.globalAlpha=1;}
+    g.fillStyle='#1e3a8a';g.font=SIM.font(22);g.textAlign='left';g.fillText('찬 공기',30,40);g.fillStyle='#991b1b';g.fillText('따뜻한 공기',30,H-24);
+    g.fillStyle='#334155';g.font=SIM.font(18,false);g.textAlign='right';g.fillText('N ↑',W-20,34);
+    if(rain&&a>0.3){g.fillStyle='rgba(22,163,74,.9)';g.font=SIM.font(20);g.fillText('■ 강수 구역',W-20,64);}
+  });
+})();
+
+/* ========== 에너지 변환 (s9) ========== */
+(function(){
+  let t=0,on=false;const pc=document.getElementById('cold9'),wall=document.getElementById('wall9'),tc=document.getElementById('tc9'),tw=document.getElementById('tw9'),cg=document.getElementById('cg9');
+  const L=(a,b,f)=>a+(b-a)*f;
+  function draw(){const e=1-Math.pow(1-Math.min(1,t),2);wall.setAttribute('opacity',on?Math.max(0,1-t*4):1);
+    pc.setAttribute('points',[[22,L(22,270,e)],[L(450,878,e),L(22,270,e)],[L(450,878,e),518],[22,518]].map(p=>p.join(',')).join(' '));
+    tc.setAttribute('x',L(236,450,e));tc.setAttribute('y',L(280,410,e));tw.setAttribute('x',L(664,450,e));tw.setAttribute('y',L(280,150,e));cg.setAttribute('cy',L(270,300,e));}
+  document.getElementById('b9').onclick=()=>{on=true;t=0;};STEP.s9=()=>{on=false;t=0;draw();};
+  SIM.loop('s9',(tm,dt)=>{if(on&&t<1){t+=dt*0.4;draw();}});draw();
+})();
+
+/* ========== SIM L: 저기압 통과 관측 ========== */
+(function(){
+  const c=document.getElementById('cL'),g=c.getContext('2d'),W=1060,H=610;
+  const MW=620,MH=360,OY=170;let ox=-150,play=true,st='s',rec=[];
+  const SX=420;const SY=()=>st==='s'?OY+120:OY-70;
+  const wf=t=>[t*250,t*80+t*t*70],cf=t=>[-t*110,t*150+t*t*60]; // 중심 기준
+  function xAt(fn,dy){for(let t=0;t<=1.6;t+=0.005){const p=fn(t);if(p[1]>=dy)return p[0];}return null;}
+  function sample(){const dx=SX-ox,dy=SY()-OY,d=Math.hypot(dx,dy*1.3);
+    const p=1012-14*Math.exp(-((d/230)**2));let T,wd,sky,rainK,zone;
+    if(dy>0){const xw=xAt(wf,dy),xc=xAt(cf,dy);
+      if(xw!==null&&dx>xw){zone='ahead';T=8+2*Math.exp(-(((dx-xw)/120)**2));wd='SE';const k=dx-xw;rainK=k<200?1:0;sky=k<320?'st':'clear';}
+      else if(xc!==null&&dx>xc){zone='warm';T=17;wd='SW';rainK=0;sky='few';}
+      else{zone='behind';const k=xc-dx;T=5+3*Math.exp(-((k/60)**2))*0;wd='NW';rainK=k<55?2:0;sky=k<90?'cu':'clear';}}
+    else{zone='north';T=6;const ang=Math.atan2(dy,dx);wd=dx>60?'E':dx>-60?'NE':'N';if(dx<-160)wd='NW';rainK=Math.abs(dx)<160&&d<220?1:0;sky=d<300?'st':'clear';}
+    return {p,T,wd,sky,rainK,zone};}
+  const WDA={N:-90,NE:-45,E:0,SE:45,S:90,SW:135,W:180,NW:-135}; // 바람이 불어오는 방향(화면 각도)
+  const WDN={N:'북풍',NE:'북동풍',E:'동풍',SE:'남동풍',SW:'남서풍',NW:'북서풍'};
+  const ZT={ahead:'<b>온난 전선 앞</b>: 층운형 구름, 넓은 지역에 약한 비. 기압 하강 중',warm:'<b>따뜻한 구역</b>(두 전선 사이): 기온 높고 남서풍',behind:'<b>한랭 전선 뒤</b>: 기온 하강, 북서풍, 기압 상승',north:'<b>저기압 중심의 북쪽</b>: 전선은 지나가지 않지만 바람이 동→북→북서로 바뀌어요'};
+  document.querySelectorAll('#s15 [data-st]').forEach(b=>b.onclick=()=>{st=b.dataset.st;ox=-150;rec=[];document.querySelectorAll('#s15 [data-st]').forEach(x=>x.classList.toggle('on',x===b));});
+  const bl=document.getElementById('bL');bl.onclick=()=>{play=!play;bl.textContent=play?'❚❚ 멈춤':'▶ 계속';bl.classList.toggle('on',play);};
+  document.getElementById('bL2').onclick=()=>{ox=-150;rec=[];};
+  function station(x,y,s,R){g.strokeStyle='#0f172a';g.lineWidth=2.5;g.fillStyle='#fff';g.beginPath();g.arc(x,y,R,0,7);g.fill();g.stroke();
+    const fr={clear:0,few:0.25,cu:0.75,st:1}[s.sky];if(fr>0){g.fillStyle='#0f172a';g.beginPath();g.moveTo(x,y);g.arc(x,y,R,-Math.PI/2,-Math.PI/2+fr*6.283);g.closePath();g.fill();}
+    const a=WDA[s.wd]*Math.PI/180,L=R*3.2,ex=x+Math.cos(a)*L,ey=y+Math.sin(a)*L;g.beginPath();g.moveTo(x+Math.cos(a)*R,y+Math.sin(a)*R);g.lineTo(ex,ey);g.stroke();
+    g.beginPath();g.moveTo(ex,ey);g.lineTo(ex+Math.cos(a+1.9)*R*1.1,ey+Math.sin(a+1.9)*R*1.1);g.stroke();}
+  let lastZ='';
+  SIM.loop('s15',(tm,dt)=>{
+    if(play){ox+=dt*42;if(ox>MW+260){ox=-150;rec=[];}}
+    const s=sample();if(play&&ox>-140){rec.push({x:ox,p:s.p,T:s.T,wd:s.wd,sky:s.sky});}
+    if(s.zone!==lastZ){lastZ=s.zone;}
+    document.getElementById('oL').innerHTML='<h4>지금 관측소는?</h4><div>'+ZT[s.zone]+'</div><div style="margin-top:6px">기압 <b>'+s.p.toFixed(0)+' hPa</b> · 기온 <b>'+s.T.toFixed(0)+' ℃</b> · <b>'+WDN[s.wd]+'</b>'+(s.rainK===2?' · <b class="or">강한 비</b>':s.rainK===1?' · <b class="hl">약한 비</b>':'')+'</div>';
+    g.clearRect(0,0,W,H);
+    // 지도
+    g.save();g.beginPath();g.rect(0,0,MW,MH);g.clip();g.fillStyle='#dbeafe';g.fillRect(0,0,MW,MH);
+    // 따뜻한 구역
+    g.fillStyle='rgba(252,165,165,.7)';g.beginPath();g.moveTo(ox,OY);for(let t=0;t<=1.6;t+=0.05){const p=wf(t);g.lineTo(ox+p[0],OY+p[1]);}g.lineTo(ox+wf(1.6)[0],MH+50);g.lineTo(ox+cf(1.6)[0],MH+50);for(let t=1.6;t>=0;t-=0.05){const p=cf(t);g.lineTo(ox+p[0],OY+p[1]);}g.closePath();g.fill();
+    // 강수 구역
+    g.fillStyle='rgba(34,197,94,.3)';g.beginPath();g.moveTo(ox-60,OY-90);g.lineTo(ox+200,OY-60);for(let t=0.2;t<=1.2;t+=0.1){const p=wf(t);g.lineTo(ox+p[0]+170*(1.2-t)*0+150,OY+p[1]-40);}for(let t=1.2;t>=0;t-=0.1){const p=wf(t);g.lineTo(ox+p[0],OY+p[1]);}for(let t=0;t<=1.4;t+=0.1){const p=cf(t);g.lineTo(ox+p[0]+16,OY+p[1]);}for(let t=1.4;t>=0;t-=0.1){const p=cf(t);g.lineTo(ox+p[0]-34,OY+p[1]);}g.lineTo(ox-80,OY-20);g.closePath();g.fill();
+    // 등압선
+    g.strokeStyle='rgba(30,41,59,.35)';g.lineWidth=2;[60,120,190,270].forEach(rr=>{g.beginPath();g.ellipse(ox,OY,rr,rr/1.3,0,0,7);g.stroke();});
+    // 전선
+    const draw=(fn,col,type)=>{g.strokeStyle=col;g.lineWidth=5;g.beginPath();for(let t=0;t<=1.6;t+=0.02){const p=fn(t);t?g.lineTo(ox+p[0],OY+p[1]):g.moveTo(ox+p[0],OY+p[1]);}g.stroke();
+      g.fillStyle=col;for(let t=0.12;t<=1.6;t+=0.16){const p=fn(t),q=fn(t+0.01),an=Math.atan2(q[1]-p[1],q[0]-p[0]);g.save();g.translate(ox+p[0],OY+p[1]);g.rotate(an);g.beginPath();if(type==='w')g.arc(0,0,9,Math.PI,0);else{g.moveTo(-9,0);g.lineTo(0,-15);g.lineTo(9,0);}g.closePath();g.fill();g.restore();}};
+    draw(wf,'#dc2626','w');draw(t=>{const p=cf(t);return [p[0],p[1]];},'#2563eb','c');
+    g.fillStyle='#1d4ed8';g.font=SIM.font(36);g.textAlign='center';g.fillText('저',ox,OY+12);
+    g.restore();
+    g.strokeStyle='#334155';g.lineWidth=2;g.strokeRect(0,0,MW,MH);
+    // 관측소
+    station(SX,SY(),s,12);g.fillStyle='#0f172a';g.font=SIM.font(20);g.textAlign='left';g.fillText('관측소',SX+18,SY()-16);
+    g.fillStyle='#64748b';g.font=SIM.font(17,false);g.fillText('편서풍 → 저기압이 동쪽으로 이동',12,MH-12);
+    // 그래프
+    const GX=650,GW=395,G1=[20,180],G2=[205,365];
+    g.fillStyle='#f8fafc';g.fillRect(GX,G1[0],GW,G1[1]-G1[0]);g.fillRect(GX,G2[0],GW,G2[1]-G2[0]);g.strokeStyle='#cbd5e1';g.strokeRect(GX,G1[0],GW,G1[1]-G1[0]);g.strokeRect(GX,G2[0],GW,G2[1]-G2[0]);
+    g.fillStyle='#1e40af';g.font=SIM.font(19);g.textAlign='left';g.fillText('기압 (hPa)',GX+8,G1[0]+22);g.fillStyle='#b91c1c';g.fillText('기온 (℃)',GX+8,G2[0]+22);
+    const XR=x=>GX+10+(x+140)/(MW+400)*(GW-20);
+    const yP=p=>G1[1]-10-(p-997)/16*(G1[1]-G1[0]-40),yT=T=>G2[1]-10-(T-2)/18*(G2[1]-G2[0]-40);
+    g.lineWidth=3.5;g.strokeStyle='#1e40af';g.beginPath();rec.forEach((r,i)=>i?g.lineTo(XR(r.x),yP(r.p)):g.moveTo(XR(r.x),yP(r.p)));g.stroke();
+    g.strokeStyle='#b91c1c';g.beginPath();rec.forEach((r,i)=>i?g.lineTo(XR(r.x),yT(r.T)):g.moveTo(XR(r.x),yT(r.T)));g.stroke();
+    // 일기 기호 기록
+    g.fillStyle='#334155';g.font=SIM.font(19);g.fillText('관측소 일기 기호 기록 (시간 →)',GX,400);
+    for(let i=0;i<rec.length;i+=Math.max(1,Math.floor(rec.length/1)) ){}
+    const step=Math.max(1,Math.round(rec.length/8));const sel=rec.filter((r,i)=>i%Math.round(60)===0).slice(-8);
+    sel.forEach((r,i)=>station(GX+30+i*48,470,r,10));
+    g.fillStyle='#334155';g.font=SIM.font(16,false);g.fillText('원 칠한 정도 = 구름의 양, 깃대 = 바람이 불어오는 쪽',GX,540);
+    g.fillText('시간 →',GX+GW-60,G1[1]-6);
+  });
+})();
+
+/* ========== SIM M: 위성 영상 ========== */
+(function(){
+  const c=document.getElementById('cM'),g=c.getContext('2d'),W=1060,H=610;let mode='vis',day=true,ans=false;
+  const off=document.createElement('canvas');off.width=W;off.height=H;const o=off.getContext('2d');
+  const r=SIM.rng(21);
+  // 물체: [x,y,반지름, 종류]
+  const objs=[{x:300,y:230,r:85,k:'cb',n:'①'},{x:690,y:420,r:150,k:'st',n:'②'},{x:780,y:160,r:120,k:'ci',n:'③'},{x:240,y:470,r:0,k:'clear',n:'④'}];
+  const puffs=objs.map(ob=>{const a=[];const n=ob.k==='cb'?26:ob.k==='st'?40:30;for(let i=0;i<n;i++)a.push([ob.x+(r()-0.5)*ob.r*(ob.k==='ci'?2.2:1.6),ob.y+(r()-0.5)*ob.r*(ob.k==='st'?0.7:ob.k==='ci'?0.5:1.1),ob.r*(0.25+r()*0.35)]);return a;});
+  const VAL={vis:{cb:1,st:0.72,ci:0.38,sea:0.06,land:0.22},ir:{cb:1,st:0.38,ci:0.88,sea:0.12,land:0.18},wv:{cb:1,st:-1,ci:0.8}};
+  function render(){
+    o.fillStyle='#000';o.fillRect(0,0,W,H);
+    if(mode==='wv'){ // 상층 수증기: 습윤 띠 + 건조 지역
+      const gr=o.createLinearGradient(0,0,W,H);gr.addColorStop(0,'rgb(150,150,150)');gr.addColorStop(.45,'rgb(170,170,170)');gr.addColorStop(.55,'rgb(40,40,40)');gr.addColorStop(1,'rgb(60,60,60)');o.fillStyle=gr;o.fillRect(0,0,W,H);
+    } else {
+      const v=mode==='vis'?(day?1:0):1;const vs=VAL[mode];
+      o.fillStyle='rgb('+Array(3).fill(Math.round(255*vs.sea*v)).join(',')+')';o.fillRect(0,0,W,H);
+      o.fillStyle='rgb('+Array(3).fill(Math.round(255*vs.land*v)).join(',')+')';o.beginPath();o.moveTo(0,0);o.lineTo(520,0);o.quadraticCurveTo(470,200,560,330);o.quadraticCurveTo(480,450,520,610);o.lineTo(0,610);o.fill();
+    }
+    objs.forEach((ob,k)=>{if(ob.k==='clear')return;const vs=VAL[mode][ob.k];if(vs<0)return;const v=(mode==='vis'&&!day)?0:vs;const col=Math.round(255*v);
+      puffs[k].forEach(([x,y,rr])=>{const gr=o.createRadialGradient(x,y,rr*0.2,x,y,rr);gr.addColorStop(0,'rgba('+col+','+col+','+col+','+(ob.k==='ci'?0.75:0.95)+')');gr.addColorStop(1,'rgba('+col+','+col+','+col+',0)');o.fillStyle=gr;o.beginPath();o.arc(x,y,rr,0,7);o.fill();});});
+  }
+  const EXP={vis:'<h4>가시 영상</h4><div>햇빛을 <b>반사</b>하는 정도. 두꺼운 구름일수록 밝아요.</div>',ir:'<h4>적외 영상</h4><div>구름 꼭대기 <b>온도가 낮을수록</b>(높은 구름) 밝아요. 밤에도 OK!</div>',wv:'<h4>수증기 영상</h4><div>대기 중·상층의 <b>수증기가 많을수록</b> 밝아요. 구름 없는 곳의 공기 흐름도 보여요.</div>'};
+  function out(){document.querySelectorAll('#s18 [data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===mode));
+    document.getElementById('oM').innerHTML=EXP[mode]+(mode==='vis'&&!day?'<div class="or" style="margin-top:6px"><b>밤</b>에는 반사되는 햇빛이 없어 가시 영상으로 관측할 수 없어요!</div>':'')+(ans?'<div style="margin-top:8px;font-size:23px">① 적란운(두껍고 높은 적운형) ② 층운(낮은 층운형) ③ 권운(높고 얇은 구름) ④ 구름 없음</div>':'');render();}
+  document.querySelectorAll('#s18 [data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;out();});
+  const b1=document.getElementById('bM1');b1.onclick=()=>{day=!day;b1.textContent=day?'☀ 낮':'🌙 밤';b1.classList.toggle('on',day);out();};
+  document.getElementById('bM2').onclick=e=>{ans=!ans;e.target.classList.toggle('on',ans);out();};
+  out();
+  SIM.loop('s18',()=>{g.drawImage(off,0,0);g.font=SIM.font(30);g.textAlign='center';objs.forEach(ob=>{g.fillStyle='#facc15';g.strokeStyle='#000';g.lineWidth=5;const y=ob.k==='clear'?ob.y:ob.y-ob.r*0.2;g.strokeText(ob.n,ob.x,y);g.fillText(ob.n,ob.x,y);
+      if(ans){g.font=SIM.font(22);const t={cb:'적란운',st:'층운',ci:'권운',clear:'맑음'}[ob.k];g.strokeText(t,ob.x,y+30);g.fillText(t,ob.x,y+30);g.font=SIM.font(30);}});
+    g.fillStyle='#facc15';g.font=SIM.font(22);g.textAlign='left';g.fillText({vis:'가시 영상',ir:'적외 영상',wv:'수증기 영상'}[mode]+(mode==='vis'&&!day?' (밤)':''),16,32);
+    if(mode==='wv'){g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.fillText('습윤한 지역 (밝음)',40,120);g.fillText('건조한 지역 (어두움)',720,560);}});
+})();
+
+</script>
+<script>
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+(function(){
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self;
+  function fit(){
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    document.documentElement.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+})();
+/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
+(function(){
+  var el = document.querySelector('#presentation-wrapper > .slide');
+  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
+  el._shown = n;
+  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+})();
+/* 정답 확인 카드(.q)와 빈칸(.blank) */
+document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
+document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
+</script>
+</body>
+</html>
