@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>대기 대순환 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u3" target="_top">← 지구시스템과학 3단원 목록</a>
+    <div class="eyebrow">Ⅲ-06 편서풍 파동 · 대기 대순환</div>
+    <h1>대기 대순환 실험실</h1>
+    <p>저위도는 에너지가 남고 고위도는 모자랍니다. 대기는 이 불균형을 어떻게 메울까요? 지구가 자전하지 않을 때의 단일 세포 순환과, 자전하는 지구의 3세포 순환을 비교하고 위도별 바람과 기압대를 찾아봅니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls" style="padding-block:10px">
+      <div class="seg" role="group" aria-label="모델">
+        <button id="m1" type="button" aria-pressed="false">자전하지 않는 지구 (단일 세포)</button>
+        <button id="m3" type="button" aria-pressed="true">자전하는 지구 (3세포)</button>
+      </div>
+      <div class="toggles"><label><input type="checkbox" id="tWind" checked>지상풍</label><label><input type="checkbox" id="tBelt" checked>기압대 이름</label><label><input type="checkbox" id="tNo">에너지 수송이 없다면?</label></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="580" role="img" aria-label="지구 둘레의 대기 순환 세포와 지상풍, 위도별 에너지 흡수량과 방출량 그래프"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#e5533b"></i>따뜻한 공기 · 상승</span>
+      <span><i class="sw" style="background:#2a64c9"></i>찬 공기 · 하강</span>
+      <span><i class="sw" style="background:#f0b429"></i>흡수하는 태양 복사</span>
+      <span><i class="sw" style="background:#7a5ad0"></i>방출하는 지구 복사</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">지구 오른쪽 가장자리의 고리는 대기의 연직 단면(순환 세포)이고, 지구 면 위의 화살표는 지상풍입니다. 대기 두께는 크게 과장했습니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">–</span></span>
+        <div class="big"><div class="k">에너지 과잉과 부족의 경계</div><div class="v" id="bigT">–</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>3세포 순환 모델</h2>
+      <ol class="chain">
+        <li>해들리 순환(0–30°): 적도에서 상승한 공기가 상층에서 고위도로 가다 위도 30° 부근에서 하강해 아열대(중위도) 고압대를 만들고, 지상에서 무역풍이 된다.</li>
+        <li>페렐 순환(30–60°): 해들리 순환과 극순환 사이에서 간접적으로 생긴다. 지상에서는 고위도로 가는 편서풍이 분다.</li>
+        <li>극순환(60–90°): 극에서 하강한 찬 공기가 저위도로 가며 극동풍이 되고, 60° 부근에서 편서풍과 만나 한대 전선대를 이룬다.</li>
+        <li>적도 저압대(열대 수렴대)는 상승 기류로 비가 많고, 30° 부근 고압대는 하강 기류로 건조해 사막이 많다.</li>
+        <li>자전이 없으면 전향력이 없어 반구마다 하나의 커다란 대류 세포(단일 세포)가 생길 것이다.</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🌍 미션: 지구 바람 지도 찾기</h2><div class="score"><span>문제 <b id="qn">–</b>/8</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">문제에 해당하는 곳을 지구 그림에서 클릭하세요(북반구, 남반구 어디든 정답). 기압대 이름은 잠시 가려집니다. 맞히면 10점, 첫 번째에 틀리면 한 번 더 기회(5점)!</p>
+    <div class="row"><button id="gStart" type="button" class="primary">🧭 탐험 시작</button><b id="gQ"></b></div>
+    <div class="feedback" id="fb">‘탐험 시작’을 누르세요.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>그래프에서 에너지 과잉과 부족이 바뀌는 위도는 어디인가요? 그런데도 저위도는 계속 뜨거워지고 고위도는 계속 차가워지지 않는 까닭은?</li>
+      <li>단일 세포 모델과 3세포 모델에서 북반구 중위도 지상풍의 방향을 비교해 보세요.</li>
+      <li>위도 30° 부근에 사막이 많은 까닭을 대기 대순환으로 설명해 보세요.</li>
+      <li>우리나라는 어느 순환 세포에 속하며, 어떤 바람의 영향을 주로 받나요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 위도별 흡수량과 방출량은 연평균 값의 모양을 단순한 함수로 나타냈고, 세포의 경계는 0°, 30°, 60°, 90°로 고정했습니다. 실제 대기 대순환은 해륙 분포, 지형, 계절에 따라 훨씬 복잡합니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=580;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const P={cells:3,wind:true,belt:true,no:false};
+const CX=280,CY=290,R=220;
+const d2r=Math.PI/180;
+const absorb=l=>300*Math.pow(Math.cos(l*d2r),1.3)+30;
+const emit=l=>210+48*Math.cos(l*d2r);
+let cross=0;for(let l=0;l<=90;l+=0.1){if(absorb(l)<emit(l)){cross=l;break;}}
+// 세포 정의 [위도 a, 위도 b, 방향(+1: a쪽 상승)]
+function cellList(){if(P.cells===1)return [[0,90,1],[0,-90,1]];return [[0,30,1],[30,60,-1],[60,90,1],[0,-30,1],[-30,-60,-1],[-60,-90,1]];}
+const limb=(lat,h)=>[CX+(R+h)*Math.cos(lat*d2r),CY-(R+h)*Math.sin(lat*d2r)];
+const parts=[];for(let i=0;i<180;i++)parts.push({c:i%6,u:Math.random()});
+function loopPos(cell,u){const [a,b,dir]=cell;const h0=6,h1=44;
+  // 경로: a(지상)→… 방향: dir=+1이면 a에서 상승 → 상층 a→b → b에서 하강 → 지상 b→a
+  let s=u*4;const seg=Math.floor(s)%4,q=s-Math.floor(s);
+  let lat,h;if(dir>0){if(seg===0){lat=a;h=lerp(h0,h1,q);}else if(seg===1){lat=lerp(a,b,q);h=h1;}else if(seg===2){lat=b;h=lerp(h1,h0,q);}else{lat=lerp(b,a,q);h=h0;}}
+  else{if(seg===0){lat=b;h=lerp(h0,h1,q);}else if(seg===1){lat=lerp(b,a,q);h=h1;}else if(seg===2){lat=a;h=lerp(h1,h0,q);}else{lat=lerp(a,b,q);h=h0;}}
+  const warm=(dir>0&&(seg===0||seg===1&&q<0.3))||(dir<0&&(seg===0||seg===1&&q<0.3));
+  return {p:limb(lat,h),seg,warm};}
+let t=0;
+function draw(dt){
+  t+=dt*MOTION;
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  // 지구
+  const g=ctx.createRadialGradient(CX-60,CY-60,20,CX,CY,R);g.addColorStop(0,'#7fb6e6');g.addColorStop(1,'#1f5687');ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX,CY,R,0,7);ctx.fill();
+  // 대기 띠(오른쪽 가장자리)
+  ctx.strokeStyle='rgba(120,170,230,.25)';ctx.lineWidth=46;ctx.beginPath();ctx.arc(CX,CY,R+25,-Math.PI/2,Math.PI/2);ctx.stroke();
+  // 위도선
+  [-60,-30,0,30,60].forEach(l=>{const y=CY-R*Math.sin(l*d2r),w=R*Math.cos(l*d2r);ctx.strokeStyle=l===0?'rgba(255,255,255,.7)':'rgba(255,255,255,.35)';ctx.lineWidth=l===0?2:1.2;ctx.setLineDash(l===0?[]:[5,4]);ctx.beginPath();ctx.moveTo(CX-w,y);ctx.lineTo(CX+w+52*Math.cos(l*d2r),y-52*Math.sin(l*d2r)*0);ctx.stroke();ctx.setLineDash([]);
+    label(ctx,(l===0?'0°':Math.abs(l)+'°'+(l>0?'N':'S')),CX-w-8,y,{size:11,align:'right',mono:true,color:tok.muted});});
+  // 지상풍
+  if(P.wind){const rows=P.cells===1?[[15,1],[45,1],[75,1],[-15,1],[-45,1],[-75,1]].map(([l])=>[l,'N']):[[15,'trade'],[45,'west'],[75,'polar'],[-15,'trade'],[-45,'west'],[-75,'polar']];
+    rows.forEach(([l,k])=>{const y=CY-R*Math.sin(l*d2r),w=R*Math.cos(l*d2r)*0.8;const nh=l>0?1:-1;
+      for(let i=-1;i<=1;i++){const x=CX+i*w*0.55-30;let vx,vy; // 화면: x 동, y 아래(남)
+        if(k==='N'){vx=0;vy=nh;}
+        else if(k==='trade'){vx=-1;vy=nh*0.6;}else if(k==='west'){vx=1;vy=-nh*0.6;}else{vx=-1;vy=nh*0.6;}
+        const L=Math.hypot(vx,vy),s=26/L;Lab.arrow(ctx,x-vx*s,y-vy*s,x+vx*s,y+vy*s,{color:'#ffffff',w:3,head:9});}
+      const nm=k==='N'?(l>0?'북풍':'남풍'):k==='trade'?'무역풍':k==='west'?'편서풍':'극동풍';darkLabel(ctx,nm,CX+w*0.55+18,y-14,{size:12,align:'left'});});}
+  // 세포
+  const cl=cellList();
+  cl.forEach(c=>{const [a,b,dir]=c;ctx.strokeStyle=tok.muted;ctx.globalAlpha=0.5;ctx.lineWidth=1.3;ctx.setLineDash([4,4]);ctx.beginPath();const pts=[];for(let u=0;u<=1.0001;u+=0.01)pts.push(loopPos(c,u).p);pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+    [0.375,0.875].forEach(u=>{const q0=loopPos(c,u).p,q1=loopPos(c,u+0.01).p;Lab.arrow(ctx,q0[0],q0[1],q1[0]+(q1[0]-q0[0])*3,q1[1]+(q1[1]-q0[1])*3,{color:tok.muted,w:1.5,head:8});});});
+  parts.forEach(p=>{const c=cl[p.c%cl.length];p.u=(p.u+dt*MOTION*0.08*(P.cells===1?0.6:1))%1;const q=loopPos(c,p.u);ctx.fillStyle=q.warm?'rgba(229,83,59,.9)':'rgba(42,100,201,.9)';ctx.beginPath();ctx.arc(q.p[0],q.p[1],2.6,0,7);ctx.fill();});
+  // 세포 이름
+  if(P.cells===3&&P.belt&&!G.hide){[['해들리',15],['페렐',45],['극순환',75]].forEach(([n,l])=>{const [x,y]=limb(l,70);label(ctx,n,x,y,{size:12,align:'left'});const [x2,y2]=limb(-l,70);label(ctx,n,x2,y2,{size:12,align:'left'});});}
+  if(P.cells===1&&P.belt&&!G.hide){const [x,y]=limb(45,72);label(ctx,'단일 세포',x,y,{size:12,align:'left'});const [x2,y2]=limb(-45,72);label(ctx,'단일 세포',x2,y2,{size:12,align:'left'});}
+  // 기압대
+  if(P.belt&&!G.hide){const belts=P.cells===3?[[0,'적도 저압대 (열대 수렴대)'],[30,'아열대 고압대'],[60,'한대 전선대'],[90,'극 고압대'],[-30,'아열대 고압대'],[-60,'한대 전선대']]:[[0,'적도 저압대'],[90,'극 고압대']];
+    belts.forEach(([l,n])=>{const y=CY-R*Math.sin(l*d2r);const x=CX-R*Math.cos(l*d2r)*0.15-90;if(l===90){label(ctx,n,CX,CY-R-18,{size:11.5,color:tok.warm});return;}label(ctx,n,CX-60,y+(l===0?-12:10),{size:11.5,color:/고압/.test(n)?'#ffe3d8':'#d8e8ff',halo:'rgba(10,30,60,.7)'});});}
+  // 게임 표시
+  if(G.mark){const [x,y,ok]=G.mark;ctx.strokeStyle=ok?'#3f9f6a':'#e5533b';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,12,0,7);ctx.stroke();}
+  // 오른쪽 그래프
+  const X0=620,X1=970,Y0=70,Y1=300;const gx=l=>X0+l/90*(X1-X0),gy=v=>Y1-v/360*(Y1-Y0);
+  label(ctx,'위도별 복사 에너지 (연평균, 북반구)',(X0+X1)/2,Y0-34,{size:13});
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(X0,Y0,X1-X0,Y1-Y0);
+  // 과잉/부족 영역
+  ctx.fillStyle='rgba(229,83,59,.18)';ctx.beginPath();for(let l=0;l<=cross;l+=1)ctx.lineTo(gx(l),gy(absorb(l)));for(let l=cross;l>=0;l-=1)ctx.lineTo(gx(l),gy(emit(l)));ctx.fill();
+  ctx.fillStyle='rgba(42,100,201,.18)';ctx.beginPath();for(let l=cross;l<=90;l+=1)ctx.lineTo(gx(l),gy(emit(l)));for(let l=90;l>=cross;l-=1)ctx.lineTo(gx(l),gy(absorb(l)));ctx.fill();
+  const curve=(f,c)=>{ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.beginPath();for(let l=0;l<=90;l+=1)l?ctx.lineTo(gx(l),gy(f(l))):ctx.moveTo(gx(l),gy(f(l)));ctx.stroke();};
+  curve(absorb,'#f0b429');curve(emit,'#7a5ad0');
+  label(ctx,'에너지 과잉',gx(14),gy(290),{size:12,color:tok.warm});label(ctx,'에너지 부족',gx(70),gy(215),{size:12,color:tok.cool});
+  ctx.strokeStyle=tok.muted;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(gx(cross),Y0);ctx.lineTo(gx(cross),Y1);ctx.stroke();ctx.setLineDash([]);label(ctx,`약 ${cross.toFixed(0)}°`,gx(cross)+4,Y0+12,{size:11,align:'left',mono:true});
+  [0,30,60,90].forEach(l=>label(ctx,l+'°',gx(l),Y1+12,{size:10.5,mono:true,hw:0,color:tok.muted}));label(ctx,'위도',(X0+X1)/2,Y1+28,{size:11,hw:0,color:tok.muted});
+  [0,100,200,300].forEach(v=>label(ctx,v+'',X0-6,gy(v),{size:10,align:'right',mono:true,hw:0,color:tok.muted}));label(ctx,'W/m²',X0-6,Y0-10,{size:10,align:'right',hw:0,color:tok.muted});
+  // 수송 화살표
+  const ay=Y1+60;Lab.arrow(ctx,gx(10),ay,gx(80),ay,{color:'#e5533b',w:P.no?1:6,head:14,dash:P.no?[6,6]:null});label(ctx,P.no?'에너지 수송 없음':'대기와 해수가 남는 에너지를 고위도로 수송',(X0+X1)/2,ay+20,{size:12,color:P.no?tok.muted:'#e5533b'});
+  // 기온 분포
+  const T0=Y1+110,T1=H-30;const ty=v=>T1-(v+60)/100*(T1-T0);
+  ctx.strokeStyle=tok.line;ctx.strokeRect(X0,T0,X1-X0,T1-T0);
+  const Tact=l=>27-0.009*l*l*1.0-0.0;const Trad=l=>Math.pow(absorb(l)/5.67e-8/0.62,0.25)-273.15-0;
+  const cur=(f,c,d)=>{ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.setLineDash(d||[]);ctx.beginPath();for(let l=0;l<=90;l+=2)l?ctx.lineTo(gx(l),ty(f(l))):ctx.moveTo(gx(l),ty(f(l)));ctx.stroke();ctx.setLineDash([]);};
+  ctx.save();ctx.beginPath();ctx.rect(X0,T0,X1-X0,T1-T0);ctx.clip();cur(Tact,tok.fg);if(P.no)cur(Trad,'#e5533b',[6,4]);ctx.restore();
+  label(ctx,'지표 기온: 실제'+(P.no?' / 수송이 없다면(점선)':''),X0+6,T0+12,{size:10.5,align:'left',hw:3});
+  [-40,0,40].forEach(v=>label(ctx,v+'℃',X0-6,ty(v),{size:10,align:'right',mono:true,hw:0,color:tok.muted}));
+}
+/* 텍스트 */
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  $('bigT').textContent=`위도 약 ${cross.toFixed(0)}°`;
+  $('stateName').textContent=P.cells===3?'3세포 순환':'단일 세포 순환';$('chip').dataset.s=P.cells===3?'cool':'warm';
+  $('metrics').innerHTML=metric('적도(0°) 흡수 / 방출',`${absorb(0).toFixed(0)} / ${emit(0).toFixed(0)}`,'W/m² → 과잉')+metric('극(90°) 흡수 / 방출',`${absorb(90).toFixed(0)} / ${emit(90).toFixed(0)}`,'W/m² → 부족')+
+    metric('북반구 중위도 지상풍',P.cells===3?'편서풍 (남서풍)':'북풍','30–60°')+metric('위도 30° 부근',P.cells===3?'하강 → 고압대, 건조':'뚜렷한 고압대 없음','');
+  $('fsInfo').textContent=$('stateName').textContent+' · 과잉/부족 경계 '+$('bigT').textContent;
+}
+/* 조작 */
+const setCells=n=>{P.cells=n;$('m1').setAttribute('aria-pressed',n===1);$('m3').setAttribute('aria-pressed',n===3);};
+$('m1').onclick=()=>{if(!G.hide)setCells(1);};$('m3').onclick=()=>setCells(3);
+$('tWind').onchange=e=>P.wind=e.target.checked;$('tBelt').onchange=e=>P.belt=e.target.checked;$('tNo').onchange=e=>P.no=e.target.checked;
+/* 게임 */
+const QS=[['무역풍이 부는 곳',[5,28]],['편서풍이 부는 곳',[32,58]],['극동풍이 부는 곳',[62,88]],['열대 수렴대 (적도 저압대)',[-6,6]],['사막이 많은 아열대 고압대',[24,36]],['한대 전선대',[54,66]],['페렐 순환 아래의 지표',[32,58]],['공기가 상승해 비가 많은 적도 지역',[-6,6]],['극 고압대 (찬 공기가 하강)',[78,90]],['우리나라가 있는 위도대',[33,43]]];
+const G={q:0,pts:0,hide:false,cur:null,tries:0,order:[],mark:null};
+$('gStart').onclick=()=>{setCells(3);G.q=0;G.pts=0;$('pts').textContent=0;G.order=QS.map((q,i)=>i).sort(()=>Math.random()-0.5).slice(0,8);G.hide=true;next();};
+function next(){if(G.q>=8){G.hide=false;G.cur=null;const s=G.pts>=75?3:G.pts>=60?2:G.pts>=40?1:0;$('stBest').textContent=Lab.stars(Lab.best('gencirc',s));$('fb').textContent+=` 탐험 끝! 최종 ${G.pts}/80점.`;$('gQ').textContent='';return;}
+  G.cur=QS[G.order[G.q]];G.q++;G.tries=0;$('qn').textContent=G.q;$('gQ').textContent='📍 '+G.cur[0]+'을(를) 클릭하세요';}
+$('sim').addEventListener('pointerdown',e=>{if(!G.cur)return;const q=S.pt(e);const dx=q.x-CX,dy=CY-q.y;const r=Math.hypot(dx,dy);if(r>R+60)return;
+  const lat=Math.asin(clamp(dy/Math.max(r,1),-1,1))/d2r*(r<=R?1:1);const L=r<=R?Math.asin(clamp(dy/R,-1,1))/d2r:lat;
+  const [a,b]=G.cur[1];const ok=Math.abs(L)>=a-0.01&&Math.abs(L)<=b+0.01||(a<0&&Math.abs(L)<=b);
+  G.mark=[q.x,q.y,ok];
+  if(ok){const p=G.tries?5:10;G.pts+=p;$('pts').textContent=G.pts;$('fb').textContent=`⭕ 정답! (위도 ${Math.abs(L).toFixed(0)}°${L>=0?'N':'S'}) +${p}`;$('fb').className='feedback good';setTimeout(()=>{G.mark=null;},700);next();}
+  else{G.tries++;$('fb').textContent=`❌ 위도 ${Math.abs(L).toFixed(0)}°${L>=0?'N':'S'}는 아니에요.`+(G.tries>=2?` 정답은 위도 ${Math.max(0,a)}–${b}° 부근.`:' 한 번 더!');$('fb').className='feedback bad';if(G.tries>=2)next();}
+});
+$('stBest').textContent=Lab.stars(Lab.best('gencirc',0));
+let fr=0;Lab.loop(dt=>{fr++;S.begin();draw(dt);if(fr%6===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

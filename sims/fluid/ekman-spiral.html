@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>에크만 나선 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u2" target="_top">← 지구시스템과학 2단원 목록</a>
+    <div class="eyebrow">Ⅱ-01 지형류 · 해수를 움직이는 힘 · 에크만 나선과 에크만 수송</div>
+    <h1>에크만 나선 실험실</h1>
+    <p>바람이 바다 표면을 밀면 전향력 때문에 표면 해수는 바람의 오른쪽(북반구)으로 흐르고, 깊어질수록 더 오른쪽으로 꺾이며 약해집니다. 층 전체의 평균 이동인 에크만 수송으로 연안 용승을 일으켜 봅니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="slider">
+        <div class="slider-top"><label for="wd">풍향 (바람이 불어오는 쪽)</label><output id="wdOut">남풍</output></div>
+        <input id="wd" type="range" min="0" max="345" step="15" value="180">
+        <div class="ticks"><span>북풍</span><span>동풍</span><span>남풍</span><span>서풍</span></div>
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="ws">풍속</label><output id="wsOut">10 m/s</output></div>
+        <input id="ws" type="range" min="2" max="25" step="1" value="10">
+      </div>
+      <div class="seg" role="group" aria-label="반구">
+        <button id="hN" type="button" aria-pressed="true">북반구</button>
+        <button id="hS" type="button" aria-pressed="false">남반구</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="깊이에 따른 해수 흐름(에크만 나선)과 평면 투영, 연안 용승"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#7a6cf0"></i>바람</span>
+      <span><i class="sw" style="background:#2a64c9"></i>깊이별 해수 흐름</span>
+      <span><i class="sw" style="background:#e5533b"></i>에크만 수송 (마찰층 평균 이동)</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">마찰층(에크만층) 깊이는 실제로 수십~100 m 정도입니다. 화살표 길이는 유속을 나타냅니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">용승</span></span>
+        <div class="big"><div class="k">에크만 수송 방향</div><div class="v" id="bigT">–</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>바람 → 표면 해수 → 에크만 수송</h2>
+      <ol class="chain">
+        <li>바람이 계속 불면 표면 해수는 전향력 때문에 북반구에서 풍향의 오른쪽 약 45° 방향으로 흐른다.</li>
+        <li>해수의 점성 때문에 움직임이 아래로 전달되며, 아래층일수록 더 오른쪽으로 치우치고 느려진다(에크만 나선).</li>
+        <li>표층과 정반대 방향으로 흐르는 깊이까지를 마찰층(에크만층)이라 한다.</li>
+        <li>마찰층 전체의 평균 이동은 북반구에서 풍향의 오른쪽 직각, 남반구에서 왼쪽 직각 방향이다(에크만 수송).</li>
+      </ol>
+      <div class="impact"><b>연안에서는</b>에크만 수송이 해안에서 먼바다 쪽으로 일어나면 연안의 해수면이 낮아지고 아래의 찬물이 올라온다(용승). 해안 쪽으로 일어나면 해수가 쌓여 가라앉는다(침강).</div>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🐟 미션: 어장을 살리는 바람</h2><div class="score"><span>문제 <b id="qn">–</b>/5</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">세계 여러 연안에 용승을 일으켜 영양염이 풍부한 어장을 만들어야 합니다. 반구와 해안의 방향을 보고, 풍향을 맞춘 뒤 ‘이 바람으로 결정’을 누르세요.</p>
+    <div class="row"><button id="gStart" type="button" class="primary">🎲 문제 받기</button><button id="gCheck" type="button">🌬 이 바람으로 결정</button><span class="mission" id="gAsk"></span></div>
+    <div class="feedback" id="fb">‘문제 받기’를 누르면 오른쪽 아래 연안 지도가 문제 지역으로 바뀝니다.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>북반구에서 남풍이 계속 불 때 표면 해수와 에크만 수송은 각각 어느 방향인가요?</li>
+      <li>남반구로 바꾸면 에크만 나선은 어떻게 달라지나요?</li>
+      <li>우리나라 동해안에서 여름철 남풍 계열 바람이 불면 연안의 수온은 어떻게 될까요?</li>
+      <li>에크만 수송이 일어난 뒤 연안과 먼바다의 해수면 높이는 어떻게 달라지나요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 깊이 z에서의 흐름을 표면 유속 × e^(−z/D)로 줄이고, 방향은 표면에서 풍향의 오른쪽 45°에서 시작해 z/D 라디안만큼 더 돌도록 한 이론적 에크만 나선을 그렸습니다. 표면 유속은 풍속의 약 3%로 근사했습니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=600;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const P={wd:180,ws:10,hemi:1};
+const DIR16=['북','북북동','북동','동북동','동','동남동','남동','남남동','남','남남서','남서','서남서','서','서북서','북서','북북서'];
+const dname=d=>DIR16[Math.round((((d%360)+360)%360)/22.5)%16];
+// 바람이 '향하는' 방위각 (0=북쪽으로)
+const toward=()=>(P.wd+180)%360;
+const vec=b=>[Math.sin(b*Math.PI/180),-Math.cos(b*Math.PI/180)]; // 화면: 위=북
+const NL=14;
+function layers(){const out=[];const V0=0.03*P.ws;for(let k=0;k<NL;k++){const zD=k/(NL-1)*Math.PI;const sp=V0*Math.exp(-zD);const b=toward()+P.hemi*(45+zD*180/Math.PI);out.push({zD,sp,b});}return out;}
+const transport=()=>toward()+P.hemi*90;
+let t=0;
+function draw(dt){
+  t+=dt*MOTION;
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  const L=layers();
+  // ===== 3D 기둥 =====
+  const ox=230,oy=120,dz=26,sc=150;
+  const P3=(x,y,z)=>[ox+x*sc+y*sc*0.45,oy+z*dz-y*sc*0.28];  // x 동, y 북, z 깊이(층)
+  // 바다 기둥 면
+  ctx.fillStyle=Lab.isDark()?'rgba(40,110,160,.25)':'rgba(44,127,168,.15)';
+  const c=[P3(-1,-1,0),P3(1,-1,0),P3(1,1,0),P3(-1,1,0)];
+  ctx.beginPath();c.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.fill();
+  ctx.strokeStyle=tok.line;ctx.stroke();
+  const b0=P3(-1,-1,NL-1),b1=P3(1,-1,NL-1);
+  ctx.fillStyle=Lab.isDark()?'rgba(40,110,160,.18)':'rgba(44,127,168,.08)';ctx.beginPath();ctx.moveTo(...c[0]);ctx.lineTo(...c[1]);ctx.lineTo(...b1);ctx.lineTo(...b0);ctx.closePath();ctx.fill();ctx.stroke();
+  // 축
+  ctx.strokeStyle=tok.muted;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(...P3(0,0,0));ctx.lineTo(...P3(0,0,NL-1));ctx.stroke();ctx.setLineDash([]);
+  label(ctx,'N',...P3(0,1.12,0),{size:12,color:tok.muted});label(ctx,'E',...P3(1.12,0,0),{size:12,color:tok.muted});
+  // 바람
+  const [wx,wy]=vec(toward());const ws=0.35+P.ws/25*0.6;
+  const a0=P3(-wx*ws*0.2,wy*ws*0.2,-2.2),a1=P3(wx*ws,-wy*ws,-2.2);
+  Lab.arrow(ctx,...a0,...a1,{color:'#7a6cf0',w:4,head:12});label(ctx,`바람 (${dname(P.wd)}풍)`,a1[0]+6,a1[1]-12,{size:13,align:'left',color:'#7a6cf0'});
+  // 층 화살표
+  const V0=0.03*P.ws;
+  L.forEach((l,k)=>{const [vx,vy]=vec(l.b);const m=l.sp/V0*0.9;const s=P3(0,0,k),e=P3(vx*m,-vy*m,k);
+    ctx.globalAlpha=0.35+0.65*(1-k/NL);Lab.arrow(ctx,...s,...e,{color:'#2a64c9',w:2.4,head:8});ctx.globalAlpha=1;});
+  label(ctx,'표면',P3(0,0,0)[0]-14,P3(0,0,0)[1],{size:12,align:'right',color:tok.muted});
+  label(ctx,'마찰층 바닥',P3(0,0,NL-1)[0]-14,P3(0,0,NL-1)[1],{size:12,align:'right',color:tok.muted});
+  label(ctx,'(표층과 정반대 방향)',P3(0,0,NL-1)[0]-14,P3(0,0,NL-1)[1]+16,{size:11,align:'right',color:tok.muted,weight:500});
+  // ===== 평면 투영 =====
+  const px=745,py=150,pr=118;
+  ctx.fillStyle=tok.bg;ctx.beginPath();ctx.roundRect(500,10,490,285,12);ctx.fill();
+  label(ctx,'위에서 본 모습 (수평면 투영)',515,30,{size:13,align:'left',hw:0});
+  ctx.strokeStyle=tok.line;ctx.beginPath();ctx.moveTo(px-pr-10,py);ctx.lineTo(px+pr+10,py);ctx.moveTo(px,py-pr-10);ctx.lineTo(px,py+pr+10);ctx.stroke();
+  label(ctx,'N',px,py-pr-18,{size:11,hw:0,color:tok.muted});
+  // 바람
+  Lab.arrow(ctx,px,py,px+wx*pr*0.9,py+wy*pr*0.9,{color:'#7a6cf0',w:3,head:11,dash:[7,5]});
+  // 나선
+  ctx.strokeStyle='#2a64c9';ctx.lineWidth=1.5;ctx.setLineDash([2,3]);ctx.beginPath();
+  for(let i=0;i<=60;i++){const zD=i/60*Math.PI;const sp=Math.exp(-zD)*pr*0.85;const [vx,vy]=vec(toward()+P.hemi*(45+zD*180/Math.PI));const x=px+vx*sp,y=py+vy*sp;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.setLineDash([]);
+  L.forEach((l,k)=>{const [vx,vy]=vec(l.b);const m=l.sp/V0*pr*0.85;ctx.globalAlpha=0.35+0.65*(1-k/NL);Lab.arrow(ctx,px,py,px+vx*m,py+vy*m,{color:'#2a64c9',w:1.8,head:6});ctx.globalAlpha=1;});
+  const [tx,ty]=vec(transport());
+  Lab.arrow(ctx,px,py,px+tx*pr*0.7,py+ty*pr*0.7,{color:'#e5533b',w:5,head:15});
+  label(ctx,'에크만 수송',px+tx*pr*0.78,py+ty*pr*0.78+(ty>0?14:-12),{size:12.5,color:'#e5533b'});
+  const [sx,sy]=vec(L[0].b);label(ctx,'표면 해수 45°',px+sx*pr*0.92,py+sy*pr*0.92+(sy>0?14:-12),{size:11.5,color:'#2a64c9'});
+  // ===== 연안 =====
+  drawCoast();
+}
+// 연안 시나리오: land 'E'(해안이 바다의 동쪽) 또는 'W'
+let coast={name:'캘리포니아 연안',hemi:1,land:'E'};
+function drawCoast(){
+  const x0=500,y0=305,w=490,h=285;
+  ctx.save();ctx.beginPath();ctx.roundRect(x0,y0,w,h,12);ctx.clip();
+  const off=offshoreBearing(coast.land);const tb=transport();const d=angDiff(tb,off);
+  const up=d<60,down=d>120;
+  ctx.fillStyle=Lab.isDark()?'#12384f':'#4b9cc6';ctx.fillRect(x0,y0,w,h);
+  const landX=coast.land==='E'?x0+w-120:x0,landW=120;const coastX=coast.land==='E'?x0+w-120:x0+120;
+  // 용승/침강 색
+  if(P.hemi===coast.hemi){
+    const g=ctx.createLinearGradient(coastX,0,coast.land==='E'?coastX-200:coastX+200,0);
+    if(up){g.addColorStop(0,'rgba(40,200,170,.85)');g.addColorStop(1,'rgba(40,200,170,0)');}
+    else if(down){g.addColorStop(0,'rgba(230,120,60,.6)');g.addColorStop(1,'rgba(230,120,60,0)');}
+    else{g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,0)');}
+    ctx.fillStyle=g;ctx.fillRect(x0,y0,w,h);
+  }
+  ctx.fillStyle=tok.land;ctx.fillRect(landX,y0,landW,h);
+  // 지그재그 해안
+  ctx.strokeStyle=tok['land-edge'];ctx.lineWidth=2;ctx.beginPath();for(let y=y0;y<=y0+h;y+=12){ctx.lineTo(coastX+(y/12%2?4:-4),y);}ctx.stroke();
+  darkLabel(ctx,coast.name,x0+w/2-(coast.land==='E'?60:-60),y0+22,{size:13});
+  darkLabel(ctx,coast.hemi>0?'북반구':'남반구',x0+w/2-(coast.land==='E'?60:-60),y0+42,{size:11.5,weight:500});
+  darkLabel(ctx,'육지',landX+landW/2,y0+h/2,{size:13});
+  const cx=coast.land==='E'?coastX-150:coastX+150,cy=y0+h/2+10;
+  const [wx,wy]=vec(toward());Lab.arrow(ctx,cx-wx*55,cy-wy*55,cx+wx*55,cy+wy*55,{color:'#c9b8ff',w:4,head:12});
+  if(P.hemi===coast.hemi){const [tx,ty]=vec(tb);Lab.arrow(ctx,cx,cy,cx+tx*70,cy+ty*70,{color:'#ff8a70',w:5,head:14});}
+  darkLabel(ctx,'바람',cx-wx*70,cy-wy*70,{size:11.5,color:'#e6deff'});
+  let msg;
+  if(P.hemi!==coast.hemi)msg=`반구를 ${coast.hemi>0?'북반구':'남반구'}로 맞추세요`;
+  else msg=up?'용승! 찬물·영양염이 올라와 좋은 어장':down?'침강: 연안에 해수가 쌓임':'해안과 나란한 수송: 변화 작음';
+  darkLabel(ctx,msg,x0+w/2-(coast.land==='E'?60:-60),y0+h-20,{size:13.5,color:up?'#c8fff2':'#fff'});
+  if(up&&P.hemi===coast.hemi){for(let i=0;i<5;i++){const fx=coastX+(coast.land==='E'?-1:1)*(30+((i*47+t*30)%120)),fy=y0+80+i*36;ctx.fillStyle='#e6f7ff';ctx.beginPath();ctx.ellipse(fx,fy,8,4,0,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(fx+(coast.land==='E'?7:-7),fy);ctx.lineTo(fx+(coast.land==='E'?13:-13),fy-4);ctx.lineTo(fx+(coast.land==='E'?13:-13),fy+4);ctx.fill();}}
+  ctx.restore();
+  ctx.strokeStyle=tok.line;ctx.beginPath();ctx.roundRect(x0,y0,w,h,12);ctx.stroke();
+  coast.result={up,down,match:P.hemi===coast.hemi};
+}
+const offshoreBearing=land=>land==='E'?270:90;
+function angDiff(a,b){let d=Math.abs(((a-b)%360+360)%360);return d>180?360-d:d;}
+/* 텍스트 */
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  $('wdOut').textContent=dname(P.wd)+'풍';$('wsOut').textContent=P.ws+' m/s';
+  const L=layers();const tb=transport();
+  $('bigT').textContent=dname(tb)+'쪽';
+  const r=coast.result||{};$('stateName').textContent=!r.match?'반구 다름':r.up?'용승':r.down?'침강':'변화 작음';$('chip').dataset.s=r.up?'cool':r.down?'warm':'';
+  $('metrics').innerHTML=metric('바람이 향하는 방향',dname(toward())+'쪽',`${dname(P.wd)}풍`)+
+    metric('표면 해수 흐름',dname(L[0].b)+'쪽',`풍향의 ${P.hemi>0?'오른쪽':'왼쪽'} 45° · 약 ${(L[0].sp*100).toFixed(0)} cm/s`)+
+    metric('마찰층 바닥 흐름',dname(L[NL-1].b)+'쪽',`표층의 약 ${(Math.exp(-Math.PI)*100).toFixed(0)}% 세기, 정반대`)+
+    metric('에크만 수송',dname(tb)+'쪽',`풍향의 ${P.hemi>0?'오른쪽':'왼쪽'} 직각`);
+  $('fsInfo').textContent=`${P.hemi>0?'북반구':'남반구'} · ${dname(P.wd)}풍 ${P.ws} m/s → 에크만 수송 ${dname(tb)}쪽`;
+}
+/* 조작 */
+$('wd').addEventListener('input',()=>P.wd=+$('wd').value);$('ws').addEventListener('input',()=>P.ws=+$('ws').value);
+function setH(h){P.hemi=h;$('hN').setAttribute('aria-pressed',h>0);$('hS').setAttribute('aria-pressed',h<0);}
+$('hN').onclick=()=>setH(1);$('hS').onclick=()=>setH(-1);
+/* 게임 */
+const SC=[{name:'페루 연안',hemi:-1,land:'E',hint:'남아메리카 서해안: 바다가 서쪽'},{name:'캘리포니아 연안',hemi:1,land:'E',hint:'북아메리카 서해안: 바다가 서쪽'},{name:'우리나라 동해안',hemi:1,land:'W',hint:'바다가 동쪽'},{name:'아프리카 남서부(벵겔라)',hemi:-1,land:'E',hint:'바다가 서쪽'},{name:'오스트레일리아 동해안',hemi:-1,land:'W',hint:'바다가 동쪽'},{name:'아프리카 북서부(카나리아)',hemi:1,land:'E',hint:'바다가 서쪽'}];
+const G={q:0,pts:0,order:[]};
+$('gStart').onclick=()=>{
+  if(G.q>=5||!G.order.length){G.q=0;G.pts=0;G.order=SC.map((_,i)=>i).sort(()=>Math.random()-.5);$('pts').textContent=0;}
+  const s=SC[G.order[G.q%G.order.length]];G.q++;coast=Object.assign({},s);$('qn').textContent=G.q;
+  $('gAsk').textContent=`${s.name} (${s.hemi>0?'북반구':'남반구'}, ${s.hint})`;
+  $('fb').textContent='반구를 맞추고 풍향을 바꿔 용승을 일으켜 보세요.';$('fb').className='feedback';
+};
+$('gCheck').onclick=()=>{
+  if(!G.q){$('fb').textContent='먼저 문제를 받으세요.';return;}
+  const r=coast.result;let p=0,m;
+  if(!r.match)m=`반구가 틀렸습니다. ${coast.name}는 ${coast.hemi>0?'북반구':'남반구'}입니다.`;
+  else if(r.up){p=20;m=`성공! ${dname(P.wd)}풍이 불면 에크만 수송이 ${dname(transport())}쪽(먼바다)으로 일어나 연안에 용승이 생깁니다.`;}
+  else m=r.down?'반대로 침강이 일어났어요. 수송이 해안 쪽으로 향합니다.':'수송이 해안과 나란해 용승이 약해요.';
+  G.pts+=p;$('pts').textContent=G.pts;$('fb').textContent=m+(G.q>=5?` 최종 ${G.pts}/100점!`:' ‘문제 받기’로 다음 연안!');$('fb').className='feedback '+(p?'good':'bad');
+  if(G.q>=5){const n=G.pts>=100?3:G.pts>=60?2:G.pts>=20?1:0;$('stBest').textContent=Lab.stars(Lab.best('ekman',n));}
+};
+$('stBest').textContent=Lab.stars(Lab.best('ekman',0));
+let fr=0;Lab.loop(dt=>{fr++;S.begin();draw(dt);if(fr%5===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

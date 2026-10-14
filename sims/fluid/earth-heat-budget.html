@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>지구 열수지 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u3" target="_top">← 지구시스템과학 3단원 목록</a>
+    <div class="eyebrow">Ⅲ-02 지구 열수지 · 지구의 열수지와 복사 평형</div>
+    <h1>지구 열수지 실험실</h1>
+    <p>지구에 들어오는 태양 복사 에너지를 100이라 할 때, 그 에너지가 우주·대기·지표 사이를 어떻게 오가는지 화살표의 굵기로 봅니다. 반사율과 온실 기체의 양을 바꾸면 균형이 깨졌다가 새로운 온도에서 다시 맞춰집니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="slider"><div class="slider-top"><label for="al">지구의 반사율</label><output id="alOut">0.30</output></div><input id="al" type="range" min="10" max="60" step="1" value="30"></div>
+      <div class="slider"><div class="slider-top"><label for="gf">대기가 흡수하는 지표 복사의 비율 (온실 기체)</label><output id="gfOut">90 %</output></div><input id="gf" type="range" min="50" max="99" step="1" value="90"></div>
+      <div class="slider"><div class="slider-top"><label for="sp">시간 흐름</label><output id="spOut">보통</output></div><input id="sp" type="range" min="1" max="3" step="1" value="2"></div>
+    </div>
+    <div class="controls" style="padding-block:10px">
+      <div class="toggles">
+        <label><input type="checkbox" id="tDot" checked>에너지 입자 보기</label>
+        <label><input type="checkbox" id="tNum" checked>수치 보기</label>
+      </div>
+      <div class="presets"><button id="p0" type="button">현재 지구</button><button id="p1" type="button">온실 기체 증가</button><button id="p2" type="button">빙하로 덮인 지구</button><button id="p3" type="button">대기가 투명하다면</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="우주, 대기, 지표 사이의 에너지 흐름을 화살표 굵기로 나타낸 열수지 그림"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#f0b429"></i>태양 복사 (단파)</span>
+      <span><i class="sw" style="background:#e5533b"></i>지구 복사 (적외선)</span>
+      <span><i class="sw" style="background:#3f9f6a"></i>잠열 · 대류와 전도</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">숫자는 지구에 들어오는 태양 복사 에너지를 100으로 했을 때의 상대적인 양입니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">복사 평형</span></span>
+        <div class="big"><div class="k">지표의 평균 온도</div><div class="v" id="bigT">–</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>에너지는 어디로 가는가</h2>
+      <ol class="chain">
+        <li>태양 복사 100 중 30은 대기·구름(23)과 지표(7)에서 반사되고, 대기(19)·구름(4)이 23, 지표가 47을 흡수한다.</li>
+        <li>지표는 적외선 116을 방출한다. 이 중 104는 대기에 흡수되고, 12만 대기의 창을 통해 우주로 나간다.</li>
+        <li>지표는 물의 증발(잠열 24)과 대류·전도(5)로도 대기에 에너지를 준다.</li>
+        <li>대기는 흡수한 에너지를 다시 복사한다. 98은 지표로(대기의 재복사 → 온실 효과), 58은 우주로(대기 49 + 구름 9) 간다.</li>
+        <li>우주·대기·지표 각각에서 들어오는 양과 나가는 양이 같다: 우주 100 = 30 + 70, 대기 156 = 156, 지표 145 = 145.</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🧩 미션: 열수지 퍼즐</h2><div class="score"><span>문제 <b id="qn">–</b>/5</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">그림에서 두 개의 화살표 값이 ⓐ, ⓑ로 가려집니다. “들어오는 양 = 나가는 양”이 우주, 대기, 지표에서 각각 성립한다는 것만으로 값을 알아내세요. 한 칸에 10점, 다섯 문제 100점 만점.</p>
+    <div class="row"><button id="gStart" type="button" class="primary">🧩 문제 내기</button>
+      <label>ⓐ <input type="number" id="ga" inputmode="numeric"></label>
+      <label>ⓑ <input type="number" id="gb" inputmode="numeric"></label>
+      <button id="gCheck" type="button">✅ 확인</button></div>
+    <div class="feedback" id="fb">‘문제 내기’를 누르면 그림이 현재 지구 상태로 돌아가고 문제가 나옵니다.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>지표가 받는 에너지는 태양 복사(47)보다 대기의 재복사(98)가 더 많습니다. 이것이 지구의 평균 기온과 어떤 관계가 있을까요?</li>
+      <li>지표 복사 116 중 우주로 바로 나가는 것은 12뿐입니다. 나머지는 왜 우주로 나가지 못할까요?</li>
+      <li>온실 기체를 늘리면 처음에는 무엇의 균형이 깨지나요? 새로운 평형에 이르렀을 때 지표 온도와 각 화살표는 어떻게 달라지나요?</li>
+      <li>빙하가 넓어져 반사율이 커지면 어떤 일이 일어날까요? 이것이 눈덩이 지구와 어떻게 연결되나요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 반사·흡수의 비율과 잠열·대류의 크기, 대기 복사가 위아래로 나뉘는 비율(98 : 58)은 교과서 그림의 값을 고정해 쓰고, 지표와 대기의 복사는 각 층의 온도의 4제곱에 비례하도록 계산했습니다(현재 지구 지표 15 ℃ 기준).</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=600;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const P={al:0.30,f:104/116,speed:2,dots:true,nums:true};
+const D=98/156; // 대기 복사 중 아래로 가는 비율
+const TS0=288.15,TA0=255;
+const st={Ts:TS0,Ta:TA0};
+function flows(){
+  const R=100*P.al, A=100-R;
+  const Es=116*Math.pow(st.Ts/TS0,4), Ea=156*Math.pow(st.Ta/TA0,4);
+  const Ss=A*47/70;
+  const F={sun:100,rA:R*23/30,rS:R*7/30,aA:A*19/70,aC:A*4/70,aS:Ss,
+    sE:Es,sAbs:Es*P.f,win:Es*(1-P.f),lat:24*Ss/47,con:5*Ss/47,
+    back:Ea*D,outA:Ea*(1-D)*49/58,outC:Ea*(1-D)*9/58};
+  F.surfIn=F.aS+F.back;F.surfOut=F.sE+F.lat+F.con;
+  F.atmIn=F.aA+F.aC+F.sAbs+F.lat+F.con;F.atmOut=F.back+F.outA+F.outC;
+  F.spIn=100;F.spOut=F.rA+F.rS+F.win+F.outA+F.outC;
+  return F;
+}
+function step(dt){
+  const n=Math.max(1,Math.ceil(dt/0.02)),h=dt/n*[0,0.5,1.5,5][P.speed];
+  for(let i=0;i<n;i++){const F=flows();st.Ts+=0.25*(F.surfIn-F.surfOut)*h;st.Ta+=0.25*(F.atmIn-F.atmOut)*h;
+    st.Ts=clamp(st.Ts,150,420);st.Ta=clamp(st.Ta,120,380);}
+}
+/* 그림 */
+const Y_SP=70,Y_AT=130,Y_SF=470;
+let t=0,G={hide:[],q:0,pts:0,active:false};
+const SW='#f0b429',LW='#e5533b',HT='#3f9f6a';
+// [키, x, y0, y1, 색, 이름]
+const ARR=[
+  ['sun',70,20,Y_SF-4,SW,'태양 복사'],
+  ['rA',125,250,20,SW,'대기·구름 반사'],
+  ['rS',175,Y_SF-4,20,SW,'지표 반사'],
+  ['aA',230,Y_AT+6,300,SW,'대기 흡수'],
+  ['aC',280,Y_AT+6,230,SW,'구름 흡수'],
+  ['aS',330,Y_AT+6,Y_SF-4,SW,'지표 흡수'],
+  ['sAbs',430,Y_SF-4,300,LW,'대기가 흡수'],
+  ['win',500,Y_SF-4,20,LW,'대기의 창'],
+  ['back',580,200,Y_SF-4,LW,'대기의 재복사'],
+  ['lat',665,Y_SF-4,300,HT,'잠열'],
+  ['con',725,Y_SF-4,320,HT,'대류·전도'],
+  ['outA',820,250,20,LW,'대기 → 우주'],
+  ['outC',900,215,20,LW,'구름 → 우주']];
+const HIDE_OK={aS:'ⓐ',back:'ⓑ'};
+function band(x,y0,y1,v,col){
+  const w=Math.max(2,2+v*0.24),dir=Math.sign(y1-y0),hh=Math.min(18,w*0.8+6);
+  ctx.fillStyle=col;ctx.globalAlpha=0.8;ctx.beginPath();
+  ctx.moveTo(x-w/2,y0);ctx.lineTo(x-w/2,y1-dir*hh);ctx.lineTo(x-w/2-6,y1-dir*hh);ctx.lineTo(x,y1);ctx.lineTo(x+w/2+6,y1-dir*hh);ctx.lineTo(x+w/2,y1-dir*hh);ctx.lineTo(x+w/2,y0);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+  return w;
+}
+function cloud(x,y,s){ctx.fillStyle=tok.cloud;ctx.strokeStyle=tok['cloud-edge'];ctx.lineWidth=1.2;ctx.beginPath();[[0,0,22],[22,-8,18],[42,2,20],[-20,6,16],[20,10,18]].forEach(([dx,dy,r])=>{ctx.moveTo(x+dx*s+r*s,y+dy*s);ctx.arc(x+dx*s,y+dy*s,r*s,0,7);});ctx.fill();ctx.stroke();}
+function draw(dt){
+  t+=dt*MOTION;
+  const F=flows();
+  ctx.fillStyle=tok.space;ctx.fillRect(0,0,W,Y_SP);
+  const g=ctx.createLinearGradient(0,Y_SP,0,Y_SF);g.addColorStop(0,tok['sky-top']);g.addColorStop(1,tok['sky-bot']);ctx.fillStyle=g;ctx.fillRect(0,Y_SP,W,Y_SF-Y_SP);
+  ctx.fillStyle=tok.land;ctx.fillRect(0,Y_SF,W,H-Y_SF);ctx.fillStyle=tok.sea;ctx.fillRect(560,Y_SF,240,H-Y_SF);
+  ctx.strokeStyle=tok['land-edge'];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,Y_SF);ctx.lineTo(W,Y_SF);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(0,Y_AT);ctx.lineTo(W,Y_AT);ctx.stroke();ctx.setLineDash([]);
+  darkLabel(ctx,'우주',W-20,24,{size:14,align:'right'});
+  label(ctx,'대기',W-20,Y_AT+22,{size:14,align:'right',color:tok.fg});
+  darkLabel(ctx,'지표',W-20,H-24,{size:14,align:'right'});
+  // 태양
+  const sg=ctx.createRadialGradient(40,20,2,40,20,46);sg.addColorStop(0,'#fff3c0');sg.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.arc(40,20,46,0,7);ctx.fill();
+  cloud(270,225,1.1);cloud(890,215,0.9);cloud(140,255,0.8);
+  // 화살표
+  ARR.forEach(([k,x,y0,y1,col,name])=>{
+    const v=F[k];const w=band(x,y0,y1,v,col);
+    if(P.dots&&v>0.5){const n=Math.ceil(v/10)+1,len=Math.abs(y1-y0);for(let i=0;i<n;i++){const u=((t*0.35+i/n)%1);const y=y0+(y1-y0)*u;ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.arc(x+((i%3)-1)*w*0.2,y,2.2,0,7);ctx.fill();}}
+    if(P.nums){const ym=k==='sun'?110:k==='sAbs'?400:k==='back'?380:k==='win'?95:(y0+y1)/2+(k==='rS'?120:k==='aS'?70:0);
+      const hid=G.active&&G.hide.includes(k);
+      const tx=hid?(G.hide[0]===k?'ⓐ ?':'ⓑ ?'):Math.round(v)+'';
+      label(ctx,tx,x,ym,{size:hid?16:15,mono:!hid,color:hid?'#c0392b':tok.fg,hw:5});
+      label(ctx,name,x,ym+18,{size:10.5,color:tok.fg,hw:4,weight:500});}
+  });
+  ctx.strokeStyle=LW;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(405,Y_SF-2);ctx.lineTo(525,Y_SF-2);ctx.stroke();
+  if(P.nums)darkLabel(ctx,`지표 복사 ${Math.round(F.sE)}`,465,Y_SF+18,{size:13});
+  // 경계 수지 상자
+  const box=(x,y,name,a,b)=>{const ok=Math.abs(a-b)<0.6;ctx.fillStyle=tok.surface;ctx.globalAlpha=0.9;ctx.beginPath();ctx.roundRect(x,y,150,40,8);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=ok?'#3f9f6a':'#e5533b';ctx.lineWidth=2;ctx.stroke();
+    label(ctx,name,x+10,y+12,{size:11,align:'left',hw:0,color:tok.muted});label(ctx,`들어옴 ${G.active?'?':Math.round(a)} · 나감 ${G.active?'?':Math.round(b)}`,x+10,y+28,{size:12,align:'left',hw:0,mono:true});};
+  box(590,82,'대기의 수지',F.atmIn,F.atmOut);box(590,H-50,'지표의 수지',F.surfIn,F.surfOut);box(330,18,'지구 전체(우주 경계)',F.spIn,F.spOut);
+}
+/* 텍스트 */
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  const F=flows(),T=st.Ts-273.15,net=F.spIn-F.spOut;
+  $('alOut').textContent=P.al.toFixed(2);$('gfOut').textContent=Math.round(P.f*100)+' %';$('spOut').textContent=['','느리게','보통','빠르게'][P.speed];
+  $('bigT').textContent=T.toFixed(1)+' ℃';$('bigT').className='v '+(T>16?'up':T<14?'dn':'');
+  const bal=Math.abs(net)<0.5&&Math.abs(F.surfIn-F.surfOut)<0.5;
+  $('stateName').textContent=bal?'복사 평형':net>0?'에너지 남음 → 가열 중':'에너지 부족 → 냉각 중';$('chip').dataset.s=bal?'cool':'warm';
+  $('metrics').innerHTML=metric('지구가 흡수한 태양 복사',(100-F.rA-F.rS).toFixed(0),`반사 ${(F.rA+F.rS).toFixed(0)}`)+
+    metric('지구가 우주로 내보내는 복사',(F.win+F.outA+F.outC).toFixed(1),`차이 ${net>=0?'+':''}${net.toFixed(1)}`)+
+    metric('대기의 재복사(지표로)',F.back.toFixed(0),'온실 효과의 크기')+metric('대기의 평균 온도',(st.Ta-273.15).toFixed(0)+' ℃','대기가 복사하는 유효 온도');
+  $('fsInfo').textContent=`반사율 ${P.al.toFixed(2)} · 흡수율 ${Math.round(P.f*100)}% · 지표 ${T.toFixed(1)}℃ · ${$('stateName').textContent}`;
+}
+/* 조작 */
+function sync(){$('al').value=Math.round(P.al*100);$('gf').value=Math.round(P.f*100);}
+function endGame(){if(G.active){G.active=false;}}
+$('al').addEventListener('input',()=>{endGame();P.al=$('al').value/100;});
+$('gf').addEventListener('input',()=>{endGame();P.f=$('gf').value/100;});
+$('sp').addEventListener('input',()=>P.speed=+$('sp').value);
+$('tDot').onchange=e=>P.dots=e.target.checked;$('tNum').onchange=e=>P.nums=e.target.checked;
+const preset=(al,f)=>{endGame();P.al=al;P.f=f;sync();};
+$('p0').onclick=()=>{preset(0.30,104/116);};$('p1').onclick=()=>preset(0.30,0.96);$('p2').onclick=()=>preset(0.50,104/116);$('p3').onclick=()=>preset(0.30,0.5);
+/* 게임 */
+const QS=[
+  [['aS','back'],'ⓐ는 우주 경계와 대기로부터 100 − 30 − 19 − 4 = 47, ⓑ는 지표에서 116 + 24 + 5 − 47 = 98.'],
+  [['sAbs','outA'],'ⓐ 지표 복사 116 − 대기의 창 12 = 104, ⓑ 대기에서 156 − 98 − 9 = 49.'],
+  [['rS','outC'],'ⓐ 반사 30 − 23 = 7, ⓑ 우주 경계에서 100 − 30 − 12 − 49 = 9.'],
+  [['aA','con'],'ⓐ 100 − 30 − 4 − 47 = 19, ⓑ 지표에서 47 + 98 − 116 − 24 = 5.'],
+  [['win','lat'],'ⓐ 우주 경계에서 100 − 30 − 49 − 9 = 12, ⓑ 지표에서 47 + 98 − 116 − 5 = 24.'],
+  [['sun','back'],'ⓐ 지구에 들어오는 태양 복사는 기준값 100, ⓑ 대기에서 19 + 4 + 104 + 24 + 5 − 49 − 9 = 98.']
+].filter(q=>q[1]);
+const TRUE={sun:100,rA:23,rS:7,aA:19,aC:4,aS:47,sAbs:104,win:12,back:98,lat:24,con:5,outA:49,outC:9};
+let order=[];
+$('gStart').onclick=()=>{
+  if(G.q>=5||!order.length){G.q=0;G.pts=0;$('pts').textContent=0;order=QS.map((q,i)=>i).sort(()=>Math.random()-0.5).slice(0,5);}
+  P.al=0.30;P.f=104/116;st.Ts=TS0;st.Ta=TA0;sync();
+  const q=QS[order[G.q]];G.q++;G.cur=q;G.hide=q[0];G.active=true;G.done=false;
+  $('qn').textContent=G.q;$('ga').value='';$('gb').value='';
+  const nm=k=>ARR.find(a=>a[0]===k)[5];
+  $('fb').textContent=`ⓐ ${nm(q[0][0])}, ⓑ ${nm(q[0][1])}의 값은? (수지 상자의 수치도 가려졌습니다)`;$('fb').className='feedback';
+};
+$('gCheck').onclick=()=>{
+  if(!G.active||G.done){$('fb').textContent='먼저 ‘문제 내기’를 누르세요.';return;}
+  const a=+$('ga').value,b=+$('gb').value,[ka,kb]=G.hide;
+  const oa=a===TRUE[ka],ob=b===TRUE[kb];const p=(oa?10:0)+(ob?10:0);G.pts+=p;$('pts').textContent=G.pts;G.done=true;
+  $('fb').textContent=`ⓐ ${oa?'정답':'오답'}, ⓑ ${ob?'정답':'오답'} (+${p}점). ${G.cur[1]}`+(G.q>=5?` 최종 ${G.pts}/100점.`:'');
+  $('fb').className='feedback '+(oa&&ob?'good':'bad');G.active=false;
+  if(G.q>=5){const s=G.pts>=100?3:G.pts>=80?2:G.pts>=50?1:0;$('stBest').textContent=Lab.stars(Lab.best('heat',s));}
+};
+$('stBest').textContent=Lab.stars(Lab.best('heat',0));
+sync();
+let fr=0;Lab.loop(dt=>{fr++;step(dt);S.begin();draw(dt);if(fr%6===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

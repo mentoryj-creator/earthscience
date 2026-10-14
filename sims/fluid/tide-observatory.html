@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>조석 관측소</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u2" target="_top">← 지구시스템과학 2단원 목록</a>
+    <div class="eyebrow">Ⅱ-04 조석 · 기조력 · 조석 주기 · 사리와 조금</div>
+    <h1>조석 관측소</h1>
+    <p>달과 태양의 기조력이 만드는 바닷물의 부풂 위로 지구가 자전하면 하루 두 번 만조와 간조가 찾아옵니다. 시간을 돌리며 조석 주기, 일주조·반일주조·혼합조, 사리와 조금을 관측해 봅니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="presets">
+        <button class="primary" id="run" type="button">❚❚ 멈춤</button>
+        <button id="sp" type="button">속도: 1시간/초</button>
+        <button id="jump" type="button">+1일</button>
+      </div>
+      <div class="seg" role="group" aria-label="관측 지점">
+        <button id="oA" type="button" aria-pressed="false">A 고위도 70°N</button>
+        <button id="oB" type="button" aria-pressed="true">B 중위도 37°N</button>
+        <button id="oC" type="button" aria-pressed="false">C 적도</button>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="tSun" checked>태양의 기조력</label>
+        <label><input type="checkbox" id="tDec" checked>달의 궤도 기울기(적위)</label>
+        <label><input type="checkbox" id="tF">힘 화살표</label>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="640" role="img" aria-label="지구-달-태양 배치와 조석 부풂, 관측 지점의 해수면 높이 그래프"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#2c7fa8"></i>바닷물의 부풂 (크게 과장)</span>
+      <span><i class="sw" style="background:#e5533b"></i>관측 지점</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">평형 조석론에 따른 모형입니다. 천체의 크기와 거리, 부풂의 크기는 실제 비율과 다릅니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">사리</span></span>
+        <div class="big"><div class="k">음력</div><div class="v" id="bigD">–</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>조석이 일어나는 까닭</h2>
+      <ol class="chain">
+        <li>지구와 달은 공통 질량 중심을 돌며, 이때 생기는 원심력은 지구 모든 곳에서 크기와 방향이 같다.</li>
+        <li>달의 만유인력은 달에 가까운 곳일수록 크다. 만유인력과 원심력의 합력이 기조력이다.</li>
+        <li>그래서 달을 향한 쪽과 그 반대쪽에 바닷물이 모여 만조가 되고, 그 사이는 간조가 된다.</li>
+        <li>지구가 한 번 자전하는 동안 달이 약 13° 공전하므로 조석 주기는 약 12시간 25분이고, 만조 시각은 매일 약 50분씩 늦어진다.</li>
+        <li>달에 의한 기조력은 태양의 약 2배이다. 삭·망 때 두 힘이 합쳐져 사리, 상현·하현 때 상쇄되어 조금이 된다.</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🦀 미션: 신비의 바닷길 안내원</h2><div class="score"><span>문제 <b id="qn">–</b>/5</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">바닷길은 조차가 큰 날 간조 때 열립니다. 관광객에게 알맞은 날과 시각을 안내하세요. 위 관측소로 직접 확인해도 좋아요.</p>
+    <div class="row"><button id="gStart" type="button" class="primary">🎲 문제 받기</button><b id="gQ"></b></div>
+    <div class="cards" id="gOpt" style="margin-top:8px"></div>
+    <div class="feedback" id="fb">‘문제 받기’를 누르세요.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>지구에서 달에 가장 가까운 지점과 가장 먼 지점의 기조력 크기가 같은 까닭은 무엇일까요? (힘 화살표를 켜 보세요)</li>
+      <li>조석 주기가 12시간이 아니라 약 12시간 25분인 까닭은?</li>
+      <li>A, B, C 지점의 하루 동안 해수면 변화는 어떻게 다른가요? 일주조, 혼합조, 반일주조를 구분해 보세요.</li>
+      <li>사리와 조금은 달의 위상이 어떨 때 나타나나요? 약 며칠 간격으로 반복되나요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 해수면 높이는 평형 조석론의 기조 퍼텐셜(달 1 : 태양 약 0.46)로 계산했고, 실제 해안의 조차를 결정하는 해안선 모양·수심·공명은 넣지 않았습니다. 달의 적위는 공전 주기 27.3일 동안 ±28.5°로 변한다고 단순화했습니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=640;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const D2R=Math.PI/180;
+const T={h:24*3+6,run:true,speed:1,lat:37,sun:true,dec:true,force:false,hist:[]};  // 시간(시), 0시 = 삭(음력 1일) 0시
+// 천문: 태양은 하늘에서 24시간 주기, 달은 24.84시간 주기. 삭에서 달과 태양 같은 방향.
+const SYN=29.53*24,SID=27.32*24;
+function moonLon(h){return -360*h/SYN;}               // 태양 기준 달의 위치각(지구에서 본 상대 위치, 시계 반대 방향 공전 → 음수 시간각)
+function moonDec(h){return T.dec?28.5*Math.sin(2*Math.PI*h/SID+0.6):0;}
+function heightAt(h,lat){ // 관측 지점 해수면 높이 (상대)
+  const H_sun=(h%24)*15-180;           // 태양 시간각 (정오 0)
+  const H_moon=H_sun-(-moonLon(h));     // 달 시간각
+  const term=(Hdeg,dec,k)=>{const cz=Math.sin(lat*D2R)*Math.sin(dec*D2R)+Math.cos(lat*D2R)*Math.cos(dec*D2R)*Math.cos(Hdeg*D2R);return k*(3*cz*cz-1)/2;};
+  let v=term(H_moon,moonDec(h),1);
+  if(T.sun)v+=term(H_sun,23.44*Math.sin(2*Math.PI*(h/24-80)/365.25)*0,0.46);
+  return v;
+}
+const lunarDay=h=>1+Math.floor(((h%SYN)+SYN)%SYN/24);
+const phaseName=d=>{const p=((d-1)%29.53+29.53)%29.53;return p<1.8||p>27.7?'삭 (그믐)':p<5.5?'초승달':p<9.2?'상현달':p<13.2?'차오르는 달':p<16.3?'망 (보름달)':p<20.3?'기우는 달':p<24?'하현달':'그믐달';};
+/* 그리기 */
+function draw(dt){
+  if(T.run)T.h+=dt*T.speed*MOTION;
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  // 위에서 본 모습
+  const ex=245,ey=215,ER=62,MR=165;
+  ctx.fillStyle=tok.space;ctx.beginPath();ctx.roundRect(10,10,470,405,12);ctx.fill();
+  // 햇빛 (왼쪽에서)
+  for(let i=0;i<6;i++)Lab.arrow(ctx,24,60+i*60,70,60+i*60,{color:'#f2c14e',w:2,head:8});
+  darkLabel(ctx,'태양 쪽',46,30,{size:12,color:'#f2c14e'});
+  // 달 위치 (태양 = 왼쪽 = 180°)
+  const mA=(180+(-moonLon(T.h)))*D2R; // 화면 각 (0=오른쪽), 반시계
+  const mx=ex+Math.cos(mA)*MR,my=ey-Math.sin(mA)*MR;
+  ctx.strokeStyle='rgba(255,255,255,.18)';ctx.setLineDash([3,5]);ctx.beginPath();ctx.arc(ex,ey,MR,0,7);ctx.stroke();ctx.setLineDash([]);
+  // 부풂
+  const sA=Math.PI;const am=26,as=T.sun?12:0;
+  ctx.fillStyle='rgba(44,127,168,.85)';ctx.beginPath();
+  for(let a=0;a<=360;a+=3){const th=a*D2R;const r=ER+8+am*Math.cos(2*(th-mA))*0.5+am*0.5+as*Math.cos(2*(th-sA))*0.5;ctx.lineTo(ex+Math.cos(th)*r,ey-Math.sin(th)*r);}ctx.closePath();ctx.fill();
+  // 지구
+  const g=ctx.createRadialGradient(ex-20,ey-20,5,ex,ey,ER);g.addColorStop(0,'#7fb070');g.addColorStop(1,'#3d6b3a');ctx.fillStyle=g;ctx.beginPath();ctx.arc(ex,ey,ER,0,7);ctx.fill();
+  // 낮/밤
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.arc(ex,ey,ER+40,-Math.PI/2,Math.PI/2);ctx.fill();
+  // 관측 지점: 자전 (반시계, 24시간). 정오에 태양 쪽(왼쪽)
+  const oA=Math.PI+((T.h%24)-12)/24*2*Math.PI;const orr=ER*Math.cos(T.lat*D2R)+6;
+  const ox=ex+Math.cos(oA)*orr,oy=ey-Math.sin(oA)*orr;
+  ctx.fillStyle='#e5533b';ctx.beginPath();ctx.arc(ox,oy,6,0,7);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  darkLabel(ctx,'관측 지점',ox+(Math.cos(oA)>0?12:-12),oy-12,{size:11.5,align:Math.cos(oA)>0?'left':'right'});
+  // 북극 표시·자전
+  darkLabel(ctx,'북극에서 본 모습 (자전 ↺)',ex,ey+MR+28,{size:12});
+  // 달
+  ctx.fillStyle='#d9dde2';ctx.beginPath();ctx.arc(mx,my,14,0,7);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.6)';ctx.beginPath();ctx.arc(mx,my,14,-Math.PI/2,Math.PI/2);ctx.fill();
+  darkLabel(ctx,'달',mx,my-24,{size:12});
+  // 힘 화살표
+  if(T.force){const pts=12;for(let i=0;i<pts;i++){const th=i/pts*2*Math.PI;const px=ex+Math.cos(th)*ER,py=ey-Math.sin(th)*ER;
+      const dx=mx-px,dy=my-py;const d=Math.hypot(dx,dy);const gx=dx/d*(MR/d)**2*26,gy=dy/d*(MR/d)**2*26;const cxv=-(mx-ex)/MR*26,cyv=-(my-ey)/MR*26;
+      Lab.arrow(ctx,px,py,px+gx,py+gy,{color:'#7fd3ff',w:1.5,head:5});Lab.arrow(ctx,px,py,px+cxv,py+cyv,{color:'#ffb35c',w:1.5,head:5});Lab.arrow(ctx,px,py,px+(gx+cxv)*2.2,py+(gy+cyv)*2.2,{color:'#ff5a8a',w:2.5,head:7});}
+    darkLabel(ctx,'파랑 만유인력 · 주황 원심력 · 분홍 기조력(×2.2)',245,30,{size:11});}
+  // 옆에서 본 모습
+  drawSide(mA);
+  // 그래프
+  drawGraph();
+}
+function drawSide(){
+  const x0=495,y0=10,w=495,h=405;
+  ctx.fillStyle=tok.bg;ctx.beginPath();ctx.roundRect(x0,y0,w,h,12);ctx.fill();
+  label(ctx,'옆에서 본 지구와 관측 지점 A·B·C',x0+14,y0+20,{size:13,align:'left',hw:0});
+  const cx=x0+165,cy=y0+225,R=90;const dec=moonDec(T.h);
+  // 부풂 (달의 적위만큼 기울어짐)
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(-dec*D2R);ctx.fillStyle='rgba(44,127,168,.8)';ctx.beginPath();ctx.ellipse(0,0,R+36,R+6,0,0,7);ctx.fill();ctx.restore();
+  const g=ctx.createRadialGradient(cx-30,cy-30,5,cx,cy,R);g.addColorStop(0,'#7fb070');g.addColorStop(1,'#3d6b3a');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.6)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx-R,cy);ctx.lineTo(cx+R,cy);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle=tok.fg;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy-R-24);ctx.lineTo(cx,cy+R+24);ctx.stroke();
+  label(ctx,'자전축',cx,cy-R-34,{size:11,color:tok.muted});label(ctx,'적도',cx-R-8,cy,{size:11,align:'right',color:tok.muted});
+  // 달 방향
+  const ma=-dec*D2R;Lab.arrow(ctx,cx+Math.cos(ma)*(R+42),cy+Math.sin(ma)*(R+42),cx+Math.cos(ma)*(R+95),cy+Math.sin(ma)*(R+95),{color:tok.muted,w:2,head:9});
+  label(ctx,`달 방향 (적위 ${dec>=0?'+':''}${dec.toFixed(0)}°)`,cx+R*0.2,cy+R+40,{size:11.5,color:tok.muted});
+  // A B C
+  [['A',70],['B',37],['C',0]].forEach(([n,l])=>{const a=l*D2R;const px=cx-Math.cos(a)*R,py=cy-Math.sin(a)*R;ctx.fillStyle=T.lat===l?'#e5533b':tok.fg;ctx.beginPath();ctx.arc(px,py,6,0,7);ctx.fill();label(ctx,`${n} (${l}°)`,px-10,py,{size:12,align:'right'});});
+  // 작은 하루 그래프 3개
+  const gx0=x0+330,gw=150;
+  [['A',70,'일주조'],['B',37,'혼합조'],['C',0,'반일주조']].forEach(([n,l,typ],i)=>{const gy=y0+70+i*112;
+    ctx.strokeStyle=tok.line;ctx.strokeRect(gx0,gy,gw,80);label(ctx,`${n} 하루 동안`,gx0,gy-9,{size:11,align:'left',hw:0});
+    ctx.strokeStyle=T.lat===l?'#e5533b':tok.accent;ctx.lineWidth=1.8;ctx.beginPath();for(let k=0;k<=48;k++){const hh=T.h-24+k/2;const v=heightAt(hh,l);const x=gx0+k/48*gw,y=gy+40-v*30;k?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
+    label(ctx,T.dec?typ:'',gx0+gw,gy-9,{size:11,align:'right',hw:0,color:tok.muted});});
+}
+function drawGraph(){
+  const x0=60,x1=980,y0=440,y1=610;
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(x0,y0,x1-x0,y1-y0);
+  const span=72;const X=hh=>x0+(hh-(T.h-span))/span*(x1-x0);const Y=v=>(y0+y1)/2-v*55;
+  label(ctx,`관측 지점(위도 ${T.lat}°)의 해수면 높이 — 최근 3일`,x0,y0-12,{size:12.5,align:'left',hw:0});
+  ctx.strokeStyle=tok.line;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x0,Y(0));ctx.lineTo(x1,Y(0));ctx.stroke();ctx.setLineDash([]);
+  // 자정 눈금
+  for(let d=Math.ceil((T.h-span)/24)*24;d<=T.h;d+=24){const x=X(d);ctx.strokeStyle=tok.line;ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();label(ctx,`음력 ${lunarDay(d)}일 0시`,x+4,y1-8,{size:10,align:'left',hw:0,color:tok.muted});}
+  ctx.strokeStyle='#2c7fa8';ctx.lineWidth=2.2;ctx.beginPath();
+  let prev=null,ext=[];
+  for(let k=0;k<=span*4;k++){const hh=T.h-span+k/4;const v=heightAt(hh,T.lat);const x=X(hh),y=Y(v);k?ctx.lineTo(x,y):ctx.moveTo(x,y);if(prev&&k>1){}ext.push([hh,v]);}
+  ctx.stroke();
+  // 만조·간조 표시
+  for(let i=1;i<ext.length-1;i++){const [hh,v]=ext[i];if(v>ext[i-1][1]&&v>=ext[i+1][1]){ctx.fillStyle=tok.warm;ctx.beginPath();ctx.arc(X(hh),Y(v),3.5,0,7);ctx.fill();label(ctx,fmtH(hh),X(hh),Y(v)-10,{size:9.5,color:tok.warm,hw:2});}
+    if(v<ext[i-1][1]&&v<=ext[i+1][1]){ctx.fillStyle=tok.cool;ctx.beginPath();ctx.arc(X(hh),Y(v),3.5,0,7);ctx.fill();label(ctx,fmtH(hh),X(hh),Y(v)+11,{size:9.5,color:tok.cool,hw:2});}}
+  ctx.fillStyle='#e5533b';ctx.beginPath();ctx.arc(x1,Y(heightAt(T.h,T.lat)),5,0,7);ctx.fill();
+  label(ctx,'만조',x0-6,Y(0.9),{size:10.5,align:'right',hw:0,color:tok.warm});label(ctx,'간조',x0-6,Y(-0.5),{size:10.5,align:'right',hw:0,color:tok.cool});
+}
+const fmtH=hh=>{const m=Math.round(((hh%24)+24)%24*60);return `${String(Math.floor(m/60)%24).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;};
+/* 텍스트 */
+function range(lat,h){let mx=-9,mn=9;for(let k=0;k<100;k++){const v=heightAt(h-12.5+k/4,lat);mx=Math.max(mx,v);mn=Math.min(mn,v);}return mx-mn;}
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  const d=lunarDay(T.h);const ph=phaseName(d+((T.h%24)/24));
+  const p=((T.h%SYN)+SYN)%SYN/SYN;const ang=Math.abs(Math.sin(2*Math.PI*p*2));
+  const spring=Math.cos(4*Math.PI*p)>0.7,neap=Math.cos(4*Math.PI*p)<-0.7;
+  $('bigD').textContent=`${d}일 ${fmtH(T.h)}`;
+  $('stateName').textContent=!T.sun?'달만 고려':spring?'사리 (대조)':neap?'조금 (소조)':'사리와 조금 사이';$('chip').dataset.s=spring?'warm':neap?'cool':'gold';
+  const r=range(T.lat,T.h);
+  $('metrics').innerHTML=metric('달의 위상',ph,`음력 ${d}일`)+metric('오늘의 조차',(r*100/1.9).toFixed(0)+'%','사리 최대를 100%로')+metric('달의 적위',`${moonDec(T.h).toFixed(0)}°`,T.dec?'±28.5° 사이를 오감':'0으로 고정')+metric('조석 주기','약 12시간 25분','만조는 매일 약 50분씩 늦어짐');
+  $('fsInfo').textContent=`음력 ${d}일 ${fmtH(T.h)} · ${ph} · 조차 ${(r*100/1.9).toFixed(0)}%`;
+}
+/* 조작 */
+$('run').onclick=()=>{T.run=!T.run;$('run').textContent=T.run?'❚❚ 멈춤':'▶ 재생';};
+const SPS=[[1,'1시간/초'],[4,'4시간/초'],[12,'반나절/초']];let spi=0;
+$('sp').onclick=()=>{spi=(spi+1)%SPS.length;T.speed=SPS[spi][0];$('sp').textContent='속도: '+SPS[spi][1];};
+$('jump').onclick=()=>{T.h+=24;};
+const setO=(l,id)=>{T.lat=l;['oA','oB','oC'].forEach(x=>$(x).setAttribute('aria-pressed',x===id));};
+$('oA').onclick=()=>setO(70,'oA');$('oB').onclick=()=>setO(37,'oB');$('oC').onclick=()=>setO(0,'oC');
+$('tSun').onchange=e=>T.sun=e.target.checked;$('tDec').onchange=e=>T.dec=e.target.checked;$('tF').onchange=e=>T.force=e.target.checked;
+/* 게임 */
+const G={q:0,pts:0};
+const QS=[
+ ()=>({q:'오늘은 음력 15일, 보름달이 떴습니다. 오늘 바다의 상태는?',o:['사리 (조차가 큼)','조금 (조차가 작음)','조차 변화 없음'],a:0,why:'망(보름) 때 달과 태양이 일직선에 놓여 기조력이 합쳐집니다.'}),
+ ()=>({q:'음력 8일 상현달 무렵입니다. 바닷길이 크게 열릴까요?',o:['조금이라 잘 열리지 않는다','사리라 크게 열린다','달의 위상과 관계없다'],a:0,why:'상현·하현 때 달과 태양이 직각을 이루어 기조력이 상쇄됩니다.'}),
+ ()=>{const hh=6+Math.floor(Math.random()*8),mm=[0,10,20,30,40][Math.floor(Math.random()*5)];const t=hh*60+mm,n=t+50;const f=x=>`${String(Math.floor(x/60)).padStart(2,'0')}:${String(x%60).padStart(2,'0')}`;
+   return {q:`오늘 첫 간조가 ${f(t)}였습니다. 내일 첫 간조는 대략 몇 시일까요?`,o:[f(n),f(t),f(t+12*60+25),f(t-50)].sort(()=>Math.random()-.5),a:null,ans:f(n),why:'달이 하루에 약 13° 공전해 같은 자리에 오기까지 약 24시간 50분이 걸립니다.'};},
+ ()=>({q:'하루에 만조와 간조가 한 번씩만 나타나는 지점은 A, B, C 중 어디일까요? (관측소에서 확인!)',o:['A (고위도)','B (중위도)','C (적도)'],a:0,why:'달이 적도면에서 벗어나 있을 때 고위도에서는 하루 한 번의 만조·간조(일주조)가 나타납니다.'}),
+ ()=>({q:'사리에서 다음 사리까지는 약 며칠일까요?',o:['약 15일','약 7일','약 30일','약 1일'],a:0,why:'삭→망→삭으로 약 29.5일에 두 번, 즉 약 15일 간격입니다.'}),
+ ()=>({q:'만조와 다음 만조 사이의 시간(조석 주기)은 약 얼마일까요?',o:['약 12시간 25분','정확히 12시간','약 24시간 50분','약 6시간'],a:0,why:'하루 두 번의 만조가 24시간 50분 동안 일어나므로 약 12시간 25분입니다.'}),
+ ()=>({q:'달에 의한 기조력은 태양에 의한 기조력의 약 몇 배일까요?',o:['약 2배','약 0.5배','약 100배','같다'],a:0,why:'기조력은 질량에 비례하고 거리의 세제곱에 반비례해, 가까운 달이 약 2배 큽니다.'}),
+];
+let cur=null;
+$('gStart').onclick=()=>{
+  if(G.q>=5){G.q=0;G.pts=0;$('pts').textContent=0;}
+  G.q++;$('qn').textContent=G.q;cur=QS[Math.floor(Math.random()*QS.length)]();
+  if(cur.a===null)cur.a=cur.o.indexOf(cur.ans);else{const right=cur.o[cur.a];cur.o=cur.o.slice().sort(()=>Math.random()-.5);cur.a=cur.o.indexOf(right);}
+  $('gQ').textContent=cur.q;$('fb').textContent='답을 고르세요.';$('fb').className='feedback';
+  $('gOpt').innerHTML=cur.o.map((x,i)=>`<button type="button" class="card" data-i="${i}">${x}</button>`).join('');
+  $('gOpt').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(!cur)return;const ok=+b.dataset.i===cur.a;b.classList.add(ok?'done':'wrong');if(ok){G.pts+=20;}$('pts').textContent=G.pts;
+    $('fb').textContent=(ok?'정답! ':'아쉬워요. 정답: '+cur.o[cur.a]+'. ')+cur.why+(G.q>=5?` 최종 ${G.pts}/100점`:'');$('fb').className='feedback '+(ok?'good':'bad');
+    if(G.q>=5){const n=G.pts>=100?3:G.pts>=60?2:G.pts>=40?1:0;$('stBest').textContent=Lab.stars(Lab.best('tide',n));}cur=null;});
+};
+$('stBest').textContent=Lab.stars(Lab.best('tide',0));
+let fr=0;Lab.loop(dt=>{fr++;S.begin();draw(dt);if(fr%6===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

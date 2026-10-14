@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>화성암 조직 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u1" target="_top">← 지구시스템과학 1단원 목록</a>
+    <div class="eyebrow">04 마그마와 화성암 · 규산염 광물과 화성암의 조직</div>
+    <h1>화성암 조직 실험실</h1>
+    <p>마그마가 식는 깊이와 속도를 정하고 결정이 자라는 모습을 박편으로 지켜봅니다. 천천히 식으면 큰 결정이, 빨리 식으면 작은 결정이나 유리가 생깁니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="마그마 종류">
+        <button id="cB" type="button" aria-pressed="false">현무암질</button>
+        <button id="cA" type="button" aria-pressed="false">안산암질</button>
+        <button id="cR" type="button" aria-pressed="true">유문암질</button>
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="dep">마그마가 굳는 깊이</label><output id="depOut">10 km · 깊은 곳</output></div>
+        <input id="dep" type="range" min="0" max="15" step="0.5" value="10">
+        <div class="ticks"><span>0 지표(용암)</span><span>15 km</span></div>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="quench">물에 닿아 급랭</label>
+        <label><input type="checkbox" id="two">깊은 곳에서 일부 결정이 자란 뒤 분출 (2단계)</label>
+      </div>
+      <div class="presets"><button class="primary" id="go" type="button">❄ 냉각 시작</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="560" role="img" aria-label="마그마가 굳는 위치와 박편의 결정 성장"></canvas></div>
+    <div class="legend">
+      <span id="legMin"></span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">오른쪽 원은 암석을 얇게 갈아 만든 박편을 같은 배율로 본 모습입니다(시야 지름 약 20 mm). 광학적 성질은 다루지 않고 입자의 크기와 모양만 비교합니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">–</span></span>
+        <div class="big"><div class="k">만들어진 암석</div><div class="v" id="rock">–</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">화성암의 조직</h2>
+      <ol class="chain" id="exChain">
+        <li>유리질 조직: 지표에서 매우 빨리 식어 결정이 생기지 못한 유리 같은 조직 (흑요석)</li>
+        <li>세립질 조직: 지표나 지표 부근에서 빨리 식어 결정이 작은 조직 (현무암, 유문암)</li>
+        <li>조립질 조직: 지하 깊은 곳에서 천천히 식어 결정이 큰 조직 (화강암, 반려암)</li>
+        <li>반상 조직: 깊은 곳에서 크게 자란 반정이 지표 부근에서 굳은 작은 결정(석기)에 둘러싸인 조직 (안산암)</li>
+      </ol>
+      <div class="impact"><b>규산염 광물</b>마그마가 식으며 생기는 광물은 대부분 규소 1개와 산소 4개로 된 규산염 사면체가 기본 구조인 규산염 광물입니다.</div>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🔬 미션: 암석 감정사</h2><div class="score"><span>문제 <b id="qn">–</b>/5</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">수수께끼 박편이 나옵니다. 조직과 암석 이름을 골라 감정하세요. 조직과 이름을 모두 맞히면 20점, 하나만 맞히면 10점.</p>
+    <div class="row"><button id="gStart" type="button" class="primary">🎲 박편 받기</button></div>
+    <div class="row" style="margin-top:8px"><span>조직</span><div class="cards" id="optT"></div></div>
+    <div class="row" style="margin-top:8px"><span>암석</span><div class="cards" id="optR"></div></div>
+    <div class="row" style="margin-top:8px"><button id="gCheck" type="button">감정하기</button></div>
+    <div class="feedback" id="fb">‘박편 받기’를 누르면 시작합니다.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>같은 유문암질 마그마인데 깊이를 바꾸면 결정 크기가 어떻게 달라지나요? 그 까닭은?</li>
+      <li>현무암과 화강암 중 광물 입자의 평균 크기가 더 큰 것은? 까닭을 냉각 속도로 설명해 보세요.</li>
+      <li>흑요석에 결정이 거의 없는 까닭은 무엇일까요?</li>
+      <li>반상 조직의 큰 결정(반정)과 작은 결정(석기)은 각각 어디에서 만들어졌을까요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 빨리 식을수록 결정의 씨앗(핵)이 많이 생기고 자랄 시간은 짧다는 원리만으로 결정 크기를 정했습니다. 광물 색은 구별하기 쉽게 정한 것이며 편광 현미경의 간섭색이 아닙니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=560;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const G=150,CXs=720,CYs=280,RS=245,CELL=RS*2/G;
+const MIN={
+ B:[['감람석','#7fae5a',0.2,1.2],['휘석','#6a5a48',0.35,1.6],['사장석','#e6e6e0',0.45,3.2]],
+ A:[['각섬석','#3e4a3c',0.25,2.5],['사장석','#e6e6e0',0.55,3],['흑운모','#2a2420',0.2,1.8]],
+ R:[['석영','#f2f4f6',0.35,1.1],['정장석','#e9b9a4',0.4,1.8],['흑운모','#2a2420',0.12,1.6],['사장석','#e6e6e0',0.13,2.6]]
+};
+const GLASS={B:'#2b231f',A:'#2f2a28',R:'#141416'};
+const ROCK={B:{fine:'현무암',coarse:'반려암',glass:'현무암질 유리',porph:'현무암 (반상)'},A:{fine:'안산암',coarse:'섬록암',glass:'안산암질 유리',porph:'안산암'},R:{fine:'유문암',coarse:'화강암',glass:'흑요석',porph:'유문암 (반상)'}};
+const own=new Int32Array(G*G);
+const img=new ImageData(G,G);const off=document.createElement('canvas');off.width=G;off.height=G;const octx=off.getContext('2d');
+const X={comp:'R',dep:10,quench:false,two:false,run:false,t:0,crystals:[],phase:0,C:1,done:false,mystery:null};
+function rateFor(dep,q){ if(q)return 3000; return dep<0.3?220:dep<2?lerp(220,30,(dep-0.3)/1.7):lerp(30,1,clamp((dep-2)/8,0,1)); }
+function inside(c,x,y){const dx=x-c.x,dy=y-c.y;const u=dx*c.ca+dy*c.sa,v=-dx*c.sa+dy*c.ca;return c.round?(u*u+v*v<=c.r*c.r):(Math.abs(u)<=c.r*c.asp*0.5+0.5&&Math.abs(v)<=c.r*0.5+0.5);}
+function start(params){
+  own.fill(-1);X.crystals=[];X.t=0;X.done=false;X.run=true;
+  X.p=Object.assign({comp:X.comp,dep:X.dep,quench:X.quench,two:X.two},params||{});
+  X.stages=X.p.two?[{C:1.2,len:0.35},{C:rateFor(0,false),len:0.65}]:[{C:rateFor(X.p.dep,X.p.quench),len:1}];
+  X.si=0;X.st=0;
+}
+function nucRate(C){return 40*Math.pow(C,0.72)*Math.exp(-Math.pow(C/900,2));}
+function growth(C,ntot){return 1.9*Math.sqrt(G*G/Math.max(ntot,4))*Math.exp(-Math.pow(C/1100,2));}
+function step(dt){
+  if(!X.run)return;
+  const sg=X.stages[X.si];const C=sg.C;X.C=C;
+  const d=dt*0.18*MOTION; // 정규화 시간 증가
+  X.st+=d/sg.len;
+  const ntot=nucRate(C);
+  const free=countFree()/(G*G);
+  // 핵 생성
+  let n=ntot*d*free;n=Math.floor(n)+(Math.random()<n%1?1:0);
+  const mins=MIN[X.p.comp];
+  for(let k=0;k<n;k++){const x=Math.random()*G,y=Math.random()*G;const ix=Math.floor(x),iy=Math.floor(y);if(own[iy*G+ix]>=0)continue;
+    let r=Math.random(),m=mins[0];for(const mm of mins){if(r<mm[2]){m=mm;break;}r-=mm[2];}
+    const a=Math.random()*Math.PI;X.crystals.push({x,y,r:0.6,ca:Math.cos(a),sa:Math.sin(a),asp:m[3]*(0.7+Math.random()*0.6),round:m[3]<1.3,col:m[1],name:m[0],g:growth(C,ntot)*(0.6+Math.random()*0.8),stage:X.si,id:X.crystals.length});}
+  // 성장
+  for(const c of X.crystals){if(c.stage!==X.si&&X.si>0&&c.stopped)continue;
+    const g=(c.stage===X.si?c.g:growth(C,ntot)*0.3)*d;c.r+=g;
+    const R=Math.ceil(c.r*Math.max(c.asp,1)*0.6)+1;
+    for(let y=Math.max(0,Math.floor(c.y-R));y<Math.min(G,c.y+R);y++)for(let x=Math.max(0,Math.floor(c.x-R));x<Math.min(G,c.x+R);x++){const k=y*G+x;if(own[k]<0&&inside(c,x+.5,y+.5))own[k]=c.id;}}
+  if(X.st>=1){X.si++;X.st=0;if(X.si>=X.stages.length){fillRest(C);X.run=false;X.done=true;finish();}}
+}
+function fillRest(C){ // 남은 용융체: 천천히 식으면 주변 결정이 마저 채우고, 빨리 식으면 일부가 유리로 남음
+  const f=C<60?1:C<400?lerp(1,0.75,(C-60)/340):C<1500?0.5:0;
+  if(f<=0||!X.crystals.length)return;
+  const cs=X.crystals;
+  for(let y=0;y<G;y++)for(let x=0;x<G;x++){const k=y*G+x;if(own[k]>=0||Math.random()>f)continue;
+    let best=-1,bd=1e9;for(const c of cs){const d=(c.x-x)**2+(c.y-y)**2;if(d<bd){bd=d;best=c.id;}}own[k]=best;}
+  fc=0;
+}
+let freeCache=G*G,fc=0;
+function countFree(){if(fc++%4)return freeCache;let f=0;for(let k=0;k<G*G;k++)if(own[k]<0)f++;freeCache=f;return f;}
+function texture(){
+  const glassFrac=countFree()/(G*G);
+  if(X.p.two)return 'porph';
+  const big=X.crystals.filter(c=>c.r>14).length;
+  if(glassFrac>0.6)return 'glass';
+  const mean=meanSize();
+  return mean>9?'coarse':'fine';
+}
+function meanSize(){const cnt=new Map();for(let k=0;k<G*G;k++)if(own[k]>=0)cnt.set(own[k],(cnt.get(own[k])||0)+1);if(!cnt.size)return 0;let s=0;for(const v of cnt.values())s+=Math.sqrt(v);return s/cnt.size;}
+function render(){
+  const crys=X.crystals,gl=GLASS[X.p?X.p.comp:'R'];
+  const melt=X.done?hex(gl):[200,90,40];
+  for(let k=0;k<G*G;k++){const o=own[k];let c;
+    if(o<0)c=X.done?melt:[Math.round(lerp(220,120,X.si/2)),Math.round(lerp(100,60,X.si/2)),40];
+    else{c=hex(crys[o].col);}
+    img.data[k*4]=c[0];img.data[k*4+1]=c[1];img.data[k*4+2]=c[2];img.data[k*4+3]=255;}
+  // 결정 경계 어둡게
+  for(let y=1;y<G;y++)for(let x=1;x<G;x++){const k=y*G+x;if(own[k]>=0&&(own[k]!==own[k-1]||own[k]!==own[k-G])){img.data[k*4]*=0.55;img.data[k*4+1]*=0.55;img.data[k*4+2]*=0.55;}}
+  octx.putImageData(img,0,0);
+}
+const hc={};function hex(h){if(hc[h])return hc[h];const n=parseInt(h.slice(1),16);return hc[h]=[n>>16&255,n>>8&255,n&255];}
+function draw(){
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  // 왼쪽: 지각 단면
+  const lx=30,lw=380,top=110,km=24;
+  const sky=ctx.createLinearGradient(0,0,0,top);sky.addColorStop(0,tok['sky-top']);sky.addColorStop(1,tok['sky-bot']);ctx.fillStyle=sky;ctx.fillRect(lx,30,lw,top-30);
+  ctx.fillStyle='#8f7f62';ctx.fillRect(lx,top,lw,15*km+10);
+  for(let d=0;d<=15;d+=5){ctx.strokeStyle='rgba(255,255,255,.18)';ctx.beginPath();ctx.moveTo(lx,top+d*km);ctx.lineTo(lx+lw,top+d*km);ctx.stroke();darkLabel(ctx,d+' km',lx+4,top+d*km+9,{size:10.5,align:'left',weight:500});}
+  // 화산
+  const vx=lx+lw/2;ctx.fillStyle='#5b4e3d';ctx.beginPath();ctx.moveTo(vx-90,top);ctx.lineTo(vx-14,top-55);ctx.lineTo(vx+14,top-55);ctx.lineTo(vx+90,top);ctx.fill();
+  if(X.quench){ctx.fillStyle='#2c7fa8';ctx.fillRect(lx+lw-110,top-14,110,14);darkLabel(ctx,'바다',lx+lw-55,top-26,{size:11});}
+  // 마그마 통로와 위치
+  ctx.strokeStyle='#e5533b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(vx,top-55);ctx.lineTo(vx,top+15*km);ctx.stroke();
+  const p=X.p||{dep:X.dep,two:X.two,quench:X.quench};
+  const dy=top+(p.two?(X.si===0?10:0):p.dep)*km;
+  ctx.fillStyle='#ff7a3a';ctx.beginPath();ctx.ellipse(vx,Math.max(top-30,dy),p.dep<0.3&&!p.two?60:46,p.dep<0.3&&!p.two?10:22,0,0,7);ctx.fill();
+  darkLabel(ctx,p.two?(X.si===0?'① 깊은 곳: 반정 성장':'② 분출: 석기 형성'):(p.quench?'물속에서 급랭':p.dep<0.3?'지표의 용암':p.dep<3?'얕은 곳 (암맥·반심성)':'깊은 곳 (심성)'),vx,Math.max(top-30,dy)+(p.dep<0.3&&!p.two?-26:36),{size:13});
+  // 냉각 속도계
+  const C=X.C||rateFor(X.dep,X.quench);
+  label(ctx,'냉각 속도',lx,top+15*km+38,{size:12,align:'left',hw:0});
+  ctx.fillStyle=tok.line;ctx.fillRect(lx+70,top+15*km+33,300,10);
+  const f=clamp(Math.log10(C)/Math.log10(3000),0,1);ctx.fillStyle=tok.cool;ctx.fillRect(lx+70,top+15*km+33,300*f,10);
+  label(ctx,'느림',lx+70,top+15*km+56,{size:10.5,align:'left',hw:0,color:tok.muted});label(ctx,'빠름',lx+370,top+15*km+56,{size:10.5,align:'right',hw:0,color:tok.muted});
+  // 박편
+  render();
+  ctx.save();ctx.beginPath();ctx.arc(CXs,CYs,RS,0,7);ctx.clip();ctx.imageSmoothingEnabled=false;ctx.drawImage(off,CXs-RS,CYs-RS,RS*2,RS*2);ctx.restore();
+  ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.beginPath();ctx.arc(CXs,CYs,RS,0,7);ctx.stroke();
+  // 눈금자
+  const mm=RS*2/20;ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(CXs+RS-130,CYs+RS-24);ctx.lineTo(CXs+RS-130+mm*2,CYs+RS-24);ctx.stroke();
+  darkLabel(ctx,'2 mm',CXs+RS-130+mm,CYs+RS-38,{size:11});
+  if(!X.p)darkLabel(ctx,'‘냉각 시작’을 눌러 보세요',CXs,CYs,{size:16});
+  else if(X.run)darkLabel(ctx,'결정이 자라는 중…',CXs,CYs-RS+24,{size:13});
+  if(X.mystery&&!X.revealed)label(ctx,'수수께끼 박편',CXs,CYs-RS-14,{size:14,color:tok.gold});
+}
+function finish(){
+  if(X.mystery){return;}
+  text(true);
+}
+const TXN={glass:'유리질 조직',fine:'세립질 조직',coarse:'조립질 조직',porph:'반상 조직'};
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  const p=X.p;
+  $('depOut').textContent=`${X.dep} km · ${X.dep<0.3?'지표':X.dep<3?'얕은 곳':'깊은 곳'}`;
+  $('legMin').innerHTML=MIN[X.comp].map(m=>`<i class="sw" style="background:${m[1]};border:1px solid #888"></i>${m[0]}`).join(' &nbsp; ')+` &nbsp; <i class="sw" style="background:${GLASS[X.comp]}"></i>유리(결정이 없는 부분)`;
+  if(!p)return;
+  const n=X.crystals.length,glass=countFree()/(G*G),mean=meanSize()*20/G;
+  const hide=X.mystery&&!X.revealed;
+  if(X.done&&!hide){const t=texture();$('stateName').textContent=TXN[t];$('rock').textContent=ROCK[p.comp][t];$('chip').dataset.s=t==='coarse'?'warm':t==='glass'?'':'cool';}
+  else{$('stateName').textContent=hide?'감정 대기':'결정화 중';$('rock').textContent=hide?'?':'…';}
+  $('metrics').innerHTML=metric('냉각 속도',hide?'?':X.C>=1000?'매우 빠름':X.C>=100?'빠름':X.C>=10?'보통':'느림','깊을수록 주변이 뜨거워 천천히 식음')+
+    metric('결정 수',n+'개','빨리 식을수록 많이 생김')+
+    metric('평균 입자 지름',mean.toFixed(2)+' mm',mean>1?'맨눈으로 구별 가능':'맨눈으로 구별하기 어려움')+
+    metric('유리 부분',(X.done?glass*100:0).toFixed(0)+'%','결정이 되지 못하고 굳은 부분');
+  $('fsInfo').textContent=`${X.done&&!hide?TXN[texture()]+' · '+ROCK[p.comp][texture()]:'결정화 중'} · 결정 ${n}개 · 평균 ${mean.toFixed(2)} mm`;
+}
+/* 조작 */
+function setComp(c){X.comp=c;['cB','cA','cR'].forEach(id=>$(id).setAttribute('aria-pressed',id==='c'+c));}
+$('cB').onclick=()=>setComp('B');$('cA').onclick=()=>setComp('A');$('cR').onclick=()=>setComp('R');
+$('dep').addEventListener('input',()=>{X.dep=+$('dep').value;});
+$('quench').onchange=e=>{X.quench=e.target.checked;if(X.quench){$('two').checked=false;X.two=false;}};
+$('two').onchange=e=>{X.two=e.target.checked;if(X.two){$('quench').checked=false;X.quench=false;}};
+$('go').onclick=()=>{X.mystery=null;start();};
+/* 게임 */
+const GM={q:0,pts:0,selT:null,selR:null};
+const TOPT=['glass','fine','coarse','porph'],ROPT=['흑요석','현무암','안산암','유문암','반려암','섬록암','화강암'];
+function buildOpts(){
+  $('optT').innerHTML=TOPT.map(t=>`<button type="button" class="card" data-t="${t}">${TXN[t]}</button>`).join('');
+  $('optR').innerHTML=ROPT.map(r=>`<button type="button" class="card" data-r="${r}">${r}</button>`).join('');
+  $('optT').querySelectorAll('.card').forEach(b=>b.onclick=()=>{GM.selT=b.dataset.t;$('optT').querySelectorAll('.card').forEach(x=>x.classList.toggle('sel',x===b));});
+  $('optR').querySelectorAll('.card').forEach(b=>b.onclick=()=>{GM.selR=b.dataset.r;$('optR').querySelectorAll('.card').forEach(x=>x.classList.toggle('sel',x===b));});
+}
+buildOpts();
+const POOL=[{comp:'R',dep:12,ans:['coarse','화강암']},{comp:'B',dep:0,ans:['fine','현무암']},{comp:'R',dep:0,quench:true,ans:['glass','흑요석']},{comp:'A',dep:0,two:true,ans:['porph','안산암']},{comp:'B',dep:12,ans:['coarse','반려암']},{comp:'A',dep:11,ans:['coarse','섬록암']},{comp:'R',dep:0,ans:['fine','유문암']}];
+$('gStart').onclick=()=>{
+  if(GM.q>=5){GM.q=0;GM.pts=0;$('pts').textContent=0;}
+  GM.q++;$('qn').textContent=GM.q;GM.selT=GM.selR=null;buildOpts();
+  const m=POOL[Math.floor(Math.random()*POOL.length)];X.mystery=m;X.revealed=false;X.comp=m.comp;
+  start({comp:m.comp,dep:m.dep,quench:!!m.quench,two:!!m.two});
+  $('fb').textContent='결정이 다 자랄 때까지 기다렸다가 조직과 암석을 고르세요. (광물 색으로 마그마 종류를 추리할 수 있어요)';$('fb').className='feedback';
+};
+$('gCheck').onclick=()=>{
+  if(!X.mystery||X.revealed){$('fb').textContent='먼저 박편을 받으세요.';return;}
+  if(!X.done){$('fb').textContent='결정이 다 자란 뒤 감정하세요.';return;}
+  if(!GM.selT||!GM.selR){$('fb').textContent='조직과 암석을 하나씩 고르세요.';return;}
+  const [t,r]=X.mystery.ans;const ok1=GM.selT===t,ok2=GM.selR===r;const p=(ok1?10:0)+(ok2?10:0);GM.pts+=p;$('pts').textContent=GM.pts;X.revealed=true;
+  const why={glass:'결정이 거의 없고 유리로 굳었습니다(매우 빠른 냉각).',fine:'결정이 작아 맨눈으로 구별하기 어렵습니다(지표 부근의 빠른 냉각).',coarse:'결정이 커서 맨눈으로 구별할 수 있습니다(깊은 곳의 느린 냉각).',porph:'큰 반정이 작은 석기에 둘러싸여 있습니다(깊은 곳 → 지표의 2단계 냉각).'}[t];
+  $('fb').textContent=`정답: ${TXN[t]} · ${r} (+${p}점). ${why}`+(GM.q>=5?` 최종 ${GM.pts}/100점! ‘박편 받기’로 다시 도전.`:'');
+  $('fb').className='feedback '+(p===20?'good':p===0?'bad':'');
+  if(GM.q>=5){const n=GM.pts>=90?3:GM.pts>=70?2:GM.pts>=40?1:0;$('stBest').textContent=Lab.stars(Lab.best('igneous',n));}
+  text();
+};
+$('stBest').textContent=Lab.stars(Lab.best('igneous',0));
+setComp('R');
+start();for(let i=0;i<400&&X.run;i++)step(0.05);
+let fr=0;
+Lab.loop(dt=>{fr++;step(dt);S.begin();draw();if(fr%6===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>
