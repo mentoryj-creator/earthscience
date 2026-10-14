@@ -142,7 +142,7 @@ window.SITE = /*DATA-START*/{
     },
     {
       "id": "astro",
-      "name": "천문",
+      "name": "우주",
       "color": "#6d28d9",
       "subs": [
         "천체 관측",

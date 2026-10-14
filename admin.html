@@ -7,9 +7,24 @@
   <title>관리 페이지 | 지구과학 시뮬레이션 실험실</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    // 비밀번호를 확인하기 전까지 관리 화면을 가립니다 (이 창을 닫으면 다시 잠김)
+    try { if (sessionStorage.getItem('adminUnlocked') !== '1') document.documentElement.classList.add('locked'); }
+    catch (e) { document.documentElement.classList.add('locked'); }
+  </script>
   <script src="data/sims.js"></script>
   <script src="js/site.js"></script>
   <style>
+    .locked main > :not(#lockScreen) { display: none !important; }
+    #lockScreen { display: none; min-height: 60vh; align-items: center; justify-content: center; }
+    .locked #lockScreen { display: flex; }
+    .lock-card { width: min(380px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 24px; text-align: center; }
+    .lock-card h1 { font-size: 1.3rem; margin: 0 0 6px; }
+    .lock-card p { margin: 0 0 18px; color: var(--muted); font-size: .92rem; }
+    .lock-card input { width: 100%; padding: 12px 14px; font-size: 1.05rem; letter-spacing: .15em; text-align: center; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); }
+    .lock-card input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .lock-card .btn { width: 100%; margin-top: 12px; padding: 11px; }
+    .lock-err { min-height: 1.4em; margin-top: 10px; color: var(--danger); font-size: .88rem; }
     .admin-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-top: 16px; }
     .admin-box h2 { font-size: 1.05rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .pill { font-size: .78rem; padding: 2px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-weight: 400; }
@@ -71,6 +86,19 @@
 <header id="site-header"></header>
 
 <main>
+  <!-- ===== 비밀번호 화면 ===== -->
+  <section id="lockScreen">
+    <form class="lock-card" id="lockForm">
+      <h1>관리 페이지</h1>
+      <p>관리자 비밀번호를 입력하세요.</p>
+      <label for="lockPw" style="position:absolute;width:1px;height:1px;overflow:hidden">비밀번호</label>
+      <input id="lockPw" type="password" inputmode="numeric" autocomplete="current-password">
+      <button class="btn" type="submit" id="lockBtn">들어가기</button>
+      <div class="lock-err" id="lockErr" role="alert"></div>
+      <a href="index.html" class="hint">← 홈으로</a>
+    </form>
+  </section>
+
   <div class="breadcrumb"><a href="index.html">홈</a> › 관리</div>
   <h1 class="page-title">관리 페이지</h1>
   <p class="lead">시뮬레이션, 과목·단원, 주제를 여기서 고치고 저장하면 사이트 전체 메뉴와 목록에 반영됩니다.</p>
@@ -581,6 +609,34 @@ $('themeSel').onchange = () => { data.theme = $('themeSel').value; $('themePrevi
 
 function renderAll() { renderTheme(); renderFilter(); renderSims(); renderCourses(); renderTopics(); }
 renderAll();
+</script>
+<script>
+// ---- 관리 페이지 비밀번호 확인 ----
+// 비밀번호 자체는 저장하지 않고, 되돌릴 수 없게 바꾼 값(PBKDF2-SHA256)만 비교합니다.
+(function () {
+  const SALT = '3d85a9726bd2dec55dce9d6ad1ee06d0', ITER = 310000, HASH = 'b83e17528e6d83c7ea6efc57d4d4bfc752a71ed8bf341866578a14f0b9c0bac8';
+  const form = document.getElementById('lockForm'), input = document.getElementById('lockPw');
+  const err = document.getElementById('lockErr'), btn = document.getElementById('lockBtn');
+  const hex2 = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
+  async function check(pw) {
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: hex2(SALT), iterations: ITER }, key, 256);
+    return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('') === HASH;
+  }
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!window.crypto || !crypto.subtle) { err.textContent = '이 브라우저에서는 확인할 수 없습니다. 사이트 주소(https)로 접속해 주세요.'; return; }
+    btn.disabled = true; err.textContent = '확인하는 중…';
+    try {
+      if (await check(input.value.trim())) {
+        try { sessionStorage.setItem('adminUnlocked', '1'); } catch (x) {}
+        document.documentElement.classList.remove('locked'); err.textContent = ''; input.value = '';
+      } else { err.textContent = '비밀번호가 맞지 않습니다.'; input.select(); }
+    } catch (x) { err.textContent = '확인 중 문제가 생겼습니다. 다시 시도해 주세요.'; }
+    btn.disabled = false;
+  });
+  if (document.documentElement.classList.contains('locked')) input.focus();
+})();
 </script>
 </body>
 </html>
