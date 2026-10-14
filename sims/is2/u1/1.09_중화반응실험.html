@@ -1,0 +1,364 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>중화 반응 실험</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅰ. 변화와 다양성 · 중화 반응</span></nav>
+  <header><h1>중화 반응 실험</h1><p>산의 수소 이온(H⁺)과 염기의 수산화 이온(OH⁻)이 1 : 1로 만나 물이 되는 반응이 중화 반응입니다. 홈판 실험으로 온도와 BTB 색 변화를 비교하고, 적정 게임에서 정확히 중화점에서 멈춰 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" id="mWell" aria-pressed="true">홈판 실험</button><button type="button" id="mTit" aria-pressed="false">🎯 중화점 맞히기</button></div>
+      <div class="presets" id="wellBtns"><button type="button" id="pMix" class="go">다섯 홈 모두 섞기</button><button type="button" id="pClear">↺ 비우기</button></div>
+      <div class="presets" id="titBtns" hidden><button type="button" id="pDrip" class="go">💧 누르고 있으면 떨어짐</button><button type="button" id="pDrop">한 방울 (0.1 mL)</button><button type="button" id="pStop">✋ 여기서 멈춤 · 판정</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden><span class="tag" id="gTag">라운드 1</span><div class="task" id="gTask">농도를 모르는 묽은 염산 10 mL에 수산화 나트륨 수용액을 떨어뜨려, BTB가 초록색이 되는 순간 멈추세요.<small>중화점에 가까울수록 점수가 높아요. 처음엔 빨리, 색이 변하기 시작하면 한 방울씩!</small></div><div class="score"><span><span class="lbl">이번 점수</span><span id="gScore">–</span></span><span><span class="lbl">합계</span><span id="gTotal">0</span></span><span><span class="lbl">최고</span><span id="gBest">–</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="520" role="img" aria-label="중화 반응 실험 장면"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note" id="note">홈을 누르면 묽은 염산과 수산화 나트륨 수용액이 섞입니다. 섞은 홈을 누르면 오른쪽에 입자 모형이 나타나요.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">–</span></span><div class="big"><div class="k">최고 온도</div><div class="v" id="vT">–</div></div></div>
+      <div class="metrics"><div class="m"><span class="k">섞은 부피 (염산 : 수산화 나트륨)</span><span class="v txt" id="v1">–</span></div><div class="m"><span class="k">생성된 물 분자 (상대량)</span><span class="v" id="v2">–</span></div><div class="m"><span class="k">남은 이온</span><span class="v txt" id="v3">–</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>무슨 일이 일어날까</h2>
+      <ol class="chain"><li>묽은 염산에는 H⁺과 Cl⁻이, 수산화 나트륨 수용액에는 Na⁺과 OH⁻이 들어 있다.</li><li>두 용액을 섞으면 H⁺ + OH⁻ → H₂O 반응이 일어난다. Na⁺과 Cl⁻은 반응하지 않고 그대로 남는다.</li><li>중화 반응이 일어날 때 열(중화열)이 발생해 용액의 온도가 높아진다.</li><li>반응한 H⁺과 OH⁻이 많을수록, 즉 생성된 물이 많을수록 온도가 더 많이 올라간다.</li><li>H⁺이 남으면 산성(BTB 노란색), OH⁻이 남으면 염기성(파란색), 둘 다 없으면 중성(초록색)이다.</li></ol>
+      <div class="impact"><b>생활 속 중화 반응</b>위산이 많을 때 제산제 먹기, 산성화된 토양에 석회 뿌리기, 생선 비린내(염기성)에 레몬즙 뿌리기, 벌레 물린 곳에 암모니아수 바르기, 산성지의 탈산 처리.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>홈 1~5 가운데 최고 온도가 가장 높은 홈은 어디이며, 그 까닭은 무엇인가요?</li><li>홈 1과 홈 5는 온도 변화가 같은데 BTB 색은 다릅니다. 각각 어떤 이온이 남아 있기 때문인가요?</li><li>중화점이 지난 뒤에도 수산화 나트륨 수용액을 더 넣으면 온도는 어떻게 변할까요? 그래프로 예상해 보세요.</li><li>적정 게임에서 염산의 농도가 진할수록 중화점까지 필요한 수산화 나트륨 수용액의 부피는 어떻게 되나요?</li><li>생활 속 중화 반응의 예를 하나 골라, 어떤 물질이 산이고 어떤 물질이 염기인지 설명해 보세요.</li></ol></section>
+  <p class="foot">농도와 처음 온도가 같은 묽은 염산과 수산화 나트륨 수용액을 쓴다고 가정했습니다. 온도 변화와 pH는 교과서 실험의 경향을 단순화한 값입니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,rand}=Lab,tok=Lab.tok;
+const W=1000,H=520;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const T0=20,K=6;
+const WELL=[[10,2],[8,4],[6,6],[4,8],[2,10]];
+const st={mode:'well',mixed:[0,0,0,0,0],sel:-1,t:0,
+ tit:{veq:10,v:0,drip:false,done:false,round:1,total:0,hist:[],drops:[]}};
+function btbColor(pH){const Y=[224,192,32],G=[48,164,108],B=[42,100,201];let a,b,f;if(pH<=6.2)return `rgb(${Y})`;if(pH>=7.8)return `rgb(${B})`;if(pH<7){a=Y;b=G;f=(pH-6.2)/0.8;}else{a=G;b=B;f=(pH-7)/0.8;}return `rgb(${a.map((v,i)=>Math.round(lerp(v,b[i],f)))})`;}
+function mixInfo(va,vb){const w=Math.min(va,vb),h=Math.max(0,va-vb),oh=Math.max(0,vb-va);const d=(va-vb)*0.1/(va+vb);const hp=(d+Math.sqrt(d*d+4e-14))/2;return {w,h,oh,pH:-Math.log10(hp),T:T0+K*w/(va+vb)};}
+function liquid(x,y,r,col){ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();}
+function particles(cx,cy,cw,chh,va,vb,react){// react 0..1
+ ctx.fillStyle=Lab.isDark()?'#10283a':'#e6f2fb';rr(ctx,cx,cy,cw,chh,14);ctx.fill();ctx.strokeStyle=tok.line;ctx.lineWidth=2;ctx.stroke();
+ const m=mixInfo(va,vb);const items=[];const n=k=>Math.round(k);
+ for(let i=0;i<n(va);i++)items.push('Cl⁻');for(let i=0;i<n(vb);i++)items.push('Na⁺');
+ const wN=Math.round(m.w*react);for(let i=0;i<wN;i++)items.push('H₂O');
+ for(let i=0;i<n(va)-wN;i++)items.push('H⁺');for(let i=0;i<n(vb)-wN;i++)items.push('OH⁻');
+ const cols=9,gx=(cw-30)/cols;items.forEach((it,i)=>{const r=Math.floor(i/cols),c=i%cols;const x=cx+22+c*gx+Math.sin(st.t*0.03+i)*3,y=cy+34+r*40+Math.cos(st.t*0.025+i*1.7)*3;
+  const col={'H⁺':'#e5484d','OH⁻':'#2a64c9','Na⁺':'#8e6bd1','Cl⁻':'#33a17a','H₂O':'#8fb7d6'}[it];ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,it==='H₂O'?15:16,0,7);ctx.fill();label(it,x,y,{size:it==='H₂O'?9:10,color:'#fff',hw:0,weight:700});});
+ return m;}
+function drawWell(){
+ // 홈판
+ ctx.fillStyle=Lab.isDark()?'#1b252e':'#f4f7f9';rr(ctx,30,24,940,190,16);ctx.fill();
+ WELL.forEach(([va,vb],i)=>{const x=120+i*190,y=110,r=52;const mx=st.mixed[i];
+  ctx.fillStyle=Lab.isDark()?'#0d1a24':'#fff';ctx.strokeStyle=i===st.sel?tok.accent:tok.line;ctx.lineWidth=i===st.sel?4:2;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.stroke();
+  if(mx>0){const m=mixInfo(va,vb);liquid(x,y,r-7,btbColor(lerp(7,m.pH,1)));ctx.globalAlpha=1-mx;liquid(x,y,r-7,'rgba(180,215,240,1)');ctx.globalAlpha=1;
+   const T=lerp(T0,m.T,mx);label(`${T.toFixed(1)}℃`,x,y,{size:15,weight:700,mono:true});}
+  else{liquid(x,y,r-7,'rgba(180,215,240,.5)');label('누르기',x,y,{size:12,color:tok.muted});}
+  label(`홈 ${i+1}`,x,y-r-12,{size:13,weight:700});label(`HCl ${va} · NaOH ${vb} mL`,x,y+r+16,{size:11,color:tok.muted});});
+ // 그래프
+ const gx=70,gy=262,gw=430,gh=210;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(gx,gy,gw,gh);label('홈별 최고 온도',gx+gw/2,gy-14,{size:13,weight:700});
+ for(let t=20;t<=24;t++){const y=gy+gh-(t-20)/4*gh;ctx.strokeStyle=tok.line;ctx.beginPath();ctx.moveTo(gx,y);ctx.lineTo(gx+gw,y);ctx.stroke();label(`${t}℃`,gx-8,y,{size:10,align:'right',color:tok.muted,hw:0});}
+ WELL.forEach(([va,vb],i)=>{const x=gx+45+i*85;label(`${i+1}`,x,gy+gh+14,{size:11,color:tok.muted,hw:0});if(!st.mixed[i])return;const m=mixInfo(va,vb);const T=lerp(T0,m.T,st.mixed[i]);const y=gy+gh-(T-20)/4*gh;ctx.fillStyle=btbColor(m.pH);ctx.fillRect(x-22,y,44,gy+gh-y);label(T.toFixed(1),x,y-10,{size:11,mono:true,hw:3});});
+ // 입자
+ const px=540,py=240,pw=420,ph=250;
+ if(st.sel>=0&&st.mixed[st.sel]>0){const [va,vb]=WELL[st.sel];label(`홈 ${st.sel+1} 입자 모형 (1 mL ≈ 이온 1개)`,px+pw/2,py-12,{size:13,weight:700});particles(px,py,pw,ph,va,vb,st.mixed[st.sel]);}
+ else{ctx.strokeStyle=tok.line;ctx.setLineDash([6,6]);rr(ctx,px,py,pw,ph,14);ctx.stroke();ctx.setLineDash([]);label('섞은 홈을 누르면 입자 모형이 보여요',px+pw/2,py+ph/2,{size:13,color:tok.muted});}
+}
+function drawTit(){const g=st.tit;
+ const va=g.veq,vb=g.v;// 이온 수는 '중화에 필요한 NaOH 부피' 기준
+ const mi=mixInfo(va,vb);const pH=mi.pH;
+ // 뷰렛
+ const bx=150;ctx.fillStyle=Lab.isDark()?'rgba(200,230,255,.08)':'rgba(255,255,255,.8)';ctx.strokeStyle=tok.muted;ctx.lineWidth=2;ctx.fillRect(bx-12,20,24,230);ctx.strokeRect(bx-12,20,24,230);
+ const lv=clamp(g.v/25,0,1);ctx.fillStyle='rgba(140,190,240,.6)';ctx.fillRect(bx-10,22+lv*226,20,226-lv*226);
+ for(let i=0;i<=25;i+=5){const y=22+i/25*226;ctx.strokeStyle=tok.muted;ctx.beginPath();ctx.moveTo(bx-12,y);ctx.lineTo(bx-4,y);ctx.stroke();label(String(i),bx-18,y,{size:9,align:'right',color:tok.muted,hw:0});}
+ ctx.fillStyle=tok.muted;ctx.fillRect(bx-3,250,6,28);label('NaOH 수용액',bx+22,40,{size:11,weight:700,align:'left'});
+ g.drops.forEach(d=>{ctx.fillStyle='rgba(140,190,240,.9)';ctx.beginPath();ctx.arc(bx,d.y,4,0,7);ctx.fill();});
+ // 비커
+ const kx=80,ky=300,kw=140,kh=170;const fill=clamp((10+g.v)/40,0,1);ctx.fillStyle=btbColor(pH);const top=ky+kh-fill*kh;ctx.fillRect(kx+2,top,kw-4,ky+kh-top);
+ ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(kx,ky);ctx.lineTo(kx,ky+kh);ctx.lineTo(kx+kw,ky+kh);ctx.lineTo(kx+kw,ky);ctx.stroke();
+ label(`HCl 10 mL + BTB`,kx+kw/2,ky+kh+18,{size:11,color:tok.muted});
+ label(`${g.v.toFixed(1)} mL`,kx+kw/2,ky-14,{size:16,weight:700,mono:true});
+ // 그래프
+ const gx=300,gy=40,gw=320,gh=180;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(gx,gy,gw,gh);label('넣은 NaOH 부피에 따른 pH',gx+gw/2,gy-14,{size:12,weight:700});
+ [0,7,14].forEach(p=>{const y=gy+gh-p/14*gh;label(String(p),gx-8,y,{size:10,align:'right',color:tok.muted,hw:0});});
+ ctx.strokeStyle=tok.line;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(gx,gy+gh/2);ctx.lineTo(gx+gw,gy+gh/2);ctx.stroke();ctx.setLineDash([]);
+ const gy2=gy+gh+50;ctx.strokeRect(gx,gy2,gw,170);label('혼합 용액의 온도',gx+gw/2,gy2-14,{size:12,weight:700});[20,22,24].forEach(t=>{const y=gy2+170-(t-20)/4*170;label(`${t}℃`,gx-8,y,{size:10,align:'right',color:tok.muted,hw:0});});
+ label('0',gx,gy2+182,{size:10,color:tok.muted,hw:0});label('25 mL',gx+gw,gy2+182,{size:10,color:tok.muted,hw:0});
+ if(g.hist.length>1){ctx.lineWidth=2.5;ctx.strokeStyle=tok.accent;ctx.beginPath();g.hist.forEach((h,i)=>{const x=gx+h.v/25*gw,y=gy+gh-clamp(h.pH,0,14)/14*gh;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+  ctx.strokeStyle=tok.warm;ctx.beginPath();g.hist.forEach((h,i)=>{const x=gx+h.v/25*gw,y=gy2+170-clamp(h.T-20,0,4)/4*170;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();}
+ if(g.done){const x=gx+g.veq/25*gw;ctx.strokeStyle=tok.good;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(x,gy);ctx.lineTo(x,gy2+170);ctx.stroke();ctx.setLineDash([]);label(`중화점 ${g.veq.toFixed(1)} mL`,x+6,gy+14,{align:'left',size:11,color:tok.good,weight:700});}
+ // 입자
+ const px=650,py=40,pw=320,ph=440;label('비커 속 입자 (상대 수)',px+pw/2,py-14,{size:12,weight:700});
+ ctx.fillStyle=Lab.isDark()?'#10283a':'#e6f2fb';rr(ctx,px,py,pw,ph,14);ctx.fill();ctx.strokeStyle=tok.line;ctx.lineWidth=2;ctx.stroke();
+ const cnt={'H⁺':Math.round(mi.h),'Cl⁻':Math.round(va),'Na⁺':Math.round(vb),'OH⁻':Math.round(mi.oh),'H₂O':Math.round(mi.w)};
+ const C={'H⁺':'#e5484d','OH⁻':'#2a64c9','Na⁺':'#8e6bd1','Cl⁻':'#33a17a','H₂O':'#8fb7d6'};
+ Object.keys(cnt).forEach((k,r)=>{const y=py+40+r*82;ctx.fillStyle=C[k];ctx.beginPath();ctx.arc(px+30,y,14,0,7);ctx.fill();label(k,px+30,y,{size:9,color:'#fff',hw:0,weight:700});
+  const hide=!g.done&&(k==='Cl⁻'||k==='H⁺'||k==='H₂O');
+  if(hide){label('?',px+70,y,{size:18,weight:700,color:tok.muted,align:'left'});return;}
+  for(let i=0;i<Math.min(cnt[k],24);i++){const x=px+62+(i%12)*20,yy=y-9+Math.floor(i/12)*18;ctx.fillStyle=C[k];ctx.beginPath();ctx.arc(x,yy,7,0,7);ctx.fill();}
+  label(String(cnt[k]),px+pw-14,y,{size:13,mono:true,align:'right'});});
+ if(!g.done)label('H⁺·Cl⁻·H₂O 수는 판정 후 공개',px+pw/2,py+ph-18,{size:11,color:tok.muted});
+}
+function draw(){S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);if(st.mode==='well')drawWell();else drawTit();drawFx(ctx);}
+function update(){
+ if(st.mode==='well'){const i=st.sel;if(i<0||!st.mixed[i]){$('stName').textContent='–';$('chip').dataset.s='';$('vT').textContent='–';$('v1').textContent='–';$('v2').textContent='–';$('v3').textContent='–';$('fsInfo').textContent='홈판 실험';return;}
+  const [va,vb]=WELL[i],m=mixInfo(va,vb);const ac=m.pH<6.5?'산성':m.pH>7.5?'염기성':'중성';$('stName').textContent=`홈 ${i+1} · ${ac}`;$('chip').dataset.s=m.pH<6.5?'warm':m.pH>7.5?'cool':'';
+  $('vT').textContent=`${m.T.toFixed(1)}℃`;$('v1').textContent=`${va} mL : ${vb} mL`;$('v2').textContent=m.w;$('v3').textContent=m.h?`H⁺ ${m.h}개, Na⁺, Cl⁻`:m.oh?`OH⁻ ${m.oh}개, Na⁺, Cl⁻`:'Na⁺, Cl⁻ (H⁺·OH⁻ 없음)';$('fsInfo').textContent=`홈 ${i+1} · ${ac} · ${m.T.toFixed(1)}℃`;}
+ else{const g=st.tit,m=mixInfo(g.veq,g.v);const hide=!g.done;const ac=m.pH<6.5?'산성':m.pH>7.5?'염기성':'중성';$('stName').textContent=ac;$('chip').dataset.s=m.pH<6.5?'warm':m.pH>7.5?'cool':'';
+  $('vT').textContent=`${m.T.toFixed(2)}℃`;$('v1').textContent=`10 mL : ${g.v.toFixed(1)} mL`;$('v2').textContent=hide?'?':m.w.toFixed(1);$('v3').textContent=hide?'판정 후 공개':m.h>0.05?`H⁺ ${m.h.toFixed(1)}, Na⁺, Cl⁻`:m.oh>0.05?`OH⁻ ${m.oh.toFixed(1)}, Na⁺, Cl⁻`:'Na⁺, Cl⁻';$('fsInfo').textContent=`라운드 ${g.round} · ${g.v.toFixed(1)} mL · ${ac}`;}}
+function setMode(m){st.mode=m;$('mWell').setAttribute('aria-pressed',m==='well');$('mTit').setAttribute('aria-pressed',m==='tit');$('wellBtns').hidden=m!=='well';$('titBtns').hidden=m!=='tit';$('mission').hidden=m!=='tit';
+ $('note').textContent=m==='well'?'홈을 누르면 묽은 염산과 수산화 나트륨 수용액이 섞입니다. 섞은 홈을 누르면 오른쪽에 입자 모형이 나타나요.':'버튼을 누르고 있는 동안 NaOH 수용액이 떨어집니다. 온도 그래프가 더 이상 오르지 않는 지점도 힌트예요.';
+ if(m==='tit'&&!st.tit.hist.length)newRound(false);update();}
+function newRound(next){const g=st.tit;if(next)g.round++;g.veq=Math.round(rand(6,18)*2)/2;g.v=0;g.done=false;g.drip=false;g.hist=[{v:0,...pick0()}];g.drops=[];$('gTag').textContent=`라운드 ${g.round}`;$('gScore').textContent='–';$('gStars').innerHTML='';$('pStop').textContent='✋ 여기서 멈춤 · 판정';
+ $('gTask').innerHTML='농도를 모르는 묽은 염산 10 mL에 수산화 나트륨 수용액을 떨어뜨려, BTB가 초록색이 되는 순간 멈추세요.<small>중화점에 가까울수록 점수가 높아요. 처음엔 빨리, 색이 변하기 시작하면 한 방울씩!</small>';const b=best('is2-neutral');$('gBest').textContent=b===null?'–':b;update();}
+function pick0(){const m=mixInfo(st.tit.veq,st.tit.v);return {pH:m.pH,T:m.T};}
+function add(dv){const g=st.tit;if(g.done)return;g.v=clamp(+(g.v+dv).toFixed(2),0,25);g.drops.push({y:280});const last=g.hist[g.hist.length-1];if(g.v-last.v>=0.05)g.hist.push({v:g.v,...pick0()});if(g.v>=25){g.drip=false;judge();}update();}
+function judge(){const g=st.tit;if(g.done){newRound(true);return;}g.done=true;g.drip=false;const err=Math.abs(g.v-g.veq);const sc=Math.max(0,Math.round(100-err*40));const s=err<=0.2?3:err<=0.5?2:err<=1.2?1:0;g.total+=sc;
+ $('gScore').textContent=sc;$('gTotal').textContent=g.total;$('gStars').innerHTML=stars(s);const b=best('is2-neutral',sc);$('gBest').textContent=b;$('pStop').textContent='▶ 다음 라운드';
+ $('gTask').innerHTML=`${err<=0.2?'완벽한 중화!':err<=0.5?'아주 가까워요!':g.v<g.veq?'아직 산성이에요':'지나쳐서 염기성이 되었어요'}<small>중화점은 ${g.veq.toFixed(1)} mL, 멈춘 곳은 ${g.v.toFixed(1)} mL (차이 ${err.toFixed(1)} mL). 염산 속 H⁺ 수가 많을수록 중화점이 뒤로 갑니다.</small>`;
+ if(s>=2)burst(150,380,tok.gold,40);else toast($('toast'),g.v<g.veq?'아직 H⁺이 남아 있어요':'OH⁻이 남았어요','bad');update();}
+// 이벤트
+$('mWell').onclick=()=>setMode('well');$('mTit').onclick=()=>setMode('tit');
+$('sim').addEventListener('pointerdown',e=>{if(st.mode!=='well')return;const p=S.pt(e);WELL.forEach((w,i)=>{const x=120+i*190;if(Math.hypot(p.x-x,p.y-110)<58){if(!st.mixed[i]){st.mixed[i]=0.01;}st.sel=i;update();}});});
+$('pMix').onclick=()=>{st.mixed=st.mixed.map(v=>v||0.01);if(st.sel<0)st.sel=2;update();};
+$('pClear').onclick=()=>{st.mixed=[0,0,0,0,0];st.sel=-1;update();};
+const dripOn=e=>{e.preventDefault();if(st.tit.done)return;st.tit.drip=true;},dripOff=()=>{st.tit.drip=false;};
+$('pDrip').addEventListener('pointerdown',dripOn);['pointerup','pointerleave','pointercancel'].forEach(k=>$('pDrip').addEventListener(k,dripOff));
+$('pDrip').addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();add(0.5);}});
+$('pDrop').onclick=()=>add(0.1);$('pStop').onclick=judge;
+let fr=0;loop(dt=>{fr++;st.t++;st.mixed=st.mixed.map(v=>v>0&&v<1?Math.min(1,v+dt*0.6):v);
+ if(st.mode==='tit'){const g=st.tit;if(g.drip){g.acc=(g.acc||0)+dt;if(g.acc>0.08){g.acc=0;add(0.2);}}g.drops.forEach(d=>d.y+=dt*500);g.drops=g.drops.filter(d=>d.y<400);}
+ if(fr%10===0)update();draw();});
+setMode('well');
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

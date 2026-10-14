@@ -1,0 +1,320 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>갈라파고스 핀치</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>.opts{display:flex;flex-wrap:wrap;gap:8px}.opts button.right{background:var(--good);border-color:var(--good);color:#fff}.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅰ. 변화와 다양성 · 진화와 생물다양성</span></nav>
+  <header><h1>갈라파고스 핀치</h1><p>다윈은 갈라파고스 제도의 핀치가 섬과 먹이에 따라 부리 모양이 조금씩 다르다는 것을 관찰했습니다. 부리와 먹이를 짝지어 보고, 가뭄이 들었을 때 핀치 무리의 부리 크기가 어떻게 변하는지 세대를 거듭하며 확인해 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" data-tab="match" aria-pressed="true">① 부리와 먹이 짝짓기 (게임)</button><button type="button" data-tab="drought" aria-pressed="false">② 가뭄과 부리의 변화</button></div>
+      <div id="dCtl" style="display:none"><div class="slider"><div class="slider-top"><label for="rain">강수량</label><output id="rOut">보통</output></div><input id="rain" type="range" min="0" max="100" value="60"><div class="ticks"><span>가뭄</span><span>보통</span><span>많음</span></div></div></div>
+      <div class="presets" id="dBtn" style="display:none"><button type="button" id="pGen" class="go">▶ 1년 지나기</button><button type="button" id="pRun" aria-pressed="false">▶▶ 계속</button><button type="button" id="pRst">↺ 처음으로</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission"><span class="tag" id="gTag">핀치 1 / 6</span><div class="task" id="gTask">–</div><div class="opts" id="opts" role="group" aria-label="먹이 고르기"></div><div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="520" role="img" aria-label="핀치의 부리와 먹이"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note" id="note">부리의 굵기와 길이, 휘어진 정도를 보고 어떤 먹이를 먹기에 알맞은지 추론해 보세요.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">–</span></span><div class="big"><div class="k">평균 부리 두께</div><div class="v" id="vB">–</div></div></div>
+      <div class="metrics"><div class="m"><span class="k">핀치 수</span><span class="v" id="v1">–</span></div><div class="m"><span class="k">남은 먹이</span><span class="v txt" id="v2">–</span></div><div class="m"><span class="k">해</span><span class="v" id="v3">–</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>환경에 따라 달라지는 부리</h2>
+      <ol class="chain"><li>갈라파고스 제도의 핀치는 하나의 조상 종에서 갈라져 나왔다.</li><li>섬마다 먹이가 달라 그 먹이를 먹기에 유리한 부리를 가진 개체가 더 많이 살아남았다.</li><li>오랜 세월 자연선택이 거듭되어 부리 모양이 다른 여러 종으로 나뉘었다 → 종다양성 증가.</li></ol>
+      <div class="impact"><b>실제 관찰 (그랜트 부부, 1977년 대프니섬)</b>심한 가뭄으로 작은 씨앗이 줄고 크고 단단한 씨앗만 남자, 부리가 두꺼운 핀치가 더 많이 살아남아 다음 세대의 평균 부리 두께가 커졌다.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>곤충을 먹는 핀치와 큰 씨앗을 먹는 핀치의 부리는 어떻게 다른가요?</li><li>가뭄이 계속되면 평균 부리 두께는 어떻게 변하나요? 그 까닭을 자연선택으로 설명해 보세요.</li><li>다시 비가 많이 오면 부리 두께는 어떻게 될까요? 직접 확인해 보세요.</li><li>한 조상에서 여러 종의 핀치가 생겨난 과정을 변이, 격리, 자연선택을 넣어 설명해 보세요.</li></ol></section>
+  <p class="foot">가뭄 모형은 씨앗의 크기 분포와 부리 두께(mm)에 따른 먹이 섭취를 단순화한 것입니다. 부리 두께는 자손에게 유전되고 약간의 변이가 생긴다고 가정했습니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle,rand}=Lab,tok=Lab.tok;
+const W=1000,H=520;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const FINCH=[{n:'큰땅핀치',b:{L:26,D:30,curve:0.15},f:'big',c:'#3a3530'},{n:'작은땅핀치',b:{L:18,D:14,curve:0.05},f:'small',c:'#4b4339'},{n:'선인장핀치',b:{L:34,D:12,curve:0.25},f:'cactus',c:'#463d36'},
+ {n:'휘파람새핀치',b:{L:24,D:6,curve:0},f:'insect',c:'#7a8a5a'},{n:'딱따구리핀치',b:{L:30,D:10,curve:0},f:'tool',c:'#5c5a4a'},{n:'식물핀치',b:{L:14,D:16,curve:0.35},f:'leaf',c:'#556650'}];
+const FOOD={big:'크고 단단한 씨앗',small:'작고 부드러운 씨앗',cactus:'선인장 꽃과 열매',insect:'작은 곤충',tool:'나무껍질 속 애벌레 (가시를 도구로 사용)',leaf:'새싹과 열매'};
+function bird(x,y,s,b,col){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(-40,20,46,30,-.2,0,7);ctx.fill();ctx.beginPath();ctx.arc(0,-6,26,0,7);ctx.fill();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(8,-12,6,0,7);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(9,-12,3,0,7);ctx.fill();
+ ctx.fillStyle='#d9a441';ctx.strokeStyle='#8a6420';ctx.lineWidth=1.5;const L=b.L*1.6,D=b.D*1.2;ctx.beginPath();ctx.moveTo(18,-6-D/2);ctx.quadraticCurveTo(18+L*0.6,-6-D/2+b.curve*L,18+L,-6+b.curve*L*1.4);ctx.quadraticCurveTo(18+L*0.5,-6+D/2,18,-6+D/2);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.beginPath();ctx.moveTo(18,-6);ctx.lineTo(18+L*0.85,-6+b.curve*L*1.1);ctx.stroke();ctx.restore();}
+/* 게임 */
+const st={tab:'match',g:null,t:0,pop:[],year:0,hist:[],run:false,seeds:{s:0,b:0}};
+function startMatch(){st.g={o:shuffle(FINCH),i:0,score:0,ok:0,ans:null};nextQ();}
+function nextQ(){const g=st.g;$('opts').innerHTML='';if(g.i>=6){const b=best('finch',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`정답 ${g.ok}/6 · ${g.score}점<small>최고 기록 ${b}점 · 부리 모양은 먹이에 맞게 자연선택된 결과예요.</small>`;$('gStars').innerHTML=stars(g.ok>=6?3:g.ok>=4?2:g.ok>=2?1:0);const bt=document.createElement('button');bt.type='button';bt.className='go';bt.textContent='↺ 다시 하기';bt.onclick=startMatch;$('opts').appendChild(bt);g.cur=null;return;}
+ const f=g.o[g.i];g.cur=f;g.ans=null;$('gTag').textContent=`핀치 ${g.i+1} / 6`;$('gTask').innerHTML=`이 <b>${f.n}</b>의 부리는 어떤 먹이에 알맞을까요?<small>부리의 굵기, 길이, 휘어진 모양을 보세요.</small>`;
+ shuffle(Object.keys(FOOD)).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=FOOD[k];b.onclick=()=>ans(k,b);$('opts').appendChild(b);});}
+function ans(k,b){const g=st.g;if(g.ans)return;g.ans=k;const ok=k===g.cur.f;[...$('opts').children].forEach(x=>{x.disabled=true;if(x.textContent===FOOD[g.cur.f])x.classList.add('right');});if(!ok)b.classList.add('wrong');
+ if(ok){g.score+=100;g.ok++;burst(360,250,tok.gold,26);}$('gScore').textContent=g.score;toast($('toast'),ok?'정답!':`정답: ${FOOD[g.cur.f]}`,ok?'good':'bad');g.i++;setTimeout(nextQ,1500);}
+function food(k,x,y){ctx.save();ctx.translate(x,y);if(k==='big'){ctx.fillStyle='#6b4b2f';for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(i*26-26,0,12,9,0.3,0,7);ctx.fill();}}else if(k==='small'){ctx.fillStyle='#c9a46a';for(let i=0;i<8;i++){ctx.beginPath();ctx.arc((i%4)*12-18,Math.floor(i/4)*12-6,4,0,7);ctx.fill();}}
+ else if(k==='cactus'){ctx.fillStyle='#4f9a6b';rr(ctx,-10,-20,20,44,10);ctx.fill();ctx.fillStyle='#f2c12e';ctx.beginPath();ctx.arc(0,-22,8,0,7);ctx.fill();}else if(k==='insect'){ctx.fillStyle='#333';for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(i*22-22,0,6,3,0,0,7);ctx.fill();}}
+ else if(k==='tool'){ctx.fillStyle='#8a6a42';ctx.fillRect(-30,-10,60,20);ctx.fillStyle='#f4ead6';ctx.beginPath();ctx.ellipse(0,0,10,4,0,0,7);ctx.fill();}else{ctx.fillStyle='#46a758';ctx.beginPath();ctx.ellipse(0,0,14,7,0.5,0,7);ctx.fill();ctx.fillStyle='#e5484d';ctx.beginPath();ctx.arc(16,6,5,0,7);ctx.fill();}ctx.restore();}
+function drawMatch(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const g=st.g;
+ // 지도 같은 섬 배경
+ ctx.fillStyle=Lab.isDark()?'#123a55':'#bfe0f2';rr(ctx,20,20,960,480,14);ctx.fill();
+ if(g&&g.cur){bird(330,250,2.6,g.cur.b,g.cur.c);label(g.cur.n,330,440,{size:22,weight:700});
+   if(g.ans)food(g.cur.f,720,250),label(FOOD[g.cur.f],720,310,{size:15});}
+ else{FINCH.forEach((f,i)=>{const x=170+(i%3)*330,y=150+Math.floor(i/3)*220;bird(x,y,1.2,f.b,f.c);food(f.f,x+110,y+20);label(`${f.n}: ${FOOD[f.f]}`,x+40,y+90,{size:13});});}
+ drawFx(ctx);}
+/* 가뭄 */
+function initPop(){st.pop=Array.from({length:120},()=>clamp(9.2+rand(-1,1)+rand(-1,1),6,14));st.year=1976;st.hist=[{y:st.year,m:mean(),n:120}];}
+const mean=()=>st.pop.reduce((a,b)=>a+b,0)/Math.max(1,st.pop.length);
+function stepYear(){const r=+$('rain').value/100;// 강수량이 적으면 작은 씨앗이 많이 줄어 큰 씨앗 비율 증가
+ const small=lerp(0.15,1,r),big=lerp(0.85,0.6,r);st.seeds={s:small,b:big};
+ const surv=st.pop.filter(d=>{const canBig=clamp((d-8.5)/2.5,0,1);const food2=small*(1-canBig*0.3)*0.9+big*canBig;const p=clamp(0.15+food2*0.9,0,0.95);return Math.random()<p;});
+ const cap=Math.round(lerp(60,160,r));const kids=[];while(surv.length+kids.length<cap&&surv.length){const p=surv[Math.floor(Math.random()*surv.length)];kids.push(clamp(p+rand(-0.35,0.35),6,14));if(kids.length>300)break;}
+ st.pop=surv.concat(kids).slice(0,cap);st.year++;st.hist.push({y:st.year,m:mean(),n:st.pop.length});if(st.hist.length>24)st.hist.shift();update();}
+function drawDrought(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const r=+$('rain').value/100;
+ ctx.fillStyle=`rgb(${lerp(196,120,r)|0},${lerp(170,170,r)|0},${lerp(120,90,r)|0})`;rr(ctx,20,20,460,480,14);ctx.fill();
+ const sm=lerp(0.15,1,r);for(let i=0;i<Math.round(sm*80);i++){ctx.fillStyle='#e0c38a';ctx.beginPath();ctx.arc(40+(i*97)%420,300+(i*53)%180,3,0,7);ctx.fill();}for(let i=0;i<30;i++){ctx.fillStyle='#6b4b2f';ctx.beginPath();ctx.ellipse(50+(i*131)%400,320+(i*71)%160,8,6,.3,0,7);ctx.fill();}
+ label(r<0.35?'가뭄: 작은 씨앗이 거의 없음':r>0.7?'비가 많음: 작은 씨앗이 풍부':'보통',250,50,{size:15});
+ const m=mean();bird(220,180,1.3,{L:16+m*0.6,D:m*1.6,curve:0.1},'#3a3530');label(`평균 부리 두께 ${m.toFixed(2)} mm`,250,270,{size:15,weight:700});
+ // 히스토그램
+ const hx=520,hy=40,hw=440,hh=190;ctx.fillStyle=tok.surface;rr(ctx,hx-20,hy-24,hw+40,hh+64,10);ctx.fill();label('부리 두께 분포',hx+hw/2,hy-8,{size:13});
+ const bins=Array(16).fill(0);st.pop.forEach(d=>bins[clamp(Math.floor((d-6)/0.5),0,15)]++);const mx=Math.max(10,...bins);bins.forEach((v,i)=>{ctx.fillStyle=tok.accent;ctx.fillRect(hx+i*hw/16+2,hy+hh*(1-v/mx),hw/16-4,hh*v/mx);});
+ [6,8,10,12,14].forEach(d=>label(`${d}`,hx+(d-6)/8*hw,hy+hh+12,{size:10,color:tok.muted,hw:0,mono:true}));label('mm',hx+hw,hy+hh+26,{size:10,align:'right',color:tok.muted,hw:0});
+ // 연도별
+ const gx=520,gy=310,gw=440,gh=150;ctx.fillStyle=tok.surface;rr(ctx,gx-20,gy-24,gw+40,gh+56,10);ctx.fill();label('해마다 평균 부리 두께',gx+gw/2,gy-8,{size:13});
+ const Y=v=>gy+gh-(v-8)/3*gh;ctx.strokeStyle=tok.line;[8,9,10,11].forEach(v=>{ctx.beginPath();ctx.moveTo(gx,Y(v));ctx.lineTo(gx+gw,Y(v));ctx.stroke();label(String(v),gx-6,Y(v),{size:10,align:'right',color:tok.muted,hw:0});});
+ ctx.strokeStyle=tok.warm;ctx.lineWidth=2.5;ctx.beginPath();st.hist.forEach((h,i)=>{const x=gx+i/23*gw;i?ctx.lineTo(x,Y(clamp(h.m,8,11))):ctx.moveTo(x,Y(clamp(h.m,8,11)));});ctx.stroke();st.hist.forEach((h,i)=>{ctx.fillStyle=tok.warm;ctx.beginPath();ctx.arc(gx+i/23*gw,Y(clamp(h.m,8,11)),3,0,7);ctx.fill();});
+ drawFx(ctx);}
+function draw(){S.begin();st.tab==='match'?drawMatch():drawDrought();}
+function update(){if(st.tab==='match'){$('stName').textContent='부리와 먹이';$('vB').textContent='–';$('v1').textContent='6종';$('v2').textContent='씨앗, 곤충, 선인장, 애벌레…';$('v3').textContent='–';$('fsInfo').textContent='부리와 먹이 짝짓기';return;}
+ const r=+$('rain').value;$('rOut').textContent=r<35?'가뭄':r>70?'많음':'보통';$('stName').textContent=r<35?'가뭄':'정상 강수';$('chip').dataset.s=r<35?'bad':'';
+ $('vB').textContent=`${mean().toFixed(2)} mm`;$('v1').textContent=`${st.pop.length}마리`;$('v2').textContent=r<35?'크고 단단한 씨앗 위주':'작은 씨앗도 풍부';$('v3').textContent=`${st.year}년`;$('fsInfo').textContent=`${st.year}년 · 핀치 ${st.pop.length}마리 · 평균 부리 ${mean().toFixed(2)} mm`;}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('mission').hidden=st.tab!=='match';$('dCtl').style.display=$('dBtn').style.display=st.tab==='drought'?'contents':'none';
+ $('note').textContent=st.tab==='match'?'부리의 굵기와 길이, 휘어진 정도를 보고 어떤 먹이를 먹기에 알맞은지 추론해 보세요.':'강수량을 가뭄으로 낮추고 몇 해를 지나 보세요. 그다음 다시 비를 많이 내리게 해 보세요.';if(!st.pop.length)initPop();update();});
+$('pGen').onclick=stepYear;$('pRst').onclick=()=>{initPop();update();};$('pRun').onclick=()=>{st.run=!st.run;$('pRun').setAttribute('aria-pressed',st.run);};$('rain').addEventListener('input',update);
+let fr=0;loop(()=>{fr++;if(st.run&&st.tab==='drought'&&fr%40===0)stepYear();draw();});startMatch();update();
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

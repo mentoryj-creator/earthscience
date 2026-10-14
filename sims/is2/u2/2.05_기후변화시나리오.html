@@ -1,0 +1,313 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>2100 기후 시나리오</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>.levers{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 18px}.levers .slider{flex:none}.levers small{color:var(--muted);font-weight:500}</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅱ. 환경과 에너지 · 기후 변화와 대응</span></nav>
+  <header><h1>2100 기후 시나리오</h1><p>여러분은 2025년 세계 기후 회의의 정책 책임자입니다. 정해진 예산 안에서 감축 정책을 골라 2100년까지 이산화 탄소 배출량과 지구 평균 기온이 어떻게 변하는지 예측해 보세요. 목표는 산업화 이전보다 1.5 ℃ 이내!</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="levers" id="levers"></div>
+      <div class="slider"><div class="slider-top"><label for="target">탄소 중립 목표 연도</label><output id="tOut">2060년</output></div><input id="target" type="range" min="2040" max="2080" step="5" value="2060"></div>
+      <div class="presets"><button type="button" id="pRun" class="go">▶ 2100년까지 실행</button><button type="button" id="pBau">현재 정책 유지</button><button type="button" id="pZero">↺ 정책 초기화</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission"><span class="tag" id="gTag">예산</span><div class="task" id="gTask">정책 예산 <b id="bud">0 / 140</b>을 넘지 않게 정책을 고르세요.<small>목표 연도가 이를수록 같은 정책도 비용이 커집니다. 2100년 기온 1.5 ℃ 이하 ★★★, 2.0 ℃ 이하 ★★, 2.5 ℃ 이하 ★</small></div><div class="score"><span><span class="lbl">2100년 기온</span><span id="gT">–</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="500" role="img" aria-label="연간 배출량과 지구 평균 기온 그래프"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note">회색 선은 비교용 시나리오입니다. 기온은 1850~1900년 평균에 대한 상승폭이며, 누적 배출량에 비례한다고 단순화했습니다.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">–</span></span><div class="big"><div class="k">2100년 지구 평균 기온 상승</div><div class="v" id="vT">–</div></div></div>
+      <div class="metrics"><div class="m"><span class="k">2020년 이후 누적 배출량</span><span class="v" id="v1">–</span></div><div class="m"><span class="k">2050년 연간 배출량</span><span class="v" id="v2">–</span></div><div class="m"><span class="k">정책 비용</span><span class="v" id="v3">–</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>기후 변화에 대응하는 방법</h2>
+      <ol class="chain"><li>지구 평균 기온의 상승 폭은 지금까지 배출한 이산화 탄소의 누적량에 거의 비례한다.</li><li>그래서 배출량을 빨리 줄일수록 누적량이 적어져 기온 상승을 낮게 억제할 수 있다.</li><li>탄소 중립: 배출하는 온실 기체와 흡수·제거하는 양을 같게 만들어 순배출량을 0으로 만드는 것. 우리나라는 2050년 탄소 중립을 목표로 한다.</li><li>완화(원인 줄이기): 재생 에너지, 에너지 효율, 수송 전기화, 숲 복원, 탄소 포집.</li><li>적응(피해 줄이기): 방재 시설, 폭염 대비, 농작물 품종 개량 등.</li></ol>
+      <div class="impact"><b>1.5 ℃와 2.0 ℃의 차이 (IPCC 특별 보고서, 2018)</b>폭염 피해 인구 10억 명 → 27억 명 · 여름에 얼지 않는 북극해 100년에 한 번 → 10년에 한 번 · 산호 소멸 70~90 % → 99 % · 해수면 상승 0.40 m → 0.46 m</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>‘현재 정책 유지’ 시나리오에서 2100년 기온은 몇 ℃ 오르나요? 그때 어떤 피해가 예상되나요?</li><li>같은 정책이라도 목표 연도를 앞당기면 기온이 낮아지는 까닭을 ‘누적 배출량’으로 설명해 보세요.</li><li>예산이 한정되어 있을 때 어떤 정책을 먼저 고르는 것이 효과적인가요? 감축량과 비용을 비교해 보세요.</li><li>1.5 ℃와 2.0 ℃의 0.5 ℃ 차이가 왜 중요한지 오른쪽 아래 피해 정보를 근거로 설명해 보세요.</li><li>학교와 가정에서 실천할 수 있는 탄소 중립 행동을 세 가지 제안해 보세요.</li></ol></section>
+  <p class="foot">배출량과 기온은 IPCC 보고서의 경향(누적 배출량 1000 Gt당 약 0.45 ℃ 상승)을 따르도록 단순화한 모형입니다. 정책의 감축 효과와 비용은 학습용으로 정한 값입니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best}=Lab,tok=Lab.tok;
+const W=1000,H=500;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const LV=[{k:'pow',n:'⚡ 발전: 재생 에너지 전환',c:0.35,cost:30},{k:'car',n:'🚗 수송: 전기·수소차',c:0.18,cost:20},{k:'ind',n:'🏭 산업: 효율·수소 제철',c:0.22,cost:30},{k:'bld',n:'🏠 건물: 단열·고효율',c:0.10,cost:10},{k:'for',n:'🌳 숲 복원·농업',c:0.10,cost:10},{k:'ccs',n:'🧲 탄소 포집·저장',c:0.12,cost:25}];
+const BUD=140,E0=40,Y0=2020,Y1=2100,TCRE=0.00045,T2020=1.1;
+const st={lv:{},target:2060,anim:Y1,run:false,res:null,bau:false};LV.forEach(l=>st.lv[l.k]=0);
+function mult(){return 1+(2060-st.target)/40;}
+function cost(){return LV.reduce((a,l)=>a+l.cost*st.lv[l.k]/100,0)*mult();}
+function cut(){return LV.reduce((a,l)=>a+l.c*st.lv[l.k]/100,0);}
+function series(lv,target,bau){const out=[];let cum=0;const c=bau?0:LV.reduce((a,l)=>a+l.c*lv[l.k]/100,0);for(let y=Y0;y<=Y1;y++){let base=E0*(1+0.005*Math.min(y,2060)-0.005*Y0);let e=base;if(!bau&&y>=2025){const f=clamp((y-2025)/(target-2025),0,1);e=base*(1-c*f);}out.push({y,e,cum});cum+=e;out[out.length-1].T=T2020+TCRE*cum;out[out.length-1].cum=cum;}return out;}
+const REF=[{n:'SSP1-1.9 (매우 적극적 감축)',f:y=>y<2025?40:Math.max(-8,40-2.0*(y-2025)*1.05)},{n:'SSP2-4.5 (중간)',f:y=>y<2050?40+0.2*(y-2020):Math.max(10,46-0.7*(y-2050))}];
+function refSeries(f){const out=[];let cum=0;for(let y=Y0;y<=Y1;y++){const e=f(y);cum+=e;out.push({y,e,T:T2020+TCRE*cum});}return out;}
+const REFS=REF.map(r=>({n:r.n,s:refSeries(r.f)}));
+function cur(){return series(st.lv,st.target,st.bau);}
+function renderLevers(){$('levers').innerHTML=LV.map(l=>`<div class="slider"><div class="slider-top"><label for="lv_${l.k}">${l.n}</label><output id="o_${l.k}">${st.lv[l.k]}%</output></div><input id="lv_${l.k}" type="range" min="0" max="100" step="10" value="${st.lv[l.k]}"><small>최대 감축 ${Math.round(l.c*100)} % · 비용 ${l.cost}</small></div>`).join('');
+ LV.forEach(l=>$('lv_'+l.k).addEventListener('input',e=>{const old=st.lv[l.k];st.lv[l.k]=+e.target.value;st.bau=false;if(cost()>BUD+0.01){st.lv[l.k]=old;e.target.value=old;toast($('toast'),'예산을 넘어요! 다른 정책을 줄이거나 목표 연도를 늦춰 보세요','bad',2200);}$('o_'+l.k).textContent=st.lv[l.k]+'%';reset();}));}
+function reset(){st.res=null;st.anim=Y1;$('gStars').innerHTML='';$('gT').textContent='–';$('gTag').textContent='예산';update();}
+function impact(T){const b=T<=1.5?0:T<=2.0?1:2;return [['🔥 폭염 피해 인구',['약 10억 명','약 27억 명','27억 명보다 훨씬 많음'][b]],['🧊 여름에 얼지 않는 북극해',['100년에 한 번','10년에 한 번','거의 매년'][b]],['🪸 산호 소멸',['70~90 %','99 %','거의 모두'][b]],['🌊 해수면 상승(2100)',['약 0.40 m','약 0.46 m','0.5 m 이상'][b]]];}
+function draw(){S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const s=cur();const yEnd=st.anim;
+ const X=(y,gx,gw)=>gx+(y-Y0)/(Y1-Y0)*gw;
+ // 배출량
+ const ax=60,ay=40,aw=400,ah=250,emax=60,emin=-10;const YE=e=>ay+ah-(e-emin)/(emax-emin)*ah;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(ax,ay,aw,ah);label('연간 CO₂ 배출량 (Gt)',ax,ay-14,{size:12,weight:700,align:'left'});
+ [-10,0,20,40,60].forEach(e=>label(String(e),ax-6,YE(e),{size:10,align:'right',color:tok.muted,hw:0}));ctx.strokeStyle=tok.muted;ctx.beginPath();ctx.moveTo(ax,YE(0));ctx.lineTo(ax+aw,YE(0));ctx.stroke();
+ [2020,2050,2100].forEach(y=>label(String(y),X(y,ax,aw),ay+ah+14,{size:10,color:tok.muted,hw:0}));
+ REFS.forEach((r,j)=>{ctx.strokeStyle=tok.muted;ctx.globalAlpha=0.5;ctx.lineWidth=1.5;ctx.setLineDash(j?[6,4]:[2,3]);ctx.beginPath();r.s.forEach((p,i)=>{i?ctx.lineTo(X(p.y,ax,aw),YE(p.e)):ctx.moveTo(X(p.y,ax,aw),YE(p.e));});ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;});
+ ctx.fillStyle='rgba(201,81,42,.18)';ctx.beginPath();ctx.moveTo(X(Y0,ax,aw),YE(0));s.filter(p=>p.y<=yEnd).forEach(p=>ctx.lineTo(X(p.y,ax,aw),YE(p.e)));ctx.lineTo(X(Math.min(yEnd,Y1),ax,aw),YE(0));ctx.fill();
+ ctx.strokeStyle=tok.warm;ctx.lineWidth=3;ctx.beginPath();s.filter(p=>p.y<=yEnd).forEach((p,i)=>{i?ctx.lineTo(X(p.y,ax,aw),YE(p.e)):ctx.moveTo(X(p.y,ax,aw),YE(p.e));});ctx.stroke();
+ if(!st.bau){const x=X(st.target,ax,aw);ctx.strokeStyle=tok.good;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x,ay);ctx.lineTo(x,ay+ah);ctx.stroke();ctx.setLineDash([]);label(`목표 ${st.target}`,x,ay+10,{size:10,color:tok.good,weight:700});}
+ label('면적 = 누적 배출량',ax+aw-6,ay+ah-14,{size:10,color:tok.warm,align:'right'});
+ // 기온
+ const bx=540,by=40,bw=420,bh=250,tmin=1,tmax=3.5;const YT=T=>by+bh-(clamp(T,tmin,tmax)-tmin)/(tmax-tmin)*bh;ctx.strokeStyle=tok.line;ctx.strokeRect(bx,by,bw,bh);label('지구 평균 기온 상승 (℃)',bx,by-14,{size:12,weight:700,align:'left'});
+ [1,1.5,2,2.5,3,3.5].forEach(T=>label(T.toFixed(1),bx-6,YT(T),{size:10,align:'right',color:tok.muted,hw:0}));[2020,2050,2100].forEach(y=>label(String(y),X(y,bx,bw),by+bh+14,{size:10,color:tok.muted,hw:0}));
+ [[1.5,tok.good],[2,tok.gold]].forEach(([T,c])=>{ctx.strokeStyle=c;ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(bx,YT(T));ctx.lineTo(bx+bw,YT(T));ctx.stroke();ctx.setLineDash([]);label(`${T} ℃`,bx+bw-4,YT(T)-9,{size:10,color:c,align:'right',weight:700});});
+ REFS.forEach((r,j)=>{ctx.strokeStyle=tok.muted;ctx.globalAlpha=0.5;ctx.lineWidth=1.5;ctx.setLineDash(j?[6,4]:[2,3]);ctx.beginPath();r.s.forEach((p,i)=>{i?ctx.lineTo(X(p.y,bx,bw),YT(p.T)):ctx.moveTo(X(p.y,bx,bw),YT(p.T));});ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;const e=r.s[r.s.length-1];label(r.n,bx+8,YT(e.T)>by+bh-20?by+bh-12-j*14:YT(e.T)-8,{size:9,color:tok.muted,align:'left',hw:3});});
+ ctx.strokeStyle=tok.bad;ctx.lineWidth=3;ctx.beginPath();s.filter(p=>p.y<=yEnd).forEach((p,i)=>{i?ctx.lineTo(X(p.y,bx,bw),YT(p.T)):ctx.moveTo(X(p.y,bx,bw),YT(p.T));});ctx.stroke();
+ const last=s.filter(p=>p.y<=yEnd).pop();label(`${last.y}년 +${last.T.toFixed(2)} ℃`,X(last.y,bx,bw)-4,YT(last.T)-14,{size:12,weight:700,color:tok.bad,align:'right',mono:true});
+ // 영향
+ const T=last.T;const im=impact(T);const iy=345;label(`${last.y}년 기온 +${T.toFixed(1)} ℃일 때 예상되는 영향`,W/2,iy,{size:13,weight:700});
+ im.forEach(([k,v],i)=>{const x=40+i*235,y=iy+20,w=220,h=96;const b=T<=1.5?0:T<=2?1:2;ctx.fillStyle=[ 'rgba(63,143,74,.15)','rgba(185,134,11,.18)','rgba(194,59,59,.18)'][b];rr(ctx,x,y,w,h,12);ctx.fill();label(k,x+w/2,y+30,{size:13,weight:700});label(v,x+w/2,y+64,{size:15,weight:700,color:[tok.good,tok.gold,tok.bad][b]});});
+ drawFx(ctx);}
+function update(){const c=cost();$('bud').textContent=`${c.toFixed(0)} / ${BUD}`;$('tOut').textContent=`${st.target}년`;const s=cur();const e=s[s.length-1];const T=e.T;
+ $('vT').textContent=`+${T.toFixed(2)} ℃`;$('v1').textContent=`${Math.round(e.cum)} Gt`;$('v2').textContent=`${s.find(p=>p.y===2050).e.toFixed(1)} Gt/년`;$('v3').textContent=`${c.toFixed(0)} / ${BUD}`;
+ $('stName').textContent=T<=1.5?'1.5 ℃ 목표 달성':T<=2?'2 ℃ 이내':T<=2.5?'위험':'매우 위험';$('chip').dataset.s=T<=1.5?'':T<=2?'gold':'bad';$('fsInfo').textContent=`${st.bau?'현재 정책 유지':`감축 ${Math.round(cut()*100)} % · 목표 ${st.target}`} · 2100년 +${T.toFixed(2)} ℃`;}
+$('target').addEventListener('input',e=>{const old=st.target;st.target=+e.target.value;if(cost()>BUD+0.01){st.target=old;e.target.value=old;toast($('toast'),'목표를 앞당기면 비용이 커져 예산을 넘어요','bad',2200);}st.bau=false;reset();});
+$('pBau').onclick=()=>{st.bau=true;LV.forEach(l=>st.lv[l.k]=0);renderLevers();reset();st.anim=Y0;st.run=true;};
+$('pZero').onclick=()=>{st.bau=false;LV.forEach(l=>st.lv[l.k]=0);renderLevers();reset();};
+$('pRun').onclick=()=>{st.anim=Y0;st.run=true;};
+function finish(){const s=cur();const T=s[s.length-1].T;const sc=st.bau?0:T<=1.5?3:T<=2?2:T<=2.5?1:0;$('gT').textContent=`+${T.toFixed(2)} ℃`;$('gStars').innerHTML=stars(sc);$('gTag').textContent='결과';
+ if(!st.bau){best('is2-climate',sc);if(sc===3)burst(750,120,tok.gold,60);toast($('toast'),sc===3?'1.5 ℃ 목표 달성!':sc===2?'2 ℃ 이내로 막았어요':'기온 상승이 너무 커요. 정책을 다시 골라 보세요',sc>=2?'good':'bad',2400);}update();}
+loop(dt=>{if(st.run){st.anim=Math.min(Y1,st.anim+dt*20);if(st.anim>=Y1){st.run=false;finish();}}draw();});
+renderLevers();update();
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

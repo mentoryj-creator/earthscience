@@ -1,0 +1,336 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>대기 대순환과 사막화</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅱ. 환경과 에너지 · 대기 대순환과 사막화</span></nav>
+  <header><h1>대기 대순환과 사막화</h1><p>적도에서 데워진 공기가 올라가 고위도로 움직이며 지구 규모의 대기 순환이 만들어집니다. 공기가 내려오는 위도 30° 부근에 사막이 많은 까닭을 알아보고, 사막 가장자리 마을에서 20년 동안 사막화를 막아 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" id="mCirc" aria-pressed="true">대기 대순환</button><button type="button" id="mGame" aria-pressed="false">🐑 사헬 마을 지키기</button></div>
+      <div class="slider" id="sSheep" hidden><div class="slider-top"><label for="sheep">기르는 양</label><output id="shOut">40마리</output></div><input id="sheep" type="range" min="0" max="80" step="5" value="40"></div>
+      <div class="presets" id="gBtns" hidden><button type="button" id="pTree">🌳 나무 심기 (식량 3)</button><button type="button" id="pYear" class="go">▶ 1년 보내기</button><button type="button" id="pNew">↺ 새 게임</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden><span class="tag" id="gTag">1년째</span><div class="task" id="gTask"></div><div class="score"><span><span class="lbl">식량</span><span id="gFood">8</span></span><span><span class="lbl">식생</span><span id="gVeg">60 %</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="520" role="img" aria-label="대기 대순환 단면과 위도별 강수량"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note" id="note">위도를 누르면 그 지역의 기후를 볼 수 있어요. 북반구만 나타냈으며, 남반구도 대칭으로 같은 순환이 있습니다.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">–</span></span><div class="big"><div class="k" id="bigK">선택한 위도</div><div class="v" id="vBig">–</div></div></div>
+      <div class="metrics"><div class="m"><span class="k" id="k1">공기의 움직임</span><span class="v txt" id="v1">–</span></div><div class="m"><span class="k" id="k2">기압과 날씨</span><span class="v txt" id="v2">–</span></div><div class="m"><span class="k" id="k3">대표 기후·지역</span><span class="v txt" id="v3">–</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>사막이 생기는 까닭</h2>
+      <ol class="chain"><li>적도는 태양 에너지를 많이 받아 공기가 데워져 상승하고, 구름과 비가 많다(저압대).</li><li>상승한 공기는 고위도로 이동하다가 위도 30° 부근에서 하강한다. 하강하는 공기는 데워지며 건조해져 구름이 생기기 어렵다(고압대).</li><li>그래서 위도 30° 부근에는 사하라, 아라비아, 오스트레일리아 사막처럼 큰 사막이 많다.</li><li>사막화는 사막 주변 지역이 점점 사막처럼 변하는 현상이다. 대기 대순환의 변화로 강수량이 줄어드는 자연적 원인과 과잉 방목, 과잉 경작, 삼림 벌채 같은 인위적 원인이 함께 작용한다.</li></ol>
+      <div class="impact"><b>사막화의 피해와 대책</b>사막화가 일어나면 농경지와 식수가 부족해지고 황사가 심해진다. 나무 심기, 적정 방목, 물 관리, 국제 협력(사막화 방지 협약)으로 막을 수 있다.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>위도 0°와 30°에서 공기의 움직임은 어떻게 다르며, 이것이 강수량에 어떤 영향을 주나요?</li><li>무역풍과 편서풍은 각각 어느 순환의 지표 부근 바람인가요?</li><li>게임에서 가뭄인 해에 양을 줄이지 않으면 어떤 일이 생겼나요? 그 까닭은 무엇인가요?</li><li>한 번 사막이 된 땅은 왜 비가 다시 와도 쉽게 회복되지 않을까요?</li><li>사막화가 우리나라의 봄철 황사와 어떤 관련이 있는지 조사해 보세요.</li></ol></section>
+  <p class="foot">대기 대순환은 세 개의 순환 세포로 단순화했습니다. 마을 게임은 강수량, 방목, 식생의 관계를 보여 주기 위한 단순한 모형입니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,rand}=Lab,tok=Lab.tok;
+const W=1000,H=520;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const st={mode:'circ',lat:30,fr:0,g:null};
+// ── 대기 대순환
+const X0=80,X1=920,GY=300,TOP=70;const lx=l=>X0+l/90*(X1-X0);
+const ZONE=[{a:0,b:15,mv:'따뜻한 공기가 상승',p:'저압대 · 비가 많음',c:'열대 우림 (아마존, 콩고)',s:'warm'},{a:15,b:40,mv:'공기가 하강',p:'고압대 · 건조, 맑음',c:'사막 (사하라, 아라비아)',s:'bad'},{a:40,b:75,mv:'공기가 상승',p:'저압대 · 비가 비교적 많음',c:'온대·냉대 (서유럽, 한국 북쪽)',s:'cool'},{a:75,b:91,mv:'차가운 공기가 하강',p:'고압대 · 춥고 건조',c:'극지방 빙설 기후',s:''}];
+const zoneOf=l=>ZONE.find(z=>l>=z.a&&l<z.b);
+function precip(l){return 1.6*Math.exp(-Math.pow(l/9,2))+0.75*Math.exp(-Math.pow((l-55)/13,2))+0.12;}
+function evap(l){return 1.05*Math.exp(-Math.pow((l-22)/20,2))+0.1;}
+function cell(a,b,dir){// dir 1: 시계방향(적도쪽 상승)
+ const x1=lx(a)+18,x2=lx(b)-18,cx=(x1+x2)/2,rx=(x2-x1)/2,cy=(TOP+GY)/2+10,ry=(GY-TOP)/2-30;ctx.strokeStyle=tok.accent;ctx.lineWidth=2.5;ctx.globalAlpha=0.5;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,7);ctx.stroke();ctx.globalAlpha=1;
+ for(let i=0;i<6;i++){const th=(st.fr*0.012*dir+i*Math.PI/3)%(Math.PI*2);const x=cx+Math.cos(th)*rx,y=cy-Math.sin(th)*ry;const dx=-Math.sin(th)*dir,dy=-Math.cos(th)*dir;ctx.fillStyle=tok.accent;ctx.strokeStyle=tok.accent;ctx.lineWidth=3;Lab.arrow(ctx,x-dx*8,y-dy*8*ry/rx,x+dx*8,y+dy*8*ry/rx,8);}
+}
+function drawCirc(){ctx.fillStyle=tok['sky-top'];ctx.fillRect(0,0,W,GY);ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,GY,W,H-GY);
+ ZONE.forEach(z=>{if(z.a<=st.lat&&st.lat<z.b){ctx.fillStyle='rgba(255,210,80,.18)';ctx.fillRect(lx(z.a),TOP-30,lx(Math.min(90,z.b))-lx(z.a),GY-TOP+30);}});
+ cell(0,30,-1);cell(30,60,1);cell(60,90,-1);
+ [[0,1],[30,-1],[60,1],[90,-1]].forEach(([l,u])=>{const x=clamp(lx(l),X0+14,X1-14);ctx.fillStyle=u>0?tok.warm:tok.cool;ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=6;ctx.globalAlpha=0.85;const o=(st.fr*0.6)%30;u>0?Lab.arrow(ctx,x,GY-40-o,x,GY-110-o,14):Lab.arrow(ctx,x,TOP+70+o,x,TOP+140+o,14);ctx.globalAlpha=1;label(u>0?'상승':'하강',x,u>0?GY-30:TOP+56,{size:11,weight:700,color:ctx.fillStyle});});
+ // 지표
+ for(let l=0;l<90;l+=1){const d=precip(l)-evap(l);ctx.fillStyle=l>=17&&l<=35?'#d9b46a':l>=75?'#eef3f7':d>0.3?'#3f8f4a':'#86a95a';ctx.fillRect(lx(l),GY,lx(l+1)-lx(l)+1,14);}
+ [0,30,60,90].forEach(l=>{ctx.strokeStyle=tok.muted;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(lx(l),TOP-30);ctx.lineTo(lx(l),GY);ctx.stroke();ctx.setLineDash([]);label(`${l}°${l?'N':''}`,lx(l),GY+26,{size:12,weight:700});});
+ label('해들리 순환',lx(15),TOP-12,{size:12,weight:700,color:tok.accent});label('페렐 순환',lx(45),TOP-12,{size:12,weight:700,color:tok.accent});label('극순환',lx(75),TOP-12,{size:12,weight:700,color:tok.accent});
+ label('무역풍(북동풍) ←',lx(15),GY-14,{size:11,color:tok.fg});label('편서풍 →',lx(45),GY-14,{size:11});label('← 극동풍',lx(75),GY-14,{size:11});
+ label('적도 저압대 ☁',lx(0)+40,TOP+20,{size:11,color:tok.muted});label('중위도 고압대 ☀',lx(30),TOP+20,{size:11,color:tok.muted});label('한대 전선대 ☁',lx(60),TOP+20,{size:11,color:tok.muted});
+ // 그래프
+ const gy=345,gh=140;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(X0,gy,X1-X0,gh);label('위도별 강수량과 증발량 (상댓값)',X0,gy-12+2,{size:11,color:tok.muted,align:'left'});
+ const Y=v=>gy+gh-v/1.9*gh;ctx.fillStyle='rgba(217,180,106,.4)';for(let l=0;l<90;l+=0.25){if(evap(l)>precip(l))ctx.fillRect(lx(l),Y(evap(l)),lx(0.25)-lx(0)+1,Y(precip(l))-Y(evap(l)));}
+ [['강수량',precip,'#2a64c9'],['증발량',evap,'#c9512a']].forEach(([n,f,c],j)=>{ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.beginPath();for(let l=0;l<=90;l++){l?ctx.lineTo(lx(l),Y(f(l))):ctx.moveTo(lx(l),Y(f(l)));}ctx.stroke();ctx.fillStyle=c;ctx.fillRect(X1-160+j*80,gy-14,14,4);label(n,X1-142+j*80,gy-12,{size:11,align:'left'});});
+ label('증발량 > 강수량 → 건조',lx(26),Y(1.2),{size:11,color:'#a07a2a',weight:700});
+ const x=lx(st.lat);ctx.strokeStyle=tok.gold;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,TOP-30);ctx.lineTo(x,gy+gh);ctx.stroke();label(`${st.lat}°`,x,gy+gh+14,{size:11,weight:700,color:tok.gold});}
+// ── 사헬 마을 게임
+const GC=12,GR=5;
+function newGame(){const g={y:1,food:8,sheep:40,v:[],f:[],hist:[],over:false,R:1};for(let i=0;i<GC*GR;i++){g.f.push(rand(0.7,1.3));g.v.push(0.6);}st.g=g;$('sheep').value=40;g.R=rollRain();g.hist=[{V:0.6,food:8,R:null}];$('gStars').innerHTML='';uiGame();}
+function rollRain(){return Math.random()<0.25?0.35:rand(0.85,1.15);}
+const V=()=>st.g.v.reduce((a,b)=>a+b,0)/st.g.v.length;
+function need(){return 3+0.1*(st.g.y-1);}
+function uiGame(){const g=st.g;const dry=g.R<0.6;$('gTag').textContent=g.over?'결과':`${g.y}년째 / 20`;$('gFood').textContent=g.food.toFixed(1);$('gVeg').textContent=`${Math.round(V()*100)} %`;$('shOut').textContent=`${$('sheep').value}마리`;
+ if(!g.over)$('gTask').innerHTML=`올해 강수 예보: <b style="color:${dry?'var(--bad)':'var(--good)'}">${dry?'☀ 가뭄 (평년의 35 %)':'🌧 평년 수준'}</b><small>양을 정하고 ‘1년 보내기’. 양 1마리를 늘리면 식량 0.2가 들고, 줄이면 0.2를 얻어요. 올해 마을에 필요한 식량 ${need().toFixed(1)}</small>`;update();}
+function year(){const g=st.g;if(g.over)return;const ns=+$('sheep').value;g.food-=(ns-g.sheep)*0.2;g.sheep=ns;const p=0.006*g.sheep;
+ g.v=g.v.map((x,i)=>x<0.15?0:clamp(x+0.5*g.R*g.f[i]*x*(1-x)-p*x,0,1));const v=V();const prod=g.sheep*0.1*Math.min(1,v/0.4);g.food+=prod-need();g.hist.push({V:v,food:g.food,R:g.R});
+ if(g.R<0.6&&p>0.15)toast($('toast'),'가뭄에 양이 너무 많아 풀이 사라지고 있어요!','bad',2200);
+ if(g.food<0){end(false,'식량이 바닥나 마을 사람들이 떠났어요. 양이 너무 적었거나 풀이 부족했어요.');return;}
+ if(v<0.2){end(false,'초원의 대부분이 사막이 되었어요. 과잉 방목이 사막화를 일으켰어요.');return;}
+ if(g.y>=20){const s=v>=0.5?3:v>=0.4?2:1;end(true,`20년 동안 마을을 지켰어요! 마지막 식생 ${Math.round(v*100)} %`,s);return;}
+ g.y++;g.R=rollRain();uiGame();}
+function end(ok,msg,s=0){const g=st.g;g.over=true;$('gStars').innerHTML=stars(s);if(ok){best('is2-desert',s);burst(300,250,tok.gold,50);}$('gTask').innerHTML=`${msg}<small>${ok?'식생 50 % 이상이면 별 3개, 40 % 이상이면 별 2개.':'‘새 게임’으로 다시 도전하세요. 가뭄인 해에는 양을 줄여 보세요.'}</small>`;uiGame();}
+$('pTree').onclick=()=>{const g=st.g;if(g.over)return;if(g.food<3){toast($('toast'),'식량이 부족해요','bad');return;}const d=g.v.map((x,i)=>[x,i]).filter(a=>a[0]<0.15);if(!d.length){toast($('toast'),'아직 사막이 된 땅이 없어요');return;}g.food-=3;d.slice(0,6).forEach(([x,i])=>g.v[i]=0.3);burst(250,250,tok.good,20);uiGame();};
+function drawGame(){const g=st.g;ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const tw=44,th=60,ox=24,oy=60;
+ label('마을 주변 초원 (한 칸 = 목초지 한 구역)',ox,32,{size:13,weight:700,align:'left'});
+ g.v.forEach((v,i)=>{const c=i%GC,r=Math.floor(i/GC),x=ox+c*tw,y=oy+r*th;const sand=[217,190,130],grn=[70,150,70];const f=clamp(v/0.8,0,1);ctx.fillStyle=v<0.15&&v===0?'rgb(226,200,140)':`rgb(${sand.map((s,k)=>Math.round(lerp(s,grn[k],f))).join(',')})`;ctx.fillRect(x,y,tw-2,th-2);
+  if(v>0.3){ctx.strokeStyle='rgba(30,90,30,.6)';ctx.lineWidth=1.5;for(let k=0;k<Math.round(v*4);k++){const gx=x+8+k*9,gy2=y+th-12;ctx.beginPath();ctx.moveTo(gx,gy2);ctx.lineTo(gx-3,gy2-8);ctx.moveTo(gx,gy2);ctx.lineTo(gx+3,gy2-8);ctx.stroke();}}
+  if(v===0){ctx.strokeStyle='rgba(160,120,60,.5)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+6,y+20);ctx.quadraticCurveTo(x+20,y+12,x+36,y+22);ctx.stroke();}});
+ const ns=+$('sheep').value;for(let i=0;i<Math.round(ns/5);i++){const x=ox+20+((i*97+st.fr*0.2)%(GC*tw-40)),y=oy+15+((i*61)%(GR*th-30));label('🐑',x,y,{size:18,hw:0});}
+ label(g.R<0.6?'☀ 가뭄':'🌧 평년',ox+GC*tw,32,{size:13,weight:700,align:'right',color:g.R<0.6?tok.bad:tok.good});
+ // 그래프
+ const gx=600,gy=50,gw=370,gh=180;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(gx,gy,gw,gh);label('식생 비율과 강수량',gx+gw/2,gy-14,{size:12,weight:700});const X=y=>gx+y/20*gw;
+ g.hist.forEach((h,i)=>{if(h.R!==null){ctx.fillStyle=h.R<0.6?'rgba(194,59,59,.35)':'rgba(42,100,201,.25)';const hh=h.R/1.2*gh*0.5;ctx.fillRect(X(i)-6,gy+gh-hh,12,hh);}});
+ ctx.strokeStyle='#3f8f4a';ctx.lineWidth=2.5;ctx.beginPath();g.hist.forEach((h,i)=>{const y=gy+gh-h.V*gh;i?ctx.lineTo(X(i),y):ctx.moveTo(X(i),y);});ctx.stroke();
+ ctx.strokeStyle=tok.bad;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(gx,gy+gh-0.2*gh);ctx.lineTo(gx+gw,gy+gh-0.2*gh);ctx.stroke();ctx.setLineDash([]);label('사막화 한계',gx+gw-4,gy+gh-0.2*gh-9,{size:10,color:tok.bad,align:'right'});
+ [0,50,100].forEach(p=>label(`${p}%`,gx-6,gy+gh-p/100*gh,{size:10,align:'right',color:tok.muted,hw:0}));
+ const gy2=290;ctx.strokeRect(gx,gy2,gw,150);label('마을 식량',gx+gw/2,gy2-14,{size:12,weight:700});const mx=Math.max(20,...g.hist.map(h=>h.food));
+ ctx.strokeStyle=tok.gold;ctx.lineWidth=2.5;ctx.beginPath();g.hist.forEach((h,i)=>{const y=gy2+150-clamp(h.food,0,mx)/mx*150;i?ctx.lineTo(X(i),y):ctx.moveTo(X(i),y);});ctx.stroke();
+ for(let y=0;y<=20;y+=5)label(`${y}년`,X(y),gy2+164,{size:10,color:tok.muted,hw:0});
+ label(`양 ${ns}마리 → 풀을 먹는 압력 ${Math.round(0.006*ns*100)} %/년`,ox,oy+GR*th+30,{size:13,align:'left',weight:700,color:0.006*ns>0.25?tok.bad:tok.fg});
+ label(`필요 식량 ${need().toFixed(1)} · 예상 생산 ${(ns*0.1*Math.min(1,V()/0.4)).toFixed(1)}`,ox,oy+GR*th+56,{size:12,align:'left',color:tok.muted});
+ drawFx(ctx);}
+function draw(){S.begin();if(st.mode==='circ')drawCirc();else drawGame();}
+function update(){if(st.mode==='circ'){const z=zoneOf(st.lat);$('bigK').textContent='선택한 위도';$('vBig').textContent=`${st.lat}°`;$('k1').textContent='공기의 움직임';$('k2').textContent='기압과 날씨';$('k3').textContent='대표 기후·지역';$('v1').textContent=z.mv;$('v2').textContent=z.p;$('v3').textContent=z.c;$('stName').textContent=z.p.split(' · ')[0];$('chip').dataset.s=z.s;$('fsInfo').textContent=`위도 ${st.lat}° · ${z.p}`;}
+ else{const g=st.g;$('bigK').textContent='식생 비율';$('vBig').textContent=`${Math.round(V()*100)} %`;$('k1').textContent='기르는 양';$('k2').textContent='사막이 된 구역';$('k3').textContent='식량';$('v1').textContent=`${$('sheep').value}마리`;$('v2').textContent=`${g.v.filter(x=>x===0).length} / ${g.v.length}`;$('v3').textContent=g.food.toFixed(1);
+  const v=V();$('stName').textContent=g.over?'게임 끝':v>=0.45?'건강한 초원':v>=0.3?'사막화 진행':'사막화 위험';$('chip').dataset.s=v>=0.45?'':v>=0.3?'gold':'bad';$('fsInfo').textContent=`${g.y}년째 · 식생 ${Math.round(v*100)} % · 식량 ${g.food.toFixed(1)} · 양 ${$('sheep').value}마리`;}}
+function setMode(m){st.mode=m;$('mCirc').setAttribute('aria-pressed',m==='circ');$('mGame').setAttribute('aria-pressed',m==='game');['sSheep','gBtns','mission'].forEach(id=>$(id).hidden=m!=='game');
+ $('note').textContent=m==='circ'?'위도를 누르면 그 지역의 기후를 볼 수 있어요. 북반구만 나타냈으며, 남반구도 대칭으로 같은 순환이 있습니다.':'초록이 진할수록 풀이 많고, 모래색은 사막이 된 땅입니다. 사막이 된 구역은 비가 와도 저절로 회복되지 않아요.';if(m==='game'&&!st.g)newGame();update();}
+$('mCirc').onclick=()=>setMode('circ');$('mGame').onclick=()=>setMode('game');$('pYear').onclick=year;$('pNew').onclick=newGame;$('sheep').addEventListener('input',()=>{$('shOut').textContent=`${$('sheep').value}마리`;update();});
+$('sim').addEventListener('pointerdown',e=>{if(st.mode!=='circ')return;const p=S.pt(e);st.lat=clamp(Math.round((p.x-X0)/(X1-X0)*90),0,90);update();});
+loop(()=>{st.fr++;draw();});setMode('circ');
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

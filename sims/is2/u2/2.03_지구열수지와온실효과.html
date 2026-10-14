@@ -1,0 +1,327 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>지구 열수지와 온실 효과</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>.pick{display:flex;gap:6px;flex-wrap:wrap}</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅱ. 환경과 에너지 · 온실 효과와 지구 온난화</span></nav>
+  <header><h1>지구 열수지와 온실 효과</h1><p>지구는 태양 복사 에너지를 흡수한 만큼 지구 복사 에너지를 우주로 방출하며 복사 평형을 이룹니다. 온실 기체의 양과 반사율을 바꾸어 에너지 흐름과 지표 온도가 어떻게 달라지는지 확인하고, 사건이 일어났을 때 지구의 열수지를 예측해 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" id="mFree" aria-pressed="true">자유 실험</button><button type="button" id="mGame" aria-pressed="false">🎯 열수지 예측</button></div>
+      <div class="slider" id="sC"><div class="slider-top"><label for="co2">이산화 탄소 농도</label><output id="cOut">280 ppm</output></div><input id="co2" type="range" min="0" max="1200" step="10" value="280"></div>
+      <div class="slider" id="sA"><div class="slider-top"><label for="alb">반사율 (구름·얼음·에어로졸)</label><output id="aOut">30 %</output></div><input id="alb" type="range" min="15" max="45" step="1" value="30"></div>
+      <div class="presets" id="pres"><button type="button" id="pNow">현재 지구</button><button type="button" id="pMoon">대기 없음 (달처럼)</button><button type="button" id="pDouble">CO₂ 2배</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden><span class="tag" id="gTag">사건 1/5</span><div class="task" id="gTask"></div><div class="pick" id="pick"></div><div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="520" role="img" aria-label="지구의 에너지 흐름과 온도 그래프"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note">화살표 굵기와 숫자는 지구에 들어오는 태양 복사 에너지를 100으로 볼 때의 상댓값입니다. 노란색은 태양 복사, 붉은색은 지구 복사입니다.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">복사 평형</span></span><div class="big"><div class="k">지표 평균 온도</div><div class="v" id="vT">–</div></div></div>
+      <div class="metrics"><div class="m"><span class="k">지구가 흡수한 태양 복사</span><span class="v" id="v1">–</span></div><div class="m"><span class="k">우주로 나간 지구 복사</span><span class="v" id="v2">–</span></div><div class="m"><span class="k">열수지 (흡수 − 방출)</span><span class="v" id="v3">–</span><span class="d">0이면 복사 평형, +이면 온도 상승</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>온실 효과와 지구 온난화</h2>
+      <ol class="chain"><li>지구로 들어온 태양 복사 에너지 중 약 30 %는 반사되고, 약 70 %가 지표와 대기에 흡수된다.</li><li>지표는 흡수한 에너지를 파장이 긴 지구 복사 에너지로 방출한다.</li><li>수증기, 이산화 탄소, 메테인 같은 온실 기체는 지구 복사 에너지를 흡수했다가 일부를 지표로 다시 방출(재복사)한다.</li><li>이 때문에 대기가 없을 때보다 지표의 온도가 높게 유지된다. 이것이 온실 효과이다.</li><li>온실 기체가 늘면 우주로 나가는 에너지가 줄어 열수지가 +가 되고, 온도가 올라 다시 평형을 이룰 때까지 지구가 더워진다(지구 온난화).</li></ol>
+      <div class="impact"><b>IPCC 6차 보고서</b>현재 지구는 흡수하는 에너지가 방출하는 에너지보다 조금 많은(약 0.6 %) 상태로, 복사 평형에서 벗어나 평균 기온이 계속 오르고 있다.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>‘대기 없음’을 눌러 보세요. 지표 온도는 몇 ℃가 되나요? 지구와 달의 평균 온도가 크게 다른 까닭을 설명해 보세요.</li><li>이산화 탄소 농도를 높인 직후 열수지는 어떻게 되나요? 시간이 지나면 왜 다시 0이 되나요?</li><li>북극의 얼음이 녹으면 반사율이 줄어듭니다. 이것이 지구 온난화를 더 빠르게 하는 까닭을 설명해 보세요.</li><li>큰 화산이 폭발한 뒤 몇 년 동안 지구의 기온이 낮아지는 까닭은 무엇일까요?</li><li>온실 효과는 지구에 꼭 필요한 현상입니다. 그런데도 온실 효과의 ‘강화’가 문제가 되는 까닭은 무엇인가요?</li></ol></section>
+  <p class="foot">대기를 한 층으로 단순화한 복사 평형 모형입니다. 실제 지구에서는 대기의 태양 복사 흡수, 대류·증발에 의한 열 전달, 수증기·얼음 되먹임 등이 함께 작용합니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle}=Lab,tok=Lab.tok;
+const W=1000,H=520;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const SIG=5.67e-8,SOL=342;
+const eps=c=>c<=0?0:clamp(0.78+0.075*Math.log(Math.max(c,1)/280),0,0.97);
+const st={mode:'free',co2:280,alb:30,noAtm:false,Ts:288,hist:[],t:0,fr:0,g:null};
+function E(){return st.noAtm?0:eps(st.co2);}
+function flows(){const e=E(),a=st.alb/100;const Sabs=100*(1-a),Es=SIG*Math.pow(st.Ts,4)/SOL*100;const back=e*Es/2,olr=Es*(1-e/2);return {e,refl:100*a,Sabs,Es,back,olr,atmUp:e*Es/2,through:Es*(1-e),N:Sabs-olr};}
+function eqT(){const e=E(),a=st.alb/100;return Math.pow(SOL*(1-a)/(SIG*(1-e/2)),0.25);}
+function step(dt){const f=flows();st.Ts+=(f.Sabs+f.back-f.Es)*dt*0.15;st.t+=dt;}
+function band(x1,y1,x2,y2,v,col,txt,tx,ty){const w=clamp(v/7,1,22);ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w;ctx.globalAlpha=0.85;ctx.lineCap='butt';Lab.arrow(ctx,x1,y1,x2,y2,w+8);ctx.globalAlpha=1;if(txt)label(txt,tx,ty,{size:12,weight:700,mono:true,color:col,align:'left',halo:'rgba(0,0,0,.65)'});}
+function draw(){S.begin();const f=flows();const dark=Lab.isDark();
+ // 우주·대기·지표
+ ctx.fillStyle=dark?'#060b12':'#0f1e33';ctx.fillRect(0,0,620,H);for(let i=0;i<40;i++){const h1=Math.abs(Math.sin(i*12.9898)*43758.5)%1,h2=Math.abs(Math.sin(i*78.233)*12345.6)%1;ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillRect(h1*620,h2*160,2,2);}
+ const ay=170,ah=150,sy=400;if(!st.noAtm){const g=ctx.createLinearGradient(0,ay,0,ay+ah);const op=0.15+f.e*0.55;g.addColorStop(0,`rgba(120,170,220,${op*0.5})`);g.addColorStop(1,`rgba(150,200,240,${op})`);ctx.fillStyle=g;ctx.fillRect(0,ay,620,ah+(sy-ay-ah));
+  const n=Math.round(st.co2/30);for(let i=0;i<n;i++){const x=(i*97+st.fr*0.2)%600+10,y=ay+20+((i*61)%(ah+50));ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.arc(x,y,3,0,7);ctx.fill();}
+  }
+ 
+ const Tc=st.Ts-273.15;ctx.fillStyle=Tc<-5?'#dfe9f2':Tc>30?'#b98b4e':'#5b8a4a';ctx.fillRect(0,sy,620,H-sy);ctx.fillStyle=dark?'#1d4c6b':'#2c7fa8';ctx.fillRect(380,sy,240,H-sy);
+ label(`지표 ${Tc.toFixed(1)}℃`,310,H-28,{size:16,weight:700,mono:true});
+ label('☀ 태양 복사 100',90,26,{size:13,weight:700,color:'#ffd34d',hw:0});label('우주',560,26,{size:12,color:'#9fb3c8',hw:0});
+ // 태양 복사
+ band(70,40,70,sy-6,100,'#f5c542');band(70,sy-10,150,60,f.refl,'#f5e3a0',`반사 ${f.refl.toFixed(0)}`,152,96);
+ label(`흡수 ${f.Sabs.toFixed(0)}`,84,sy-24,{size:12,weight:700,mono:true,color:'#f5c542',align:'left',halo:'rgba(0,0,0,.65)'});
+ // 지구 복사
+ const up1=260,up2=380,bk=500;band(up1,sy-6,up1,ay-6,f.Es*0.55,'#e8664a',`지표 복사 ${f.Es.toFixed(0)}`,up1+14,sy-40);
+ if(!st.noAtm){band(up2,ay+10,up2,40,f.olr*0.55,'#ff8a65',`우주로 ${f.olr.toFixed(0)}`,up2+14,60);band(bk,ay+40,bk,sy-6,f.back*0.55,'#d6453a',`재복사 ${f.back.toFixed(0)}`,bk+14,sy-40);}
+ else{band(up1+60,sy-6,up1+60,40,f.olr*0.55,'#ff8a65',`우주로 ${f.olr.toFixed(0)}`,up1+74,60);}
+ const at=st.noAtm?'대기 없음':`대기: 온실 기체가 지구 복사의 ${Math.round(f.e*100)} % 흡수`;ctx.font='600 12px '+Lab.FONT;const tw=ctx.measureText(at).width;ctx.fillStyle='rgba(8,20,35,.7)';rr(ctx,600-tw-16,ay+4,tw+16,22,6);ctx.fill();label(at,592,ay+15,{size:12,color:'#dfeefa',hw:0,align:'right'});
+ ctx.textAlign='left';
+ // 그래프와 열수지
+ ctx.fillStyle=tok['sky-bot'];ctx.fillRect(620,0,380,H);const gx=670,gy=50,gw=300,gh=200;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(gx,gy,gw,gh);label('지표 온도 변화',gx+gw/2,gy-16,{size:13,weight:700});
+ const tmin=-40,tmax=40,Y=T=>gy+gh-(clamp(T,tmin,tmax)-tmin)/(tmax-tmin)*gh;[-40,-20,0,15,40].forEach(T=>label(`${T}`,gx-8,Y(T),{size:10,align:'right',color:tok.muted,hw:0}));ctx.strokeStyle=tok.muted;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(gx,Y(15));ctx.lineTo(gx+gw,Y(15));ctx.stroke();ctx.setLineDash([]);
+ if(st.hist.length>1){const n=st.hist.length,span=Math.max(60,n);ctx.strokeStyle=tok.warm;ctx.lineWidth=2.5;ctx.beginPath();st.hist.forEach((T,i)=>{const x=gx+(i+span-n)/span*gw;i?ctx.lineTo(x,Y(T-273.15)):ctx.moveTo(x,Y(T-273.15));});ctx.stroke();}
+ label('시간 →',gx+gw,gy+gh+14,{size:10,color:tok.muted,align:'right',hw:0});
+ // 열수지 막대
+ const by=330;label('지구 전체의 열수지',gx+gw/2,by-26,{size:13,weight:700});const sc=1.6;
+ ctx.fillStyle='#f5c542';ctx.fillRect(gx,by,f.Sabs*sc*1.5,26);label(`흡수 ${f.Sabs.toFixed(1)}`,gx+6,by+13,{size:12,weight:700,align:'left',color:'#2a2000',hw:0});
+ ctx.fillStyle='#e8664a';ctx.fillRect(gx,by+34,f.olr*sc*1.5,26);label(`방출 ${f.olr.toFixed(1)}`,gx+6,by+47,{size:12,weight:700,align:'left',color:'#fff',hw:0});
+ const N=f.N;const nc=Math.abs(N)<0.3?tok.good:N>0?tok.warm:tok.cool;label(Math.abs(N)<0.3?'흡수 = 방출 → 복사 평형':N>0?`흡수 > 방출 (+${N.toFixed(1)}) → 온도 상승 중`:`흡수 < 방출 (${N.toFixed(1)}) → 온도 하강 중`,gx+gw/2,by+86,{size:13,weight:700,color:nc});
+ label(`평형에 이르면 약 ${(eqT()-273.15).toFixed(1)}℃`,gx+gw/2,by+112,{size:12,color:tok.muted});
+ drawFx(ctx);}
+function update(){const f=flows();$('cOut').textContent=`${st.co2} ppm`;$('aOut').textContent=`${st.alb} %`;$('vT').textContent=`${(st.Ts-273.15).toFixed(1)}℃`;$('v1').textContent=f.Sabs.toFixed(1);$('v2').textContent=f.olr.toFixed(1);$('v3').textContent=(f.N>=0?'+':'')+f.N.toFixed(1);
+ const eq=Math.abs(f.N)<0.3;$('stName').textContent=eq?'복사 평형':f.N>0?'온도 상승 중':'온도 하강 중';$('chip').dataset.s=eq?'':f.N>0?'warm':'cool';$('fsInfo').textContent=`CO₂ ${st.noAtm?'–':st.co2+' ppm'} · 반사율 ${st.alb} % · 지표 ${(st.Ts-273.15).toFixed(1)}℃ · 열수지 ${f.N.toFixed(1)}`;}
+function setCO2(v){st.co2=v;$('co2').value=v;}function setA(v){st.alb=v;$('alb').value=v;}
+$('co2').addEventListener('input',e=>{if(st.mode==='game')return;st.noAtm=false;st.co2=+e.target.value;update();});$('alb').addEventListener('input',e=>{if(st.mode==='game')return;st.alb=+e.target.value;update();});
+$('pNow').onclick=()=>{st.noAtm=false;setCO2(420);setA(30);};$('pMoon').onclick=()=>{st.noAtm=true;setCO2(0);};$('pDouble').onclick=()=>{st.noAtm=false;setCO2(560);};
+// 게임
+const EV=[{n:'화석 연료 사용이 늘어 이산화 탄소 농도가 420 → 700 ppm이 되었다.',d:{co2:700},ans:'up'},{n:'큰 화산이 폭발해 성층권에 에어로졸(작은 입자)이 퍼져 반사율이 30 → 36 %가 되었다.',d:{alb:36},ans:'down'},
+ {n:'북극의 바다 얼음이 녹아 어두운 바다가 드러나 반사율이 30 → 26 %가 되었다.',d:{alb:26},ans:'up'},{n:'전 세계가 숲을 복원하고 탄소 포집 기술을 써서 이산화 탄소 농도가 420 → 300 ppm이 되었다.',d:{co2:300},ans:'down'},
+ {n:'이산화 탄소가 420 → 560 ppm으로 늘었지만, 동시에 대기 오염 입자가 늘어 반사율이 30 → 32 %가 되었다.',d:{co2:560,alb:32},ans:'up'},{n:'빙하기처럼 대륙 빙하가 넓어져 반사율이 30 → 38 %가 되었다.',d:{alb:38},ans:'down'}];
+function newGame(){st.g={list:shuffle(EV).slice(0,5),i:0,score:0,phase:'ask'};$('gStars').innerHTML='';$('gScore').textContent=0;askRound();}
+function askRound(){const g=st.g,ev=g.list[g.i];st.noAtm=false;setCO2(420);setA(30);st.Ts=eqT();st.hist=[];g.phase='ask';$('gTag').textContent=`사건 ${g.i+1}/5`;
+ $('gTask').innerHTML=`${ev.n}<small>지금 지구는 복사 평형 상태입니다. 사건 직후 지구의 열수지와 이후 기온 변화를 예측하세요.</small>`;
+ $('pick').innerHTML=`<button type="button" data-v="up">흡수 > 방출 · 기온 상승</button><button type="button" data-v="down">흡수 < 방출 · 기온 하강</button><button type="button" data-v="same">변화 없음</button>`;
+ $('pick').querySelectorAll('button').forEach(b=>b.onclick=()=>answer(b.dataset.v));update();}
+function answer(v){const g=st.g;if(g.phase!=='ask')return;const ev=g.list[g.i];g.phase='show';if(ev.d.co2)setCO2(ev.d.co2);if(ev.d.alb)setA(ev.d.alb);const ok=v===ev.ans;if(ok){g.score+=20;burst(800,360,tok.gold,24);toast($('toast'),'정답! 온도 변화를 지켜보세요','good');}else toast($('toast'),'다시 생각해 보세요. 열수지 막대를 보세요','bad',2200);
+ $('gScore').textContent=g.score;const f=flows();$('gTask').innerHTML=`${ev.n}<small><b>${ok?'정답':'오답'}</b> · 사건 직후 열수지 ${f.N>0?'+':''}${f.N.toFixed(1)} → ${ev.ans==='up'?'흡수가 더 많아 기온이 오르다가':'방출이 더 많아 기온이 내려가다가'} 약 ${(eqT()-273.15).toFixed(1)}℃에서 새로운 복사 평형을 이룹니다.</small>`;
+ $('pick').innerHTML=`<button type="button" class="go" id="gNext">${g.i<4?'다음 사건 ▶':'결과 보기'}</button>`;$('gNext').onclick=()=>{if(g.i<4){g.i++;askRound();}else finish();};update();}
+function finish(){const g=st.g;const s=g.score>=100?3:g.score>=80?2:g.score>=40?1:0;$('gStars').innerHTML=stars(s);best('is2-heatbudget',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`5개 사건 중 ${g.score/20}개를 맞혔어요!<small>열수지가 +이면 지구는 더워지고, −이면 식습니다. 온도가 변하면 방출하는 에너지도 변해 결국 다시 평형에 이릅니다.</small>`;$('pick').innerHTML=`<button type="button" id="gAgain">↺ 다시 도전</button>`;$('gAgain').onclick=newGame;if(s===3)burst(800,260,tok.gold,60);}
+function setMode(m){st.mode=m;$('mFree').setAttribute('aria-pressed',m==='free');$('mGame').setAttribute('aria-pressed',m==='game');$('mission').hidden=m!=='game';$('pres').hidden=m==='game';$('co2').disabled=m==='game';$('alb').disabled=m==='game';if(m==='game')newGame();else{st.noAtm=false;setCO2(280);setA(30);st.Ts=eqT();st.hist=[];}update();}
+$('mFree').onclick=()=>setMode('free');$('mGame').onclick=()=>setMode('game');
+loop(dt=>{st.fr++;for(let i=0;i<4;i++)step(dt*0.6);if(st.fr%6===0){st.hist.push(st.Ts);if(st.hist.length>400)st.hist.shift();update();}draw();});
+st.Ts=eqT();setMode('free');
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

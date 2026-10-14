@@ -1,0 +1,322 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>생물다양성 조사단</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>.opts{display:flex;flex-wrap:wrap;gap:8px}.opts button.right{background:var(--good);border-color:var(--good);color:#fff}.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+.tbl{width:100%;border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums}.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:right}.tbl th:first-child,.tbl td:first-child{text-align:left}.tw{overflow-x:auto}</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅰ. 변화와 다양성 · 생물다양성과 보전 방안</span></nav>
+  <header><h1>생물다양성 조사단</h1><p>종다양성은 종의 수가 많고 각 종이 고르게 분포할수록 높습니다. 방형구를 놓아 두 지역의 생물을 조사해 어느 쪽의 종다양성이 높은지 판단하고, 생물다양성을 위협하는 요인과 보전 방안의 효과를 실험해 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" data-tab="q" aria-pressed="true">① 방형구 조사 (게임)</button><button type="button" data-tab="c" aria-pressed="false">② 위협과 보전</button></div>
+      <div id="cCtl" style="display:none">
+        <div class="grp"><span class="k">위협 요인</span><div class="toggles"><label><input type="checkbox" id="th1" checked>서식지 파괴·단편화</label><label><input type="checkbox" id="th2">외래종 유입</label><label><input type="checkbox" id="th3">남획</label><label><input type="checkbox" id="th4">환경 오염</label></div></div>
+        <div class="grp"><span class="k">보전 방안</span><div class="toggles"><label><input type="checkbox" id="cv1">보호 구역 지정</label><label><input type="checkbox" id="cv2">생태 통로 설치</label><label><input type="checkbox" id="cv3">외래종 관리</label><label><input type="checkbox" id="cv4">종자 은행·복원</label></div></div>
+        <div class="presets"><button type="button" id="pRun" class="go">▶ 30년 지켜보기</button></div>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission"><span class="tag" id="gTag">조사 1 / 4</span><div class="task" id="gTask">–</div><div class="opts" id="opts" role="group" aria-label="판단"></div><div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="520" role="img" aria-label="두 조사 지역과 생물"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note" id="note">지역을 누르면 그 자리에 방형구(정사각형 조사 틀)가 놓이고 안의 생물 수가 기록됩니다. 지역마다 방형구를 4개까지 놓을 수 있어요.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="조사 기록">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">조사 중</span></span><div class="big"><div class="k" id="bigK">다양도 지수 (A · B)</div><div class="v" id="vD">–</div></div></div>
+      <div class="tw"><table class="tbl" id="tbl"></table></div>
+      <p style="font-size:.8rem;color:var(--muted);margin:.5rem 0 0">다양도 지수 = 1 − Σ(각 종의 비율)². 종이 많고 고르게 있을수록 1에 가까워져요.</p>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>생물다양성의 세 가지 수준</h2>
+      <ol class="chain"><li>유전적 다양성: 같은 종 안에서 유전자의 다양함. 높을수록 환경 변화나 질병에 살아남을 가능성이 크다.</li><li>종다양성: 한 지역에 사는 종의 다양함. 종의 수(종 풍부도)와 각 종이 고르게 분포한 정도(균등도)를 함께 고려한다.</li><li>생태계다양성: 숲, 습지, 갯벌처럼 생태계의 다양함.</li></ol>
+      <div class="impact"><b>보전 방안</b>보호 구역 지정, 생태 통로 설치, 외래종 관리, 종자 은행 운영, 국제 협약(생물다양성협약) 참여, 일상에서의 실천(일회용품 줄이기, 외래 생물 함부로 버리지 않기 등).</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>두 지역의 종 수가 같은데 다양도 지수가 다른 까닭은 무엇일까요?</li><li>방형구를 한 개만 놓았을 때와 여러 개 놓았을 때 결과가 어떻게 다를까요?</li><li>서식지 단편화가 생물다양성을 줄이는 까닭과, 생태 통로가 도움이 되는 까닭을 설명해 보세요.</li><li>생물다양성 보전을 위해 우리 학급이 지킬 수 있는 생활 수칙을 세 가지 만들어 보세요.</li></ol></section>
+  <p class="foot">조사 지역의 생물 배치는 매번 무작위로 만들어집니다. 위협과 보전 모형은 종마다 해마다 사라질 확률이 요인에 따라 달라진다고 가정한 단순 모형입니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle,rand,randi}=Lab,tok=Lab.tok;
+const W=1000,H=520;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const SP=[['#e5484d','붉은꽃'],['#f2c12e','노란꽃'],['#3e8ef7','파란꽃'],['#8e4ec6','보라꽃'],['#f28c28','주황꽃'],['#ffffff','흰꽃'],['#30a46c','풀'],['#d6409f','분홍꽃']];
+const R=[{x:30,y:40,w:450,h:440},{x:520,y:40,w:450,h:440}];const QS=70;
+const st={tab:'q',g:null,t:0};
+function community(nsp,even,n=260){const w=Array.from({length:nsp},(_,i)=>even?1+rand(-.15,.15):Math.pow(0.45,i));const s=w.reduce((a,b)=>a+b,0);const out=[];const sp=shuffle([...Array(SP.length).keys()]).slice(0,nsp);
+ for(let i=0;i<n;i++){let r=Math.random()*s,k=0;while(r>w[k]){r-=w[k];k++;}out.push({s:sp[Math.min(k,nsp-1)],x:rand(0,1),y:rand(0,1)});}return out;}
+function simpson(counts){const n=counts.reduce((a,b)=>a+b,0);if(!n)return 0;return 1-counts.reduce((a,c)=>a+(c/n)**2,0);}
+function startQ(){st.g={i:0,score:0,ok:0};newRound();}
+function newRound(){const g=st.g;if(g.i>=4){const b=best('biodiv',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`판단 ${g.ok}/4 정답 · ${g.score}점<small>최고 기록 ${b}점</small>`;$('gStars').innerHTML=stars(g.ok>=4?3:g.ok>=3?2:g.ok>=1?1:0);$('opts').innerHTML='';const bt=document.createElement('button');bt.type='button';bt.className='go';bt.textContent='↺ 다시 조사';bt.onclick=startQ;$('opts').appendChild(bt);return;}
+ const type=[['even','uneven',5,5],['uneven','even',5,5],['even','even',6,3],['uneven','uneven',3,6]][g.i];const sw=Math.random()<.5;
+ let A={c:community(type[2],type[0]==='even')},B={c:community(type[3],type[1]==='even')};if(sw)[A,B]=[B,A];
+ g.reg=[A,B];g.qs=[[],[]];g.done=false;$('gTag').textContent=`조사 ${g.i+1} / 4`;$('gTask').innerHTML='두 지역에 방형구를 놓아 조사한 뒤, 종다양성이 더 높은 지역을 고르세요.<small>방형구는 지역마다 4개까지. 적게 놓고 맞히면 보너스!</small>';
+ $('opts').innerHTML='';[['A','A 지역이 더 높다'],['B','B 지역이 더 높다']].forEach(([k,t])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>judge(k,b);$('opts').appendChild(b);});renderTbl();}
+function trueD(reg){const c=Array(SP.length).fill(0);reg.c.forEach(o=>c[o.s]++);return simpson(c);}
+function qCounts(ri){const c=Array(SP.length).fill(0);const g=st.g;g.qs[ri].forEach(q=>{g.reg[ri].c.forEach(o=>{const x=R[ri].x+o.x*R[ri].w,y=R[ri].y+o.y*R[ri].h;if(x>=q.x&&x<q.x+QS&&y>=q.y&&y<q.y+QS)c[o.s]++;});});return c;}
+function judge(k,b){const g=st.g;if(g.done)return;if(!g.qs[0].length||!g.qs[1].length){toast($('toast'),'두 지역 모두 방형구를 놓아 조사해 주세요','bad');return;}g.done=true;
+ const dA=trueD(g.reg[0]),dB=trueD(g.reg[1]);const ans=dA>dB?'A':'B';const ok=k===ans;const used=g.qs[0].length+g.qs[1].length;const pts=ok?100+(8-used)*10:0;g.score+=pts;if(ok)g.ok++;$('gScore').textContent=g.score;
+ [...$('opts').children].forEach(x=>{x.disabled=true;if(x.textContent.startsWith(ans))x.classList.add('right');});if(!ok)b.classList.add('wrong');
+ $('gTask').innerHTML=`${ok?'정답!':'아쉬워요.'} 실제 다양도 지수 A ${dA.toFixed(2)} · B ${dB.toFixed(2)} (+${pts}점)<small>${Math.abs(dA-dB)<0.08?'두 지역이 비슷했어요.':''} 종 수뿐 아니라 고르게 분포한 정도도 비교했나요?</small>`;
+ toast($('toast'),ok?'정확한 판단!':'다시 비교해 봐요',ok?'good':'bad');if(ok)burst(500,260,tok.gold,30);g.reveal=true;setTimeout(()=>{g.i++;g.reveal=false;newRound();},2600);renderTbl();}
+function renderTbl(){const g=st.g;if(!g||!g.reg){return;}const cA=qCounts(0),cB=qCounts(1);let h='<tr><th>종</th><th>A 지역</th><th>B 지역</th></tr>';SP.forEach(([c,n],i)=>{if(cA[i]||cB[i])h+=`<tr><td><span style="color:${c==='#ffffff'?'var(--muted)':c}">●</span> ${n}</td><td>${cA[i]}</td><td>${cB[i]}</td></tr>`;});
+ h+=`<tr><th>종 수</th><th>${cA.filter(Boolean).length}</th><th>${cB.filter(Boolean).length}</th></tr>`;$('tbl').innerHTML=h;$('vD').textContent=`${simpson(cA).toFixed(2)} · ${simpson(cB).toFixed(2)}`;
+ $('fsInfo').textContent=`방형구 A ${g.qs[0].length}개 · B ${g.qs[1].length}개 · 다양도 A ${simpson(cA).toFixed(2)} B ${simpson(cB).toFixed(2)}`;}
+function flower(x,y,c,s=1){ctx.fillStyle=c;for(let k=0;k<5;k++){const a=k*1.2566;ctx.beginPath();ctx.arc(x+Math.cos(a)*3.5*s,y+Math.sin(a)*3.5*s,2.8*s,0,7);ctx.fill();}ctx.fillStyle='#f2c12e';ctx.beginPath();ctx.arc(x,y,1.8*s,0,7);ctx.fill();}
+function drawQ(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const g=st.g;if(!g||!g.reg)return;
+ R.forEach((r,ri)=>{ctx.fillStyle=Lab.isDark()?'#2f4a2a':'#9fcf7f';rr(ctx,r.x,r.y,r.w,r.h,12);ctx.fill();label(ri?'B 지역':'A 지역',r.x+r.w/2,r.y-14,{size:15,weight:700});
+  g.reg[ri].c.forEach(o=>{const x=r.x+o.x*r.w,y=r.y+o.y*r.h;if(SP[o.s][1]==='풀'){ctx.strokeStyle='#2b7a45';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+5);ctx.lineTo(x-3,y-5);ctx.moveTo(x,y+5);ctx.lineTo(x+3,y-5);ctx.stroke();}else flower(x,y,SP[o.s][0]);});
+  g.qs[ri].forEach((q,i)=>{ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.strokeRect(q.x,q.y,QS,QS);ctx.strokeStyle='#111';ctx.lineWidth=1;ctx.strokeRect(q.x,q.y,QS,QS);label(String(i+1),q.x+10,q.y+10,{size:11});});
+  if(g.reveal){ctx.fillStyle='rgba(0,0,0,.45)';rr(ctx,r.x,r.y+r.h-40,r.w,40,0);ctx.fill();label(`실제 다양도 ${trueD(g.reg[ri]).toFixed(2)}`,r.x+r.w/2,r.y+r.h-20,{size:15,color:'#fff',hw:0});}});drawFx(ctx);}
+/* 보전 */
+const sim={sp:[],year:0,run:false,hist:[]};
+function resetC(){sim.sp=Array.from({length:24},(_,i)=>({alive:true,vul:rand(0.5,1.5)}));sim.year=0;sim.hist=[24];}
+function stepC(){const th=[1,2,3,4].map(i=>$('th'+i).checked),cv=[1,2,3,4].map(i=>$('cv'+i).checked);
+ let risk=0.004+(th[0]?0.02:0)+(th[1]?0.012:0)+(th[2]?0.01:0)+(th[3]?0.01:0);if(cv[0])risk-=th[0]?0.011:0.002;if(cv[1])risk-=th[0]?0.006:0;if(cv[2])risk-=th[1]?0.01:0;risk=Math.max(0.002,risk);
+ sim.sp.forEach(s=>{if(s.alive&&Math.random()<risk*s.vul)s.alive=false;else if(!s.alive&&cv[3]&&Math.random()<0.03)s.alive=true;});sim.year++;sim.hist.push(sim.sp.filter(s=>s.alive).length);
+ if(sim.year>=30){sim.run=false;const n=sim.hist[sim.hist.length-1];toast($('toast'),n>=20?`30년 뒤 ${n}종 유지! 보전 성공`:`30년 뒤 ${n}종만 남았어요`,n>=20?'good':'bad',2600);if(n>=20)burst(500,200,tok.gold,40);best('biodiv-c',n);}upC();}
+function drawC(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const th1=$('th1').checked,cv2=$('cv2').checked;
+ ctx.fillStyle=Lab.isDark()?'#2f4a2a':'#9fcf7f';rr(ctx,30,30,460,460,12);ctx.fill();
+ if(th1){ctx.fillStyle='#7d7d7d';ctx.fillRect(250,30,40,460);ctx.fillStyle='#c9b28e';ctx.fillRect(30,240,460,30);label('도로·개발로 서식지가 나뉨',260,500-20,{size:12,color:'#fff',hw:0});if(cv2){ctx.fillStyle='#4f9a6b';ctx.fillRect(240,120,60,40);label('생태 통로',270,140,{size:11,color:'#fff',hw:0});}}
+ if($('cv1').checked){ctx.strokeStyle=tok.gold;ctx.setLineDash([6,4]);ctx.lineWidth=3;rr(ctx,50,50,180,170,10);ctx.stroke();ctx.setLineDash([]);label('보호 구역',140,66,{size:12,color:tok.gold});}
+ sim.sp.forEach((s,i)=>{const x=60+(i%6)*70+(i%6>2?40:0),y=90+Math.floor(i/6)*110;ctx.globalAlpha=s.alive?1:0.15;flower(x,y,SP[i%8][0],2.2);ctx.globalAlpha=1;if(!s.alive){ctx.strokeStyle=tok.bad;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-10,y-10);ctx.lineTo(x+10,y+10);ctx.stroke();}});
+ if($('th2').checked){for(let i=0;i<12;i++){ctx.fillStyle='#5b2a86';ctx.beginPath();ctx.arc(60+(i*67)%420,60+(i*131)%420,4,0,7);ctx.fill();}}
+ const gx=540,gy=50,gw=420,gh=380;ctx.fillStyle=tok.surface;rr(ctx,gx-30,gy-30,gw+50,gh+70,10);ctx.fill();label('남은 종의 수',gx+gw/2,gy-12,{size:13});
+ const Y=v=>gy+gh-v/24*gh;ctx.strokeStyle=tok.line;[0,6,12,18,24].forEach(v=>{ctx.beginPath();ctx.moveTo(gx,Y(v));ctx.lineTo(gx+gw,Y(v));ctx.stroke();label(String(v),gx-6,Y(v),{size:10,align:'right',color:tok.muted,hw:0});});
+ ctx.strokeStyle=tok.good;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(gx,Y(20));ctx.lineTo(gx+gw,Y(20));ctx.stroke();ctx.setLineDash([]);label('목표 20종',gx+gw-4,Y(20)-8,{size:10,align:'right',color:tok.good,hw:2});
+ ctx.strokeStyle=tok.accent;ctx.lineWidth=2.5;ctx.beginPath();sim.hist.forEach((v,i)=>{const x=gx+i/30*gw;i?ctx.lineTo(x,Y(v)):ctx.moveTo(x,Y(v));});ctx.stroke();label(`${sim.year}년`,gx+gw,gy+gh+16,{size:11,align:'right',color:tok.muted,hw:0});drawFx(ctx);}
+function upC(){const n=sim.sp.filter(s=>s.alive).length;$('bigK').textContent='남은 종';$('vD').textContent=`${n} / 24`;$('stName').textContent=`${sim.year}년째`;$('chip').dataset.s=n>=20?'':'bad';$('tbl').innerHTML=`<tr><th>항목</th><th>값</th></tr><tr><td>사라진 종</td><td>${24-n}</td></tr><tr><td>켜진 위협 요인</td><td>${[1,2,3,4].filter(i=>$('th'+i).checked).length}개</td></tr><tr><td>실행한 보전 방안</td><td>${[1,2,3,4].filter(i=>$('cv'+i).checked).length}개</td></tr>`;$('fsInfo').textContent=`${sim.year}년 · 남은 종 ${n}/24`;}
+function draw(){S.begin();st.tab==='q'?drawQ():drawC();}
+$('sim').addEventListener('pointerdown',e=>{if(st.tab!=='q')return;const g=st.g;if(!g||g.done)return;const p=S.pt(e);R.forEach((r,ri)=>{if(p.x>r.x&&p.x<r.x+r.w&&p.y>r.y&&p.y<r.y+r.h){if(g.qs[ri].length>=4){toast($('toast'),'이 지역은 방형구 4개를 다 썼어요','bad');return;}g.qs[ri].push({x:clamp(p.x-QS/2,r.x,r.x+r.w-QS),y:clamp(p.y-QS/2,r.y,r.y+r.h-QS)});renderTbl();}});});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('mission').hidden=st.tab!=='q';$('cCtl').style.display=st.tab==='c'?'contents':'none';
+ $('note').textContent=st.tab==='q'?'지역을 누르면 그 자리에 방형구(정사각형 조사 틀)가 놓이고 안의 생물 수가 기록됩니다. 지역마다 방형구를 4개까지 놓을 수 있어요.':'위협 요인과 보전 방안을 골라 30년을 지켜보세요. 24종 중 20종 이상을 지키면 성공!';if(st.tab==='c'){resetC();upC();}else{$('bigK').textContent='다양도 지수 (A · B)';renderTbl();}});
+$('pRun').onclick=()=>{resetC();sim.run=true;};
+let fr=0;loop(()=>{fr++;if(sim.run&&fr%8===0)stepC();draw();});startQ();
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

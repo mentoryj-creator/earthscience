@@ -1,0 +1,324 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>발열 도시락 설계</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>.subs{flex:1 1 100%}.chk{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem}</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅰ. 변화와 다양성 · 화학 변화에서 에너지의 출입</span></nav>
+  <header><h1>발열 도시락 설계</h1><p>화학 반응이나 물질이 녹는 과정에서는 열이 방출되거나 흡수됩니다. 물질과 양을 골라 온도 변화를 측정하고, 주문서에 맞는 발열 도시락·냉찜질 팩·손난로를 설계해 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="주문서" id="segM"></div>
+      <div class="slider"><div class="slider-top"><label for="amt">물질의 양</label><output id="aOut">30 g</output></div><input id="amt" type="range" min="5" max="60" step="5" value="30"></div>
+      <label class="chk" id="catWrap"><input type="checkbox" id="cat" checked> 소금물·활성탄 함께 넣기</label>
+      <div class="presets"><button type="button" id="pGo" class="go">▶ 테스트</button><button type="button" id="pReset">↺ 다시</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+      <div class="seg subs" role="group" aria-label="넣을 물질" id="segS"></div>
+    </div>
+    <div class="mission" id="mission" hidden><span class="tag" id="gTag">주문서</span><div class="task" id="gTask"></div><div class="score"><span><span class="lbl">결과</span><span id="gScore">–</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="500" role="img" aria-label="팩 속 반응과 온도 그래프"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note">그래프의 초록 띠가 주문서의 목표 온도 범위입니다. 시간은 빠르게 흘러가요.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">–</span></span><div class="big"><div class="k">현재 온도</div><div class="v" id="vT">20℃</div></div></div>
+      <div class="metrics"><div class="m"><span class="k">반응</span><span class="v txt" id="v1">–</span></div><div class="m"><span class="k">최고 / 최저 온도</span><span class="v" id="v2">–</span></div><div class="m"><span class="k">목표 범위에 머문 시간</span><span class="v" id="v3">–</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>에너지의 출입</h2>
+      <ol class="chain"><li>발열 반응: 반응이 일어날 때 에너지를 방출해 주위의 온도가 높아진다. (예: 산화 칼슘과 물의 반응, 철의 산화, 연소, 중화 반응)</li><li>흡열 반응: 반응이 일어날 때 에너지를 흡수해 주위의 온도가 낮아진다. (예: 질산 암모늄이 물에 녹을 때, 광합성, 열분해)</li><li>넣는 물질의 양이 많을수록 출입하는 열의 양도 많아진다.</li><li>반응이 빠르면 온도가 빨리 변하고, 느리면 오래 유지된다. 소금물과 활성탄은 철이 산화되는 반응을 빠르게 한다.</li></ol>
+      <div class="impact"><b>설계에서 생각할 점</b>너무 뜨겁거나 차가우면 화상·동상 위험이 있고, 재료를 많이 쓸수록 비용이 늘어난다. 안전하면서도 적은 재료로 목표를 이루는 것이 좋은 설계다.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>발열 도시락에 산화 칼슘을, 손난로에 철가루를 주로 쓰는 까닭을 그래프 모양과 관련지어 설명해 보세요.</li><li>질산 암모늄을 넣었을 때 온도가 낮아지는 까닭을 에너지의 출입으로 설명해 보세요.</li><li>철가루만 넣었을 때와 소금물·활성탄을 함께 넣었을 때 그래프는 어떻게 다른가요?</li><li>같은 물질을 두 배로 넣으면 온도 변화는 어떻게 되나요? 그 까닭은 무엇인가요?</li><li>내가 설계한 제품의 장점과 개선할 점을 안전성, 비용, 환경 측면에서 평가해 보세요.</li></ol></section>
+  <p class="foot">반응열과 반응 속도는 교과서 실험의 경향을 보여 주도록 단순화한 값입니다. 실제 제품의 재료 양과 온도는 포장 재질과 물의 양에 따라 달라집니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best}=Lab,tok=Lab.tok;
+const W=1000,H=500;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const SUB={cao:{n:'산화 칼슘',q:1.6,k:1.0,eq:'CaO + H₂O → Ca(OH)₂',c:'#f1efe6'},cacl2:{n:'염화 칼슘',q:0.8,k:3,eq:'염화 칼슘이 물에 녹음',c:'#ffffff'},fe:{n:'철가루',q:4,k:0.03,eq:'4Fe + 3O₂ → 2Fe₂O₃',c:'#6b6f74'},
+ nh4:{n:'질산 암모늄',q:-0.55,k:2.5,eq:'질산 암모늄이 물에 녹음',c:'#fafafa'},urea:{n:'요소',q:-0.35,k:2,eq:'요소가 물에 녹음',c:'#f5f5ff'}};
+const MIS={free:{n:'자유 실험',h:0.05,dur:30},box:{n:'🍱 발열 도시락',h:0.02,dur:20,lo:60,hi:95,need:8,txt:'20분 안에 도시락을 <b>60℃ 이상으로 8분 이상</b> 데워 주세요. 95℃를 넘으면 물이 끓어 넘쳐 실패!'},
+ ice:{n:'🧊 냉찜질 팩',h:0.05,dur:15,lo:0,hi:10,need:5,txt:'운동 후 쓸 냉찜질 팩: <b>10℃ 이하를 5분 이상</b> 유지해 주세요. 0℃ 아래로 내려가면 동상 위험으로 실패!'},
+ warm:{n:'🧤 손난로',h:0.1,dur:60,lo:40,hi:60,need:30,txt:'겨울 등굣길 손난로: <b>40~60℃를 30분 이상</b> 유지해 주세요. 60℃를 넘으면 화상 위험으로 실패!'}};
+const st={m:'free',s:'cao',amt:30,cat:true,run:false,t:0,T:20,hist:[],done:false,fr:0};
+function kOf(){const s=SUB[st.s];return st.s==='fe'&&!st.cat?0.004:s.k;}
+function simulate(sub,amt,cat,mis){const s=SUB[sub],k=sub==='fe'&&!cat?0.004:s.k,M=MIS[mis];let T=20,t=0,dt=0.02,inb=0,mx=20,mn=20;while(t<M.dur){T+=(s.q*amt*k*Math.exp(-k*t)-M.h*(T-20))*dt;t+=dt;mx=Math.max(mx,T);mn=Math.min(mn,T);if(M.lo!==undefined&&T>=M.lo&&T<=M.hi)inb+=dt;}return {mx,mn,inb};}
+function judge(r,M){if(M===MIS.ice)return r.inb>=M.need&&r.mn>=0;return r.inb>=M.need&&r.mx<=M.hi;}
+function segs(){$('segM').innerHTML=Object.entries(MIS).map(([k,v])=>`<button type="button" data-m="${k}" aria-pressed="${st.m===k}">${v.n}</button>`).join('');
+ $('segS').innerHTML=Object.entries(SUB).map(([k,v])=>`<button type="button" data-s="${k}" aria-pressed="${st.s===k}">${v.q>0?'🔥':'❄️'} ${v.n}</button>`).join('');
+ $('segM').querySelectorAll('button').forEach(b=>b.onclick=()=>{st.m=b.dataset.m;reset();segs();});$('segS').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(st.run)return;st.s=b.dataset.s;reset();segs();});
+ $('catWrap').hidden=st.s!=='fe';}
+function reset(){st.run=false;st.t=0;st.T=20;st.hist=[{t:0,T:20}];st.done=false;const M=MIS[st.m];$('mission').hidden=st.m==='free';if(M.txt){$('gTask').innerHTML=M.txt+'<small>물질과 양을 고른 뒤 ‘테스트’를 누르세요. 적은 재료로 성공하면 별 3개!</small>';$('gScore').textContent='–';$('gStars').innerHTML='';$('gTag').textContent='주문서';}$('pGo').textContent='▶ 테스트';update();}
+function finish(){st.run=false;st.done=true;const M=MIS[st.m];if(st.m==='free'){update();return;}
+ const r=simulate(st.s,st.amt,st.cat,st.m);const ok=judge(r,M);let minA=null;for(let a=5;a<=60;a+=5){const rr2=simulate(st.s,a,st.cat,st.m);if(judge(rr2,M)){minA=a;break;}}
+ let s=0,why='';if(ok){s=st.amt<=minA+5?3:2;why=s===3?'적은 재료로 딱 맞게 설계했어요!':`성공! 하지만 ${minA} g만 써도 충분했어요.`;}
+ else{if(M===MIS.ice){why=r.mn<0?'너무 차가워져 동상 위험!':SUB[st.s].q>0?'발열 반응으로는 차가워질 수 없어요':'목표 온도에 머문 시간이 부족해요';}else{why=r.mx>M.hi?(M===MIS.box?'끓어 넘쳤어요!':'너무 뜨거워 화상 위험!'):SUB[st.s].q<0?'흡열 반응으로는 데울 수 없어요':'목표 온도에 머문 시간이 부족해요';}if(minA===null)why+=' (이 물질로는 어려워요. 다른 물질을 골라 보세요)';}
+ $('gScore').textContent=ok?'성공':'실패';$('gStars').innerHTML=stars(s);$('gTag').textContent=ok?'납품 성공':'다시 설계';$('gTask').innerHTML=`${MIS[st.m].txt}<small><b>${why}</b> · 목표 범위 ${r.inb.toFixed(1)}분 / 최고 ${r.mx.toFixed(1)}℃ / 최저 ${r.mn.toFixed(1)}℃</small>`;
+ if(ok){best('is2-heatpack-'+st.m,s);burst(160,240,s===3?tok.gold:tok.good,40);}else toast($('toast'),why,'bad',2400);$('pGo').textContent='▶ 테스트';update();}
+function tempCol(T){if(T>=20){const f=clamp((T-20)/60,0,1);return `rgb(${Math.round(lerp(190,230,f))},${Math.round(lerp(215,90,f))},${Math.round(lerp(235,60,f))})`;}const f=clamp((20-T)/20,0,1);return `rgb(${Math.round(lerp(190,110,f))},${Math.round(lerp(215,170,f))},${Math.round(lerp(235,250,f))})`;}
+function draw(){S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const M=MIS[st.m],sub=SUB[st.s];
+ // 팩
+ const px=60,py=90,pw=210,ph=300;ctx.fillStyle=tempCol(st.T);rr(ctx,px,py,pw,ph,28);ctx.fill();ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.stroke();
+ const prog=st.t>0?1-Math.exp(-kOf()*st.t):0;const nP=Math.round(st.amt*0.9);
+ for(let i=0;i<nP;i++){const reacted=i/nP<prog;const x=px+25+((i*47)%(pw-50)),y=py+ph-30-((i*29)%120)-(reacted?Math.sin(st.fr*0.05+i)*4:0);ctx.fillStyle=reacted?(sub.q>0?'rgba(255,200,120,.9)':'rgba(170,220,255,.9)'):sub.c;ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();ctx.stroke();}
+ label(M.n.replace(/^\S+ /,'')==='자유 실험'?'반응 용기':M.n,px+pw/2,py-22,{size:15,weight:700});label(`${sub.n} ${st.amt} g`,px+pw/2,py+40,{size:13,weight:700});
+ // 열 화살표
+ if(st.run||st.done){const out=sub.q>0;const a=Math.abs(st.T-20)>0.5?1:0.3;ctx.strokeStyle=out?tok.warm:tok.cool;ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=3;ctx.globalAlpha=a;
+  [py+ph*0.3,py+ph*0.5,py+ph*0.7].forEach(y=>{const o=(st.fr*0.5)%16;const x0=px-6;const x1=out?x0-o:x0-30+o,x2=out?x1-14:x1+14;Lab.arrow(ctx,x1,y,x2,y,8);});ctx.globalAlpha=1;
+  label(out?'열 방출':'열 흡수',px+pw/2,py+ph+22,{size:13,weight:700,color:out?tok.warm:tok.cool});}
+ // 온도계
+ const tx=300,ty=80,th=320;ctx.fillStyle=tok.strip;rr(ctx,tx-8,ty,16,th,8);ctx.fill();const f=clamp((st.T+10)/110,0,1);ctx.fillStyle=st.T>=20?tok.warm:tok.cool;rr(ctx,tx-5,ty+th-f*th,10,f*th,5);ctx.fill();ctx.beginPath();ctx.arc(tx,ty+th+10,13,0,7);ctx.fill();
+ label(`${st.T.toFixed(1)}℃`,tx,ty-16,{size:14,weight:700,mono:true});
+ // 그래프
+ const gx=380,gy=50,gw=380,gh=360;const tmin=-10,tmax=100;const Y=T=>gy+gh-(T-tmin)/(tmax-tmin)*gh,X=t=>gx+t/M.dur*gw;
+ ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(gx,gy,gw,gh);
+ if(M.lo!==undefined){ctx.fillStyle='rgba(60,170,90,.18)';ctx.fillRect(gx,Y(M.hi),gw,Y(M.lo)-Y(M.hi));ctx.strokeStyle=tok.bad;ctx.setLineDash([5,4]);const lim=st.m==='ice'?M.lo:M.hi;ctx.beginPath();ctx.moveTo(gx,Y(lim));ctx.lineTo(gx+gw,Y(lim));ctx.stroke();ctx.setLineDash([]);label(st.m==='ice'?'동상 위험':st.m==='box'?'끓어 넘침':'화상 위험',gx+gw-6,Y(lim)+(st.m==='ice'?12:-10),{size:10,color:tok.bad,align:'right'});}
+ [0,20,40,60,80,100].forEach(T=>{label(`${T}`,gx-8,Y(T),{size:10,align:'right',color:tok.muted,hw:0});});ctx.strokeStyle=tok.muted;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(gx,Y(20));ctx.lineTo(gx+gw,Y(20));ctx.stroke();ctx.setLineDash([]);
+ for(let i=0;i<=4;i++){label(`${+(M.dur*i/4).toFixed(1)}분`,gx+gw*i/4,gy+gh+14,{size:10,color:tok.muted,hw:0});}
+ label('온도(℃)',gx,gy-14,{size:11,color:tok.muted,align:'left'});
+ if(st.hist.length>1){ctx.strokeStyle=sub.q>0?tok.warm:tok.cool;ctx.lineWidth=3;ctx.beginPath();st.hist.forEach((h,i)=>{i?ctx.lineTo(X(h.t),Y(h.T)):ctx.moveTo(X(h.t),Y(h.T));});ctx.stroke();}
+ // 에너지 도표
+ const ex=800,ew=170,ey=80,eh=240;label('에너지 도표',ex+ew/2,ey-24,{size:13,weight:700});ctx.strokeStyle=tok.muted;ctx.lineWidth=1.5;ctx.fillStyle=tok.muted;Lab.arrow(ctx,ex,ey+eh,ex,ey,7);label('에너지',ex+4,ey-8,{size:10,color:tok.muted,align:'left'});
+ const hi=ey+50,lo=ey+eh-50,r1=sub.q>0?hi:lo,r2=sub.q>0?lo:hi;ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ex+15,r1);ctx.lineTo(ex+75,r1);ctx.moveTo(ex+100,r2);ctx.lineTo(ex+160,r2);ctx.stroke();
+ label('반응물',ex+45,r1-14,{size:11});label('생성물',ex+130,r2-14,{size:11});ctx.strokeStyle=sub.q>0?tok.warm:tok.cool;ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=2.5;Lab.arrow(ctx,ex+88,r1,ex+88,r2,8);
+ label(sub.q>0?'에너지 방출':'에너지 흡수',ex+ew/2,ey+eh+22,{size:13,weight:700,color:sub.q>0?tok.warm:tok.cool});label(sub.q>0?'발열 반응 · 주위 온도↑':'흡열 반응 · 주위 온도↓',ex+ew/2,ey+eh+44,{size:11,color:tok.muted});
+ label(`${st.t.toFixed(1)}분`,gx+gw,gy-14,{size:12,align:'right',mono:true});drawFx(ctx);}
+function update(){const sub=SUB[st.s],M=MIS[st.m];$('aOut').textContent=`${st.amt} g`;$('vT').textContent=`${st.T.toFixed(1)}℃`;$('v1').textContent=`${sub.eq} (${sub.q>0?'발열':'흡열'})`;
+ const Ts=st.hist.map(h=>h.T);$('v2').textContent=`${Math.max(...Ts).toFixed(1)} / ${Math.min(...Ts).toFixed(1)}℃`;
+ let inb=0;if(M.lo!==undefined)for(let i=1;i<st.hist.length;i++){const h=st.hist[i];if(h.T>=M.lo&&h.T<=M.hi)inb+=h.t-st.hist[i-1].t;}$('v3').textContent=M.lo!==undefined?`${inb.toFixed(1)}분 / ${M.need}분`:'–';
+ $('stName').textContent=st.run?'반응 중':st.done?'테스트 끝':'준비';$('chip').dataset.s=st.T>21?'warm':st.T<19?'cool':'';$('fsInfo').textContent=`${M.n} · ${sub.n} ${st.amt} g · ${st.t.toFixed(1)}분 · ${st.T.toFixed(1)}℃`;}
+$('amt').addEventListener('input',e=>{if(st.run){e.target.value=st.amt;return;}st.amt=+e.target.value;reset();});
+$('cat').addEventListener('change',e=>{st.cat=e.target.checked;reset();});
+$('pGo').onclick=()=>{if(st.run)return;reset();st.run=true;$('pGo').textContent='⏳ 측정 중';};$('pReset').onclick=reset;
+loop(dt=>{st.fr++;if(st.run){const M=MIS[st.m],sub=SUB[st.s],k=kOf();const simDt=M.dur/7*dt;const n=20;for(let i=0;i<n;i++){const d=simDt/n;st.T+=(sub.q*st.amt*k*Math.exp(-k*st.t)-M.h*(st.T-20))*d;st.t+=d;}st.hist.push({t:st.t,T:st.T});if(st.t>=M.dur)finish();if(st.fr%4===0)update();}draw();});
+segs();reset();
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

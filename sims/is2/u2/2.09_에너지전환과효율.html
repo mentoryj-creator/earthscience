@@ -1,0 +1,308 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>에너지 전환과 효율</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>.shop{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}.shop button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:8px 10px}.shop button small{color:var(--muted);font-weight:500}.shop button[aria-pressed=true]{color:var(--fg);border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--surface))}</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅱ. 환경과 에너지 · 에너지 전환과 효율</span></nav>
+  <header><h1>에너지 전환과 효율</h1><p>에너지는 전환될 때 전체 양은 보존되지만, 일부는 쓸모없는 열 등으로 흩어집니다. 여러 기기의 에너지 흐름을 비교하고, 한정된 예산으로 우리 집의 에너지 효율을 높여 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" id="mA" aria-pressed="true">⚡ 에너지 흐름 비교</button><button type="button" id="mB" aria-pressed="false">🏠 절약 하우스 리모델링</button></div>
+      <div class="seg" role="group" aria-label="기기" id="devs"></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+      <div class="shop" id="shop" hidden></div>
+    </div>
+    <div class="mission" id="mission" hidden><span class="tag" id="gTag">미션</span><div class="task" id="gTask">예산 30만 원으로 바꿀 것을 골라 한 달 전기 사용량을 최대한 줄이세요.<small>바꾸는 비용과 줄어드는 에너지를 비교해 보세요. 35 % 이상 줄이면 별 3개!</small></div><div class="score"><span><span class="lbl">남은 예산</span><span id="gBud">30만</span></span><span><span class="lbl">절약</span><span id="gSave">0 %</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="460" role="img" aria-label="에너지 흐름 도표"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note" id="note">띠의 굵기는 에너지의 양을 나타냅니다. 들어간 에너지 = 유용한 에너지 + 버려지는 에너지 (에너지 보존).</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">–</span></span><div class="big"><div class="k" id="bigK">에너지 효율</div><div class="v" id="vBig">–</div></div></div>
+      <div class="metrics"><div class="m"><span class="k" id="k1">공급한 에너지</span><span class="v txt" id="v1">–</span></div><div class="m"><span class="k" id="k2">유용하게 쓰인 에너지</span><span class="v txt" id="v2">–</span></div><div class="m"><span class="k" id="k3">버려지는 에너지</span><span class="v txt" id="v3">–</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>에너지 효율</h2>
+      <ol class="chain"><li>에너지는 한 형태에서 다른 형태로 전환되며, 전환 전후 에너지의 총량은 일정하다(에너지 보존 법칙).</li><li>그러나 전환 과정에서 일부는 열, 소리 등 다시 쓰기 어려운 형태로 흩어진다.</li><li>에너지 효율(%) = 유용하게 쓰인 에너지 ÷ 공급한 에너지 × 100. 효율은 100 %가 될 수 없다.</li><li>열기관은 연료의 에너지 중 일부만 일로 바꾸고 나머지는 열로 방출한다.</li><li>효율이 높은 기기를 쓰면 같은 일을 하면서 에너지와 비용, 이산화 탄소 배출을 줄일 수 있다.</li></ol>
+      <div class="impact"><b>에너지 소비 효율 등급</b>1등급에 가까울수록 같은 기능을 하면서 전기를 적게 쓴다. 대기 전력(꺼져 있어도 쓰는 전기)을 줄이는 것도 효율을 높이는 방법이다.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>백열전구와 LED 전구에 같은 전기 에너지를 공급했을 때 빛에너지와 열에너지의 비율을 비교해 보세요.</li><li>휘발유 자동차와 전기 자동차의 효율이 크게 다른 까닭은 무엇일까요?</li><li>에너지가 보존되는데도 ‘에너지를 절약해야 한다’고 말하는 까닭을 설명해 보세요.</li><li>리모델링 게임에서 가장 ‘가성비’가 좋았던 선택은 무엇이었나요? 비용과 절약량으로 근거를 들어 보세요.</li><li>학교에서 에너지 효율을 높일 수 있는 방법을 세 가지 제안해 보세요.</li></ol></section>
+  <p class="foot">기기의 효율과 전력 사용량은 대표적인 값을 단순화한 것으로, 제품과 사용 조건에 따라 달라집니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best}=Lab,tok=Lab.tok;
+const W=1000,H=460;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const DEV={bulb:{n:'💡 백열전구',in:'전기',out:[['빛',5,'#f5c542'],['열',95,'#e5484d']]},cfl:{n:'형광등',in:'전기',out:[['빛',20,'#f5c542'],['열',80,'#e5484d']]},led:{n:'LED',in:'전기',out:[['빛',40,'#f5c542'],['열',60,'#e5484d']]},
+ gas:{n:'🚗 휘발유차',in:'화학(휘발유)',out:[['운동',25,'#3a8fd8'],['열(배기·냉각)',68,'#e5484d'],['소리·마찰',7,'#9aa5b1']]},ev:{n:'🔋 전기차',in:'전기',out:[['운동',80,'#3a8fd8'],['열',17,'#e5484d'],['소리·마찰',3,'#9aa5b1']]},
+ plant:{n:'🏭 화력 발전소',in:'화학(석탄)',out:[['전기',40,'#5cc2a8'],['열(냉각수·배기)',60,'#e5484d']]},body:{n:'🏃 사람 근육',in:'화학(음식)',out:[['운동',25,'#3a8fd8'],['열(체온)',75,'#e5484d']]},motor:{n:'⚙ 전동기',in:'전기',out:[['운동',90,'#3a8fd8'],['열',10,'#e5484d']]}};
+const st={mode:'A',dev:'bulb',t:0,anim:0,buy:new Set()};
+// 게임
+const BASE=[{k:'light',n:'조명 10개',kwh:130,ic:'💡'},{k:'fridge',n:'냉장고',kwh:60,ic:'🧊'},{k:'ac',n:'에어컨·난방',kwh:180,ic:'❄'},{k:'tv',n:'TV·컴퓨터',kwh:50,ic:'📺'},{k:'stand',n:'대기 전력',kwh:30,ic:'🔌'},{k:'water',n:'온수',kwh:80,ic:'🚿'}];
+const SHOP=[{k:'led',n:'💡 LED 전구로 교체',cost:5,tgt:'light',save:0.8,d:'백열·형광 → LED'},{k:'fr1',n:'🧊 1등급 냉장고',cost:15,tgt:'fridge',save:0.4,d:'5등급 → 1등급'},{k:'inv',n:'❄ 인버터 에어컨',cost:15,tgt:'ac',save:0.3,d:'정속형 → 인버터'},{k:'win',n:'🪟 단열 창호·문풍지',cost:12,tgt:'ac',save:0.3,d:'새는 열 막기'},
+ {k:'tap',n:'🔌 대기 전력 차단 멀티탭',cost:2,tgt:'stand',save:0.8,d:'안 쓸 때 전원 차단'},{k:'tv1',n:'📺 고효율 모니터·TV',cost:10,tgt:'tv',save:0.4,d:'에너지 등급 개선'},{k:'hp',n:'🚿 히트 펌프 온수기',cost:18,tgt:'water',save:0.6,d:'전기 온수기 → 히트 펌프'},{k:'sens',n:'👀 동작 감지 스위치',cost:3,tgt:'light',save:0.2,d:'사람 없을 때 자동 소등'}];
+const BUD=30;
+function usage(){const u={};BASE.forEach(b=>u[b.k]=b.kwh);SHOP.forEach(s=>{if(st.buy.has(s.k))u[s.tgt]*=1-s.save;});return u;}
+const total=u=>Object.values(u).reduce((a,b)=>a+b,0);const T0=BASE.reduce((a,b)=>a+b.kwh,0);
+function spent(){return SHOP.filter(s=>st.buy.has(s.k)).reduce((a,s)=>a+s.cost,0);}
+function renderDevs(){$('devs').innerHTML=Object.entries(DEV).map(([k,d])=>`<button type="button" data-d="${k}" aria-pressed="${st.dev===k}">${d.n}</button>`).join('');$('devs').querySelectorAll('button').forEach(b=>b.onclick=()=>{st.dev=b.dataset.d;st.anim=0;renderDevs();update();});}
+function renderShop(){$('shop').innerHTML=SHOP.map(s=>`<button type="button" data-s="${s.k}" aria-pressed="${st.buy.has(s.k)}"><b>${s.n}</b><small>${s.d} · 비용 ${s.cost}만 원 · 해당 사용량 ${Math.round(s.save*100)} % 감소</small></button>`).join('');
+ $('shop').querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.s,s=SHOP.find(x=>x.k===k);if(st.buy.has(k))st.buy.delete(k);else{if(spent()+s.cost>BUD){toast($('toast'),'예산이 부족해요','bad');return;}st.buy.add(k);burst(700,200,tok.good,14);}renderShop();score();update();});}
+function score(){const sv=1-total(usage())/T0;const s=sv>=0.35?3:sv>=0.25?2:sv>=0.15?1:0;$('gStars').innerHTML=stars(s);$('gSave').textContent=`${Math.round(sv*100)} %`;$('gBud').textContent=`${BUD-spent()}만`;if(s===3&&!st.won){st.won=true;best('is2-efficiency',Math.round(sv*100));toast($('toast'),'35 % 이상 절약! 최고의 리모델링','good',2200);burst(500,200,tok.gold,40);}if(s<3)st.won=false;}
+function sankey(d){const x0=80,x1=300,x2=620,y0=60,hTot=300;const a=clamp(st.anim,0,1);
+ ctx.fillStyle='#7c8b99';ctx.fillRect(x0-60,y0,60,hTot);label(`${d.in}`,x0-30,y0+hTot/2-10,{size:12,weight:700,color:'#fff',hw:0});label('100',x0-30,y0+hTot/2+12,{size:14,weight:700,mono:true,color:'#fff',hw:0});
+ let yy=y0;const gap=20;let ty=y0-gap*(d.out.length-1)/2+0;ty=y0;d.out.forEach(([n,v,c],i)=>{const h=v/100*hTot;const ty2=y0+i*0+d.out.slice(0,i).reduce((s,o)=>s+o[1]/100*hTot+gap,0);
+  ctx.fillStyle=c;ctx.globalAlpha=0.75;ctx.beginPath();ctx.moveTo(x0,yy);ctx.bezierCurveTo((x0+x2)/2,yy,(x0+x2)/2,ty2,x0+(x2-x0)*a,ty2);ctx.lineTo(x0+(x2-x0)*a,ty2+h);ctx.bezierCurveTo((x0+x2)/2,ty2+h,(x0+x2)/2,yy+h,x0,yy+h);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+  if(a>=1){ctx.fillStyle=c;ctx.fillRect(x2,ty2,24,Math.max(h,2));label(`${n} ${v}`,x2+34,ty2+Math.max(h,2)/2,{size:14,weight:700,align:'left'});}yy+=h;});
+ if(a>=1){const u=d.out[0];label(`효율 ${u[1]} %`,820,y0+40,{size:30,weight:700,color:u[1]<30?tok.bad:u[1]<60?tok.gold:tok.good,mono:true});label(`유용한 에너지: ${u[0]}`,820,y0+80,{size:13,color:tok.muted});}
+ // 비교 막대
+ const bx=760,by=230;label('효율 비교',bx+100,by-6,{size:12,weight:700});Object.entries(DEV).forEach(([k,dv],i)=>{const y=by+12+i*24;const e=dv.out[0][1];label(dv.n.replace(/^\S+ /,''),bx+60,y+8,{size:11,align:'right',weight:k===st.dev?700:500,color:k===st.dev?tok.accent:tok.fg});ctx.fillStyle=tok.strip;ctx.fillRect(bx+68,y,140,14);ctx.fillStyle=k===st.dev?tok.accent:tok.muted;ctx.fillRect(bx+68,y,140*e/100,14);label(`${e}`,bx+212,y+8,{size:10,align:'left',mono:true,hw:0});});}
+function house(){const u=usage();const T=total(u);ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);
+ // 집
+ const hx=40,hy=80,hw=360,hh=300;ctx.fillStyle=Lab.isDark()?'#2a3540':'#e8edf1';ctx.beginPath();ctx.moveTo(hx-20,hy+60);ctx.lineTo(hx+hw/2,hy-30);ctx.lineTo(hx+hw+20,hy+60);ctx.fill();ctx.fillRect(hx,hy+60,hw,hh-60);
+ BASE.forEach((b,i)=>{const c=i%3,r=Math.floor(i/3);const x=hx+30+c*110,y=hy+90+r*110;const ratio=u[b.k]/b.kwh;ctx.fillStyle=ratio<0.99?'rgba(63,143,74,.25)':'rgba(229,72,77,.18)';rr(ctx,x,y,90,90,10);ctx.fill();label(b.ic,x+45,y+32,{size:28,hw:0});label(b.n,x+45,y+62,{size:11,weight:700});label(`${Math.round(u[b.k])} kWh`,x+45,y+78,{size:11,mono:true,color:ratio<0.99?tok.good:tok.muted});});
+ // 막대
+ const gx=460,gy=60,gw=500;label('한 달 전기 사용량',gx,gy-24,{size:13,weight:700,align:'left'});[['리모델링 전',T0,tok.muted],['리모델링 후',T,tok.accent]].forEach(([n,v,c],i)=>{const y=gy+i*60;label(n,gx,y+14,{size:12,align:'left'});ctx.fillStyle=c;rr(ctx,gx+90,y,(gw-160)*v/T0,28,6);ctx.fill();label(`${Math.round(v)} kWh`,gx+96+(gw-160)*v/T0,y+14,{size:12,mono:true,align:'left',weight:700});});
+ const save=T0-T;const bill=k=>Math.round(k*150/1000)*1000;label(`월 전기 요금 약 ${(bill(T0)/10000).toFixed(1)}만 원 → ${(bill(T)/10000).toFixed(1)}만 원`,gx,gy+150,{size:14,weight:700,align:'left'});
+ label(`이산화 탄소 ${Math.round(save*0.46)} kg/월 감소 (어린 소나무 약 ${Math.round(save*0.46/0.55)}그루가 한 달 흡수하는 양)`,gx,gy+180,{size:12,align:'left',color:tok.good});
+ label(`투자 비용 회수: ${spent()?Math.ceil(spent()*10000/Math.max(1,(bill(T0)-bill(T))))+'개월':'–'}`,gx,gy+210,{size:12,align:'left',color:tok.muted});
+ // 항목별 가성비
+ label('비용 1만 원당 절약량 (kWh/월)',gx,gy+250,{size:12,weight:700,align:'left'});SHOP.forEach((s,i)=>{const base=BASE.find(b=>b.k===s.tgt).kwh;const eff=base*s.save/s.cost;const y=gy+268+i*14;ctx.fillStyle=st.buy.has(s.k)?tok.good:tok.muted;ctx.fillRect(gx+170,y,eff*5,10);label(s.n.replace(/^\S+ /,''),gx+164,y+5,{size:10,align:'right',hw:0});});
+ drawFx(ctx);}
+function draw(){S.begin();if(st.mode==='A'){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);sankey(DEV[st.dev]);drawFx(ctx);}else house();}
+function update(){if(st.mode==='A'){const d=DEV[st.dev];$('bigK').textContent='에너지 효율';$('vBig').textContent=`${d.out[0][1]} %`;$('k1').textContent='공급한 에너지';$('v1').textContent=`${d.in} 에너지 100`;$('k2').textContent='유용하게 쓰인 에너지';$('v2').textContent=`${d.out[0][0]} 에너지 ${d.out[0][1]}`;$('k3').textContent='버려지는 에너지';$('v3').textContent=d.out.slice(1).map(o=>`${o[0]} ${o[1]}`).join(', ');
+  $('stName').textContent=d.out[0][1]>=60?'효율 높음':d.out[0][1]>=30?'효율 보통':'효율 낮음';$('chip').dataset.s=d.out[0][1]>=60?'':d.out[0][1]>=30?'gold':'bad';$('fsInfo').textContent=`${d.n.replace(/^\S+ /,'')} · 효율 ${d.out[0][1]} %`;}
+ else{const T=total(usage());$('bigK').textContent='한 달 사용량';$('vBig').textContent=`${Math.round(T)} kWh`;$('k1').textContent='리모델링 전';$('v1').textContent=`${T0} kWh`;$('k2').textContent='줄어든 양';$('v2').textContent=`${Math.round(T0-T)} kWh (${Math.round((1-T/T0)*100)} %)`;$('k3').textContent='쓴 예산';$('v3').textContent=`${spent()} / ${BUD}만 원`;$('stName').textContent='절약 하우스';$('chip').dataset.s='';$('fsInfo').textContent=`사용량 ${Math.round(T)} kWh · 절약 ${Math.round((1-T/T0)*100)} %`;}}
+function setMode(m){st.mode=m;$('mA').setAttribute('aria-pressed',m==='A');$('mB').setAttribute('aria-pressed',m==='B');$('devs').hidden=m!=='A';$('shop').hidden=m!=='B';$('mission').hidden=m!=='B';$('note').textContent=m==='A'?'띠의 굵기는 에너지의 양을 나타냅니다. 들어간 에너지 = 유용한 에너지 + 버려지는 에너지 (에너지 보존).':'초록 칸은 효율을 높인 곳입니다. 전기 요금은 1 kWh당 150원으로 어림했습니다.';if(m==='B'){renderShop();score();}st.anim=0;update();}
+$('mA').onclick=()=>setMode('A');$('mB').onclick=()=>setMode('B');
+loop(dt=>{st.anim=Math.min(1,st.anim+dt*1.2);draw();});renderDevs();setMode('A');
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

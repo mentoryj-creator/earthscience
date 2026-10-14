@@ -1,0 +1,329 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>발전소 운영실</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅱ. 환경과 에너지 · 발전 방식과 전력 수송</span></nav>
+  <header><h1>발전소 운영실</h1><p>전기는 많이 저장하기 어려워 매 순간 쓰는 만큼 만들어야 합니다. 하루 동안 바뀌는 전력 수요에 맞추어 발전소의 출력을 조절해 정전을 막고, 송전 전압에 따라 전력 손실이 어떻게 달라지는지 알아보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" id="mA" aria-pressed="true">🎯 하루 전력 운영</button><button type="button" id="mB" aria-pressed="false">🔌 송전 전압과 손실</button></div>
+      <div id="aCtl" style="display:contents">
+      <div class="slider"><div class="slider-top"><label for="coal">🏭 석탄 화력 목표</label><output id="oCoal">17 GW</output></div><input id="coal" type="range" min="0" max="25" step="1" value="17"></div>
+      <div class="slider"><div class="slider-top"><label for="lng">🔥 LNG 목표</label><output id="oLng">10 GW</output></div><input id="lng" type="range" min="0" max="30" step="1" value="10"></div>
+      <div class="slider"><div class="slider-top"><label for="hyd">💧 양수 발전</label><output id="oHyd">0 GW</output></div><input id="hyd" type="range" min="-5" max="5" step="1" value="0"></div>
+      <div class="presets"><button type="button" id="pRun" class="go">▶ 하루 시작</button><button type="button" id="pReset">↺ 처음부터</button></div>
+      </div>
+      <div class="slider" id="bCtl" hidden><div class="slider-top"><label for="volt">송전 전압</label><output id="oV">154 kV</output></div><input id="volt" type="range" min="0" max="5" step="1" value="3"></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission"><span class="tag" id="gTag">미션</span><div class="task" id="gTask">원자력(25 GW)은 항상 일정하게, 태양광과 풍력은 날씨대로 발전합니다. 석탄·LNG·양수 발전을 조절해 공급을 수요의 ±5 % 안에 맞추세요.<small>석탄은 출력을 천천히, LNG는 빠르게 바꿀 수 있어요. 양수 발전은 남는 전기로 물을 끌어올렸다가(−) 필요할 때 발전(+)합니다. 이산화 탄소를 적게 낼수록 보너스!</small></div><div class="score"><span><span class="lbl">수급 균형</span><span id="gBal">–</span></span><span><span class="lbl">CO₂</span><span id="gCO2">0</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="500" role="img" aria-label="하루 전력 수요와 발전량 그래프"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note" id="note">검은 선이 전력 수요, 색칠된 면이 발전소별 발전량입니다. 하루 24시간이 약 1분 동안 흘러갑니다.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">대기</span></span><div class="big"><div class="k" id="bigK">공급 − 수요</div><div class="v" id="vBig">–</div></div></div>
+      <div class="metrics"><div class="m"><span class="k" id="k1">현재 시각</span><span class="v" id="v1">0시</span></div><div class="m"><span class="k" id="k2">전력 수요</span><span class="v" id="v2">–</span></div><div class="m"><span class="k" id="k3">신재생 에너지 비율</span><span class="v" id="v3">–</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>발전 방식과 전력 수송</h2>
+      <ol class="chain"><li>화력·원자력 발전: 연료의 화학 에너지나 핵에너지로 물을 끓여 증기로 터빈을 돌린다. 원자력은 출력을 자주 바꾸기 어려워 기저 부하를 맡는다.</li><li>LNG 발전은 출력을 빠르게 바꿀 수 있어 수요가 몰리는 시간(첨두 부하)을 맡는다.</li><li>태양광·풍력은 연료가 필요 없고 이산화 탄소를 배출하지 않지만, 날씨에 따라 발전량이 달라진다.</li><li>양수 발전은 남는 전기로 물을 높은 곳에 올려 두었다가 필요할 때 흘려보내 발전하는 일종의 에너지 저장 장치이다.</li><li>발전소에서 만든 전기는 변압기로 전압을 높여 송전하고, 가정 가까이에서 다시 전압을 낮춘다. 전압이 높을수록 전류가 작아 송전선에서 열로 잃는 전력이 줄어든다.</li></ol>
+      <div class="impact"><b>손실 전력</b>P손실 = I²R 이고, 같은 전력을 보낼 때 I = P / V 이므로, 전압을 2배로 높이면 손실 전력은 1/4로 줄어든다.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>하루 중 전력 수요가 가장 많은 시간과 가장 적은 시간은 언제인가요? 그 까닭을 생활과 관련지어 생각해 보세요.</li><li>정오 무렵 태양광 발전이 많을 때 석탄과 LNG 발전은 어떻게 조절해야 했나요?</li><li>저녁 해가 진 뒤 수요를 맞추기 어려웠던 까닭은 무엇이며, 양수 발전은 어떤 역할을 했나요?</li><li>송전 전압을 22.9 kV에서 765 kV로 높이면 손실 전력은 어떻게 변하나요? 그런데도 가정에서 220 V를 쓰는 까닭은 무엇일까요?</li><li>신재생 에너지 비율을 높이려면 어떤 기술(저장 장치, 스마트 그리드 등)이 필요할지 토의해 보세요.</li></ol></section>
+  <p class="foot">발전 설비 용량, 수요 곡선, 배출 계수는 우리나라 전력 계통의 경향을 참고해 단순화한 값입니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,rand}=Lab,tok=Lab.tok;
+const W=1000,H=500;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const NUC=25,HOURS_PER_SEC=0.4;
+const SRC=[{k:'nuc',n:'원자력',c:'#8e6bd1',co2:0},{k:'coal',n:'석탄',c:'#5f5f66',co2:0.9},{k:'lng',n:'LNG',c:'#e5884a',co2:0.4},{k:'hyd',n:'양수',c:'#3a8fd8',co2:0},{k:'sol',n:'태양광',c:'#f2c14e',co2:0},{k:'wind',n:'풍력',c:'#5cc2a8',co2:0}];
+function demand(h){return 58+9*Math.exp(-Math.pow((h-11)/3.2,2))+14*Math.exp(-Math.pow((h-19)/2.6,2))-6*Math.exp(-Math.pow((h-4)/2.5,2))+4*Math.exp(-Math.pow((h-14.5)/2,2));}
+function solar(h){return h<6.2||h>18.8?0:22*Math.pow(Math.sin((h-6.2)/12.6*Math.PI),1.4);}
+const st={mode:'A',run:false,h:0,out:{coal:20,lng:10,hyd:0},tgt:{coal:20,lng:10,hyd:0},wind:5,hist:[],bal:0,tt:0,co2:0,store:10,done:false,blackT:0,volt:3};
+function windAt(){return st.wind;}
+function reset(){Object.assign(st,{run:false,h:0,out:{coal:20,lng:10,hyd:0},tgt:{coal:+$('coal').value,lng:+$('lng').value,hyd:+$('hyd').value},wind:5,hist:[],bal:0,tt:0,co2:0,store:10,done:false,blackT:0});st.out={...st.tgt};$('gStars').innerHTML='';$('gTag').textContent='미션';$('gBal').textContent='–';$('gCO2').textContent='0';$('pRun').textContent='▶ 하루 시작';update();}
+function supply(){return NUC+st.out.coal+st.out.lng+st.out.hyd+solar(st.h)+st.wind;}
+function step(dt){const dh=dt*HOURS_PER_SEC;const o=st.out,t=st.tgt;o.coal+=clamp(t.coal-o.coal,-3*dh,3*dh);o.lng+=clamp(t.lng-o.lng,-20*dh,20*dh);
+ let hy=t.hyd;if(hy>0&&st.store<=0)hy=0;if(hy<0&&st.store>=20)hy=0;o.hyd=hy;st.store=clamp(st.store-hy*dh,0,20);st.wind=clamp(st.wind+rand(-1,1)*dh*4+(5-st.wind)*0.1*dh,1,9);
+ const D=demand(st.h),Sp=supply();const r=(Sp-D)/D;st.tt+=dh;if(Math.abs(r)<=0.05)st.bal+=dh;if(Math.abs(r)>0.1)st.blackT+=dh;st.co2+=(o.coal*0.9+o.lng*0.4)*dh;
+ st.hist.push({h:st.h,D,nuc:NUC,coal:o.coal,lng:o.lng,hyd:o.hyd,sol:solar(st.h),wind:st.wind});st.h+=dh;
+ if(Math.abs(r)>0.1&&st.fr%40===0)toast($('toast'),r<0?'⚠ 전력 부족! 정전 위험':'⚠ 전력 과잉! 주파수 상승','bad',1200);
+ if(st.h>=24){st.run=false;st.done=true;finish();}}
+function finish(){const b=st.bal/24;const s=b>=0.9&&st.co2<500?3:b>=0.8?2:b>=0.6?1:0;$('gStars').innerHTML=stars(s);best('is2-powerplant',Math.round(b*100));$('gTag').textContent='하루 끝';
+ $('gTask').innerHTML=`수급 균형 유지 ${Math.round(b*100)} % · 이산화 탄소 ${Math.round(st.co2)}천 톤 · 큰 불균형 ${st.blackT.toFixed(1)}시간<small>균형 90 % 이상이면서 CO₂ 500천 톤 미만 ★★★ · 균형 80 % 이상 ★★ · 60 % 이상 ★. 태양광이 많은 낮에는 석탄을 줄이고, 저녁에는 LNG와 양수 발전을 활용해 보세요.</small>`;if(s>=2)burst(500,200,tok.gold,50);$('pRun').textContent='▶ 하루 시작';update();}
+st.fr=0;
+function drawA(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const gx=60,gy=30,gw=640,gh=380,ymax=100;const X=h=>gx+h/24*gw,Y=v=>gy+gh-v/ymax*gh;
+ ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(gx,gy,gw,gh);[0,20,40,60,80,100].forEach(v=>label(`${v}`,gx-8,Y(v),{size:10,align:'right',color:tok.muted,hw:0}));label('GW',gx-8,gy-12,{size:10,color:tok.muted,align:'right',hw:0});for(let h=0;h<=24;h+=3)label(`${h}시`,X(h),gy+gh+14,{size:10,color:tok.muted,hw:0});
+ ctx.fillStyle='rgba(20,30,60,.08)';ctx.fillRect(X(0),gy,X(6.2)-X(0),gh);ctx.fillRect(X(18.8),gy,X(24)-X(18.8),gh);
+ // 쌓은 면적
+ const order=['nuc','coal','wind','sol','lng','hyd'];const hs=st.hist;
+ if(hs.length>1){let base=hs.map(()=>0);order.forEach(k=>{const src=SRC.find(s=>s.k===k);ctx.fillStyle=src.c;ctx.globalAlpha=0.85;ctx.beginPath();hs.forEach((p,i)=>{const v=Math.max(0,p[k]);const y=Y(base[i]+v);i?ctx.lineTo(X(p.h),y):ctx.moveTo(X(p.h),y);});for(let i=hs.length-1;i>=0;i--)ctx.lineTo(X(hs[i].h),Y(base[i]));ctx.closePath();ctx.fill();ctx.globalAlpha=1;hs.forEach((p,i)=>base[i]+=Math.max(0,p[k]));});}
+ // 수요
+ ctx.strokeStyle=tok.fg;ctx.lineWidth=2.5;ctx.setLineDash([]);ctx.beginPath();for(let h=0;h<=24;h+=0.1){const y=Y(demand(h));h?ctx.lineTo(X(h),y):ctx.moveTo(X(h),y);}ctx.stroke();ctx.strokeStyle=tok.muted;ctx.setLineDash([3,4]);ctx.lineWidth=1;[1.05,0.95].forEach(f=>{ctx.beginPath();for(let h=0;h<=24;h+=0.2){const y=Y(demand(h)*f);h?ctx.lineTo(X(h),y):ctx.moveTo(X(h),y);}ctx.stroke();});ctx.setLineDash([]);
+ const nowX=X(st.h);ctx.strokeStyle=tok.accent;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(nowX,gy);ctx.lineTo(nowX,gy+gh);ctx.stroke();label(st.h<6.2||st.h>18.8?'🌙':'☀',nowX,gy+14,{size:18,hw:0});
+ // 오른쪽 패널
+ const px=730;SRC.forEach((s,i)=>{const y=40+i*42;const v=s.k==='nuc'?NUC:s.k==='sol'?solar(st.h):s.k==='wind'?st.wind:st.out[s.k];ctx.fillStyle=s.c;rr(ctx,px,y,16,16,4);ctx.fill();label(s.n,px+24,y+8,{size:13,weight:700,align:'left'});ctx.fillStyle=tok.strip;ctx.fillRect(px+90,y+2,140,12);ctx.fillStyle=s.c;ctx.fillRect(px+90,y+2,clamp(Math.abs(v)/30,0,1)*140,12);label(`${v<0?'충전 ':''}${Math.abs(v).toFixed(1)}`,px+240,y+8,{size:12,mono:true,align:'left'});});
+ const D=demand(st.h),Sp=supply(),r=(Sp-D)/D;const y0=310;ctx.fillStyle=Lab.isDark()?'#131f29':'#fff';rr(ctx,px,y0,250,150,14);ctx.fill();label('주파수 계기',px+125,y0+20,{size:12,weight:700});
+ const ang=-Math.PI/2+clamp(r/0.15,-1,1)*1.1;const cx=px+125,cy=y0+120;[[-1.1,-0.37,tok.bad],[-0.37,0.37,tok.good],[0.37,1.1,tok.bad]].forEach(([a,b,c])=>{ctx.strokeStyle=c;ctx.lineWidth=10;ctx.beginPath();ctx.arc(cx,cy,70,-Math.PI/2+a,-Math.PI/2+b);ctx.stroke();});
+ ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ang)*64,cy+Math.sin(ang)*64);ctx.stroke();label(`${(60+r*6).toFixed(2)} Hz`,cx,cy+18,{size:13,weight:700,mono:true});label('부족',cx-80,cy-10,{size:10,color:tok.muted});label('과잉',cx+80,cy-10,{size:10,color:tok.muted});
+ label(`양수 저수량 ${Math.round(st.store/20*100)} %`,px+125,y0-14,{size:11,color:tok.accent});
+ drawFx(ctx);}
+// ── 송전
+const VS=[0.22,22.9,66,154,345,765];
+function drawB(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const V=VS[st.volt];const P=1000;// MW 송전
+ const R=2;const I=P*1e6/(V*1e3);const loss=I*I*R/1e6;const lossPct=clamp(loss/P*100,0,100);
+ // 발전소 → 변압기 → 송전탑 → 변압기 → 집
+ const y=220;label('🏭',80,y,{size:56,hw:0});label('발전소',80,y+50,{size:12,weight:700});label('🔼',220,y,{size:30,hw:0});label('변압기 (승압)',220,y+50,{size:11});
+ for(let i=0;i<4;i++){const x=330+i*130;label('🗼',x,y-10,{size:50,hw:0});}label('🔽',820,y,{size:30,hw:0});label('변압기 (강압)',820,y+50,{size:11});label('🏘',920,y,{size:50,hw:0});label('가정 220 V',920,y+50,{size:12,weight:700});
+ ctx.strokeStyle=lossPct>20?tok.bad:lossPct>3?tok.gold:tok.accent;ctx.lineWidth=clamp(I/2000,1.5,12);ctx.beginPath();ctx.moveTo(250,y-40);for(let i=0;i<4;i++){const x=330+i*130;ctx.quadraticCurveTo(x-65,y-10,x,y-40);}ctx.lineTo(800,y-40);ctx.stroke();
+ for(let i=0;i<Math.round(lossPct/4);i++){const x=270+((i*67+st.fr*2)%520),yy=y-48-((st.fr+i*13)%30);ctx.fillStyle=`rgba(229,72,77,${0.6-((st.fr+i*13)%30)/60})`;label('〰',x,yy,{size:14,hw:0,color:tok.bad});}
+ label(`송전 전압 ${V<1?'220 V':V+' kV'} · 송전 전력 1000 MW · 송전선 저항 2 Ω`,W/2,60,{size:15,weight:700});
+ label(`전류 I = P / V = ${I>=1000?(I/1000).toFixed(1)+' kA':Math.round(I)+' A'}`,W/2,330,{size:16,weight:700,mono:true});label(`손실 전력 = I²R = ${loss>=P?'1000 MW 이상 (전부 손실!)':loss>=1?loss.toFixed(1)+' MW':(loss*1000).toFixed(0)+' kW'}`,W/2,365,{size:16,weight:700,mono:true,color:lossPct>20?tok.bad:tok.fg});
+ const bx=200,bw=600,by=400;ctx.fillStyle=tok.strip;rr(ctx,bx,by,bw,28,8);ctx.fill();ctx.fillStyle=tok.good;rr(ctx,bx,by,bw*(1-lossPct/100),28,8);ctx.fill();if(lossPct>0.05){ctx.fillStyle=tok.bad;ctx.fillRect(bx+bw*(1-lossPct/100),by,bw*lossPct/100,28);}
+ label(`가정에 도착 ${(100-lossPct).toFixed(lossPct<1?2:1)} %`,bx+10,by+14,{size:12,weight:700,align:'left',color:'#fff',hw:0});label(`손실 ${lossPct.toFixed(lossPct<1?3:1)} %`,bx+bw,by+46,{size:12,weight:700,align:'right',color:tok.bad});
+ st.lossPct=lossPct;st.I=I;}
+function draw(){S.begin();if(st.mode==='A')drawA();else drawB();}
+function update(){$('oCoal').textContent=`${$('coal').value} GW`;$('oLng').textContent=`${$('lng').value} GW`;const hv=+$('hyd').value;$('oHyd').textContent=hv<0?`충전 ${-hv} GW`:`${hv} GW`;$('oV').textContent=st.volt===0?'220 V':`${VS[st.volt]} kV`;
+ if(st.mode==='A'){const D=demand(st.h),Sp=supply(),r=(Sp-D)/D;$('bigK').textContent='공급 − 수요';$('vBig').textContent=`${Sp-D>=0?'+':''}${(Sp-D).toFixed(1)} GW`;$('k1').textContent='현재 시각';$('v1').textContent=`${Math.floor(st.h)}시 ${String(Math.floor((st.h%1)*60)).padStart(2,'0')}분`;$('k2').textContent='전력 수요';$('v2').textContent=`${D.toFixed(1)} GW`;$('k3').textContent='신재생 에너지 비율';$('v3').textContent=`${Math.round((solar(st.h)+st.wind)/Math.max(Sp,1)*100)} %`;
+  $('stName').textContent=Math.abs(r)<=0.05?'수급 안정':Math.abs(r)<=0.1?'주의':r<0?'전력 부족':'전력 과잉';$('chip').dataset.s=Math.abs(r)<=0.05?'':Math.abs(r)<=0.1?'gold':'bad';$('gBal').textContent=st.tt>0?`${Math.round(st.bal/st.tt*100)} %`:'–';$('gCO2').textContent=`${Math.round(st.co2)}천 t`;$('fsInfo').textContent=`${Math.floor(st.h)}시 · 수요 ${D.toFixed(1)} GW · 공급 ${Sp.toFixed(1)} GW`;}
+ else{$('bigK').textContent='손실 전력 비율';$('vBig').textContent=`${(st.lossPct||0).toFixed(st.lossPct<1?3:1)} %`;$('k1').textContent='송전 전압';$('v1').textContent=st.volt===0?'220 V':`${VS[st.volt]} kV`;$('k2').textContent='송전선 전류';$('v2').textContent=`${Math.round(st.I||0).toLocaleString('ko-KR')} A`;$('k3').textContent='전압 2배 → 손실';$('v3').textContent='1/4';$('stName').textContent=st.lossPct>20?'손실 매우 큼':st.lossPct>3?'손실 큼':'효율적 송전';$('chip').dataset.s=st.lossPct>20?'bad':st.lossPct>3?'gold':'';$('fsInfo').textContent=`송전 전압 ${$('oV').textContent} · 손실 ${(st.lossPct||0).toFixed(2)} %`;}}
+function setMode(m){st.mode=m;$('mA').setAttribute('aria-pressed',m==='A');$('mB').setAttribute('aria-pressed',m==='B');$('aCtl').hidden=m!=='A';$('aCtl').style.display=m==='A'?'contents':'none';$('bCtl').hidden=m!=='B';$('mission').hidden=m!=='A';
+ $('note').textContent=m==='A'?'검은 선이 전력 수요, 색칠된 면이 발전소별 발전량입니다. 점선은 ±5 % 범위입니다. 하루 24시간이 약 1분 동안 흘러갑니다.':'송전 전력과 송전선 저항이 같을 때, 전압에 따른 손실을 비교합니다.';draw();update();}
+['coal','lng','hyd'].forEach(k=>$(k).addEventListener('input',e=>{st.tgt[k]=+e.target.value;update();}));
+$('volt').addEventListener('input',e=>{st.volt=+e.target.value;update();});
+$('pRun').onclick=()=>{if(st.done)reset();st.run=!st.run;$('pRun').textContent=st.run?'⏸ 일시 정지':'▶ 계속';};$('pReset').onclick=reset;
+$('mA').onclick=()=>setMode('A');$('mB').onclick=()=>setMode('B');
+loop(dt=>{st.fr++;if(st.mode==='A'&&st.run)step(dt);if(st.fr%5===0)update();draw();});
+reset();setMode('A');
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>

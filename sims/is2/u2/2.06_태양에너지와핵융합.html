@@ -1,0 +1,323 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>태양 에너지와 핵융합</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is2" target="_top">← 통합과학2</a><span class="eyebrow">Ⅱ. 환경과 에너지 · 태양 에너지의 생성과 전환</span></nav>
+  <header><h1>태양 에너지와 핵융합</h1><p>태양 중심부에서는 수소 원자핵이 융합해 헬륨 원자핵이 되며, 이때 줄어든 질량이 에너지로 바뀝니다. 온도를 바꾸어 핵융합을 일으켜 보고, 우리가 쓰는 에너지 가운데 무엇이 태양에서 왔는지 가려내 보세요.</p></header>
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" id="mCore" aria-pressed="true">☀ 태양 중심부</button><button type="button" id="mGame" aria-pressed="false">🎯 에너지 출처 가리기</button></div>
+      <div class="slider" id="sT"><div class="slider-top"><label for="temp">중심부 온도</label><output id="tOut">1500만 K</output></div><input id="temp" type="range" min="100" max="3000" step="50" value="1500"></div>
+      <div class="presets" id="cBtns"><button type="button" id="pFuel">↺ 수소 채우기</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden><span class="tag" id="gTag">1/10</span><div class="task" id="gTask"></div><div class="pick" id="pick" style="display:flex;gap:6px;flex-wrap:wrap"></div><div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div></div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="500" role="img" aria-label="태양 중심부의 원자핵 운동"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend"><div class="fsinfo" id="fsInfo"></div><div class="note" id="note">원자핵은 모두 양(+)전하를 띠어 서로 밀어냅니다. 온도가 높아 매우 빠르게 부딪혀야 이 반발을 이기고 융합할 수 있어요.</div></div>
+  </section>
+  <div class="lower">
+    <section class="panel" aria-label="결과">
+      <div class="status"><span class="chip" id="chip"><i></i><span id="stName">–</span></span><div class="big"><div class="k">만들어진 헬륨 원자핵</div><div class="v" id="vHe">0</div></div></div>
+      <div class="metrics"><div class="m"><span class="k">수소 원자핵 4개의 질량</span><span class="v txt">4 × 1.0073 = 4.0292 u</span></div><div class="m"><span class="k">헬륨 원자핵 1개의 질량</span><span class="v txt">4.0015 u</span></div><div class="m"><span class="k">질량 결손 → 에너지</span><span class="v txt">0.0277 u (약 0.7 %)</span><span class="d">E = mc² 만큼의 에너지 방출</span></div></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>태양 에너지가 만들어지고 전환되는 과정</h2>
+      <ol class="chain"><li>태양 중심부는 온도가 약 1500만 K, 압력이 매우 높아 수소 원자핵이 서로 반발력을 이기고 충돌한다.</li><li>수소 원자핵 4개가 단계적으로 융합해 헬륨 원자핵 1개가 된다(수소 핵융합).</li><li>반응 후 질량이 약 0.7 % 줄어들고, 줄어든 질량(질량 결손)만큼 에너지가 생긴다(E = mc²).</li><li>이 에너지가 빛의 형태로 지구에 도달해 광합성, 물의 순환, 대기의 순환을 일으킨다.</li><li>화석 연료, 바람, 수력, 생물 에너지는 모두 태양 에너지가 형태를 바꾼 것이다. 반면 지열, 조력, 원자력은 태양에서 온 것이 아니다.</li></ol>
+      <div class="impact"><b>태양은 1초에</b>약 6억 톤의 수소를 헬륨으로 바꾸며, 약 400만 톤의 질량이 에너지로 바뀐다.</div>
+    </section>
+  </div>
+  <section class="panel"><h2>수업용 질문</h2><ol class="qs"><li>온도를 500만 K로 낮추면 핵융합이 거의 일어나지 않습니다. 그 까닭을 원자핵의 전하와 관련지어 설명해 보세요.</li><li>수소 원자핵 4개의 질량과 헬륨 원자핵 1개의 질량을 비교하고, 차이만큼의 질량은 어떻게 되었는지 설명해 보세요.</li><li>석탄이 태양 에너지에서 유래했다고 말할 수 있는 까닭은 무엇인가요?</li><li>조력 발전과 지열 발전의 에너지는 각각 어디에서 왔나요?</li><li>태양 에너지가 지구에서 전환되는 흐름을 ‘태양 → 광합성 → … ’처럼 하나 골라 이어 써 보세요.</li></ol></section>
+  <p class="foot">원자핵의 움직임과 융합 확률은 관찰하기 쉽도록 크게 부풀렸습니다. 실제 태양에서 수소 원자핵 하나가 융합하기까지는 평균 수십억 년이 걸립니다.</p>
+</div>
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle,rand}=Lab,tok=Lab.tok;
+const W=1000,H=500;const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const CX=300,CY=250,CR=215;
+const KIND={H:{r:9,c:'#e5484d',t:'¹H',q:1},D:{r:11,c:'#e58a48',t:'²H',q:1},He3:{r:13,c:'#c9a23a',t:'³He',q:2},He4:{r:15,c:'#3f8fd8',t:'⁴He',q:2}};
+const st={mode:'core',T:1500,ps:[],he:0,energy:0,flash:[],fr:0,rate:[],g:null};
+function fuel(){st.ps=[];for(let i=0;i<46;i++)st.ps.push(mk('H'));st.he=0;st.energy=0;st.rate=[];}
+function mk(k,x,y){const a=rand(0,6.28),r=Math.sqrt(Math.random())*(CR-20);return {k,x:x??CX+Math.cos(a)*r,y:y??CY+Math.sin(a)*r,vx:rand(-1,1),vy:rand(-1,1),cd:0};}
+function speed(){return Math.sqrt(st.T/1500)*3;}
+function key(a,b){const s=[a.k,b.k].sort();return s.join('+');}
+function step(){const sp=speed();st.ps.forEach(p=>{const v=Math.hypot(p.vx,p.vy)||1;p.vx=p.vx/v*lerp(v,sp,0.05)*1;p.vy=p.vy/v*lerp(v,sp,0.05);p.x+=p.vx;p.y+=p.vy;const d=Math.hypot(p.x-CX,p.y-CY);if(d>CR-KIND[p.k].r){const nx=(p.x-CX)/d,ny=(p.y-CY)/d;const dot=p.vx*nx+p.vy*ny;p.vx-=2*dot*nx;p.vy-=2*dot*ny;p.x=CX+nx*(CR-KIND[p.k].r-1);p.y=CY+ny*(CR-KIND[p.k].r-1);}if(p.cd>0)p.cd--;
+  p.vx+=rand(-0.3,0.3)*sp*0.1;p.vy+=rand(-0.3,0.3)*sp*0.1;});
+ const ps=st.ps;let fused=0;
+ for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const a=ps[i],b=ps[j];if(a.dead||b.dead)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),rr2=KIND[a.k].r+KIND[b.k].r;if(d<rr2&&d>0){
+   const k=key(a,b);const p=(k==='H+H'?Math.exp(-45/(st.T/100)):k==='D+H'?Math.exp(-12/(st.T/100)):k==='He3+He3'?Math.exp(-22/(st.T/100)):0);
+   if(!a.cd&&!b.cd&&Math.random()<p){const x=(a.x+b.x)/2,y=(a.y+b.y)/2;a.dead=b.dead=true;fused++;
+    if(k==='H+H'){const n=mk('D',x,y);n.cd=20;ps.push(n);st.flash.push({x,y,t:20,c:'#ffd34d',txt:'+ 양전자, 중성미자'});st.energy+=1.44;}
+    else if(k==='D+H'){const n=mk('He3',x,y);n.cd=20;ps.push(n);st.flash.push({x,y,t:20,c:'#ffe680',txt:'γ선'});st.energy+=5.49;}
+    else{const n=mk('He4',x,y);n.cd=20;ps.push(n);ps.push(mk('H',x+12,y));ps.push(mk('H',x-12,y));st.he++;st.flash.push({x,y,t:40,c:'#fff3b0',txt:'⁴He 탄생!'});st.energy+=12.86;burst(x,y,tok.gold,18,3);}}
+   else{const nx=dx/d,ny=dy/d;const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rel<0){a.vx+=rel*nx;a.vy+=rel*ny;b.vx-=rel*nx;b.vy-=rel*ny;}const o=(rr2-d)/2;a.x-=nx*o;a.y-=ny*o;b.x+=nx*o;b.y+=ny*o;}}}
+ st.ps=ps.filter(p=>!p.dead);if(st.fr%6===0&&st.ps.filter(p=>p.k==='H').length<34){const a=rand(0,6.28);const n=mk('H',CX+Math.cos(a)*(CR-15),CY+Math.sin(a)*(CR-15));st.ps.push(n);}if(st.ps.length>70){const i=st.ps.findIndex(p=>p.k==='He4');if(i>=0)st.ps.splice(i,1);}st.rate.push(fused);if(st.rate.length>120)st.rate.shift();}
+function drawCore(){const g=ctx.createRadialGradient(CX,CY,10,CX,CY,CR+40);const hot=clamp(st.T/2500,0,1);g.addColorStop(0,`rgba(255,${Math.round(lerp(150,240,hot))},${Math.round(lerp(60,180,hot))},.95)`);g.addColorStop(1,'rgba(200,60,20,.85)');ctx.fillStyle=Lab.isDark()?'#08101a':'#1a1020';ctx.fillRect(0,0,W,H);ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX,CY,CR,0,7);ctx.fill();
+ st.ps.forEach(p=>{const K=KIND[p.k];ctx.fillStyle=K.c;ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,K.r,0,7);ctx.fill();ctx.stroke();label(K.t,p.x,p.y,{size:K.r>12?10:9,color:'#fff',hw:0,weight:700});});
+ st.flash.forEach(f=>{ctx.globalAlpha=f.t/40;ctx.fillStyle=f.c;ctx.beginPath();ctx.arc(f.x,f.y,(40-f.t)*1.2+6,0,7);ctx.fill();ctx.globalAlpha=1;if(f.t>8)label(f.txt,f.x,f.y-22,{size:11,color:'#fff',hw:3,halo:'rgba(0,0,0,.6)'});f.t--;});st.flash=st.flash.filter(f=>f.t>0);
+ label('태양 중심부 (확대 모형) · 바깥에서 수소가 계속 공급됨',CX,22,{size:13,weight:700,color:'#fff',hw:0});
+ // 오른쪽: pp 연쇄 반응
+ const px=560;ctx.fillStyle=Lab.isDark()?'#131f29':'#ffffff';rr(ctx,px-20,20,450,300,14);ctx.fill();label('수소 핵융합 (양성자-양성자 연쇄 반응)',px+205,44,{size:13,weight:700});
+ const row=(y,a,b,c,note)=>{label(a,px+40,y,{size:13,weight:700,mono:true});label('→',px+130,y,{size:14});label(b,px+170,y,{size:13,weight:700,mono:true,align:'left'});label(note,px+410,y,{size:11,color:tok.muted,align:'right'});};
+ row(90,'¹H + ¹H','²H + e⁺ + ν','', '① 가장 느린 단계');row(135,'²H + ¹H','³He + γ','', '② 빠르게 일어남');row(180,'³He + ³He','⁴He + 2 ¹H','', '③ 헬륨 탄생');
+ ctx.strokeStyle=tok.line;ctx.beginPath();ctx.moveTo(px,205);ctx.lineTo(px+410,205);ctx.stroke();label('결국: 수소 원자핵 4개 → 헬륨 원자핵 1개 + 에너지',px+205,228,{size:13,weight:700,color:tok.accent});
+ // 저울
+ const bx=px+205,by=280;ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(bx,by+30);ctx.lineTo(bx,by-6);ctx.stroke();const tilt=0.08;ctx.beginPath();ctx.moveTo(bx-120,by-6+120*tilt);ctx.lineTo(bx+120,by-6-120*tilt);ctx.stroke();
+ for(let i=0;i<4;i++){ctx.fillStyle=KIND.H.c;ctx.beginPath();ctx.arc(bx-150+i*20,by-6+120*tilt-12,8,0,7);ctx.fill();}label('4.0292 u',bx-120,by+30,{size:11,mono:true});ctx.fillStyle=KIND.He4.c;ctx.beginPath();ctx.arc(bx+120,by-6-120*tilt-16,13,0,7);ctx.fill();label('4.0015 u',bx+120,by+12,{size:11,mono:true});
+ // 그래프
+ const gx=px,gy=350,gw=410,gh=110;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.fillStyle=Lab.isDark()?'#131f29':'#ffffff';rr(ctx,gx-20,gy-24,450,gh+44,14);ctx.fill();label('핵융합 빈도 (최근 2초)',gx,gy-8,{size:12,weight:700,align:'left'});
+ const sum=st.rate.reduce((a,b)=>a+b,0);const bars=12;for(let i=0;i<bars;i++){const seg=st.rate.slice(i*10,i*10+10).reduce((a,b)=>a+b,0);const h=clamp(seg/4,0,1)*(gh-20);ctx.fillStyle=tok.warm;ctx.fillRect(gx+i*34,gy+gh-h,26,h);}
+ label(`온도 ${st.T}만 K → ${sum<1?'거의 일어나지 않음':sum<8?'가끔 일어남':'활발함'}`,gx+410,gy-8,{size:12,align:'right',color:sum<1?tok.cool:tok.warm,weight:700});}
+// ── 게임
+const ITEMS=[{n:'석탄 화력 발전',a:'sun',w:'석탄은 옛날 식물이 광합성으로 저장한 에너지가 땅속에 묻힌 것'},{n:'풍력 발전',a:'sun',w:'바람은 태양 에너지로 지표가 불균등하게 데워져 생김'},{n:'수력 발전',a:'sun',w:'태양 에너지로 증발한 물이 비로 내려 높은 곳에 모임'},{n:'밥을 먹고 얻는 에너지',a:'sun',w:'벼가 광합성으로 저장한 화학 에너지'},
+ {n:'태양광 발전',a:'sun',w:'햇빛을 직접 전기 에너지로 전환'},{n:'석유로 움직이는 자동차',a:'sun',w:'석유도 옛 생물이 저장한 태양 에너지'},{n:'조력 발전',a:'no',w:'밀물과 썰물은 주로 달의 인력 때문'},{n:'지열 발전',a:'no',w:'지구 내부의 열(방사성 원소 붕괴 등)'},{n:'원자력 발전',a:'no',w:'우라늄의 핵분열 에너지'},{n:'바이오 에탄올',a:'sun',w:'옥수수·사탕수수가 광합성으로 저장한 에너지'},{n:'파력 발전 (파도)',a:'sun',w:'파도는 바람이 만들고, 바람은 태양 에너지에서 옴'},{n:'온천의 뜨거운 물',a:'no',w:'지구 내부 열로 데워진 지하수'}];
+function newGame(){st.g={list:shuffle(ITEMS).slice(0,10),i:0,score:0,ok:0};$('gStars').innerHTML='';ask();}
+function ask(){const g=st.g;const it=g.list[g.i];$('gTag').textContent=`${g.i+1}/10`;$('gTask').innerHTML=`<b style="font-size:1.15rem">${it.n}</b><small>이 에너지는 근원을 거슬러 올라가면 태양 에너지일까요?</small>`;
+ $('pick').innerHTML='<button type="button" data-v="sun">☀ 태양에서 왔다</button><button type="button" data-v="no">✖ 태양과 관계없다</button>';$('pick').querySelectorAll('button').forEach(b=>b.onclick=()=>ans(b.dataset.v));g.t0=performance.now();}
+function ans(v){const g=st.g,it=g.list[g.i];const ok=v===it.a;if(ok){g.ok++;g.score+=10+Math.max(0,Math.round(5-(performance.now()-g.t0)/1000));burst(500,200,tok.gold,20);}g.last={ok,it};$('gScore').textContent=g.score;
+ $('gTask').innerHTML=`<b>${ok?'정답!':'아쉬워요'}</b> ${it.n}: ${it.a==='sun'?'태양에서 온 에너지':'태양과 관계없는 에너지'}<small>${it.w}</small>`;$('pick').innerHTML=`<button type="button" class="go" id="gN">${g.i<9?'다음 ▶':'결과 보기'}</button>`;$('gN').onclick=()=>{if(g.i<9){g.i++;ask();}else fin();};}
+function fin(){const g=st.g;g.end=true;const s=g.ok>=10?3:g.ok>=8?2:g.ok>=6?1:0;$('gStars').innerHTML=stars(s);best('is2-fusion',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`10개 중 ${g.ok}개 정답 · ${g.score}점<small>지구에서 쓰는 에너지의 대부분은 태양 에너지가 형태를 바꾼 것입니다. 조력, 지열, 원자력은 예외예요.</small>`;$('pick').innerHTML='<button type="button" id="gA">↺ 다시 도전</button>';$('gA').onclick=newGame;if(s===3)burst(500,200,tok.gold,60);}
+function drawGame(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);const sx=120,sy=250;const g2=ctx.createRadialGradient(sx,sy,10,sx,sy,90);g2.addColorStop(0,'#fff3b0');g2.addColorStop(1,'#f5a623');ctx.fillStyle=g2;ctx.beginPath();ctx.arc(sx,sy,80,0,7);ctx.fill();label('태양',sx,sy,{size:18,weight:700,color:'#5a3a00',hw:0});
+ const N=[['광합성',360,90,'🌿'],['물의 순환',360,200,'💧'],['대기의 순환',360,310,'🌬'],['태양광·태양열',360,420,'🔆']];const M=[['식량·바이오 연료',620,60],['화석 연료 (석탄·석유)',620,120],['수력',620,200],['풍력·파력',620,310],['태양광·태양열 발전',620,420]];
+ ctx.strokeStyle=tok.gold;ctx.fillStyle=tok.gold;ctx.lineWidth=2.5;N.forEach(([n,x,y])=>Lab.arrow(ctx,sx+85,sy+(y-sy)*0.3,x-70,y,8));
+ ctx.strokeStyle=tok.accent;ctx.fillStyle=tok.accent;[[0,0],[0,1],[1,2],[2,3],[3,4]].forEach(([a,b])=>Lab.arrow(ctx,N[a][1]+70,N[a][2],M[b][1]-95,M[b][2],7));
+ N.forEach(([n,x,y,e])=>{ctx.fillStyle=Lab.isDark()?'#1b2a36':'#fff';rr(ctx,x-70,y-22,140,44,10);ctx.fill();ctx.strokeStyle=tok.gold;ctx.lineWidth=2;ctx.stroke();label(`${e} ${n}`,x,y,{size:13,weight:700});});
+ M.forEach(([n,x,y])=>{ctx.fillStyle=Lab.isDark()?'#1b2a36':'#fff';rr(ctx,x-95,y-20,190,40,10);ctx.fill();ctx.strokeStyle=tok.accent;ctx.stroke();label(n,x,y,{size:12,weight:700});});
+ ctx.fillStyle=Lab.isDark()?'#2a1a1a':'#fbeeee';rr(ctx,790,150,190,200,12);ctx.fill();label('태양에서 오지 않은 에너지',885,175,{size:12,weight:700,color:tok.bad});if(st.g&&st.g.end)[['🌙 조력 (달의 인력)',215],['🌋 지열 (지구 내부)',260],['⚛ 원자력 (핵분열)',305]].forEach(([t,y])=>label(t,885,y,{size:12}));else label('? (게임이 끝나면 공개)',885,260,{size:12,color:tok.muted});
+ if(st.g&&st.g.last){const {ok}=st.g.last;label(ok?'⭕':'❌',885,400,{size:40,hw:0});}}
+function draw(){S.begin();if(st.mode==='core')drawCore();else drawGame();drawFx(ctx);}
+function update(){$('tOut').textContent=`${st.T}만 K`;$('vHe').textContent=st.he;const sum=st.rate.reduce((a,b)=>a+b,0);
+ $('stName').textContent=st.mode==='game'?'에너지 출처':sum<1?'핵융합 거의 없음':sum<8?'핵융합 가끔':'핵융합 활발';$('chip').dataset.s=sum<1?'cool':'warm';$('fsInfo').textContent=st.mode==='core'?`온도 ${$('tOut').textContent} · ⁴He ${st.he}개 · 방출 에너지 ${st.energy.toFixed(1)} MeV`:'에너지 출처 가리기';}
+function setMode(m){st.mode=m;$('mCore').setAttribute('aria-pressed',m==='core');$('mGame').setAttribute('aria-pressed',m==='game');$('sT').hidden=m!=='core';$('cBtns').hidden=m!=='core';$('mission').hidden=m!=='game';
+ $('note').textContent=m==='core'?'원자핵은 모두 양(+)전하를 띠어 서로 밀어냅니다. 온도가 높아 매우 빠르게 부딪혀야 이 반발을 이기고 융합할 수 있어요.':'화살표는 태양 에너지가 지구에서 형태를 바꾸어 가는 흐름입니다.';if(m==='game')newGame();update();}
+$('mCore').onclick=()=>setMode('core');$('mGame').onclick=()=>setMode('game');$('pFuel').onclick=fuel;$('temp').addEventListener('input',e=>{st.T=+e.target.value;update();});
+loop(()=>{st.fr++;if(st.mode==='core'){step();}if(st.fr%10===0)update();draw();});
+fuel();setMode('core');
+})();
+</script>
+<script>(function(){const post=()=>{try{parent.postMessage({type:'sim-height',h:document.body.offsetHeight},'*');}catch(e){}};const check=()=>{document.documentElement.classList.toggle('fs',window.innerHeight>=screen.height-4);if(!document.documentElement.classList.contains('fs'))post();};addEventListener('load',check);addEventListener('resize',check);check();})();</script></body></html>
