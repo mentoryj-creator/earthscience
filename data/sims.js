@@ -4,6 +4,7 @@
 //  직접 고쳐도 되지만, 아래 DATA-START ~ DATA-END 표시는 지우지 마세요.
 // =====================================================================
 window.SITE = /*DATA-START*/{
+  "theme": "nightsky",
   "levels": [
     {
       "id": "high",

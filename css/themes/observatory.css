@@ -1,0 +1,62 @@
+/* =========================================================
+   디자인 A · 관측소
+   밤하늘 남색 바탕 + 별빛 금색. 히어로에 지평 좌표계 하늘 돔과 북두칠성.
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap");
+
+:root, :root:root {
+  --bg: #0e1530;
+  --surface: #151d3d;
+  --surface-2: #1d2752;
+  --text: #e6e9f5;
+  --muted: #97a0c3;
+  --line: #27315c;
+  --accent: #f2c94c;
+  --accent-soft: rgba(242, 201, 76, .13);
+  --sim-bg: #0a1027;
+  --radius: 10px;
+  --shadow: 0 14px 40px rgba(3, 6, 20, .55);
+}
+body { font-family: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+a { color: var(--accent); }
+
+.site-header { background: rgba(14, 21, 48, .86); backdrop-filter: blur(10px); border-bottom-color: var(--line); }
+.logo { color: var(--text); letter-spacing: -.01em; }
+.logo span { color: var(--accent); }
+.nav-link { color: var(--text); }
+.dropdown { background: var(--surface-2); border-color: var(--line); }
+
+/* ---- 히어로: 하늘 돔 ---- */
+.hero { padding: 80px 0 48px; min-height: 400px; }
+.hero-art {
+  display: block; position: absolute; right: -24px; top: 0; width: 640px; height: 420px;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22640%22 height=%22420%22 viewBox=%220 0 640 420%22%3E%3Ccircle cx=%22330%22 cy=%22430%22 r=%22400%22 fill=%22none%22 stroke=%22%23f2c94c%22 stroke-opacity=%220.32%22 stroke-width=%221.4%22/%3E%3Ccircle cx=%22330%22 cy=%22430%22 r=%22333%22 fill=%22none%22 stroke=%22%23f2c94c%22 stroke-opacity=%220.14%22 stroke-width=%221%22/%3E%3Ccircle cx=%22330%22 cy=%22430%22 r=%22267%22 fill=%22none%22 stroke=%22%23f2c94c%22 stroke-opacity=%220.14%22 stroke-width=%221%22/%3E%3Ccircle cx=%22330%22 cy=%22430%22 r=%22200%22 fill=%22none%22 stroke=%22%23f2c94c%22 stroke-opacity=%220.14%22 stroke-width=%221%22/%3E%3Ccircle cx=%22330%22 cy=%22430%22 r=%22133%22 fill=%22none%22 stroke=%22%23f2c94c%22 stroke-opacity=%220.14%22 stroke-width=%221%22/%3E%3Ccircle cx=%22330%22 cy=%22430%22 r=%2267%22 fill=%22none%22 stroke=%22%23f2c94c%22 stroke-opacity=%220.14%22 stroke-width=%221%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22-64%22 y2=%22361%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22-16%22 y2=%22230%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%2273%22 y2=%22124%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22193%22 y2=%2254%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22330%22 y2=%2230%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22467%22 y2=%2254%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22587%22 y2=%22124%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22676%22 y2=%22230%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Cline x1=%22330%22 y1=%22430%22 x2=%22724%22 y2=%22361%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.10%22/%3E%3Ccircle cx=%22207%22 cy=%2263%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.39%22/%3E%3Ccircle cx=%22343%22 cy=%22154%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.85%22/%3E%3Ccircle cx=%22268%22 cy=%22101%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.38%22/%3E%3Ccircle cx=%22362%22 cy=%22398%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.67%22/%3E%3Ccircle cx=%22254%22 cy=%22410%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.66%22/%3E%3Ccircle cx=%2285%22 cy=%22176%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.66%22/%3E%3Ccircle cx=%22359%22 cy=%22286%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.67%22/%3E%3Ccircle cx=%22409%22 cy=%22156%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.66%22/%3E%3Ccircle cx=%22396%22 cy=%22208%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.78%22/%3E%3Ccircle cx=%22298%22 cy=%22388%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.51%22/%3E%3Ccircle cx=%22508%22 cy=%22294%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.40%22/%3E%3Ccircle cx=%22192%22 cy=%22208%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.75%22/%3E%3Ccircle cx=%22184%22 cy=%22412%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.63%22/%3E%3Ccircle cx=%22106%22 cy=%22144%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.58%22/%3E%3Ccircle cx=%22357%22 cy=%22331%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.54%22/%3E%3Ccircle cx=%22224%22 cy=%22209%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.39%22/%3E%3Ccircle cx=%22468%22 cy=%22130%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.51%22/%3E%3Ccircle cx=%22247%22 cy=%22281%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.87%22/%3E%3Ccircle cx=%22227%22 cy=%22257%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.38%22/%3E%3Ccircle cx=%22158%22 cy=%22164%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.39%22/%3E%3Ccircle cx=%22287%22 cy=%22231%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.80%22/%3E%3Ccircle cx=%22553%22 cy=%22117%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.89%22/%3E%3Ccircle cx=%22437%22 cy=%22160%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.43%22/%3E%3Ccircle cx=%22113%22 cy=%2297%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.36%22/%3E%3Ccircle cx=%22180%22 cy=%2261%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.69%22/%3E%3Ccircle cx=%22204%22 cy=%2253%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.60%22/%3E%3Ccircle cx=%22557%22 cy=%22400%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.57%22/%3E%3Ccircle cx=%22252%22 cy=%22202%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.38%22/%3E%3Ccircle cx=%22104%22 cy=%22143%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.41%22/%3E%3Ccircle cx=%22363%22 cy=%22225%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.69%22/%3E%3Ccircle cx=%22241%22 cy=%22266%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.68%22/%3E%3Ccircle cx=%22303%22 cy=%2248%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.90%22/%3E%3Ccircle cx=%22298%22 cy=%22203%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.43%22/%3E%3Ccircle cx=%22480%22 cy=%22311%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.81%22/%3E%3Ccircle cx=%22609%22 cy=%22222%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.73%22/%3E%3Ccircle cx=%22585%22 cy=%22318%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.89%22/%3E%3Ccircle cx=%22553%22 cy=%22292%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.64%22/%3E%3Ccircle cx=%22581%22 cy=%22149%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.64%22/%3E%3Ccircle cx=%22499%22 cy=%22138%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.69%22/%3E%3Ccircle cx=%22505%22 cy=%22318%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.79%22/%3E%3Ccircle cx=%22524%22 cy=%22311%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.46%22/%3E%3Ccircle cx=%22315%22 cy=%22307%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.78%22/%3E%3Ccircle cx=%22302%22 cy=%2281%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.60%22/%3E%3Ccircle cx=%22600%22 cy=%22415%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.39%22/%3E%3Ccircle cx=%2265%22 cy=%22197%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.46%22/%3E%3Ccircle cx=%22399%22 cy=%22378%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.61%22/%3E%3Ccircle cx=%22418%22 cy=%22336%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.81%22/%3E%3Ccircle cx=%2277%22 cy=%22163%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.61%22/%3E%3Ccircle cx=%22114%22 cy=%22331%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.40%22/%3E%3Ccircle cx=%22606%22 cy=%22303%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.57%22/%3E%3Ccircle cx=%22606%22 cy=%22304%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.90%22/%3E%3Ccircle cx=%2218%22 cy=%22248%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.79%22/%3E%3Ccircle cx=%2294%22 cy=%22347%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.71%22/%3E%3Ccircle cx=%22224%22 cy=%22230%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.36%22/%3E%3Ccircle cx=%22512%22 cy=%22305%22 r=%220.7%22 fill=%22%23e6e9f5%22 fill-opacity=%220.64%22/%3E%3Ccircle cx=%22598%22 cy=%22182%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.80%22/%3E%3Ccircle cx=%22135%22 cy=%22106%22 r=%221.2%22 fill=%22%23e6e9f5%22 fill-opacity=%220.63%22/%3E%3Ccircle cx=%22489%22 cy=%22137%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.81%22/%3E%3Ccircle cx=%2239%22 cy=%22311%22 r=%221.6%22 fill=%22%23e6e9f5%22 fill-opacity=%220.71%22/%3E%3Ccircle cx=%22522%22 cy=%22217%22 r=%220.9%22 fill=%22%23e6e9f5%22 fill-opacity=%220.64%22/%3E%3Cpath d=%22M210,150 L262,140 L300,165 L345,182 L360,240 L440,250 L452,190 L345,182%22 fill=%22none%22 stroke=%22%23f2c94c%22 stroke-opacity=%22.55%22 stroke-width=%221.2%22/%3E%3Ccircle cx=%22210%22 cy=%22150%22 r=%223.2%22 fill=%22%23fff6d8%22/%3E%3Ccircle cx=%22210%22 cy=%22150%22 r=%228%22 fill=%22%23f2c94c%22 fill-opacity=%22.15%22/%3E%3Ccircle cx=%22262%22 cy=%22140%22 r=%223.2%22 fill=%22%23fff6d8%22/%3E%3Ccircle cx=%22262%22 cy=%22140%22 r=%228%22 fill=%22%23f2c94c%22 fill-opacity=%22.15%22/%3E%3Ccircle cx=%22300%22 cy=%22165%22 r=%223.2%22 fill=%22%23fff6d8%22/%3E%3Ccircle cx=%22300%22 cy=%22165%22 r=%228%22 fill=%22%23f2c94c%22 fill-opacity=%22.15%22/%3E%3Ccircle cx=%22345%22 cy=%22182%22 r=%223.2%22 fill=%22%23fff6d8%22/%3E%3Ccircle cx=%22345%22 cy=%22182%22 r=%228%22 fill=%22%23f2c94c%22 fill-opacity=%22.15%22/%3E%3Ccircle cx=%22360%22 cy=%22240%22 r=%223.2%22 fill=%22%23fff6d8%22/%3E%3Ccircle cx=%22360%22 cy=%22240%22 r=%228%22 fill=%22%23f2c94c%22 fill-opacity=%22.15%22/%3E%3Ccircle cx=%22440%22 cy=%22250%22 r=%223.2%22 fill=%22%23fff6d8%22/%3E%3Ccircle cx=%22440%22 cy=%22250%22 r=%228%22 fill=%22%23f2c94c%22 fill-opacity=%22.15%22/%3E%3Ccircle cx=%22452%22 cy=%22190%22 r=%223.2%22 fill=%22%23fff6d8%22/%3E%3Ccircle cx=%22452%22 cy=%22190%22 r=%228%22 fill=%22%23f2c94c%22 fill-opacity=%22.15%22/%3E%3Ctext x=%22-52%22 y=%22420%22 fill=%22%2397a0c3%22 font-size=%2212%22 font-family=%22sans-serif%22%3EE%3C/text%3E%3Ctext x=%22704%22 y=%22420%22 fill=%22%2397a0c3%22 font-size=%2212%22 font-family=%22sans-serif%22%3EW%3C/text%3E%3Ctext x=%22325%22 y=%2222%22 fill=%22%2397a0c3%22 font-size=%2212%22 font-family=%22sans-serif%22%3E%EC%B2%9C%EC%A0%95%3C/text%3E%3C/svg%3E") no-repeat right top / contain;
+  pointer-events: none;
+}
+.hero h1 { font-weight: 700; font-size: clamp(2rem, 5vw, 3.1rem); letter-spacing: -.025em; max-width: 13em; }
+.hero .lead { font-size: 1.05rem; }
+.search { background: var(--surface); border-color: var(--line); max-width: 520px; }
+.search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.search input::placeholder { color: var(--muted); }
+
+/* ---- 섹션과 카드 ---- */
+.section-title { font-weight: 600; border-left-width: 3px; border-left-color: var(--c, var(--accent)); }
+.card { background: var(--surface); border-color: var(--line); }
+a.card:hover { border-color: color-mix(in srgb, var(--c, var(--accent)) 70%, white); box-shadow: var(--shadow); }
+.card .tag { color: color-mix(in srgb, var(--c, var(--accent)) 45%, white); }
+.big-card { border-top-width: 3px; border-top-color: var(--c, var(--accent)); }
+.card.soon { background: transparent; }
+.chip { background: var(--accent-soft); color: var(--accent); }
+
+/* ---- 버튼과 패널 ---- */
+.btn { background: var(--accent); color: #1c1704; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+.panel, .notice, .admin-box, .item, .course-card { background: var(--surface); border-color: var(--line); }
+.toc a:hover { background: var(--surface-2); }
+.site-footer { border-top-color: var(--line); }
+
+@media (max-width: 760px) {
+  .hero { min-height: 0; padding-top: 48px; }
+  .hero-art { width: 360px; height: 240px; right: -60px; opacity: .55; }
+  .nav { background: var(--surface); }
+}
