@@ -1,0 +1,152 @@
+/* =========================================================
+   디자인 · 밤하늘 관측소
+   깊은 남색 하늘에 별을 깔고, 태양빛 노랑을 강조색으로 씁니다.
+   시뮬레이션 배경과 같은 계열이라 페이지를 오가도 화면이 이어집니다.
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap");
+
+:root, :root:root {
+  --bg: #070b1a;
+  --surface: #0e1530;
+  --surface-2: #16204a;
+  --text: #e6ebf7;
+  --muted: #98a2bd;
+  --line: #1f2a52;
+  --accent: #ffcf6b;
+  --accent-soft: rgba(255, 207, 107, .12);
+  --danger: #f87171;
+  --ok: #4ade80;
+  --sim-bg: #050816;
+  --radius: 16px;
+  --shadow: 0 16px 40px rgba(0, 0, 0, .5);
+  --title: #ffffff;
+  --link: #a9c4ff;
+}
+html { background: var(--bg); }
+body {
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif;
+  background-color: var(--bg); color: var(--text);
+  background-image: radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.8) 50%, transparent 51%),radial-gradient(1px 1px at 33% 62%, rgba(255,255,255,0.6) 50%, transparent 51%),radial-gradient(1.5px 1.5px at 71% 24%, rgba(255,255,255,0.8) 50%, transparent 51%),radial-gradient(1px 1px at 86% 70%, rgba(255,255,255,0.55) 50%, transparent 51%),radial-gradient(1px 1px at 52% 9%, rgba(255,255,255,0.65) 50%, transparent 51%),radial-gradient(1.5px 1.5px at 22% 84%, rgba(255,255,255,0.6) 50%, transparent 51%),radial-gradient(1px 1px at 63% 46%, rgba(255,255,255,0.45) 50%, transparent 51%),radial-gradient(1px 1px at 93% 12%, rgba(255,255,255,0.65) 50%, transparent 51%),radial-gradient(1px 1px at 6% 48%, rgba(255,255,255,0.5) 50%, transparent 51%),radial-gradient(1.5px 1.5px at 44% 36%, rgba(255,255,255,0.4) 50%, transparent 51%);
+  background-size: 420px 420px;
+}
+a { color: var(--link); }
+a:hover { color: #ffffff; }
+h1, h2, h3, .page-title { color: var(--title); }
+
+/* ---- 머리말 ---- */
+.site-header { background: rgba(7, 11, 26, .86); backdrop-filter: blur(10px); border-bottom-color: #1c2440; }
+.site-header .inner { height: 68px; }
+.logo { display: flex; align-items: center; gap: 0; color: #ffffff; white-space: pre; }
+.logo::before {
+  content: ""; width: 28px; height: 28px; flex: none; margin-right: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='6' fill='%23ffcf6b'/%3E%3Cellipse cx='14' cy='14' rx='12.5' ry='5' fill='none' stroke='%238fb4ff' stroke-width='1.5' transform='rotate(-25 14 14)'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.logo span { color: inherit; }
+.nav-link { color: var(--text); border-radius: 999px; padding: 8px 14px; }
+.nav-link:hover { background: var(--surface-2); }
+.nav-link.disabled { color: #7d87a3; }
+.dropdown { background: var(--surface-2); border-color: #2a3560; }
+.dropdown a { color: var(--text); }
+.dropdown a:hover { background: #1f2b5c; }
+.menu-btn { color: var(--text); border-color: #2a3560; }
+
+/* ---- 첫 화면 ---- */
+.hero { padding: 80px 0 40px; min-height: 440px; }
+.hero-art {
+  display: block; position: absolute; right: 0; top: 50px; width: 380px; height: 320px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='320' viewBox='0 0 360 300'%3E%0A%3Cellipse cx='180' cy='150' rx='160' ry='64' fill='none' stroke='%232c3a6b' stroke-width='1.5' stroke-dasharray='4 6'/%3E%0A%3Cellipse cx='180' cy='150' rx='104' ry='40' fill='none' stroke='%233a4b85' stroke-width='1.5'/%3E%0A%3Ccircle cx='180' cy='150' r='46' fill='%23ffcf6b' opacity='0.12'/%3E%0A%3Ccircle cx='180' cy='150' r='30' fill='%23ffcf6b'/%3E%0A%3Ccircle cx='282' cy='140' r='11' fill='%235b8cff'/%3E%0A%3Ccircle cx='40' cy='168' r='7' fill='%23c9d4f2'/%3E%0A%3Cg transform='translate(68 262)'%3E%0A%3Ccircle cx='0' cy='0' r='9' fill='%232a3150'/%3E%3Cpath d='M0 -9 A9 9 0 0 1 0 9 A4 9 0 0 0 0 -9' fill='%23f3ecd2'/%3E%0A%3Ccircle cx='56' cy='0' r='9' fill='%232a3150'/%3E%3Cpath d='M56 -9 A9 9 0 0 1 56 9 Z' fill='%23f3ecd2'/%3E%0A%3Ccircle cx='112' cy='0' r='9' fill='%232a3150'/%3E%3Cpath d='M112 -9 A9 9 0 0 1 112 9 A4 9 0 0 1 112 -9' fill='%23f3ecd2'/%3E%0A%3Ccircle cx='168' cy='0' r='9' fill='%23f3ecd2'/%3E%0A%3Ccircle cx='224' cy='0' r='9' fill='%232a3150'/%3E%3Cpath d='M224 -9 A9 9 0 0 0 224 9 A4 9 0 0 1 224 -9' fill='%23f3ecd2'/%3E%0A%3C/g%3E%3C/svg%3E") no-repeat center / contain; pointer-events: none;
+}
+.eyebrow {
+  display: block; margin: 0 0 16px; font-family: "Space Grotesk", sans-serif;
+  font-size: 14px; letter-spacing: 3px; color: var(--accent);
+}
+.hero h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.22; max-width: 11em; margin-bottom: 0; }
+.hero .lead { font-size: 1.12rem; color: #b7c0d8; max-width: 30em; margin-top: 18px; }
+.search { margin-top: 32px; height: 56px; border-radius: 14px; background: #10172e; border-color: #2a3560; max-width: 560px; padding: 0 20px; }
+.search svg { color: #8fb4ff; }
+.search input { color: #ffffff; }
+.search input::placeholder { color: #7d87a3; }
+.search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+
+/* ---- 섹션 제목 ---- */
+.section-title { border-left: none; padding-left: 0; font-size: 1.5rem; margin: 64px 0 20px; color: var(--title); }
+.unit-block .section-title, .with-toc .section-title { font-size: 1.25rem; padding-left: 12px; border-left: 3px solid var(--c, var(--accent)); }
+
+/* ---- 카드 ---- */
+.cards { gap: 16px; }
+.card { background: var(--surface); border-color: var(--line); border-radius: 16px; padding: 22px; color: var(--text); }
+a.card:hover { border-color: #3a4b85; box-shadow: var(--shadow); }
+.card h3 { color: #ffffff; }
+.card p { color: var(--muted); }
+.card .tag { color: color-mix(in srgb, var(--c, var(--accent)) 45%, white); font-weight: 500; }
+.card.soon { background: transparent; border-color: #2a3560; opacity: 1; }
+.card.soon h3 { color: #c3cde6; }
+.card.soon .tag::after { color: #7d87a3; }
+.chip { background: #1a2550; color: #b9ccff; }
+a.chip:hover { background: #22306a; }
+
+/* 과목 카드: 번호 + 과목명 + 대단원(한 줄에 하나) */
+#courseCards { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+#courseCards .big-card { border-top: 1px solid var(--line); gap: 10px; min-height: 170px; }
+.big-card .no { display: block; font-family: "Space Grotesk", sans-serif; font-size: 13px; color: var(--accent); }
+#courseCards .big-card h3 { font-size: 1.2rem; }
+#courseCards .big-card .units { font-size: 13px; line-height: 1.6; color: var(--muted); gap: 3px; }
+.big-card .count { font-size: 13px; color: #c3cde6; }
+.big-card .count::after { content: " →"; }
+
+/* 주제 카드: 왼쪽 아이콘 */
+#topicCards { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+#topicCards .big-card {
+  border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: 56px 1fr; column-gap: 18px; row-gap: 4px; align-items: center;
+}
+#topicCards .big-card::before {
+  content: ""; grid-row: 1 / span 3; width: 56px; height: 56px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Ccircle cx='28' cy='28' r='26' fill='%2316204a'/%3E%3Ccircle cx='28' cy='28' r='9' fill='none' stroke='%238fb4ff' stroke-width='2.5'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+#topicCards .topic-solid::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Ccircle cx='28' cy='28' r='26' fill='%233a2414'/%3E%3Cpath d='M2 30 Q28 22 54 30 L54 36 Q28 28 2 36 Z' fill='%23e0894a'/%3E%3Cpath d='M4 40 Q28 33 52 40 L49 46 Q28 40 7 46 Z' fill='%23b5652e'/%3E%3C/svg%3E"); }
+#topicCards .topic-fluid::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Ccircle cx='28' cy='28' r='26' fill='%230f3440'/%3E%3Cpath d='M8 24 q6 -6 12 0 t12 0 t12 0' fill='none' stroke='%235fd0e0' stroke-width='3'/%3E%3Cpath d='M8 34 q6 -6 12 0 t12 0 t12 0' fill='none' stroke='%232fa3b5' stroke-width='3'/%3E%3C/svg%3E"); }
+#topicCards .topic-astro::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Ccircle cx='28' cy='28' r='26' fill='%23241a4a'/%3E%3Ccircle cx='28' cy='28' r='7' fill='%23ffcf6b'/%3E%3Cellipse cx='28' cy='28' rx='20' ry='8' fill='none' stroke='%23a78bfa' stroke-width='2' transform='rotate(-20 28 28)'/%3E%3C/svg%3E"); }
+#topicCards .big-card h3 { font-size: 1.2rem; }
+#topicCards .big-card p { font-size: 13px; }
+
+/* ---- 과목 · 주제 페이지 목차 ---- */
+.breadcrumb { color: var(--muted); }
+.lead { color: #b7c0d8; }
+.toc h4 { color: var(--muted); }
+.toc a { color: var(--text); }
+.toc a:hover { background: var(--surface-2); }
+.toc a .n { color: var(--accent); font-family: "Space Grotesk", sans-serif; }
+.empty { color: #7d87a3; }
+
+/* ---- 시뮬레이션 페이지 ---- */
+.sim-frame { background: var(--sim-bg); border: 1px solid var(--line); }
+.panel, .notice { background: var(--surface); border-color: var(--line); }
+.panel h2 { color: #ffffff; }
+.panel b { color: var(--accent); font-weight: 500; }
+
+/* ---- 버튼 ---- */
+.btn { background: var(--accent); color: #1a1404; font-weight: 700; }
+.btn:hover { filter: brightness(1.06); }
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid #2a3560; }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn.danger { background: #b91c1c; color: #ffffff; }
+
+/* ---- 관리 페이지 ---- */
+.admin-box, .item, .course-card, .savebar { background: var(--surface); border-color: var(--line); }
+dialog { background: var(--surface); color: var(--text); }
+.tab.on { color: #ffffff; border-bottom-color: var(--accent); }
+.pill { background: var(--surface-2); }
+
+.site-footer { border-top-color: #1c2440; color: #8a93ad; }
+.site-footer a { color: var(--link); }
+
+@media (max-width: 900px) {
+  .hero-art { width: 260px; height: 220px; top: 30px; opacity: .45; }
+}
+@media (max-width: 760px) {
+  .hero { min-height: 0; padding-top: 48px; }
+  .hero-art { display: none; }
+  .nav { background: var(--surface); }
+  .dropdown { background: transparent; }
+}

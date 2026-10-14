@@ -14,10 +14,12 @@
 
 <main>
   <section class="hero">
+    <div class="hero-art" aria-hidden="true"></div>
+    <p class="eyebrow">EARTH &amp; SPACE SIMULATIONS</p>
     <h1>눈으로 보고, 손으로 움직이는 지구과학</h1>
     <p class="lead">중·고등학교 지구과학 수업을 위한 시뮬레이션 모음입니다.</p>
     <label class="search">
-      <span>🔍</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       <input id="q" type="search" placeholder="시뮬레이션 검색 (예: 달, 엘니뇨, 판)">
     </label>
   </section>
@@ -43,18 +45,20 @@ const { S, esc, card, url } = App;
 const ready = S.sims.filter(s => s.status === 'ready');
 
 // 과목 카드
-document.getElementById('courseCards').innerHTML = S.courses.filter(c => c.level === 'high').map(c => {
+// 대단원은 한 줄에 하나씩 표시합니다.
+document.getElementById('courseCards').innerHTML = S.courses.filter(c => c.level === 'high').map((c, i) => {
   const n = ready.filter(s => (s.links || []).some(l => l.course === c.id)).length;
   return `<a class="card big-card" href="${url.course(c.id)}">
+    <span class="no">${String(i + 1).padStart(2, '0')}</span>
     <h3>${esc(c.name)}</h3>
-    <p>${c.units.map(u => esc(u.name)).slice(0, 3).join(' · ')}${c.units.length > 3 ? ' …' : ''}</p>
+    <p class="units">${c.units.map(u => `<span>${esc(u.name)}</span>`).join('')}</p>
     <span class="count">시뮬레이션 ${n}개</span></a>`;
 }).join('');
 
 // 주제 카드
 document.getElementById('topicCards').innerHTML = S.topics.map(t => {
   const n = ready.filter(s => s.topic === t.id).length;
-  return `<a class="card big-card" style="--c:${t.color}" href="${url.topic(t.id)}">
+  return `<a class="card big-card topic-${t.id}" style="--c:${t.color}" href="${url.topic(t.id)}">
     <h3>${esc(t.name)}</h3><p>${t.subs.map(esc).join(' · ')}</p>
     <span class="count">시뮬레이션 ${n}개</span></a>`;
 }).join('');

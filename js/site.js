@@ -7,6 +7,22 @@
   // 이 파일 위치로 사이트 최상위 주소를 계산 (어느 폴더의 페이지에서 불러도 동작)
   const ROOT = document.currentScript.src.replace(/js\/site\.js(\?.*)?$/, '');
 
+  // ---- 디자인 테마 ----
+  // 사이트 기본값은 sims.js의 "theme" (관리 페이지에서 고름).
+  // 주소 뒤에 ?theme=observatory 처럼 붙이면 이 창에서만 미리 볼 수 있습니다. (?theme=reset 으로 원래대로)
+  const THEMES = { basic: '기본', nightsky: '밤하늘 관측소', observatory: '관측소', contour: '지형도', strata: '지구 단면' };
+  const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+               set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
+  const qTheme = new URLSearchParams(location.search).get('theme');
+  if (qTheme === 'reset') ss.set('previewTheme', null);
+  else if (qTheme && THEMES[qTheme]) ss.set('previewTheme', qTheme);
+  const theme = ss.get('previewTheme') || (THEMES[S.theme] ? S.theme : 'basic');
+  if (theme !== 'basic') {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet'; link.href = ROOT + 'css/themes/' + theme + '.css';
+    document.head.appendChild(link);
+  }
+
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   // **굵게** 만 지원하는 아주 간단한 서식
@@ -77,6 +93,6 @@
       · <a href="${ROOT}admin.html">관리</a>`;
   }
 
-  window.App = { S, ROOT, esc, fmt, lines, course, topic, unit, param, url, card };
+  window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card };
   document.addEventListener('DOMContentLoaded', () => { header(); footer(); });
 })();
