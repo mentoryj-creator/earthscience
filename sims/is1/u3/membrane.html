@@ -1,0 +1,418 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>세포막 출입국 관리소</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅲ. 시스템과 상호작용 · 생명 시스템을 구성하는 세포</span></nav>
+  <header>
+    <h1>세포막 출입국 관리소</h1>
+    <p>세포막은 물질의 크기와 성질에 따라 통과를 조절하는 선택적 투과성을 가집니다. 확산으로 퍼지는 분자를 관찰하고, 농도가 다른 용액에 적혈구와 양파 표피세포를 넣어 삼투로 물이 어느 쪽으로 이동하는지 확인해 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="실험"><button type="button" data-tab="osm" aria-pressed="true">① 세포와 삼투</button><button type="button" data-tab="dif" aria-pressed="false">② 세포막 통과 실험</button></div>
+      <div id="osmCtl" style="display:contents">
+        <div class="grp"><span class="k">세포</span><div class="seg" role="group" aria-label="세포"><button type="button" data-cell="rbc" aria-pressed="true">적혈구 (동물)</button><button type="button" data-cell="onion" aria-pressed="false">양파 표피세포 (식물)</button></div></div>
+        <div class="slider"><div class="slider-top"><label for="conc" id="concLbl">바깥 소금물 농도</label><output id="cOut">0.9 %</output></div><input id="conc" type="range" min="0" max="100" step="0.5" value="30"><div class="ticks" id="cTicks"><span>0 (증류수)</span><span>0.9 %</span><span>3 %</span></div></div>
+      </div>
+      <div id="difCtl" style="display:none">
+        <div class="presets"><button type="button" id="aO">+ 산소 (작음)</button><button type="button" id="aW">+ 물 (작음)</button><button type="button" id="aS">+ 설탕 (큼)</button><button type="button" id="aR">↺ 비우기</button></div>
+      </div>
+      <button type="button" id="pGame" class="go">💉 세포 처방 게임</button>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">처방 1 / 5</span>
+      <div class="task" id="gTask">–</div>
+      <button type="button" id="gApply" class="go">처방 적용</button>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="540" role="img" aria-label="세포와 주변 용액의 입자"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#3e8ef7;border-radius:50%"></i>물 분자</span>
+      <span class="key"><i style="background:#f28c28;border-radius:50%"></i>용질 (소금·설탕, 막을 잘 통과하지 못함)</span>
+      <span class="key"><i style="background:#e5484d;border-radius:50%"></i>산소 (작아서 잘 통과)</span>
+      <div class="fsinfo" id="fsInfo"></div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k" id="bigK">세포 부피</div><div class="v" id="vV">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k" id="k1">바깥 용액</span><span class="v txt" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k" id="k2">물의 알짜 이동</span><span class="v txt" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k" id="k3">세포의 변화</span><span class="v txt" id="v3">–</span><span class="d" id="d3"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>세포막을 통한 물질의 이동</h2>
+      <ol class="chain">
+        <li>확산: 물질이 농도가 높은 쪽에서 낮은 쪽으로 퍼져 나가는 현상. 산소, 이산화 탄소처럼 작은 분자는 세포막을 쉽게 통과한다.</li>
+        <li>삼투: 반투과성 막을 사이에 두고 용질의 농도가 낮은 쪽에서 높은 쪽으로 물이 이동하는 현상.</li>
+        <li>저장액(세포 안보다 묽은 용액): 물이 들어와 적혈구는 부풀다 터지고(용혈), 식물 세포는 팽팽해진다(팽윤).</li>
+        <li>고장액(세포 안보다 진한 용액): 물이 빠져나가 적혈구는 쪼그라들고, 식물 세포는 세포막이 세포벽에서 떨어진다(원형질 분리).</li>
+      </ol>
+      <div class="impact"><b>생활 속 삼투</b>병원에서 쓰는 생리식염수(0.9 % 소금물)는 혈액과 농도가 같은 등장액이다. 배추를 소금에 절이면 물이 빠져나와 숨이 죽는다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>적혈구를 증류수에 넣으면 어떻게 되나요? 그 까닭을 물의 이동으로 설명해 보세요.</li>
+      <li>양파 표피세포는 증류수에 넣어도 터지지 않습니다. 동물 세포와 무엇이 달라서일까요?</li>
+      <li>20 % 설탕물에 넣은 양파 표피세포에서 원형질 분리가 일어나는 까닭은?</li>
+      <li>세포막 통과 실험에서 설탕 분자가 막을 통과하지 못하는 것은 세포막의 어떤 성질 때문일까요?</li>
+    </ol>
+  </section>
+  <p class="foot">세포 안 용액은 0.9 % 소금물(적혈구), 약 10 % 설탕물(양파 표피세포)과 농도가 같다고 가정했습니다. 세포 부피 변화는 세포 속 용질의 양이 일정하다는 단순 모형으로 계산했습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,rand,shuffle}=Lab,tok=Lab.tok;
+const W=1000,H=540,CX=330,CY=270;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const st={tab:'osm',cell:'rbc',s:30,V:1,Vt:1,hist:[],t:0,lysed:false,game:null,parts:[],dparts:[]};
+/* 농도 */
+function conc(){return st.cell==='rbc'?st.s/100*3:st.s/100*30;} // %
+const inside=()=>st.cell==='rbc'?0.9:10;
+function targetV(){const c=conc(),ci=inside(),b=0.35;if(c<=0.001)return st.cell==='rbc'?3:1.12;let v=b+(1-b)*ci/c;if(st.cell==='onion')v=Math.min(v,1.12);return clamp(v,0.35,3);}
+function tonic(){const c=conc(),ci=inside();if(Math.abs(c-ci)/ci<0.08)return 'iso';return c<ci?'hypo':'hyper';}
+/* 입자 (삼투) */
+function makeParts(){const P=[];for(let i=0;i<120;i++)P.push({t:'w',x:rand(30,630),y:rand(30,510),vx:rand(-1,1),vy:rand(-1,1)});
+  const nOut=Math.round(conc()/inside()*14);for(let i=0;i<nOut;i++)P.push({t:'s',x:rand(30,630),y:rand(30,510),vx:rand(-1,1),vy:rand(-1,1),out:true});
+  for(let i=0;i<14;i++){const a=rand(0,7),r=rand(0,60);P.push({t:'s',x:CX+Math.cos(a)*r,y:CY+Math.sin(a)*r*.7,vx:rand(-1,1),vy:rand(-1,1),out:false});}st.parts=P;}
+function cellR(){return 120*Math.sqrt(st.V);} // 반지름(가로)
+function stepParts(){const R=cellR(),ry=st.cell==='rbc'?R*.62:R*.7;const net=st.Vt-st.V;
+  st.parts.forEach(p=>{p.vx+=rand(-.3,.3);p.vy+=rand(-.3,.3);p.vx*=.95;p.vy*=.95;p.x+=p.vx*2*Lab.MOTION;p.y+=p.vy*2*Lab.MOTION;
+    const inC=((p.x-CX)/R)**2+((p.y-CY)/ry)**2<1;
+    if(p.t==='s'){ if(p.out&&inC){const a=Math.atan2(p.y-CY,p.x-CX);p.x=CX+Math.cos(a)*(R+6);p.y=CY+Math.sin(a)*(ry+6);p.vx*=-1;p.vy*=-1;}
+      if(!p.out&&!inC){const a=Math.atan2(p.y-CY,p.x-CX);p.x=CX+Math.cos(a)*(R-8);p.y=CY+Math.sin(a)*(ry-8);p.vx*=-1;p.vy*=-1;}}
+    else if(Math.abs(net)>0.02){const a=Math.atan2(CY-p.y,CX-p.x);const k=net>0?0.012:-0.012;p.vx+=Math.cos(a)*k;p.vy+=Math.sin(a)*k;}
+    if(p.x<20||p.x>640)p.vx*=-1;if(p.y<20||p.y>520)p.vy*=-1;p.x=clamp(p.x,20,640);p.y=clamp(p.y,20,520);});}
+function drawCell(){const R=cellR();const ton=tonic();
+  ctx.fillStyle=Lab.isDark()?'#10283a':'#e2f0fa';ctx.fillRect(0,0,660,H);
+  // 바깥 용액 진하기
+  ctx.fillStyle=`rgba(242,140,40,${clamp(conc()/inside()*0.06,0,0.25)})`;ctx.fillRect(0,0,660,H);
+  if(st.cell==='rbc'){
+    if(st.lysed){ctx.strokeStyle='rgba(194,59,59,.5)';ctx.lineWidth=3;ctx.setLineDash([8,10]);ctx.beginPath();ctx.ellipse(CX,CY,R,R*.62,0,0,7);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(194,59,59,.12)';ctx.beginPath();ctx.ellipse(CX,CY,R*1.2,R*.8,0,0,7);ctx.fill();label('세포막이 터짐 (용혈)',CX,CY,{size:18,color:tok.bad});}
+    else{const crin=st.V<0.85;ctx.fillStyle='#d9534f';ctx.strokeStyle='#a33';ctx.lineWidth=2;ctx.beginPath();const n=120;for(let i=0;i<=n;i++){const a=i/n*Math.PI*2;const k=crin?1+0.12*(1-st.V)/0.5*Math.sin(a*14)*1.4:1;ctx.lineTo(CX+Math.cos(a)*R*k,CY+Math.sin(a)*R*.62*k);}ctx.closePath();ctx.fill();ctx.stroke();
+      if(st.V<1.25&&!crin){ctx.fillStyle='rgba(255,180,180,.5)';ctx.beginPath();ctx.ellipse(CX,CY,R*.45,R*.25,0,0,7);ctx.fill();}}
+  }else{
+    const wallW=260,wallH=170;ctx.strokeStyle='#4f9a6b';ctx.lineWidth=8;rr(ctx,CX-wallW/2,CY-wallH/2,wallW,wallH,18);ctx.stroke();label('세포벽',CX+wallW/2-30,CY-wallH/2-14,{size:12,color:'#3f7f55'});
+    const f=clamp(Math.sqrt(st.V/1.12),0.45,1);const w=(wallW-14)*f,h=(wallH-14)*f;ctx.fillStyle='#b5305f';ctx.globalAlpha=.8;rr(ctx,CX-w/2,CY-h/2,w,h,16*f);ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle='#7a1f40';ctx.lineWidth=2;rr(ctx,CX-w/2,CY-h/2,w,h,16*f);ctx.stroke();ctx.fillStyle='#e9c8d6';ctx.beginPath();ctx.arc(CX-w*.25,CY,10*f,0,7);ctx.fill();label('세포막',CX,CY-h/2+14,{size:11,color:'#fff',hw:0});
+    if(f<0.9)label('원형질 분리',CX,CY+wallH/2+24,{size:16,color:tok.warm});else if(st.V>1.05)label('팽윤 (팽팽해짐)',CX,CY+wallH/2+24,{size:16,color:tok.good});
+  }
+  // 입자
+  st.parts.forEach(p=>{if(st.lysed&&p.t==='s'&&!p.out)return;ctx.fillStyle=p.t==='w'?'#3e8ef7':'#f28c28';ctx.beginPath();ctx.arc(p.x,p.y,p.t==='w'?3:5,0,7);ctx.fill();});
+  // 물 이동 화살표
+  const net=st.Vt-st.V;if(Math.abs(net)>0.03&&!st.lysed){ctx.strokeStyle=ctx.fillStyle=tok.cool;ctx.lineWidth=4;for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4;const r1=net>0?R+70:R+10,r2=net>0?R+10:R+70;Lab.arrow(ctx,CX+Math.cos(a)*r1,CY+Math.sin(a)*r1*.75,CX+Math.cos(a)*r2,CY+Math.sin(a)*r2*.75,12);}
+    label(net>0?'물이 세포 안으로':'물이 세포 밖으로',CX,40,{size:16,color:tok.cool});}
+  // 그래프
+  const gx=700,gy=60,gw=260,gh=180;ctx.fillStyle=tok.surface;rr(ctx,gx-40,gy-30,gw+60,gh+70,10);ctx.fill();label('세포 부피 변화',gx+gw/2,gy-14,{size:13});
+  const vmax=st.cell==='rbc'?2:1.2,vmin=0.3;const Y=v=>gy+gh-(v-vmin)/(vmax-vmin)*gh;
+  [0.5,1,1.5,2].filter(v=>v<=vmax).forEach(v=>{ctx.strokeStyle=v===1?tok.muted:tok.line;ctx.beginPath();ctx.moveTo(gx,Y(v));ctx.lineTo(gx+gw,Y(v));ctx.stroke();label(`${v}`,gx-6,Y(v),{size:10,align:'right',color:tok.muted,hw:0,mono:true});});
+  if(st.cell==='rbc'){ctx.strokeStyle=tok.bad;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(gx,Y(1.6));ctx.lineTo(gx+gw,Y(1.6));ctx.stroke();ctx.setLineDash([]);label('터지는 한계',gx+gw-4,Y(1.6)-8,{size:10,align:'right',color:tok.bad,hw:2});}
+  ctx.strokeStyle=tok.accent;ctx.lineWidth=2.5;ctx.beginPath();st.hist.forEach((v,i)=>{const x=gx+i/200*gw;i?ctx.lineTo(x,Y(Math.min(v,vmax))):ctx.moveTo(x,Y(Math.min(v,vmax)));});ctx.stroke();
+  label('시간 →',gx+gw,gy+gh+14,{size:10,align:'right',color:tok.muted,hw:0});
+  // 농도 비교 막대
+  const bx=700,by=330;label('용질 농도 비교',bx+130,by-14,{size:13});const mx=Math.max(conc(),inside())*1.15||1;
+  [['세포 안',inside(),'#b5305f'],['바깥',conc(),'#f28c28']].forEach(([n,v,c],i)=>{const y=by+10+i*40;label(n,bx,y+10,{size:12,align:'left',hw:0});ctx.fillStyle=tok.strip;ctx.fillRect(bx+60,y,200,20);ctx.fillStyle=c;ctx.fillRect(bx+60,y,200*v/mx,20);label(`${v.toFixed(st.cell==='rbc'?2:1)} %`,bx+266,y+10,{size:12,align:'left',hw:0,mono:true});});
+  label(ton==='iso'?'등장액: 물의 이동이 평형':ton==='hypo'?'저장액: 바깥이 더 묽음':'고장액: 바깥이 더 진함',bx+130,by+110,{size:14,color:ton==='iso'?tok.good:ton==='hypo'?tok.cool:tok.warm});
+}
+/* 확산 상자 */
+const MX=500;
+function addD(t,n){for(let i=0;i<n;i++)st.dparts.push({t,x:rand(40,MX-20),y:rand(40,500),vx:rand(-2,2),vy:rand(-2,2)});}
+function stepD(){st.dparts.forEach(p=>{p.vx+=rand(-.4,.4);p.vy+=rand(-.4,.4);p.vx*=.96;p.vy*=.96;const ox=p.x;p.x+=p.vx*2*Lab.MOTION;p.y+=p.vy*2*Lab.MOTION;
+  if((ox<MX)!==(p.x<MX)){const pore=((p.y-40)%60)<22;const small=p.t!=='s';if(!(pore&&small)){p.x=ox;p.vx*=-1;}}
+  if(p.x<30||p.x>970)p.vx*=-1;if(p.y<30||p.y>510)p.vy*=-1;p.x=clamp(p.x,30,970);p.y=clamp(p.y,30,510);});}
+function drawD(){ctx.fillStyle=Lab.isDark()?'#10283a':'#e2f0fa';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#e3b341';for(let y=20;y<520;y+=60){ctx.fillRect(MX-6,y+22,12,38);}label('세포막 (작은 구멍)',MX,14,{size:12,color:tok.gold});
+  st.dparts.forEach(p=>{ctx.fillStyle=p.t==='w'?'#3e8ef7':p.t==='o'?'#e5484d':'#f28c28';ctx.beginPath();ctx.arc(p.x,p.y,p.t==='s'?7:3.5,0,7);ctx.fill();});
+  const cnt=(t,side)=>st.dparts.filter(p=>p.t===t&&(side?p.x>=MX:p.x<MX)).length;
+  [['o','산소'],['w','물'],['s','설탕']].forEach(([t,n],i)=>{const l=cnt(t,0),r=cnt(t,1);if(l+r===0)return;label(`${n} 왼쪽 ${l} · 오른쪽 ${r}`,W/2,H-60+i*18,{size:13});});
+  if(!st.dparts.length)label('위 버튼으로 왼쪽 칸에 분자를 넣어 보세요',W/2,H/2,{size:16,color:tok.muted});
+  drawFx(ctx);}
+function draw(){S.begin();if(st.tab==='osm')drawCell();else drawD();drawFx(ctx);}
+/* 텍스트 */
+function update(){if(st.tab==='osm'){const c=conc(),ton=tonic();
+  $('cOut').textContent=`${c.toFixed(st.cell==='rbc'?2:1)} %`;$('concLbl').textContent=st.cell==='rbc'?'바깥 소금물 농도':'바깥 설탕물 농도';$('cTicks').innerHTML=st.cell==='rbc'?'<span>0 (증류수)</span><span>1.5 %</span><span>3 %</span>':'<span>0 (증류수)</span><span>15 %</span><span>30 %</span>';
+  $('bigK').textContent='세포 부피 (처음 = 1)';$('vV').textContent=st.lysed?'터짐':st.V.toFixed(2);$('vV').className='v '+(st.lysed?'no':'');
+  $('stName').textContent=st.lysed?'용혈':ton==='iso'?'등장액':ton==='hypo'?'저장액':'고장액';$('chip').dataset.s=st.lysed?'bad':ton==='iso'?'':ton==='hypo'?'cool':'warm';
+  $('k1').textContent='바깥 용액';$('v1').textContent=`${st.cell==='rbc'?'소금물':'설탕물'} ${c.toFixed(st.cell==='rbc'?2:1)} %`;$('d1').textContent=`세포 안 ≈ ${inside()} %`;
+  $('k2').textContent='물의 알짜 이동';$('v2').textContent=ton==='iso'?'들어오는 양 = 나가는 양':ton==='hypo'?'세포 안으로':'세포 밖으로';$('d2').textContent='농도가 낮은 쪽 → 높은 쪽';
+  $('k3').textContent='세포의 변화';$('v3').textContent=st.cell==='rbc'?(st.lysed?'용혈 (터짐)':st.V>1.05?'부풀어 오름':st.V<0.95?'쪼그라듦':'변화 없음'):(st.V<0.9?'원형질 분리':st.V>1.03?'팽윤 (세포벽이 터짐을 막음)':'변화 없음');$('d3').textContent=st.cell==='onion'?'세포벽이 있어 터지지 않음':'세포벽이 없음';
+  $('fsInfo').textContent=`${st.cell==='rbc'?'적혈구':'양파 표피세포'} · 바깥 ${c.toFixed(2)} % · ${$('stName').textContent} · 부피 ${st.V.toFixed(2)}`;}
+  else{$('bigK').textContent='통과한 분자';const pass=st.dparts.filter(p=>p.x>=MX).length;$('vV').textContent=`${pass}개`;$('vV').className='v';$('stName').textContent='선택적 투과성';$('chip').dataset.s='gold';
+    $('k1').textContent='작은 분자 (산소, 물)';$('v1').textContent='막의 구멍을 통과';$('d1').textContent='농도가 같아질 때까지 퍼짐(확산)';
+    $('k2').textContent='큰 분자 (설탕)';$('v2').textContent='통과하지 못함';$('d2').textContent='한쪽에 남음';$('k3').textContent='결론';$('v3').textContent='크기에 따라 통과가 조절됨';$('d3').textContent='';$('fsInfo').textContent=`세포막 통과 실험 · 오른쪽으로 간 분자 ${pass}개`;}}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('osmCtl').style.display=st.tab==='osm'?'contents':'none';$('difCtl').style.display=st.tab==='dif'?'contents':'none';$('pGame').hidden=st.tab!=='osm';update();});
+document.querySelectorAll('[data-cell]').forEach(b=>b.onclick=()=>{if(st.game)return;st.cell=b.dataset.cell;document.querySelectorAll('[data-cell]').forEach(x=>x.setAttribute('aria-pressed',x===b));reset();});
+function reset(){st.V=1;st.lysed=false;st.hist=[];st.Vt=targetV();makeParts();update();}
+$('conc').addEventListener('input',e=>{st.s=+e.target.value;if(st.game&&!st.game.applied)return;st.Vt=targetV();if(st.lysed){st.lysed=false;st.V=1;}makeParts();update();});
+$('aO').onclick=()=>{addD('o',30);update();};$('aW').onclick=()=>{addD('w',30);update();};$('aS').onclick=()=>{addD('s',20);update();};$('aR').onclick=()=>{st.dparts=[];update();};
+/* 게임 */
+const CASES=[
+ {cell:'rbc',q:'수술 환자에게 링거(수액)를 놓아야 해요. 적혈구가 그대로 유지되는 소금물 농도를 정하세요.',ok:v=>Math.abs(v-1)<0.06&&!st.lysed,ans:'0.9 % 생리식염수 (등장액)'},
+ {cell:'onion',q:'시든 양파 조직을 다시 싱싱하게(세포를 팽팽하게) 만들어 보세요.',ok:v=>v>1.03,ans:'세포 안보다 묽은 용액(증류수 등)'},
+ {cell:'onion',q:'현미경으로 원형질 분리를 관찰하려 해요. 원형질 분리가 확실히 일어나게 하세요.',ok:v=>v<0.85,ans:'세포 안보다 진한 용액(20 % 설탕물 등)'},
+ {cell:'rbc',q:'적혈구를 쪼그라들게 해서 모양 변화를 관찰해 보세요. 단, 너무 진하면 감점!',ok:v=>v<0.92&&conc()<=2.2,ans:'0.9 %보다 진한 소금물 (예: 1.2~2 %)'},
+ {cell:'rbc',q:'적혈구를 일부러 터뜨려(용혈) 헤모글로빈을 얻으려 해요. 어떤 용액이 필요할까요?',ok:v=>st.lysed,ans:'세포 안보다 매우 묽은 용액 (증류수 등)'}
+];
+function startGame(){st.game={order:shuffle(CASES),i:0,score:0,ok:0};$('mission').hidden=false;$('pGame').textContent='↺ 다시 시작';setC();}
+function setC(){const G=st.game,C=G.order[G.i];G.applied=false;st.cell=C.cell;document.querySelectorAll('[data-cell]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.cell===C.cell));st.s=30;$('conc').value=30;reset();st.Vt=1;
+  $('gTag').textContent=`처방 ${G.i+1} / 5`;$('gTask').innerHTML=`${C.q}<small>농도를 정하고 ‘처방 적용’을 누르면 세포의 변화를 볼 수 있어요.</small>`;$('gApply').textContent='처방 적용';$('gApply').disabled=false;}
+$('gApply').onclick=()=>{const G=st.game;if(!G)return;if(G.applied){G.i++;if(G.i>=5){const b=best('membrane',G.score);$('gTag').textContent='결과';$('gTask').innerHTML=`성공 ${G.ok}/5 · ${G.score}점<small>최고 기록 ${b}점</small>`;$('gStars').innerHTML=stars(G.ok>=5?3:G.ok>=4?2:G.ok>=2?1:0);$('gApply').disabled=true;st.game=null;$('pGame').textContent='💉 세포 처방 게임';return;}setC();return;}
+  G.applied=true;st.Vt=targetV();makeParts();$('gApply').disabled=true;setTimeout(()=>{const C=G.order[G.i];const ok=C.ok(st.V);if(ok){G.score+=100;G.ok++;burst(CX,CY,tok.gold,30);}$('gScore').textContent=G.score;
+    $('gTask').innerHTML=`${ok?'처방 성공!':'다시 생각해 봐요.'} <small>정답 예: ${C.ans}</small>`;toast($('toast'),ok?'성공!':'원하는 변화가 아니에요',ok?'good':'bad');$('gApply').disabled=false;$('gApply').textContent=G.i>=4?'결과 보기 →':'다음 처방 →';},3000);};
+$('pGame').onclick=startGame;
+let fr=0;loop(()=>{st.t++;fr++;if(st.tab==='osm'){if(!st.lysed){st.V+=(st.Vt-st.V)*0.02*Lab.MOTION;if(st.cell==='rbc'&&st.V>1.6){st.lysed=true;burst(CX,CY,'#d9534f',30,3);update();}}if(fr%3===0){st.hist.push(st.lysed?2:st.V);if(st.hist.length>200)st.hist.shift();}stepParts();}else stepD();draw();if(fr%8===0)update();});
+reset();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

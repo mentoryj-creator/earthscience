@@ -1,0 +1,471 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>스펙트럼 분석실</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font-family:var(--f-mono)}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅱ. 물질과 규칙성 · 별의 스펙트럼과 우주의 구성 원소</span></nav>
+  <header>
+    <h1>스펙트럼 분석실</h1>
+    <p>빛을 분광기로 나누면 광원에 따라 연속 스펙트럼, 선스펙트럼, 흡수 스펙트럼이 나타납니다. 원소마다 선의 위치가 정해져 있어 바코드처럼 원소를 알아낼 수 있습니다. 방전관을 관찰하고 흡수선을 만들어 본 뒤, 별빛 속 원소를 찾는 탐정이 되어 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="실험 종류">
+        <button type="button" data-mode="emit" aria-pressed="true">① 방전관 관찰</button>
+        <button type="button" data-mode="abs" aria-pressed="false">② 흡수 스펙트럼 만들기</button>
+        <button type="button" data-mode="star" aria-pressed="false">③ 별빛 원소 탐정</button>
+      </div>
+      <div class="grp" id="srcBox"><span class="k" id="srcLbl">광원</span><div class="chips" id="srcChips" role="group" aria-label="광원 선택"></div></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">별 1 / 5</span>
+      <div class="task" id="gTask">–</div>
+      <div class="chips" id="elChips" role="group" aria-label="원소 고르기"></div>
+      <button type="button" id="gCheck" class="go">판정하기</button>
+      <button type="button" id="gNext" hidden>다음 별 →</button>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="광원과 분광기, 스펙트럼 띠"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">파장 380 nm(보라)부터 750 nm(빨강)까지의 가시광선 영역입니다. 선의 굵기와 밝기는 실제 세기를 단순화해 나타냈습니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="관찰 결과">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="kind">선스펙트럼</span></span>
+        <div class="big"><div class="k">가장 밝은 선</div><div class="v" id="vMax">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">관찰 대상</span><span class="v txt" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k">보이는 선의 수</span><span class="v" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k">맨눈으로 본 색</span><span class="v txt" id="v3">–</span><span class="d">가장 선명한 선의 색과 비슷</span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">스펙트럼의 종류</h2>
+      <ol class="chain" id="exChain"></ol>
+      <div class="impact"><b>정리</b><span id="exImpact"></span></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>백열전구와 수소 방전관의 스펙트럼은 어떻게 다른가요? 그 차이가 생기는 까닭은?</li>
+      <li>흡수 스펙트럼 만들기에서 나트륨 기체의 흡수선과 나트륨 방전관의 방출선 위치를 비교해 보세요.</li>
+      <li>베가와 알타이르의 스펙트럼에서 가장 굵고 선명한 흡수선은 어떤 원소의 선과 같은 위치에 있나요?</li>
+      <li>우주 전역의 스펙트럼을 분석하면 우주를 이루는 원소의 약 75%가 수소, 23%가 헬륨임을 알 수 있습니다. 이 사실과 빅뱅 우주론은 어떻게 연결될까요?</li>
+    </ol>
+  </section>
+  <p class="foot">선의 파장은 실험실 측정값(예: 수소 656.3, 486.1, 434.0, 410.2 nm, 나트륨 589.0·589.6 nm)을 사용했습니다. 별의 스펙트럼은 원리를 보여 주기 위해 주요 흡수선만 단순화해 표시했습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,rr,toast,stars,burst,drawFx,loop,best,shuffle,pick}=Lab,tok=Lab.tok;
+const W=1000,H=600,SX0=70,SX1=950,L0=380,L1=750;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const X=l=>SX0+(l-L0)/(L1-L0)*(SX1-SX0);
+const EL={
+  H:{n:'수소',l:[[656.3,1],[486.1,.6],[434.0,.35],[410.2,.2]]},
+  He:{n:'헬륨',l:[[587.6,1],[667.8,.4],[706.5,.3],[501.6,.45],[492.2,.2],[471.3,.15],[447.1,.4]]},
+  Ne:{n:'네온',l:[[540.1,.3],[585.2,.7],[588.2,.3],[594.5,.4],[607.4,.4],[614.3,.6],[616.4,.3],[621.7,.3],[626.6,.5],[633.4,.6],[638.3,.6],[640.2,1],[650.7,.7],[659.9,.4],[692.9,.6],[703.2,.7]]},
+  Na:{n:'나트륨',l:[[589.0,1],[589.6,.9],[568.8,.15],[615.4,.1],[498.3,.06]]},
+  Hg:{n:'수은',l:[[404.7,.4],[435.8,.9],[546.1,1],[577.0,.5],[579.1,.5]]},
+  Ar:{n:'아르곤',l:[[415.9,.2],[420.1,.3],[427.2,.15],[696.5,.6],[706.7,.5],[714.7,.2],[727.3,.3],[738.4,.4],[750.4,.7]]},
+  Ca:{n:'칼슘',l:[[393.4,1],[396.8,.9],[422.7,.5]]},
+  Fe:{n:'철',l:[[404.6,.4],[430.8,.6],[438.4,.5],[495.7,.4],[527.0,.6],[532.8,.3]]},
+  Mg:{n:'마그네슘',l:[[383.8,.4],[516.7,.6],[517.3,.7],[518.4,.8]]}
+};
+function wl2rgb(l){let r=0,g=0,b=0;
+  if(l<440){r=-(l-440)/60;b=1;}else if(l<490){g=(l-440)/50;b=1;}else if(l<510){g=1;b=-(l-510)/20;}else if(l<580){r=(l-510)/70;g=1;}else if(l<645){r=1;g=-(l-645)/65;}else r=1;
+  let f=1;if(l<420)f=.3+.7*(l-380)/40;else if(l>700)f=.3+.7*(750-l)/50;f=clamp(f,0.15,1);
+  return [Math.round(255*Math.pow(r*f,.8)),Math.round(255*Math.pow(g*f,.8)),Math.round(255*Math.pow(b*f,.8))];}
+const CS=Array.from({length:Math.round(SX1-SX0)},(_,i)=>wl2rgb(L0+i/(SX1-SX0)*(L1-L0)));
+function mixColor(lines){let r=0,g=0,b=0,s=0;lines.forEach(([l,i])=>{if(l<L0||l>L1)return;const c=wl2rgb(l);r+=c[0]*i;g+=c[1]*i;b+=c[2]*i;s+=i;});if(!s)return [255,255,255];const m=Math.max(r,g,b)/s;return [r/s*255/m,g/s*255/m,b/s*255/m].map(Math.round);}
+const colorName=l=>l<450?'보라':l<490?'파랑':l<520?'청록':l<565?'초록':l<590?'노랑':l<625?'주황':'빨강';
+
+/* ---------- 스펙트럼 띠 그리기 ---------- */
+function stripCont(y,h,temp=1){ // temp: 1 = 흰빛, <1 붉은 쪽, >1 푸른 쪽
+  for(let i=0;i<CS.length;i++){const l=L0+i/(SX1-SX0)*(L1-L0),u=(l-L0)/(L1-L0);const k=clamp(temp>=1?1-(u)*(temp-1)*.55:1-(1-u)*(1-temp)*1.2,0.12,1);const c=CS[i];ctx.fillStyle=`rgb(${c[0]*k|0},${c[1]*k|0},${c[2]*k|0})`;ctx.fillRect(SX0+i,y,1.2,h);}}
+function stripEmit(y,h,lines,glow=1){ctx.fillStyle='#05070a';ctx.fillRect(SX0,y,SX1-SX0,h);
+  lines.forEach(([l,i])=>{if(l<L0||l>L1)return;const c=wl2rgb(l),x=X(l);const w=1.6+2.4*i;ctx.globalAlpha=clamp(.35+.75*i,0,1)*glow;ctx.fillStyle=`rgb(${c})`;ctx.fillRect(x-w/2,y,w,h);ctx.globalAlpha=.25*i*glow;ctx.fillRect(x-w*1.6,y,w*3.2,h);});ctx.globalAlpha=1;}
+function absorbLines(y,h,lines,depth=1){lines.forEach(([l,i])=>{if(l<L0||l>L1)return;const x=X(l),w=1.4+2.6*i*depth;ctx.fillStyle=`rgba(0,0,0,${clamp(.45+.5*i*depth,0,.95)})`;ctx.fillRect(x-w/2,y,w,h);});}
+function stripFrame(y,h,ttl){ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(SX0-.5,y-.5,SX1-SX0+1,h+1);if(ttl)label(ttl,SX0-8,y+h/2,{size:12,align:'right',weight:600,hw:0});}
+function axis(y){ctx.strokeStyle=tok.muted;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(SX0,y);ctx.lineTo(SX1,y);ctx.stroke();
+  for(let l=400;l<=750;l+=50){const x=X(l);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+6);ctx.stroke();label(String(l),x,y+17,{size:11,color:tok.muted,hw:0,mono:true,weight:500});}
+  label('파장 (nm)',SX1,y+34,{size:11,align:'right',color:tok.muted,hw:0});}
+
+/* ---------- 장치 그림 ---------- */
+function prism(x,y,col){ctx.fillStyle=Lab.isDark()?'rgba(160,200,230,.25)':'rgba(170,210,235,.55)';ctx.strokeStyle=tok.muted;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,y-46);ctx.lineTo(x+44,y+34);ctx.lineTo(x-44,y+34);ctx.closePath();ctx.fill();ctx.stroke();label('분광기',x,y+52,{size:12,color:tok.muted});}
+function fan(x,y,lines,cont){ // 프리즘에서 나오는 빛
+  const n=40;for(let i=0;i<n;i++){const l=L0+i/(n-1)*(L1-L0),c=wl2rgb(l);let a=cont?0.45:0;if(!cont)lines.forEach(([ll,ii])=>{if(Math.abs(ll-l)<5)a=Math.max(a,.3+.6*ii);});if(a<=0)continue;
+    ctx.strokeStyle=`rgba(${c},${a})`;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+20,y);ctx.lineTo(x+250,y-40+(i/(n-1))*80*1.2);ctx.stroke();}
+  if(!cont)lines.forEach(([l,i])=>{if(l<L0||l>L1)return;const c=wl2rgb(l),f=(l-L0)/(L1-L0);ctx.strokeStyle=`rgba(${c},${.4+.6*i})`;ctx.lineWidth=1.5+1.5*i;ctx.beginPath();ctx.moveTo(x+20,y);ctx.lineTo(x+250,y-40+f*96);ctx.stroke();});
+}
+function tube(x,y,el,on){const col=el?mixColor(EL[el].l):[255,240,200];
+  ctx.fillStyle=Lab.isDark()?'#2a3540':'#c7d0d6';rr(ctx,x-74,y-14,20,28,4);ctx.fill();rr(ctx,x+54,y-14,20,28,4);ctx.fill();
+  const g=ctx.createLinearGradient(0,y-10,0,y+10);g.addColorStop(0,`rgba(${col},.55)`);g.addColorStop(.5,`rgba(${col},1)`);g.addColorStop(1,`rgba(${col},.55)`);
+  ctx.save();ctx.shadowColor=`rgba(${col},.9)`;ctx.shadowBlur=on?24:0;ctx.fillStyle=g;rr(ctx,x-56,y-9,112,18,9);ctx.fill();ctx.restore();
+  return col;}
+function bulb(x,y){ctx.save();ctx.shadowColor='rgba(255,220,150,.9)';ctx.shadowBlur=28;ctx.fillStyle='#ffe7a8';ctx.beginPath();ctx.arc(x,y-6,24,0,7);ctx.fill();ctx.restore();ctx.fillStyle=tok.muted;ctx.fillRect(x-10,y+16,20,16);
+  ctx.strokeStyle='#c98a1a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-8,y+14);ctx.lineTo(x-4,y-10);ctx.lineTo(x,y-2);ctx.lineTo(x+4,y-10);ctx.lineTo(x+8,y+14);ctx.stroke();}
+function starIcon(x,y,temp){const c=temp>1.1?[190,210,255]:temp<0.85?[255,200,140]:[255,248,230];ctx.save();ctx.shadowColor=`rgba(${c},.9)`;ctx.shadowBlur=30;ctx.fillStyle=`rgb(${c})`;ctx.beginPath();ctx.arc(x,y,26,0,7);ctx.fill();ctx.restore();
+  ctx.strokeStyle=`rgba(${c},.6)`;ctx.lineWidth=2;for(let i=0;i<8;i++){const a=i*Math.PI/4;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*32,y+Math.sin(a)*32);ctx.lineTo(x+Math.cos(a)*42,y+Math.sin(a)*42);ctx.stroke();}}
+function cloud(x,y,el){const col=mixColor(EL[el].l);ctx.fillStyle=`rgba(${col},.18)`;ctx.strokeStyle=`rgba(${col},.5)`;ctx.lineWidth=1.5;
+  [[-30,0,30],[0,-12,34],[30,0,30],[0,12,30]].forEach(([dx,dy,r])=>{ctx.beginPath();ctx.arc(x+dx,y+dy,r,0,7);ctx.fill();});
+  label(`차가운 ${EL[el].n} 기체`,x,y+56,{size:12});}
+
+/* ---------- 상태 ---------- */
+const st={mode:'emit',src:'H',gas:'Na',t:0,game:null};
+const SRC_EMIT=[['bulb','백열전구'],['H','수소'],['He','헬륨'],['Ne','네온'],['Na','나트륨'],['Hg','수은'],['Ar','아르곤']];
+const SRC_ABS=[['H','수소'],['He','헬륨'],['Na','나트륨'],['Hg','수은'],['Ca','칼슘'],['Mg','마그네슘']];
+const GAME_EL=['H','He','Na','Ca','Fe','Mg'];
+const STARS=[
+  {n:'베가 (거문고자리)',temp:1.25,el:{H:1,Mg:.3,Ca:.25}},
+  {n:'알타이르 (독수리자리)',temp:1.12,el:{H:.9,Ca:.4,Fe:.3,Mg:.3}},
+  {n:'태양',temp:1.0,el:{H:.55,Na:.8,Ca:1,Fe:.7,Mg:.7}},
+  {n:'리겔 (오리온자리)',temp:1.45,el:{H:.8,He:.5}},
+  {n:'알데바란 (황소자리)',temp:0.78,el:{H:.25,Na:.9,Ca:1,Fe:.8,Mg:.8}}
+];
+function renderChips(){
+  const list=st.mode==='emit'?SRC_EMIT:st.mode==='abs'?SRC_ABS:[];
+  $('srcBox').hidden=st.mode==='star';$('srcLbl').textContent=st.mode==='emit'?'광원':'광원 앞에 둘 기체';
+  $('srcChips').innerHTML=list.map(([k,n])=>`<button type="button" data-k="${k}" aria-pressed="${(st.mode==='emit'?st.src:st.gas)===k}">${n}</button>`).join('');
+  $('srcChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(st.mode==='emit')st.src=b.dataset.k;else st.gas=b.dataset.k;renderChips();updateText();});
+}
+function setMode(m){st.mode=m;document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m));$('mission').hidden=m!=='star';if(m==='star'&&!st.game)startGame();renderChips();updateText();}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+
+/* ---------- 게임 ---------- */
+function makeStar(i){if(i<STARS.length&&i<3)return STARS[[0,1,2][i]];
+  const pool=shuffle(['He','Na','Ca','Fe','Mg']).slice(0,Lab.randi(1,3));const el={H:+Lab.rand(.4,1).toFixed(2)};pool.forEach(e=>el[e]=+Lab.rand(.45,1).toFixed(2));
+  return i===3?STARS[3]:{n:`미지의 별 ${String.fromCharCode(65+i)}`,temp:+Lab.rand(.8,1.4).toFixed(2),el};}
+function startGame(){st.game={i:0,score:0,sel:new Set(),star:makeStar(0),checked:false,starsTot:0};renderGame();}
+function renderGame(){const g=st.game;$('gTag').textContent=`별 ${g.i+1} / 5`;
+  $('gTask').innerHTML=`<b>${g.star.n}</b>의 흡수 스펙트럼에 있는 원소를 모두 고르세요.<small>고른 원소의 방출선이 아래에 겹쳐 보여요. 흡수선 위치와 맞춰 보세요.</small>`;
+  $('elChips').innerHTML=GAME_EL.map(k=>`<button type="button" data-k="${k}" aria-pressed="${g.sel.has(k)}">${EL[k].n}</button>`).join('');
+  $('elChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(g.checked)return;const k=b.dataset.k;g.sel.has(k)?g.sel.delete(k):g.sel.add(k);b.setAttribute('aria-pressed',g.sel.has(k));updateText();});
+  $('gCheck').hidden=false;$('gNext').hidden=true;$('gStars').innerHTML='';}
+$('gCheck').onclick=()=>{const g=st.game;if(g.checked)return;g.checked=true;const truth=new Set(Object.keys(g.star.el));
+  let hit=0,wrong=0;g.sel.forEach(k=>truth.has(k)?hit++:wrong++);const miss=truth.size-hit;
+  const pts=Math.max(0,hit*20-wrong*15-miss*10);const sN=wrong===0&&miss===0?3:(wrong+miss)===1?2:hit>0?1:0;
+  g.score+=pts;g.starsTot+=sN;$('gScore').textContent=g.score;$('gStars').innerHTML=stars(sN);
+  $('gTask').innerHTML=`정답: ${[...truth].map(k=>EL[k].n).join(', ')} · +${pts}점<small>${sN===3?'완벽한 분석!':`빠뜨린 원소 ${miss}개, 잘못 고른 원소 ${wrong}개`}</small>`;
+  if(sN===3)burst(500,300,tok.gold,40);toast($('toast'),sN===3?'완벽한 스펙트럼 분석!':sN===2?'거의 맞았어요':'다시 비교해 볼까요?',sN>=2?'good':'bad');
+  $('gCheck').hidden=true;$('gNext').hidden=false;$('gNext').textContent=g.i+1>=5?'결과 보기 →':'다음 별 →';};
+$('gNext').onclick=()=>{const g=st.game;g.i++;if(g.i>=5){const b=best('spectrum',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`총점 <b>${g.score}점</b> (★ ${g.starsTot}/15) <small>최고 기록 ${b}점 · 모든 별에서 수소선이 가장 흔하게 나타났어요!</small>`;$('elChips').innerHTML='';$('gNext').textContent='↺ 다시 하기';$('gNext').onclick=()=>location.reload();return;}
+  g.star=makeStar(g.i);g.sel=new Set();g.checked=false;renderGame();updateText();};
+
+/* ---------- 그리기 ---------- */
+function draw(){
+  S.begin();ctx.fillStyle=Lab.isDark()?'#0a1118':'#e9eef2';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=Lab.isDark()?'#060a0f':'#1a2430';rr(ctx,20,14,960,230,12);ctx.fill();
+  const ay=128;
+  if(st.mode==='emit'){
+    if(st.src==='bulb'){bulb(150,ay);label('백열전구',150,ay+58,{size:13,color:'#dbe8f0',halo:'rgba(0,0,0,.5)'});}
+    else{tube(170,ay,st.src,true);label(`${EL[st.src].n} 기체 방전관`,170,ay+40,{size:13,color:'#dbe8f0',halo:'rgba(0,0,0,.5)'});label('고전압',170,ay-28,{size:11,color:'#93a6b4',halo:'rgba(0,0,0,.5)',weight:500});}
+    ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(250,ay);ctx.lineTo(500,ay);ctx.stroke();
+    prism(540,ay,null);fan(540,ay,st.src==='bulb'?[]:EL[st.src].l,st.src==='bulb');
+    label('스크린',880,40,{size:12,color:'#93a6b4',halo:'rgba(0,0,0,.5)'});
+  }else if(st.mode==='abs'){
+    bulb(110,ay);label('백열전구 (연속 스펙트럼)',110,ay+58,{size:12,color:'#dbe8f0',halo:'rgba(0,0,0,.5)'});
+    ctx.strokeStyle='rgba(255,240,200,.45)';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(150,ay);ctx.lineTo(500,ay);ctx.stroke();
+    cloud(320,ay,st.gas);prism(540,ay);fan(540,ay,[],true);
+    // 흡수로 빠진 빛 표시
+    EL[st.gas].l.forEach(([l,i])=>{const f=(l-L0)/(L1-L0);if(f<0||f>1)return;ctx.strokeStyle=`rgba(0,0,0,${.5+.4*i})`;ctx.lineWidth=2+2*i;ctx.beginPath();ctx.moveTo(560,ay);ctx.lineTo(790,ay-40+f*96);ctx.stroke();});
+  }else{
+    const g=st.game,s=g.star;starIcon(130,ay,s.temp);label(s.n,130,ay+62,{size:13,color:'#dbe8f0',halo:'rgba(0,0,0,.5)'});
+    ctx.fillStyle='rgba(120,160,220,.08)';ctx.beginPath();ctx.arc(130,ay,60,0,7);ctx.fill();label('온도가 낮은 대기',130,ay-74,{size:11,color:'#93a6b4',halo:'rgba(0,0,0,.5)',weight:500});
+    ctx.strokeStyle='rgba(255,250,235,.4)';ctx.lineWidth=3;ctx.setLineDash([10,8]);ctx.beginPath();ctx.moveTo(200,ay);ctx.lineTo(420,ay);ctx.stroke();ctx.setLineDash([]);
+    label('… 수백 광년 …',310,ay-14,{size:12,color:'#93a6b4',halo:'rgba(0,0,0,.5)'});
+    // 망원경
+    ctx.fillStyle='#cfd8e0';ctx.save();ctx.translate(470,ay);ctx.rotate(-.05);rr(ctx,-40,-12,80,24,6);ctx.fill();ctx.restore();label('망원경 + 분광기',470,ay+30,{size:12,color:'#dbe8f0',halo:'rgba(0,0,0,.5)'});
+    fan(540,ay,[],true);
+  }
+  // 결과 띠
+  const y1=270,h1=70;
+  if(st.mode==='emit'){if(st.src==='bulb')stripCont(y1,h1);else stripEmit(y1,h1,EL[st.src].l,0.9+0.1*Math.sin(st.t*.08));stripFrame(y1,h1,'관찰 결과');}
+  else if(st.mode==='abs'){stripCont(y1,h1);absorbLines(y1,h1,EL[st.gas].l);stripFrame(y1,h1,'흡수');
+    stripEmit(y1+92,44,EL[st.gas].l);stripFrame(y1+92,44,'방출');
+    EL[st.gas].l.forEach(([l])=>{if(l<L0||l>L1)return;const x=X(l);ctx.strokeStyle=Lab.rgba(tok.accent,.6);ctx.setLineDash([3,3]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y1+h1);ctx.lineTo(x,y1+92);ctx.stroke();ctx.setLineDash([]);});
+    label(`같은 ${EL[st.gas].n}: 흡수선과 방출선의 위치가 같다`,(SX0+SX1)/2,y1+150,{size:13,color:tok.accent});}
+  else{const g=st.game,s=g.star;stripCont(y1,h1,s.temp);absorbLines(y1,h1,Object.entries(s.el).flatMap(([k,d])=>EL[k].l.map(([l,i])=>[l,i*d])),1);stripFrame(y1,h1,'별빛');
+    const sel=[...g.sel];const hh=Math.min(30,150/Math.max(sel.length,1));
+    sel.forEach((k,i)=>{const yy=y1+86+i*(hh+4);stripEmit(yy,hh,EL[k].l);stripFrame(yy,hh,EL[k].n);});
+    if(!sel.length)label('위에서 원소를 고르면 그 원소의 방출선이 여기에 나타나요',(SX0+SX1)/2,y1+120,{size:13,color:tok.muted});
+    if(g.checked){const truth=Object.keys(s.el);label(`정답: ${truth.map(k=>EL[k].n).join(' · ')}`,(SX0+SX1)/2,y1+250,{size:14,color:tok.good});}
+  }
+  axis(st.mode==='star'?560:430);
+  drawFx(ctx);
+}
+/* ---------- 텍스트 ---------- */
+const EX={
+  emit:{t:'방출 스펙트럼: 원소마다 다른 바코드',c:['백열전구처럼 뜨거운 고체가 내는 빛은 모든 색이 이어진 연속 스펙트럼이다.','고온의 기체가 내는 빛은 몇 가지 색의 밝은 선만 보이는 선스펙트럼이다.','선의 위치(파장)는 원소의 종류에 따라 다르다.'],i:'스펙트럼에서 가장 선명한 선의 색이 맨눈으로 본 방전관 색과 비슷하다. 네온사인이 붉은 까닭도 네온의 빨간 선들 때문이다.'},
+  abs:{t:'흡수 스펙트럼: 빛이 기체를 지나면 특정 색이 빠진다',c:['연속 스펙트럼을 내는 빛이 온도가 낮은 기체를 지나면 기체가 특정 파장의 빛을 흡수한다.','그 결과 연속 스펙트럼 위에 검은 흡수선이 생긴다.','같은 원소라면 흡수선의 위치와 방출선의 위치가 같다.'],i:'흡수선의 위치를 원소의 방출선과 비교하면, 빛이 지나온 기체(별의 대기 등)를 이루는 원소를 알아낼 수 있다.'},
+  star:{t:'별빛의 스펙트럼으로 별의 구성 원소 알아내기',c:['별 중심부에서 나온 빛은 연속 스펙트럼이다.','이 빛이 상대적으로 온도가 낮은 별의 대기를 지나며 흡수선이 생긴다.','흡수선을 여러 원소의 방출선과 비교해 별의 대기 원소를 찾는다.'],i:'수많은 천체의 스펙트럼을 분석한 결과, 우주를 이루는 원소의 약 75%는 수소, 23%는 헬륨, 나머지 2% 정도가 그 밖의 원소이다.'}
+};
+let lastMode='';
+function updateText(){
+  const m=st.mode;if(m!==lastMode){lastMode=m;$('exTitle').textContent=EX[m].t;$('exChain').innerHTML=EX[m].c.map(x=>`<li>${x}</li>`).join('');$('exImpact').textContent=EX[m].i;}
+  let lines=[],name='',kind='';
+  if(m==='emit'){if(st.src==='bulb'){name='백열전구';kind='연속 스펙트럼';}else{lines=EL[st.src].l;name=`${EL[st.src].n} 방전관`;kind='선스펙트럼(방출)';}}
+  else if(m==='abs'){lines=EL[st.gas].l;name=`백열전구 → ${EL[st.gas].n} 기체`;kind='흡수 스펙트럼';}
+  else{const s=st.game.star;lines=Object.entries(s.el).flatMap(([k,d])=>EL[k].l.map(([l,i])=>[l,i*d]));name=s.n;kind='별빛 흡수 스펙트럼';}
+  const vis=lines.filter(([l])=>l>=L0&&l<=L1);const mx=vis.slice().sort((a,b)=>b[1]-a[1])[0];
+  $('kind').textContent=kind;$('chip').dataset.s=m==='abs'||m==='star'?'cool':'warm';
+  $('v1').textContent=name;$('d1').textContent=m==='emit'&&st.src!=='bulb'?'고온의 기체':'';
+  $('v2').textContent=m==='emit'&&st.src==='bulb'?'끊김 없음':`${vis.length}개`;$('d2').textContent=m==='emit'?(st.src==='bulb'?'모든 색이 이어짐':'밝은 선'):'검은 선';
+  $('vMax').textContent=mx?`${mx[0].toFixed(1)} nm`:'–';
+  $('v3').textContent=m==='emit'?(st.src==='bulb'?'노르스름한 흰색':`${colorName(mx[0])} 계열`):m==='abs'?'흰빛에서 일부 색이 빠짐':(st.game.star.temp>1.1?'푸르스름한 흰색':st.game.star.temp<.9?'주황빛':'노르스름한 흰색');
+  $('fsInfo').textContent=`${kind} · ${name}${mx?` · 가장 진한 선 ${mx[0].toFixed(1)} nm`:''}`;
+}
+renderChips();updateText();
+loop(()=>{st.t++;draw();});
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

@@ -1,0 +1,413 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>단백질 합성 공장</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.pad{display:flex;flex-wrap:wrap;gap:8px}
+.pad button{font-family:var(--f-mono);font-weight:700;min-width:3em;border-width:2px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button.right{background:var(--good);border-color:var(--good);color:#fff}
+.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+.ct-wrap{overflow-x:auto}
+table.ct{border-collapse:collapse;font-size:.78rem;font-variant-numeric:tabular-nums;min-width:560px;width:100%}
+table.ct th,table.ct td{border:1px solid var(--line);padding:3px 5px;text-align:left;vertical-align:top}
+table.ct th{background:var(--strip);text-align:center;font-family:var(--f-mono)}
+table.ct td span{display:block;white-space:nowrap}
+table.ct td b{font-family:var(--f-mono)}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅲ. 시스템과 상호작용 · 세포 내 정보의 흐름과 단백질 생성</span></nav>
+  <header>
+    <h1>단백질 합성 공장</h1>
+    <p>DNA의 유전정보는 RNA로 전사되고, 라이보솜에서 RNA의 코돈(3염기)에 따라 아미노산이 연결되는 번역을 거쳐 단백질이 됩니다. 직접 짝 염기를 골라 전사하고 코돈표로 아미노산을 찾아 단백질을 완성해 보세요. 염기 하나를 바꾸면 단백질이 어떻게 달라지는지도 확인할 수 있습니다.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="grp"><span class="k">유전자</span><select id="gene" aria-label="유전자 고르기"></select></div>
+      <div class="seg" role="group" aria-label="모드"><button type="button" data-mode="play" aria-pressed="true">🎮 직접 하기</button><button type="button" data-mode="auto" aria-pressed="false">▶ 자동 재생</button><button type="button" data-mode="mut" aria-pressed="false">🧬 돌연변이 실험</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission">
+      <span class="tag" id="gTag">전사</span>
+      <div class="task" id="gTask">–</div>
+      <div class="pad" id="pad" role="group" aria-label="RNA 염기"></div>
+      <div class="opts" id="opts" role="group" aria-label="아미노산"></div>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span><span class="lbl">실수</span><span id="gMiss">0</span></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="560" role="img" aria-label="DNA, RNA, 라이보솜과 폴리펩타이드"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#e5484d"></i>A</span><span class="key"><i style="background:#e0b400"></i>T</span><span class="key"><i style="background:#8e4ec6"></i>U</span><span class="key"><i style="background:#30a46c"></i>G</span><span class="key"><i style="background:#3e8ef7"></i>C</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note" id="note">돌연변이 실험에서는 DNA 주형 가닥의 염기를 눌러 다른 염기로 바꿀 수 있습니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="코돈표">
+      <h2>유전 암호 표 (RNA 코돈 → 아미노산)</h2>
+      <div class="ct-wrap"><table class="ct" id="ct"></table></div>
+      <p class="d" style="color:var(--muted);font-size:.8rem;margin:.5rem 0 0">AUG는 메싸이오닌을 지정하면서 번역을 시작하는 개시 코돈이고, UAA·UAG·UGA는 아미노산을 지정하지 않는 종결 코돈입니다.</p>
+    </section>
+    <section class="panel" aria-label="설명">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k">완성된 아미노산</div><div class="v" id="vAA">0</div></div>
+      </div>
+      <ol class="chain">
+        <li>유전자: DNA에서 특정 단백질을 만드는 정보가 담긴 부분.</li>
+        <li>전사: 핵 안에서 DNA 한 가닥(주형 가닥)에 상보적인 염기를 가진 RNA가 만들어진다. RNA에는 T 대신 U가 있다.</li>
+        <li>번역: RNA가 세포질로 나와 라이보솜에 결합하면, 코돈(3염기)이 지정하는 아미노산이 차례로 연결되어 폴리펩타이드가 된다.</li>
+        <li>폴리펩타이드가 접히고 꼬여 고유한 입체 구조를 가진 단백질이 되고, 단백질이 형질을 나타낸다.</li>
+      </ol>
+      <div class="impact"><b>유전정보의 흐름</b>DNA → (전사) → RNA → (번역) → 단백질 → 형질. 4종류의 염기 3개 조합(4³ = 64가지)으로 20여 가지 아미노산을 지정한다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>DNA 주형 가닥이 TAC라면 RNA 코돈과 아미노산은 무엇일까요?</li>
+      <li>염기 1개나 2개로는 20여 가지 아미노산을 모두 지정할 수 없는 까닭을 계산으로 설명해 보세요.</li>
+      <li>돌연변이 실험에서 헤모글로빈 유전자의 7번째 코돈 GAG가 GUG로 바뀌면 어떤 아미노산이 바뀌나요? 이것이 낫 모양 적혈구와 어떤 관계가 있을까요?</li>
+      <li>염기가 바뀌었는데도 아미노산이 바뀌지 않는 경우가 있을까요? 코돈표에서 찾아보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">헤모글로빈 β 사슬과 인슐린 B 사슬의 앞부분 서열은 실제 아미노산 서열을 바탕으로 코돈을 정해 단순화한 것입니다. DNA는 위쪽이 암호 가닥(RNA와 같은 서열, T 대신), 아래쪽이 전사에 쓰이는 주형 가닥입니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle,pick}=Lab,tok=Lab.tok;
+const W=1000,H=560;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const COL={A:'#e5484d',T:'#e0b400',U:'#8e4ec6',G:'#30a46c',C:'#3e8ef7'};
+const AA={Phe:'페닐알라닌',Leu:'류신',Ile:'아이소류신',Met:'메싸이오닌',Val:'발린',Ser:'세린',Pro:'프롤린',Thr:'트레오닌',Ala:'알라닌',Tyr:'타이로신',Stop:'종결',His:'히스티딘',Gln:'글루타민',Asn:'아스파라진',Lys:'라이신',Asp:'아스파르트산',Glu:'글루탐산',Cys:'시스테인',Trp:'트립토판',Arg:'아르지닌',Gly:'글라이신'};
+const B='UCAG';const TBL={};
+const code='FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
+const one={F:'Phe',L:'Leu',I:'Ile',M:'Met',V:'Val',S:'Ser',P:'Pro',T:'Thr',A:'Ala',Y:'Tyr','*':'Stop',H:'His',Q:'Gln',N:'Asn',K:'Lys',D:'Asp',E:'Glu',C:'Cys',W:'Trp',R:'Arg',G:'Gly'};
+let k=0;for(const a of B)for(const b of B)for(const c of B)TBL[a+b+c]=one[code[k++]];
+// 코돈표 HTML
+(function(){let h='<tr><th>첫째\\둘째</th>'+[...B].map(b=>`<th>${b}</th>`).join('')+'</tr>';for(const a of B){h+=`<tr><th>${a}</th>`;for(const b of B){h+='<td>'+[...B].map(c=>{const aa=TBL[a+b+c];return `<span><b>${a+b+c}</b> ${AA[aa]}</span>`;}).join('')+'</td>';}h+='</tr>';}$('ct').innerHTML=h;})();
+const GENES=[
+ {n:'헤모글로빈 β 사슬 (정상)',cod:'ATGGTGCACCTGACTCCTGAGGAG',ph:'정상 적혈구 (원반 모양)'},
+ {n:'헤모글로빈 β 사슬 (돌연변이)',cod:'ATGGTGCACCTGACTCCTGTGGAG',ph:'낫 모양 적혈구'},
+ {n:'인슐린 B 사슬 (앞부분)',cod:'ATGTTTGTGAACCAGCACCTGTGC',ph:'혈당을 조절하는 호르몬의 일부'},
+ {n:'연습용 짧은 유전자',cod:'ATGGCAAAATGGTAA',ph:'짧은 폴리펩타이드 (종결 코돈에서 멈춤)'}
+];
+const COMP={A:'T',T:'A',G:'C',C:'G'};const R2={A:'U',T:'A',G:'C',C:'G'}; // 주형 → RNA
+const st={gi:0,mode:'play',coding:'',tmpl:'',rna:[],aa:[],phase:'tx',pos:0,score:0,miss:0,t:0,auto:0,orig:null};
+function load(gi){st.gi=gi;const g=GENES[gi];st.coding=g.cod;st.tmpl=[...g.cod].map(b=>COMP[b]).join('');if(!st.orig||st.orig.gi!==gi)st.orig={gi,aa:translate(g.cod)};reset();}
+function translate(cod){const out=[];for(let i=0;i+3<=cod.length;i+=3){const c=cod.slice(i,i+3).replace(/T/g,'U');const a=TBL[c];out.push(a);if(a==='Stop')break;}return out;}
+function reset(){st.rna=[];st.aa=[];st.phase='tx';st.pos=0;st.auto=0;st.done=false;if(st.mode==='mut'){st.rna=[...st.coding].map(b=>b==='T'?'U':b);st.aa=translate(st.coding);st.phase='done';}render();}
+function codons(){return Math.floor(st.coding.length/3);}
+/* UI */
+function render(){
+  const pad=$('pad'),opts=$('opts');pad.innerHTML='';opts.innerHTML='';
+  if(st.mode==='play'){
+    if(st.phase==='tx'){$('gTag').textContent=`전사 ${st.pos+1} / ${st.tmpl.length}`;$('gTask').innerHTML=`DNA 주형 가닥의 <b>${st.tmpl[st.pos]}</b>에 상보적인 RNA 염기는?<small>RNA에는 T가 없고 U가 있어요!</small>`;
+      ['A','U','G','C','T'].forEach(b=>{const bt=document.createElement('button');bt.type='button';bt.textContent=b;bt.style.borderColor=COL[b];bt.style.color=COL[b];bt.onclick=()=>pickBase(b);pad.appendChild(bt);});}
+    else if(st.phase==='tl'){const ci=st.aa.length,c=st.rna.slice(ci*3,ci*3+3).join('');const ans=TBL[c];$('gTag').textContent=`번역 ${ci+1} / ${codons()}`;
+      $('gTask').innerHTML=`코돈 <b>${c}</b>이(가) 지정하는 것은? 아래 코돈표에서 찾아보세요.<small>첫째 염기(세로) → 둘째 염기(가로) → 셋째 염기 순서로 찾아요.</small>`;
+      const pool=Object.keys(AA).filter(a=>a!==ans);const ch=shuffle([ans,...shuffle(pool).slice(0,3)]);ch.forEach(a=>{const bt=document.createElement('button');bt.type='button';bt.textContent=AA[a];bt.onclick=()=>pickAA(a,ans,bt);opts.appendChild(bt);});}
+    else{const ok=st.miss===0;$('gTag').textContent='완성';$('gTask').innerHTML=`단백질 완성! ${st.aa.filter(a=>a!=='Stop').map(a=>AA[a]).join('–')}<small>형질: ${GENES[st.gi].ph} · 실수 ${st.miss}번 · 다른 유전자로도 도전해 보세요.</small>`;
+      const bt=document.createElement('button');bt.type='button';bt.className='go';bt.textContent='↺ 다시 하기';bt.onclick=()=>{st.score=0;st.miss=0;$('gScore').textContent=0;$('gMiss').textContent=0;reset();};opts.appendChild(bt);}
+  }else if(st.mode==='auto'){$('gTag').textContent='자동 재생';$('gTask').innerHTML='전사와 번역 과정을 순서대로 보여 줍니다.<small>유전자를 바꾸면 처음부터 다시 재생해요.</small>';}
+  else{$('gTag').textContent='돌연변이 실험';const now=translate(st.coding),orig=st.orig.aa;let diff='';
+    const n=Math.max(now.length,orig.length);const changes=[];for(let i=0;i<n;i++){if(now[i]!==orig[i])changes.push(i);}
+    const kind=changes.length===0?(st.coding===GENES[st.gi].cod?'원래 서열':'아미노산이 바뀌지 않음 (같은 아미노산을 지정하는 코돈)'):now.includes('Stop')&&now.indexOf('Stop')<orig.length-1&&!orig.slice(0,now.indexOf('Stop')+1).includes('Stop')?'종결 코돈이 생겨 단백질이 짧아짐':`${changes[0]+1}번째 아미노산이 ${AA[orig[changes[0]]]||'없음'} → ${AA[now[changes[0]]]||'없음'}`;
+    $('gTask').innerHTML=`DNA 주형 가닥(아래 줄)의 염기를 눌러 바꿔 보세요.<small>결과: ${kind}</small>`;
+    const bt=document.createElement('button');bt.type='button';bt.textContent='↺ 원래 서열로';bt.onclick=()=>load(st.gi);opts.appendChild(bt);}
+  update();
+}
+function pickBase(b){const want=R2[st.tmpl[st.pos]];if(b===want){st.rna.push(b);st.pos++;st.score+=10;burst(bx(st.pos-1),RY,COL[b],8,2);if(st.pos>=st.tmpl.length){st.phase='tl';toast($('toast'),'전사 완료! RNA가 핵 밖 라이보솜으로 이동해요','good',2000);}}
+  else{st.miss++;toast($('toast'),b==='T'?'RNA에는 T 대신 U가 있어요!':`${st.tmpl[st.pos]}의 짝은 ${want}`,'bad',1200);}
+  $('gScore').textContent=st.score;$('gMiss').textContent=st.miss;render();}
+function pickAA(a,ans,bt){if(a===ans){st.aa.push(a);st.score+=20;burst(bx(st.aa.length*3-2),PY,tok.gold,14,2.5);
+    if(a==='Stop'||st.aa.length>=codons()){st.phase='done';const b=best('protein',st.score);toast($('toast'),a==='Stop'?'종결 코돈! 번역이 끝났어요':'폴리펩타이드 완성!','good',2000);for(let i=0;i<3;i++)burst(300+i*200,PY,tok.gold,24);}}
+  else{st.miss++;bt.classList.add('wrong');bt.disabled=true;toast($('toast'),'코돈표를 다시 확인해 보세요','bad',1200);$('gMiss').textContent=st.miss;$('gScore').textContent=st.score;return;}
+  $('gScore').textContent=st.score;render();}
+/* 그리기 */
+const X0=70,DX=36,DY1=96,DY2=134,RY=236,RIBY=340,PY=448;
+const bx=i=>X0+i*DX+(Math.floor(i/3))*6;
+function base(x,y,b,hl,dim){ctx.globalAlpha=dim?.35:1;ctx.fillStyle=COL[b]||'#999';rr(ctx,x-14,y-14,28,28,6);ctx.fill();label(b,x,y,{size:15,color:'#fff',hw:0,weight:700});if(hl){ctx.strokeStyle=tok.gold;ctx.lineWidth=3;rr(ctx,x-17,y-17,34,34,8);ctx.stroke();}ctx.globalAlpha=1;}
+function draw(){S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);
+  const n=st.tmpl.length,ncod=codons();
+  // 핵
+  ctx.fillStyle=Lab.isDark()?'rgba(142,78,198,.12)':'rgba(142,78,198,.08)';ctx.strokeStyle='rgba(142,78,198,.5)';ctx.lineWidth=2;ctx.setLineDash([8,6]);rr(ctx,20,40,960,240,20);ctx.fill();ctx.stroke();ctx.setLineDash([]);label('핵',44,58,{size:14,color:'#8e4ec6',align:'left'});label('세포질',44,300,{size:14,color:tok.muted,align:'left'});
+  label('DNA 암호 가닥',X0-10,DY1-26,{size:11,align:'left',color:tok.muted});label('DNA 주형 가닥 (전사에 사용)',X0-10,DY2+26,{size:11,align:'left',color:'#8e4ec6'});
+  for(let i=0;i<n;i++){const x=bx(i);base(x,DY1,st.coding[i],false,true);base(x,DY2,st.tmpl[i],st.mode==='play'&&st.phase==='tx'&&i===st.pos,false);
+    ctx.strokeStyle=Lab.rgba(tok.muted,.4);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,DY1+14);ctx.lineTo(x,DY2-14);ctx.stroke();}
+  // 3염기조합 묶음
+  for(let c=0;c<ncod;c++){const x0=bx(c*3)-16,x1=bx(c*3+2)+16;ctx.strokeStyle=Lab.rgba('#8e4ec6',.35);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x0,DY2+20);ctx.lineTo(x0,DY2+16);ctx.lineTo(x1,DY2+16);ctx.lineTo(x1,DY2+20);ctx.stroke();}
+  // RNA 중합 효소
+  const rp=st.mode==='auto'?Math.min(n,st.auto*n):st.rna.length;
+  if((st.mode==='play'&&st.phase==='tx')||(st.mode==='auto'&&st.auto<1)){const x=bx(Math.min(n-1,Math.floor(rp)));ctx.fillStyle='rgba(242,140,40,.35)';ctx.beginPath();ctx.ellipse(x,(DY2+RY)/2,30,62,0,0,7);ctx.fill();label('RNA 중합 효소',x,RY+36,{size:11,color:tok.warm});}
+  // RNA
+  label('RNA (전사 결과)',X0-10,RY-26,{size:11,align:'left',color:'#8e4ec6'});
+  const rnaShown=st.mode==='auto'?[...st.coding].slice(0,Math.floor(rp)).map(b=>b==='T'?'U':b):st.rna;
+  for(let i=0;i<n;i++){const x=bx(i);if(i<rnaShown.length)base(x,RY,rnaShown[i]);else{ctx.strokeStyle=Lab.rgba(tok.muted,.4);ctx.setLineDash([3,3]);rr(ctx,x-14,RY-14,28,28,6);ctx.stroke();ctx.setLineDash([]);}}
+  for(let c=0;c<ncod;c++){const x0=bx(c*3)-16,x1=bx(c*3+2)+16;ctx.strokeStyle=Lab.rgba('#8e4ec6',.6);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x0,RY+20);ctx.lineTo(x0,RY+24);ctx.lineTo(x1,RY+24);ctx.lineTo(x1,RY+20);ctx.stroke();if(rnaShown.length>=c*3+3)label(`코돈 ${c+1}`,(x0+x1)/2,RY+34,{size:10,color:'#8e4ec6',hw:0});}
+  // 번역: 라이보솜
+  const aaShown=st.mode==='auto'?translate(st.coding).slice(0,Math.max(0,Math.floor((st.auto-1)*ncod*1.0+0.0))):st.aa;
+  const tlActive=(st.mode==='play'&&st.phase==='tl')||(st.mode==='auto'&&st.auto>=1&&st.auto<2);
+  if(st.phase!=='tx'||st.mode!=='play'){ // mRNA 복사본 (세포질)
+    const mr=st.mode==='auto'?(st.auto>=1?[...st.coding].map(b=>b==='T'?'U':b):[]):st.rna;
+    for(let i=0;i<mr.length;i++)base(bx(i),RIBY,mr[i]);if(mr.length)label('RNA가 핵공을 지나 세포질로 →',X0-10,RIBY-28,{size:11,align:'left',color:tok.muted});
+    const ci=aaShown.length;if(tlActive&&ci<ncod){const x=(bx(ci*3)+bx(ci*3+2))/2;ctx.fillStyle='rgba(91,120,160,.35)';ctx.beginPath();ctx.ellipse(x,RIBY-6,64,36,0,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(x,RIBY+30,74,30,0,0,7);ctx.fill();label('라이보솜',x,RIBY+44,{size:12,color:tok.air});}}
+  // 폴리펩타이드
+  label('폴리펩타이드 (아미노산 사슬)',X0-10,PY-36,{size:11,align:'left',color:tok.gold});
+  aaShown.forEach((a,i)=>{const x=(bx(i*3)+bx(i*3+2))/2,y=PY+Math.sin(i*1.2)*8;if(i>0){const px=(bx((i-1)*3)+bx((i-1)*3+2))/2,py=PY+Math.sin((i-1)*1.2)*8;ctx.strokeStyle=tok.gold;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(x,y);ctx.stroke();}
+    const stop=a==='Stop';const orig=st.mode==='mut'&&st.orig.aa[i]!==a;ctx.fillStyle=stop?'#9aa5b1':orig?tok.bad:'#f2a93b';ctx.beginPath();ctx.arc(x,y,24,0,7);ctx.fill();label(stop?'종결':a,x,y-2,{size:12,color:'#fff',hw:0,weight:700});label(stop?'':AA[a],x,y+40,{size:10,color:orig?tok.bad:tok.fg,weight:orig?700:500});});
+  if(st.mode==='mut'){const hb=st.gi<=1;if(hb){const sick=translate(st.coding)[6]==='Val';const cx=900,cy=PY+10;ctx.fillStyle='#d9534f';ctx.beginPath();if(sick){ctx.moveTo(cx-40,cy+10);ctx.quadraticCurveTo(cx,cy-40,cx+40,cy+10);ctx.quadraticCurveTo(cx,cy-12,cx-40,cy+10);}else{ctx.ellipse(cx,cy,34,22,0,0,7);}ctx.fill();label(sick?'낫 모양 적혈구':'정상 적혈구',cx,cy+44,{size:12,color:sick?tok.bad:tok.fg});}}
+  drawFx(ctx);
+}
+function update(){const done=st.mode==='auto'?translate(st.coding).slice(0,Math.max(0,Math.floor((st.auto-1)*codons()))).length:st.aa.length;$('vAA').textContent=Math.max(0,done);
+  const ph=st.mode==='mut'?'돌연변이 실험':st.mode==='auto'?(st.auto<1?'전사 중':st.auto<2?'번역 중':'완성'):st.phase==='tx'?'전사 중':st.phase==='tl'?'번역 중':'완성';$('stName').textContent=ph;$('chip').dataset.s=ph==='완성'?'':ph==='돌연변이 실험'?'bad':'gold';
+  $('fsInfo').textContent=`${GENES[st.gi].n} · ${ph} · 아미노산 ${Math.max(0,done)}개`;}
+$('gene').innerHTML=GENES.map((g,i)=>`<option value="${i}">${g.n}</option>`).join('');$('gene').onchange=e=>{st.orig=null;load(+e.target.value);};
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{st.mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('pad').hidden=st.mode!=='play';$('opts').hidden=false;
+  if(st.mode==='mut'){st.coding=GENES[st.gi].cod;st.tmpl=[...st.coding].map(x=>COMP[x]).join('');}reset();});
+// 돌연변이: 주형 가닥 클릭
+$('sim').addEventListener('pointerdown',e=>{if(st.mode!=='mut')return;const p=S.pt(e);if(Math.abs(p.y-DY2)>16)return;for(let i=0;i<st.tmpl.length;i++){if(Math.abs(p.x-bx(i))<15){const order='ATGC';const nb=order[(order.indexOf(st.tmpl[i])+1)%4];st.tmpl=st.tmpl.slice(0,i)+nb+st.tmpl.slice(i+1);st.coding=[...st.tmpl].map(x=>COMP[x]).join('');st.rna=[...st.coding].map(b=>b==='T'?'U':b);st.aa=translate(st.coding);burst(bx(i),DY2,tok.bad,10,2);render();return;}}});
+document.addEventListener('keydown',e=>{if(st.mode!=='play'||st.phase!=='tx')return;const k=e.key.toUpperCase();if('AUGCT'.includes(k)&&k.length===1&&!(document.activeElement&&document.activeElement.tagName==='SELECT'))pickBase(k);});
+let fr=0;loop(dt=>{st.t++;fr++;if(st.mode==='auto'){st.auto+=dt*0.12*Lab.MOTION;if(st.auto>2.4)st.auto=0;}draw();if(fr%8===0)update();});
+load(0);
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

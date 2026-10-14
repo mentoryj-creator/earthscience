@@ -1,0 +1,480 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>별의 일생과 원소 공장</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button.right{background:var(--good);border-color:var(--good);color:#fff}
+.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅱ. 물질과 규칙성 · 태양계와 생명체를 이루는 원소의 형성</span></nav>
+  <header>
+    <h1>별의 일생과 원소 공장</h1>
+    <p>별은 중심부의 핵융합으로 빛을 내며 수소와 헬륨에서 더 무거운 원소를 만듭니다. 별의 질량을 정하고 일생을 진행시키며 별의 내부 구조와 만들어지는 원소를 관찰해 보세요. 원소 주문서 게임으로 각 원소의 출생지를 맞혀 볼 수도 있습니다.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="slider">
+        <div class="slider-top"><label for="mass">별의 질량</label><output id="mOut">태양의 1배</output></div>
+        <input id="mass" type="range" min="0" max="100" step="0.5" value="22">
+        <div class="ticks"><span>0.5배</span><span>태양</span><span>8배</span><span>30배</span></div>
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="life">일생 진행</label><output id="lOut">–</output></div>
+        <input id="life" type="range" min="0" max="100" step="0.1" value="30">
+        <div class="ticks"><span>성운</span><span>주계열성</span><span>거성</span><span>최후</span></div>
+      </div>
+      <div class="presets">
+        <button type="button" id="pSun">태양 정도 별</button>
+        <button type="button" id="pBig" class="warm">질량이 매우 큰 별</button>
+        <button type="button" id="pPlay" aria-pressed="false">▶ 일생 재생</button>
+        <button type="button" id="pGame" class="go">📦 원소 주문서 게임</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">주문 1 / 8</span>
+      <div class="task" id="gTask">–</div>
+      <div class="opts" id="opts" role="group" aria-label="출생지 고르기"></div>
+      <button type="button" id="gNext" hidden>다음 주문 →</button>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="별의 모습과 내부 구조, 만들어진 원소 표"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#9fb4e0"></i>빅뱅에서 생성</span>
+      <span class="key"><i style="background:#f2a93b"></i>별 중심 핵융합으로 생성</span>
+      <span class="key"><i style="background:#c06bd6"></i>초신성 폭발로 생성</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">별의 크기와 내부 층의 두께는 한 화면에 보이도록 크게 바꾸어 나타냈습니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k">중심부 핵융합</div><div class="v" id="vF">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">주계열성으로 사는 기간</span><span class="v" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k">표면 온도 · 색</span><span class="v" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k">크기 (태양 = 1)</span><span class="v" id="v3">–</span><span class="d" id="d3"></span></div>
+        <div class="m"><span class="k">최후의 모습</span><span class="v txt" id="v4">–</span><span class="d" id="d4"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">–</h2>
+      <ol class="chain" id="exChain"></ol>
+      <div class="impact"><b>정리</b><span id="exImpact"></span></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>태양 정도 질량의 별과 질량이 매우 큰 별은 중심부에서 각각 어떤 원소까지 만들 수 있나요?</li>
+      <li>별의 질량이 클수록 주계열성으로 사는 기간은 어떻게 달라지나요? 그 까닭을 추론해 보세요.</li>
+      <li>금이나 우라늄처럼 철보다 무거운 원소는 언제 만들어지나요?</li>
+      <li>내 몸을 이루는 산소와 탄소, 피 속의 철은 어디에서 왔을까요? ‘○○ 원소 이야기’로 짧게 써 보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">주계열성의 수명은 태양을 100억 년으로 놓고 질량의 2.5제곱에 반비례한다고 근사했습니다. 태양 질량의 약 8배를 경계로 최후를 나누었으며, 실제 경계와 내부 핵융합 단계는 이보다 복잡합니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle}=Lab,tok=Lab.tok;
+const W=1000,H=600,CX=300,CY=300;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const st={m:1,p:30,play:false,t:0,game:null};
+const massOf=v=>v<=33?0.5*Math.pow(2,v/33):v<=66?Math.pow(8,(v-33)/33):8*Math.pow(30/8,(v-66)/34);
+const valOf=m=>m<=1?33*Math.log2(m/0.5):m<=8?33+33*Math.log(m)/Math.log(8):66+34*Math.log(m/8)/Math.log(30/8);
+const big=()=>st.m>=8;
+const sm=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
+/* 단계 */
+function phase(p){
+  if(p<10)return 'nebula';if(p<15)return 'proto';if(p<60)return 'ms';if(p<82)return 'giant';return 'end';}
+const LAYERS=[{e:'H',c:'#f6d27a',n:'수소'},{e:'He',c:'#f2a93b',n:'헬륨'},{e:'C',c:'#8a8f98',n:'탄소'},{e:'O',c:'#5aa7e0',n:'산소'},{e:'Ne·Mg',c:'#9b7fd6',n:'네온·마그네슘'},{e:'Si',c:'#5bb98a',n:'규소'},{e:'Fe',c:'#b5523b',n:'철'}];
+function layersAt(p){ // 중심에서 바깥으로 [원소 인덱스, 반지름 비율]
+  if(p<15)return [];
+  const L=[];
+  if(p<60){const f=sm(15,60,p);return [[1,0.12+0.22*f],[0,1]];}
+  if(!big()){const f=sm(60,80,p);return [[2,0.1+0.15*f],[1,0.28],[0,1]];}
+  const s=[[62,2],[67,3],[71,4],[75,5],[79,6]];
+  const ids=s.filter(([q])=>p>=q).map(x=>x[1]);
+  const out=[];const n=ids.length;ids.reverse().forEach((id,i)=>out.push([id,0.06+0.05*(i)]));
+  out.push([1,0.06+0.05*n+0.06]);out.push([0,1]);
+  // 정렬: 반지름 오름차순
+  return out.sort((a,b)=>a[1]-b[1]);
+}
+/* 원소 표 */
+const TILES=[['H','수소','bb'],['He','헬륨','bb'],['C','탄소','f'],['N','질소','f'],['O','산소','f'],['F','플루오린','f'],['Ne','네온','f'],
+  ['Na','나트륨','f'],['Mg','마그네슘','f'],['Al','알루미늄','f'],['Si','규소','f'],['P','인','f'],['S','황','f'],['K','칼륨','f'],
+  ['Ca','칼슘','f'],['Fe','철','f'],['Cu','구리','sn'],['Ag','은','sn'],['Pb','납','sn'],['Au','금','sn'],['U','우라늄','sn']];
+function made(){ // 현재 별이 만든(또는 가진) 원소
+  const p=st.p,s=new Set(['H','He']);
+  if(p>=62||(!big()&&p>=64))s.add('C');
+  if(!big()&&p>=86){s.add('N');s.add('O');} // 행성상 성운으로 방출되는 C, N, O
+  if(big()){if(p>=62)s.add('N');if(p>=67){s.add('O');s.add('F');}if(p>=71){s.add('Ne');s.add('Na');s.add('Mg');}if(p>=75){s.add('Al');s.add('Si');s.add('P');s.add('S');s.add('K');s.add('Ca');}if(p>=79)s.add('Fe');if(p>=84){['Cu','Ag','Pb','Au','U'].forEach(e=>s.add(e));}}
+  return s;}
+/* 그리기 */
+function starColor(T){if(T>9000)return [170,195,255];if(T>7000)return [215,225,255];if(T>5500)return [255,244,220];if(T>4500)return [255,215,160];return [255,160,110];}
+function surfT(){const p=st.p,ms=5800*Math.pow(st.m,0.5);if(p<60)return ms;if(p<82)return lerp(ms,big()?3600:3300,sm(60,70,p));return big()?ms:30000;}
+function radius(){const p=st.p,ms=Math.pow(st.m,0.75);if(p<10)return 0;if(p<15)return ms*lerp(3,1,sm(10,15,p));if(p<60)return ms*lerp(1,1.6,sm(15,60,p));if(p<82)return ms*lerp(1.6,big()?600/ms:100,sm(60,72,p));return big()?0.00002:0.01;}
+const bgStars=Array.from({length:120},(_,i)=>({x:(i*733.7)%600,y:(i*311.9)%H,r:(i%4)/3+.3}));
+function draw(){
+  S.begin();const p=st.p,ph=phase(p);
+  ctx.fillStyle='#070b12';ctx.fillRect(0,0,600,H);ctx.fillStyle='#fff';bgStars.forEach(s=>{ctx.globalAlpha=.3+s.r*.25;ctx.fillRect(s.x,s.y,s.r,s.r);});ctx.globalAlpha=1;
+  const T=surfT(),col=starColor(T);
+  // 화면 반지름
+  const rTrue=radius();let R=ph==='giant'?lerp(30+25*Math.pow(st.m,.35),big()?230:200,sm(60,72,p)):clamp(30+25*Math.pow(st.m,.35)*(ph==='proto'?lerp(1.8,1,sm(10,15,p)):1),20,150);
+  if(ph==='nebula'){const f=p/10;for(let i=0;i<60;i++){const a=i*2.4,r=lerp(260,60,f)*Math.sqrt(((i*37)%60)/60);ctx.fillStyle=`rgba(${i%2?'190,120,220':'120,170,230'},${.08+.1*f})`;ctx.beginPath();ctx.arc(CX+Math.cos(a+st.t*.002)*r,CY+Math.sin(a+st.t*.002)*r*.7,40-20*f,0,7);ctx.fill();}
+    label('성운: 중력으로 수축 중',CX,CY+240,{size:15,color:'#dbe8f0',halo:'rgba(0,0,0,.6)'});}
+  else if(ph!=='end'){
+    // 별 본체 + 단면
+    const gl=ctx.createRadialGradient(CX,CY,R*.8,CX,CY,R*1.5);gl.addColorStop(0,`rgba(${col},.45)`);gl.addColorStop(1,`rgba(${col},0)`);ctx.fillStyle=gl;ctx.beginPath();ctx.arc(CX,CY,R*1.5,0,7);ctx.fill();
+    const gs=ctx.createRadialGradient(CX-R*.3,CY-R*.3,R*.1,CX,CY,R);gs.addColorStop(0,`rgb(${col.map(v=>Math.min(255,v+30))})`);gs.addColorStop(1,`rgb(${col.map(v=>v*.8|0)})`);ctx.fillStyle=gs;ctx.beginPath();ctx.arc(CX,CY,R,0,7);ctx.fill();
+    // 단면 (오른쪽 아래 1/4 잘라냄)
+    const L=layersAt(p);if(L.length){ctx.save();ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,R+1,-0.15,Math.PI/2+0.15);ctx.closePath();ctx.clip();
+      for(let i=L.length-1;i>=0;i--){const [id,fr]=L[i];const rr2=fr>=1?R:Math.max(6,R*fr*(ph==='giant'?(big()?1:0.9):1)*(ph==='giant'?2.2:1));ctx.fillStyle=LAYERS[id].c;ctx.beginPath();ctx.arc(CX,CY,Math.min(rr2,R),0,7);ctx.fill();}
+      ctx.restore();
+      // 층 범례 (중심 → 바깥)
+      label('단면 (중심 → 바깥)',24,28,{size:12,align:'left',color:'#dbe8f0',halo:'rgba(0,0,0,.6)'});
+      L.forEach(([id,fr],i)=>{const y=52+i*22;ctx.fillStyle=LAYERS[id].c;ctx.fillRect(24,y-7,14,14);label(`${LAYERS[id].n}${fr>=1?' (바깥층)':''}`,46,y,{size:12,align:'left',color:'#dbe8f0',halo:'rgba(0,0,0,.6)'});});
+      // 핵융합 표시
+      if(ph!=='proto'){const k=0.5+0.5*Math.sin(st.t*.2);ctx.fillStyle=`rgba(255,255,220,${.4+.4*k})`;ctx.beginPath();ctx.arc(CX,CY,5+3*k,0,7);ctx.fill();}}
+    label(ph==='proto'?'원시별':ph==='ms'?'주계열성':big()?'적색 초거성':'적색 거성',CX,Math.min(H-30,CY+R+34),{size:16,color:'#dbe8f0',halo:'rgba(0,0,0,.6)'});
+  }else{
+    const f=sm(82,100,p);
+    if(big()){ // 초신성
+      const k=sm(82,88,p);const rr2=lerp(40,280,f);
+      ctx.fillStyle=`rgba(255,250,230,${(1-k)*.9})`;ctx.beginPath();ctx.arc(CX,CY,lerp(200,400,k),0,7);ctx.fill();
+      for(let i=0;i<90;i++){const a=i*2.39996,r=rr2*(0.7+0.3*((i*53)%10)/10);const c=['#c06bd6','#f2a93b','#5aa7e0','#5bb98a','#b5523b'][i%5];ctx.fillStyle=c;ctx.globalAlpha=.75*(1-f*.4);ctx.beginPath();ctx.arc(CX+Math.cos(a)*r,CY+Math.sin(a)*r,3+2*(i%3),0,7);ctx.fill();}ctx.globalAlpha=1;
+      const bh=st.m>=25;ctx.fillStyle=bh?'#000':'#cfe0ff';ctx.strokeStyle=bh?'#f2a93b':'#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(CX,CY,bh?12:5,0,7);ctx.fill();ctx.stroke();
+      label(p<88?'초신성 폭발!':bh?'블랙홀':'중성자별',CX,CY+40,{size:16,color:'#fff',halo:'rgba(0,0,0,.7)'});
+      label('철보다 무거운 원소(금, 우라늄 등)가 폭발하는 수 초 동안 만들어져 우주로 흩어짐',CX,H-30,{size:12,color:'#dbe8f0',halo:'rgba(0,0,0,.7)'});
+    }else{ // 행성상 성운 + 백색 왜성
+      const rr2=lerp(60,240,f);for(let i=0;i<3;i++){ctx.strokeStyle=['rgba(90,167,224,.55)','rgba(91,185,138,.45)','rgba(239,124,80,.4)'][i];ctx.lineWidth=14-i*3;ctx.beginPath();ctx.ellipse(CX,CY,rr2*(1-i*.12),rr2*(.85-i*.1),.3,0,7);ctx.stroke();}
+      ctx.fillStyle='#eef4ff';ctx.beginPath();ctx.arc(CX,CY,6,0,7);ctx.fill();
+      label('백색 왜성',CX,CY+24,{size:14,color:'#fff',halo:'rgba(0,0,0,.7)'});label('행성상 성운: 바깥층(탄소·질소·산소 등)이 우주로 방출',CX,H-30,{size:12,color:'#dbe8f0',halo:'rgba(0,0,0,.7)'});
+    }
+  }
+  // 오른쪽: 원소 공장
+  ctx.fillStyle=Lab.isDark()?'#0f1820':'#f4f7f9';ctx.fillRect(600,0,400,H);
+  label('원소 공장: 지금까지 만들어진 원소',800,30,{size:14});
+  const ms=made();const cols=4,tw=86,th=58,ox=624,oy=56;
+  TILES.forEach(([e,n,o],i)=>{const x=ox+(i%cols)*(tw+6),y=oy+Math.floor(i/cols)*(th+6);const on=ms.has(e);
+    const c=o==='bb'?'#9fb4e0':o==='f'?'#f2a93b':'#c06bd6';
+    ctx.fillStyle=on?c:Lab.rgba(tok.muted,.12);rr(ctx,x,y,tw,th,8);ctx.fill();
+    if(st.game&&st.game.card&&st.game.card.e===e){ctx.strokeStyle=tok.gold;ctx.lineWidth=3;rr(ctx,x-2,y-2,tw+4,th+4,9);ctx.stroke();}
+    label(e,x+tw/2,y+24,{size:20,weight:700,color:on?'#1a1a1a':tok.muted,hw:0});label(n,x+tw/2,y+45,{size:11,weight:500,color:on?'#1a1a1a':tok.muted,hw:0});});
+  label(`${ms.size} / ${TILES.length}종`,800,H-22,{size:13,color:tok.muted});
+  drawFx(ctx);
+}
+/* 텍스트 */
+const fmtY=y=>y>=1e8?`${(y/1e8).toFixed(y>=1e9?0:1)}억 년`:`${Math.round(y/1e4).toLocaleString()}만 년`;
+const EX={
+ nebula:['성운에서 별이 태어난다','물질이 밀집된 곳은 중력이 커서 수소와 헬륨을 더 끌어당겨 밀도가 높은 성운이 된다.|성운이 중력으로 수축하면 중심부 온도가 점점 높아진다.','독수리성운의 ‘창조의 기둥’에서는 지금도 별이 태어나고 있다.'],
+ proto:['원시별: 핵융합 직전','수축하며 중심부 온도가 계속 올라간다.|수소 핵융합이 일어날 만큼 뜨거워지면 별이 탄생한다.','별은 중력 수축으로 생긴 열로 빛나다가 핵융합을 시작한다.'],
+ ms:['주계열성: 수소 핵융합으로 빛나는 일생의 대부분','중심부에서 수소 원자핵이 합쳐져 헬륨을 만든다(수소 핵융합).|핵융합으로 생긴 내부 압력이 중력과 평형을 이루어 크기가 일정하게 유지된다.|중심부에 헬륨이 점점 쌓인다.','태양 정도 질량의 별은 약 100억 년 동안 안정하게 빛난다. 태양은 지금 약 46억 살이다.'],
+ giantS:['적색 거성: 헬륨 핵융합으로 탄소 생성','중심부 수소가 바닥나면 헬륨 중심부가 수축해 더 뜨거워진다.|헬륨 핵융합이 일어나 탄소가 만들어진다.|바깥층이 수백 배로 팽창하고 표면 온도가 낮아져 붉게 보인다.','태양 정도 질량의 별은 중심부에서 탄소까지 만들고 핵융합을 멈춘다.'],
+ giantB:['적색 초거성: 양파 껍질처럼 쌓이는 원소','헬륨 → 탄소 → 산소 → 네온·마그네슘 → 규소 → 철 순서로 더 무거운 원소를 만든다.|중심부에 무거운 원소가 양파 껍질 같은 층을 이룬다.|철은 별 내부 핵융합의 최종 산물이다.','질량이 태양보다 매우 큰 별은 철까지 만든다.'],
+ endS:['행성상 성운과 백색 왜성','바깥층 물질이 우주 공간으로 방출되어 행성상 성운을 만든다.|중심부는 수축해 작고 뜨거운 백색 왜성이 된다.','별이 만든 탄소, 질소, 산소 등이 우주로 퍼져 새로운 별과 행성의 재료가 된다.'],
+ endB:['초신성 폭발','핵융합을 마친 별의 중심부가 무너지며 엄청난 폭발이 일어난다.|이때의 에너지로 금, 우라늄처럼 철보다 무거운 원소가 만들어진다.|중심에는 중성자별이나 블랙홀이 남는다.','우주의 긴 역사 동안 초신성 폭발로 흩뿌려진 원소들이 태양계와 지구, 생명체의 재료가 되었다.']
+};
+let lastK='';
+function updateText(){
+  const ph=phase(st.p);const k=ph==='giant'?(big()?'giantB':'giantS'):ph==='end'?(big()?'endB':'endS'):ph;
+  $('mOut').textContent=`태양의 ${st.m<2?st.m.toFixed(1):Math.round(st.m)}배${big()?' · 무거운 별':''}`;
+  const names={nebula:'성운',proto:'원시별',ms:'주계열성',giantS:'적색 거성',giantB:'적색 초거성',endS:'백색 왜성',endB:st.m>=25?'블랙홀':'중성자별'};
+  $('lOut').textContent=names[k];$('stName').textContent=names[k];
+  if(k!==lastK){lastK=k;const e=EX[k];$('exTitle').textContent=e[0];$('exChain').innerHTML=e[1].split('|').map(x=>`<li>${x}</li>`).join('');$('exImpact').textContent=e[2];}
+  const fus={nebula:'없음 (중력 수축)',proto:'곧 시작',ms:'H → He',giantS:'He → C',giantB:st.p<67?'He → C':st.p<71?'C → O':st.p<75?'O → Ne, Mg':st.p<79?'→ Si':'Si → Fe (끝)',endS:'멈춤',endB:'멈춤'}[k];
+  $('vF').textContent=fus;
+  const life=1e10*Math.pow(st.m,-2.5);$('v1').textContent=fmtY(life);$('d1').textContent=st.m>1?'질량이 클수록 빨리 소모':'태양보다 오래 삶';
+  const T=surfT();$('v2').textContent=`${Math.round(T/100)*100} K`;$('d2').textContent=T>9000?'청백색':T>7000?'흰색':T>5500?'노란색':T>4500?'주황색':'붉은색';
+  const R=radius();$('v3').textContent=R<0.001?'매우 작음':R<10?R.toFixed(1):Math.round(R).toLocaleString();$('d3').textContent=k==='giantS'||k==='giantB'?'바깥층이 크게 팽창':'';
+  $('v4').textContent=big()?(st.m>=25?'초신성 → 블랙홀':'초신성 → 중성자별'):'행성상 성운 → 백색 왜성';$('d4').textContent=big()?'철보다 무거운 원소 생성':'탄소까지 생성';
+  $('chip').dataset.s=k.startsWith('end')?'bad':k.startsWith('giant')?'warm':'gold';
+  $('fsInfo').textContent=`태양의 ${st.m.toFixed(1)}배 · ${names[k]} · 핵융합 ${fus} · 만들어진 원소 ${made().size}종`;
+}
+/* 컨트롤 */
+const ms=$('mass'),lf=$('life');
+ms.addEventListener('input',()=>{st.m=massOf(+ms.value);});
+lf.addEventListener('input',()=>{setPlay(false);st.p=+lf.value;});
+function setPlay(on){st.play=on;$('pPlay').setAttribute('aria-pressed',on);$('pPlay').textContent=on?'❚❚ 멈춤':'▶ 일생 재생';}
+$('pPlay').onclick=()=>{if(st.p>=99.5)st.p=0;setPlay(!st.play);};
+$('pSun').onclick=()=>{st.m=1;ms.value=valOf(1);};
+$('pBig').onclick=()=>{st.m=15;ms.value=valOf(15);};
+/* 게임 */
+const ORIG=[['bb','빅뱅 직후 (약 3분 무렵까지)'],['ms','주계열성 중심의 수소 핵융합'],['giant','거성·초거성 중심의 핵융합'],['sn','초신성 폭발']];
+const CARDS=[
+  {e:'H',n:'수소',ok:['bb'],why:'수소 원자핵(양성자)은 빅뱅 직후 1초가 되기 전에 생겼어요.',show:[1,5]},
+  {e:'He',n:'헬륨',ok:['bb','ms'],why:'헬륨은 빅뱅 약 3분 무렵 대부분 만들어졌고, 별 중심의 수소 핵융합으로도 만들어져요.',show:[1,40]},
+  {e:'C',n:'탄소',ok:['giant'],why:'중심부 수소가 바닥난 뒤 헬륨 핵융합으로 탄소가 생겨요. 태양 같은 별도 탄소까지는 만들어요.',show:[1,70]},
+  {e:'O',n:'산소',ok:['giant'],why:'질량이 큰 별의 중심부에서 탄소 다음 단계 핵융합으로 산소가 생겨요.',show:[15,69]},
+  {e:'Si',n:'규소',ok:['giant'],why:'질량이 매우 큰 별의 초거성 단계에서 만들어져요.',show:[15,77]},
+  {e:'Fe',n:'철',ok:['giant'],why:'철은 별 내부 핵융합의 최종 산물이에요.',show:[15,80.5]},
+  {e:'Au',n:'금',ok:['sn'],why:'철보다 무거운 금은 초신성 폭발의 엄청난 에너지로 만들어져요.',show:[15,86]},
+  {e:'U',n:'우라늄',ok:['sn'],why:'우라늄도 초신성 폭발 때 수 초 동안 만들어져 흩어졌어요.',show:[15,86]},
+  {e:'Mg',n:'마그네슘',ok:['giant'],why:'질량이 큰 별에서 네온과 함께 만들어져요.',show:[15,73]},
+  {e:'Cu',n:'구리',ok:['sn'],why:'구리는 철보다 무거워 초신성 폭발로 만들어져요.',show:[15,86]}
+];
+function startGame(){st.game={order:shuffle(CARDS).slice(0,8),i:0,score:0,card:null,answered:false,correct:0};setPlay(false);$('mission').hidden=false;$('pGame').textContent='↺ 다시 시작';nextCard();}
+function nextCard(){const g=st.game;if(g.i>=8){const b=best('star',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`배송 완료! ${g.correct}/8 정답 · ${g.score}점 <span class="stars">${stars(g.correct>=8?3:g.correct>=6?2:g.correct>=4?1:0)}</span><small>최고 기록 ${b}점</small>`;$('opts').innerHTML='';$('gNext').hidden=true;g.card=null;return;}
+  const c=g.order[g.i];g.card=c;g.answered=false;$('gTag').textContent=`주문 ${g.i+1} / 8`;
+  $('gTask').innerHTML=`📦 <b>${c.n}(${c.e})</b> 주문! 이 원소는 주로 어디에서 만들어졌을까요?`;
+  $('opts').innerHTML='';ORIG.forEach(([k,t])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>answer(k,b);$('opts').appendChild(b);});$('gNext').hidden=true;}
+function answer(k,b){const g=st.game;if(g.answered)return;g.answered=true;const c=g.card,ok=c.ok.includes(k);
+  [...$('opts').children].forEach((x,i)=>{x.disabled=true;if(c.ok.includes(ORIG[i][0]))x.classList.add('right');});if(!ok)b.classList.add('wrong');
+  if(ok){g.score+=100;g.correct++;burst(800,300,tok.gold,26);}
+  $('gScore').textContent=g.score;
+  $('gTask').innerHTML=`${ok?'정답!':'아쉬워요.'} <b>${c.n}</b> <small>${c.why}</small>`;
+  toast($('toast'),ok?'배송 성공!':'출생지가 달라요',ok?'good':'bad');
+  // 해당 단계 보여 주기
+  st.m=c.show[0];ms.value=valOf(st.m);st.p=c.show[1];lf.value=st.p;
+  g.i++;$('gNext').hidden=false;$('gNext').textContent=g.i>=8?'결과 보기 →':'다음 주문 →';}
+$('gNext').onclick=nextCard;$('pGame').onclick=startGame;
+let fr=0;
+loop(dt=>{st.t++;fr++;if(st.play){st.p+=dt*(phase(st.p)==='ms'?4:6)*Lab.MOTION;if(st.p>=100){st.p=100;setPlay(false);}lf.value=st.p;}draw();if(fr%4===0)updateText();});
+updateText();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

@@ -1,0 +1,452 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>판 경계 실험실</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button.right{background:var(--good);border-color:var(--good);color:#fff}
+.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅲ. 시스템과 상호작용 · 지권의 변화와 판 구조론</span></nav>
+  <header>
+    <h1>판 경계 실험실</h1>
+    <p>지구 표면은 여러 개의 판으로 나뉘어 있고, 판이 움직이면서 경계에서 지진과 화산 활동이 일어나고 해령, 해구, 습곡 산맥 같은 지형이 만들어집니다. 경계의 종류를 골라 수백만 년의 변화를 빠르게 재생하고, 관측 자료만 보고 경계를 알아맞혀 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="grp"><span class="k">판의 경계</span><div class="seg" role="group" aria-label="경계 종류" id="seg"></div></div>
+      <div class="slider" style="flex-basis:180px"><div class="slider-top"><label for="speed">재생 속도</label><output id="spOut">보통</output></div><input id="speed" type="range" min="0" max="3" step="0.1" value="1"></div>
+      <div class="toggles"><label><input type="checkbox" id="tEq" checked>지진 표시</label></div>
+      <button type="button" id="pGame" class="go">🕵 판 경계 탐정</button>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">사건 1 / 6</span>
+      <div class="task" id="gTask">–</div>
+      <div class="opts" id="opts" role="group" aria-label="경계 고르기"></div>
+      <button type="button" id="gNext" hidden>다음 사건 →</button>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="540" role="img" aria-label="판 경계의 단면과 지진, 화산"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#f2c12e;border-radius:50%"></i>천발 지진 (0~70 km)</span>
+      <span class="key"><i style="background:#f28c28;border-radius:50%"></i>중발 지진 (70~300 km)</span>
+      <span class="key"><i style="background:#c23b3b;border-radius:50%"></i>심발 지진 (300 km 이상)</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">세로(깊이)와 지형 높이는 과장했습니다. 판은 1년에 수 cm씩 움직이며, 화면의 1초는 수십만 년에 해당합니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="관측">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k">흐른 시간</div><div class="v" id="vT">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">판의 움직임</span><span class="v txt" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k">만들어지는 지형</span><span class="v txt" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k">지진 · 화산</span><span class="v txt" id="v3">–</span><span class="d" id="d3"></span></div>
+        <div class="m"><span class="k">대표 지역</span><span class="v txt" id="v4">–</span><span class="d" id="d4"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>판 구조론</h2>
+      <ol class="chain">
+        <li>지구 표면은 지각과 맨틀 윗부분으로 된 단단한 판(암석권)으로 나뉘며, 판은 그 아래의 맨틀 위에서 천천히 움직인다.</li>
+        <li>발산형 경계: 판이 서로 멀어지며 맨틀 물질이 올라와 새로운 판이 생긴다.</li>
+        <li>수렴형 경계: 판이 서로 가까워지며 밀도가 큰 판이 섭입하거나 충돌한다.</li>
+        <li>보존형 경계: 판이 서로 어긋나며 판이 생기거나 사라지지 않는다.</li>
+      </ol>
+      <div class="impact"><b>지진대와 화산대</b>지진과 화산 활동이 활발한 지역은 판의 경계와 거의 일치한다. 태평양 가장자리를 따라 이어진 ‘불의 고리’가 대표적이다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>해양판과 대륙판이 만나는 곳에서 지진이 일어나는 깊이는 대륙 쪽으로 갈수록 어떻게 변하나요? 그 까닭은?</li>
+      <li>히말라야산맥에서 화산 활동이 거의 없는 까닭을 판의 움직임으로 설명해 보세요.</li>
+      <li>해령에서 멀어질수록 해양 지각의 나이는 어떻게 될까요?</li>
+      <li>우리나라 주변의 판 경계는 어떤 종류이며, 일본에서 지진과 화산이 잦은 까닭은 무엇일까요?</li>
+    </ol>
+  </section>
+  <p class="foot">단면은 판의 움직임과 지진·화산이 일어나는 위치를 보여 주는 모식도입니다. 보존형 경계는 판이 옆으로 어긋나므로 위에서 본 모습을 함께 나타냈습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle,rand}=Lab,tok=Lab.tok;
+const W=1000,H=540,SY=190,KM=0.48;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const B={
+ ridge:{n:'발산형 · 해령',mv:'두 해양판이 서로 멀어짐',lf:'해령, 열곡',eq:'천발 지진 · 화산 활동',ex:'대서양 중앙 해령, 아이슬란드',ed:'새로운 해양 지각이 생김'},
+ rift:{n:'발산형 · 열곡대',mv:'대륙판이 갈라지며 멀어짐',lf:'열곡(골짜기), 호수',eq:'천발 지진 · 화산 활동',ex:'동아프리카 열곡대',ed:'오랜 시간 뒤 새로운 바다가 될 수 있음'},
+ oc:{n:'수렴형 · 해양판–대륙판',mv:'밀도가 큰 해양판이 대륙판 아래로 섭입',lf:'해구, 습곡 산맥(화산)',eq:'천발~심발 지진 · 화산 활동',ex:'안데스산맥, 칠레 해구',ed:'대륙 쪽으로 갈수록 지진이 깊어짐'},
+ oo:{n:'수렴형 · 해양판–해양판',mv:'한 해양판이 다른 해양판 아래로 섭입',lf:'해구, 호상 열도',eq:'천발~심발 지진 · 화산 활동',ex:'일본 열도, 마리아나 해구',ed:'활 모양의 화산섬이 줄지어 생김'},
+ cc:{n:'수렴형 · 대륙판–대륙판',mv:'두 대륙판이 충돌',lf:'거대한 습곡 산맥',eq:'천발~중발 지진 · 화산 거의 없음',ex:'히말라야산맥',ed:'섭입이 잘 일어나지 않아 마그마가 거의 생기지 않음'},
+ tf:{n:'보존형 · 변환 단층',mv:'두 판이 서로 반대 방향으로 어긋남',lf:'변환 단층',eq:'천발 지진 · 화산 없음',ex:'산안드레아스 단층',ed:'판이 생기거나 사라지지 않음'}
+};
+const KEYS=Object.keys(B);
+const st={k:'oc',t:0,age:0,speed:1,eqs:[],game:null};
+/* 지진 샘플링 */
+function sampleEq(k){
+  if(k==='ridge'||k==='rift')return {x:500+rand(-60,60),d:rand(2,30)};
+  if(k==='tf')return {x:500+rand(-8,8),d:rand(2,25),tf:true,yy:rand(60,170)};
+  if(k==='cc')return {x:500+rand(-140,140),d:rand(5,180)};
+  // 섭입: 슬랩 윗면을 따라
+  const s=rand(0,1);const x0=k==='oo'?430:430,ang=k==='oo'?0.95:0.75;const len=s*720;const d=len*Math.sin(ang)*0.9+rand(-10,15);const x=x0+len*Math.cos(ang)*KM/0.48*0.48;
+  return {x:x0+len*Math.cos(ang)*0.62,d:clamp(d,2,680)};
+}
+const eqColor=d=>d<70?'#f2c12e':d<300?'#f28c28':'#c23b3b';
+/* 그리기 */
+function stripes(x0,x1,y,h,off,dir,col){ctx.save();ctx.beginPath();ctx.rect(x0,y,x1-x0,h);ctx.clip();for(let x=x0-40;x<x1+40;x+=26){const xx=x+((off*dir)%26+26)%26;ctx.fillStyle=Math.floor((x-x0)/26)%2?col:Lab.rgba('#000000',.0);ctx.fillRect(xx,y,13,h);}ctx.restore();}
+function mantle(){const g=ctx.createLinearGradient(0,SY,0,H);g.addColorStop(0,'#e0703c');g.addColorStop(1,'#8c2f1a');ctx.fillStyle=g;ctx.fillRect(0,SY,W,H-SY);
+  ctx.strokeStyle='rgba(255,220,180,.25)';ctx.lineWidth=2;const m=st.k==='ridge'||st.k==='rift'?1:-1;for(let i=0;i<2;i++){const cx=500+(i?1:-1)*240,cy=SY+200;ctx.beginPath();ctx.ellipse(cx,cy,200,110,0,0,7);ctx.stroke();
+    const a=st.t*0.01*(i?1:-1)*m;ctx.fillStyle='rgba(255,220,180,.5)';ctx.beginPath();ctx.arc(cx+Math.cos(a)*200,cy+Math.sin(a)*110,4,0,7);ctx.fill();}
+  label('맨틀 (대류)',90,H-20,{size:13,color:'#fff',halo:'rgba(0,0,0,.4)'});}
+function sky(seaLevel){const g=ctx.createLinearGradient(0,0,0,SY);g.addColorStop(0,Lab.isDark()?'#0d1b2a':'#bcd9ee');g.addColorStop(1,Lab.isDark()?'#1a2b3b':'#e7f1f7');ctx.fillStyle=g;ctx.fillRect(0,0,W,SY);}
+function volcano(x,base,h,erupt){ctx.fillStyle='#6b5646';ctx.beginPath();ctx.moveTo(x-50,base);ctx.lineTo(x-8,base-h);ctx.lineTo(x+8,base-h);ctx.lineTo(x+50,base);ctx.closePath();ctx.fill();
+  if(erupt){const k=(Math.sin(st.t*.1)+1)/2;ctx.fillStyle=`rgba(255,${120+80*k|0},40,.9)`;ctx.beginPath();ctx.arc(x,base-h-6,6+4*k,0,7);ctx.fill();ctx.fillStyle='rgba(110,110,110,.45)';for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(x+i*6,base-h-20-i*14-((st.t*.6)%14),8+i*3,0,7);ctx.fill();}}}
+function magma(x0,y0,x1,y1){ctx.fillStyle='rgba(255,150,40,.85)';const k=(st.t*0.01)%1;for(let i=0;i<5;i++){const f=((k+i/5)%1);ctx.beginPath();ctx.arc(lerp(x0,x1,f),lerp(y0,y1,f),5+3*(1-f),0,7);ctx.fill();}}
+function drawSection(){
+  const k=st.k,age=st.age,off=st.t*0.4*st.speed;mantle();sky();
+  const TH=50;const sea=SY-30;
+  if(k==='ridge'||k==='rift'){
+    if(k==='ridge'){ctx.fillStyle=Lab.isDark()?'#123a55':'#4f9bd0';ctx.fillRect(0,40,W,SY-40);}
+    const gap=k==='rift'?Math.min(60,10+age*4):10;
+    // 판
+    const col=k==='ridge'?'#4a5560':'#9a7b55';
+    ctx.fillStyle=col;ctx.fillRect(0,SY-10,500-gap/2,TH+10);ctx.fillRect(500+gap/2,SY-10,500-gap/2,TH+10);
+    if(k==='ridge'){stripes(0,500-gap/2,SY-10,TH+10,off,-1,'rgba(255,255,255,.12)');stripes(500+gap/2,W,SY-10,TH+10,off,1,'rgba(255,255,255,.12)');
+      ctx.fillStyle='#4a5560';ctx.beginPath();ctx.moveTo(380,SY-10);ctx.lineTo(480,SY-60);ctx.lineTo(520,SY-60);ctx.lineTo(620,SY-10);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#1f2a33';ctx.fillRect(490,SY-62,20,30);label('해령',500,SY-80,{size:14,color:'#fff',halo:'rgba(0,0,0,.4)'});}
+    else{ctx.fillStyle='#9a7b55';ctx.fillRect(0,SY-40,500-gap/2,40);ctx.fillRect(500+gap/2,SY-40,500-gap/2,40);ctx.fillStyle='#5b4a35';ctx.beginPath();ctx.moveTo(500-gap/2,SY-40);ctx.lineTo(500-gap/4,SY-10);ctx.lineTo(500+gap/4,SY-10);ctx.lineTo(500+gap/2,SY-40);ctx.closePath();ctx.fill();
+      if(age>4){ctx.fillStyle='#4f9bd0';ctx.fillRect(500-gap/4,SY-24,gap/2,14);}volcano(500-gap/2-60,SY-40,30,true);label('열곡',500,SY-60,{size:14});}
+    magma(500,H-20,500,SY);
+    ctx.fillStyle='#fff';ctx.strokeStyle='#fff';ctx.lineWidth=3;Lab.arrow(ctx,400,SY+TH/2,280,SY+TH/2,12);Lab.arrow(ctx,600,SY+TH/2,720,SY+TH/2,12);
+  }else if(k==='tf'){
+    // 위에서 본 모습
+    ctx.fillStyle=Lab.isDark()?'#3f4a35':'#a9c08a';ctx.fillRect(0,0,W,SY+TH);
+    ctx.fillStyle=Lab.isDark()?'#46523b':'#b7cc98';ctx.fillRect(0,0,W,(SY+TH)/2);
+    const o=(off*1.5)%120;ctx.strokeStyle='rgba(80,60,40,.6)';ctx.lineWidth=3;
+    for(let x=-120;x<W+120;x+=120){ctx.beginPath();ctx.moveTo(x+o,30);ctx.lineTo(x+o,(SY+TH)/2);ctx.stroke();ctx.beginPath();ctx.moveTo(x-o,(SY+TH)/2);ctx.lineTo(x-o,SY+TH-10);ctx.stroke();}
+    ctx.strokeStyle='#5b2a1a';ctx.lineWidth=4;ctx.setLineDash([12,6]);ctx.beginPath();ctx.moveTo(0,(SY+TH)/2);ctx.lineTo(W,(SY+TH)/2);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#fff';ctx.strokeStyle='#fff';ctx.lineWidth=3;Lab.arrow(ctx,300,70,450,70,12);Lab.arrow(ctx,700,SY,550,SY,12);
+    label('위에서 본 모습: 도로와 울타리가 단층을 따라 어긋남',W/2,22,{size:13});label('변환 단층',W-90,(SY+TH)/2-14,{size:14,color:'#5b2a1a'});
+    ctx.fillStyle='#8a7c58';ctx.fillRect(0,SY+TH,W,20);
+  }else if(k==='cc'){
+    const up=Math.min(120,20+age*6);
+    ctx.fillStyle='#9a7b55';ctx.fillRect(0,SY-20,W,TH+20);
+    ctx.fillStyle='#8a6a42';ctx.beginPath();ctx.moveTo(250,SY-20);for(let x=250;x<=750;x+=10){const f=1-Math.abs(x-500)/250;ctx.lineTo(x,SY-20-up*Math.pow(f,1.3)*(0.85+0.15*Math.sin(x*.08)));}ctx.lineTo(750,SY-20);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();for(let x=440;x<=560;x+=10){const f=1-Math.abs(x-500)/250;ctx.lineTo(x,SY-20-up*Math.pow(f,1.3)*(0.85+0.15*Math.sin(x*.08)));}ctx.lineTo(560,SY-20-up*0.6);ctx.lineTo(440,SY-20-up*0.6);ctx.closePath();ctx.globalAlpha=up>60?.85:0;ctx.fill();ctx.globalAlpha=1;
+    // 습곡 무늬와 뿌리
+    ctx.strokeStyle='rgba(60,40,20,.5)';ctx.lineWidth=2;for(let j=0;j<4;j++){ctx.beginPath();for(let x=280;x<=720;x+=8){ctx.lineTo(x,SY+j*12+Math.sin((x-500)*.05)*10*(1-Math.abs(x-500)/250));}ctx.stroke();}
+    ctx.fillStyle='#9a7b55';ctx.beginPath();ctx.moveTo(380,SY+TH);ctx.quadraticCurveTo(500,SY+TH+up*1.2,620,SY+TH);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#fff';ctx.strokeStyle='#fff';ctx.lineWidth=3;Lab.arrow(ctx,120,SY+TH/2,260,SY+TH/2,12);Lab.arrow(ctx,880,SY+TH/2,740,SY+TH/2,12);
+    label('습곡 산맥',500,SY-up-40,{size:15});label('대륙판',140,SY-34,{size:13});label('대륙판',860,SY-34,{size:13});
+  }else{ // 섭입 oc / oo
+    const oo=k==='oo';const ang=oo?0.95:0.75;
+    ctx.fillStyle=Lab.isDark()?'#123a55':'#4f9bd0';ctx.fillRect(0,40,oo?W:520,SY-40);
+    // 섭입 슬랩
+    const tx=430;const L=760;ctx.save();ctx.translate(tx,SY);ctx.rotate(Math.atan2(Math.sin(ang)*0.9*KM,Math.cos(ang)*0.62));ctx.fillStyle='#4a5560';ctx.fillRect(0,0,L,TH);stripes(0,L,0,TH,off,1,'rgba(255,255,255,.12)');ctx.restore();
+    // 해양판 (왼쪽)
+    ctx.fillStyle='#4a5560';ctx.fillRect(0,SY,tx+2,TH);stripes(0,tx,SY,TH,off,1,'rgba(255,255,255,.12)');
+    // 위쪽 판
+    const upc=oo?'#4a5560':'#9a7b55';ctx.fillStyle=upc;ctx.beginPath();ctx.moveTo(tx+10,SY-4);ctx.lineTo(W,SY-4);ctx.lineTo(W,SY+TH+30);ctx.lineTo(tx+70,SY+TH+30);ctx.closePath();ctx.fill();
+    // 해구
+    ctx.fillStyle=Lab.isDark()?'#0a2538':'#2f6f9f';ctx.beginPath();ctx.moveTo(tx-40,SY);ctx.lineTo(tx+5,SY+28);ctx.lineTo(tx+30,SY-4);ctx.closePath();ctx.fill();label('해구',tx-5,SY+46,{size:13,color:'#fff',halo:'rgba(0,0,0,.4)'});
+    const h=Math.min(oo?70:110,20+st.age*5);
+    if(!oo){ctx.fillStyle='#9a7b55';ctx.beginPath();ctx.moveTo(520,SY-4);ctx.quadraticCurveTo(700,SY-4-h,900,SY-30);ctx.lineTo(W,SY-30);ctx.lineTo(W,SY);ctx.lineTo(520,SY);ctx.closePath();ctx.fill();volcano(700,SY-4-h*0.7,40,true);label('습곡 산맥과 화산',720,SY-h-70,{size:14});label('대륙판',900,SY+20,{size:13,color:'#fff',halo:'rgba(0,0,0,.4)'});}
+    else{for(let i=0;i<2;i++){volcano(640+i*110,SY-4,h*(1-i*.2),i===0);}label('호상 열도 (화산섬)',700,SY-h-60,{size:14});}
+    magma(670,SY+150,670,SY+10);
+    label(oo?'해양판':'해양판 (밀도 큼)',180,SY+TH/2,{size:13,color:'#fff',halo:'rgba(0,0,0,.4)'});
+    ctx.fillStyle='#fff';ctx.strokeStyle='#fff';ctx.lineWidth=3;Lab.arrow(ctx,140,SY+TH+18,300,SY+TH+18,12);
+  }
+  // 깊이 눈금
+  [0,100,300,600].forEach(d=>{const y=SY+d*KM;ctx.strokeStyle='rgba(255,255,255,.3)';ctx.setLineDash([3,5]);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(30,y);ctx.stroke();ctx.setLineDash([]);label(`${d} km`,34,y,{size:10,align:'left',color:'#fff',halo:'rgba(0,0,0,.4)',weight:500});});
+  // 지진
+  if($('tEq').checked)st.eqs.forEach(e=>{const y=e.tf?e.yy:SY+e.d*KM;const r=3+5*e.life;ctx.globalAlpha=e.life;ctx.fillStyle=eqColor(e.d);ctx.beginPath();ctx.arc(e.x,y,r,0,7);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(e.x,y,r+6*(1-e.life),0,7);ctx.stroke();ctx.globalAlpha=1;});
+}
+function draw(){S.begin();const g=st.game;if(g&&!g.answered&&g.mode==='data'){drawData();}else drawSection();drawFx(ctx);}
+/* 게임용: 관측 자료만 */
+function drawData(){const g=st.game,k=g.k,b=B[k];ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);
+  label('관측 자료 카드',W/2,30,{size:18,weight:700});
+  // 지진 깊이 분포 (단면 산점도)
+  const x0=60,y0=70,w=520,h=420;ctx.fillStyle=tok.surface;rr(ctx,x0,y0,w,h,10);ctx.fill();ctx.strokeStyle=tok.line;ctx.stroke();
+  label('지진이 일어난 위치 (단면)',x0+w/2,y0+18,{size:13});[0,100,300,600].forEach(d=>{const y=y0+40+d*0.6;ctx.strokeStyle=tok.line;ctx.beginPath();ctx.moveTo(x0+40,y);ctx.lineTo(x0+w-10,y);ctx.stroke();label(`${d} km`,x0+36,y,{size:10,align:'right',color:tok.muted,hw:0,mono:true});});
+  g.pts.forEach(p=>{ctx.fillStyle=eqColor(p.d);ctx.beginPath();ctx.arc(x0+40+(p.x-100)*(w-50)/800,y0+40+p.d*0.6,4,0,7);ctx.fill();});
+  // 단서
+  const cx=620;ctx.fillStyle=tok.surface;rr(ctx,cx,70,330,420,10);ctx.fill();ctx.strokeStyle=tok.line;ctx.stroke();
+  const clues=[['화산 활동',k==='cc'||k==='tf'?'거의 없음':'활발함'],['지형',g.terrain],['판의 움직임',g.motion]];
+  clues.forEach(([a,v],i)=>{label(a,cx+20,110+i*80,{size:13,align:'left',color:tok.muted,hw:0});label(v,cx+20,138+i*80,{size:16,align:'left',weight:700,hw:0});});
+  if(g.level>=1)label(`위치 힌트: ${g.place}`,cx+20,370,{size:13,align:'left',color:tok.accent,hw:0});
+}
+/* 텍스트 */
+function update(){const b=B[st.k],g=st.game,hid=g&&!g.answered;
+  $('stName').textContent=hid?'?':b.n;$('chip').dataset.s=st.k==='ridge'||st.k==='rift'?'cool':st.k==='tf'?'gold':'warm';
+  $('vT').textContent=`${(st.age*0.5).toFixed(1)}백만 년`;
+  $('v1').textContent=hid?'?':b.mv;$('v2').textContent=hid?'?':b.lf;$('d2').textContent=hid?'':b.ed;$('v3').textContent=hid?'?':b.eq;$('v4').textContent=hid?'?':b.ex;
+  $('spOut').textContent=st.speed<0.3?'느림':st.speed<1.6?'보통':'빠름';$('fsInfo').textContent=hid?'판 경계 탐정':`${b.n} · ${b.lf} · ${b.eq}`;}
+function renderSeg(){$('seg').innerHTML=KEYS.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===st.k}">${B[k].n.replace('수렴형 · ','').replace('발산형 · ','').replace('보존형 · ','')}</button>`).join('');
+  $('seg').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(st.game&&!st.game.answered)return;st.k=b.dataset.k;st.age=0;st.eqs=[];renderSeg();update();});}
+$('speed').addEventListener('input',e=>{st.speed=+e.target.value;update();});
+/* 게임 */
+const CASES={ridge:{terrain:'바다 한가운데 솟은 긴 산맥',motion:'양쪽으로 멀어짐',place:'아이슬란드'},rift:{terrain:'대륙 위의 길고 깊은 골짜기',motion:'양쪽으로 멀어짐',place:'동아프리카'},
+  oc:{terrain:'깊은 해구와 대륙 위 높은 산맥',motion:'서로 가까워짐',place:'남아메리카 서해안'},oo:{terrain:'깊은 해구와 활 모양의 섬들',motion:'서로 가까워짐',place:'일본'},
+  cc:{terrain:'세계에서 가장 높은 산맥',motion:'서로 가까워짐',place:'인도 북쪽'},tf:{terrain:'땅 위에서 어긋난 긴 단층선',motion:'서로 반대 방향으로 미끄러짐',place:'미국 캘리포니아'}};
+function startGame(){st.game={order:shuffle(KEYS),i:0,score:0,ok:0,mode:'data',answered:false,level:0};$('mission').hidden=false;$('pGame').textContent='↺ 다시 시작';next();}
+function next(){const g=st.game;if(g.i>=6){const b=best('plates',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`해결 ${g.ok}/6 · ${g.score}점 <span class="stars">${stars(g.ok>=6?3:g.ok>=4?2:g.ok>=2?1:0)}</span><small>최고 기록 ${b}점</small>`;$('opts').innerHTML='';$('gNext').hidden=true;g.answered=true;return;}
+  const k=g.order[g.i];g.k=k;Object.assign(g,CASES[k]);g.pts=Array.from({length:70},()=>{const e=sampleEq(k);return {x:e.x,d:e.d};});g.answered=false;g.level=0;
+  $('gTag').textContent=`사건 ${g.i+1} / 6`;$('gTask').innerHTML='관측 자료를 보고 어떤 판의 경계인지 맞혀 보세요.<small>힌트 없이 맞히면 150점, ‘위치 힌트’를 보면 100점</small>';
+  $('opts').innerHTML='';KEYS.forEach(kk=>{const bt=document.createElement('button');bt.type='button';bt.textContent=B[kk].n;bt.onclick=()=>answer(kk,bt);$('opts').appendChild(bt);});
+  const h=document.createElement('button');h.type='button';h.textContent='💡 위치 힌트';h.onclick=()=>{g.level=1;h.disabled=true;};$('opts').appendChild(h);$('gNext').hidden=true;update();}
+function answer(kk,bt){const g=st.game;if(g.answered)return;g.answered=true;const ok=kk===g.k;const pts=ok?(g.level?100:150):0;g.score+=pts;if(ok)g.ok++;$('gScore').textContent=g.score;
+  [...$('opts').children].forEach((x,i)=>{x.disabled=true;if(KEYS[i]===g.k)x.classList.add('right');});if(!ok)bt.classList.add('wrong');
+  st.k=g.k;st.age=6;st.eqs=[];renderSeg();
+  $('gTask').innerHTML=`${ok?'정답!':'아쉬워요.'} <b>${B[g.k].n}</b> — ${B[g.k].ex}<small>${B[g.k].eq}, ${B[g.k].lf}</small>`;toast($('toast'),ok?`명탐정! +${pts}`:'다른 경계예요',ok?'good':'bad');if(ok)burst(500,200,tok.gold,30);
+  g.i++;$('gNext').hidden=false;$('gNext').textContent=g.i>=6?'결과 보기 →':'다음 사건 →';update();}
+$('gNext').onclick=next;$('pGame').onclick=startGame;
+let fr=0;
+loop(dt=>{st.t+=Lab.MOTION;fr++;st.age+=dt*0.4*st.speed;if(Math.random()<0.25*st.speed)st.eqs.push({...sampleEq(st.k),life:1});st.eqs.forEach(e=>e.life-=0.012);st.eqs=st.eqs.filter(e=>e.life>0);draw();if(fr%10===0)update();});
+renderSeg();update();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

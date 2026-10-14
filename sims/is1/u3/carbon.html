@@ -1,0 +1,440 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>탄소 원자의 여행</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button.right{background:var(--good);border-color:var(--good);color:#fff}
+.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+.stamp{display:inline-flex;gap:6px}
+.stamp span{font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:999px;border:1.5px solid var(--line);color:var(--muted)}
+.stamp span.on{border-color:var(--gold);color:var(--gold)}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅲ. 시스템과 상호작용 · 지구시스템의 물질 순환과 에너지 흐름</span></nav>
+  <header>
+    <h1>탄소 원자의 여행</h1>
+    <p>탄소는 기권, 수권, 생물권, 지권을 오가며 순환합니다. 탄소 원자 하나가 되어 광합성, 호흡, 용해, 퇴적, 화산 활동을 따라 여행해 보고, 화석 연료 사용과 숲의 변화가 대기 중 이산화 탄소 농도를 어떻게 바꾸는지 예측해 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드"><button type="button" data-tab="trip" aria-pressed="true">🎲 탄소 원자 여행 (게임)</button><button type="button" data-tab="box" aria-pressed="false">📈 순환 모형 (2025 → 2100)</button></div>
+      <div class="slider" id="fBox" hidden><div class="slider-top"><label for="fossil">화석 연료 사용 (탄소 배출)</label><output id="fOut">10 GtC/년</output></div><input id="fossil" type="range" min="0" max="20" step="0.5" value="10"><div class="ticks"><span>0</span><span>현재 약 10</span><span>20</span></div></div>
+      <div class="slider" id="lBox" hidden><div class="slider-top"><label for="land">숲의 변화</label><output id="lOut">벌채 1.5 GtC/년</output></div><input id="land" type="range" min="-3" max="3" step="0.1" value="-1.5"><div class="ticks"><span>벌채 많음</span><span>0</span><span>숲 가꾸기</span></div></div>
+      <div class="presets" id="pBox" hidden><button type="button" id="pPlay" aria-pressed="false">▶ 시간 흐르기</button><button type="button" id="pReset">↺ 2025년으로</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission">
+      <span class="tag" id="gTag">이동 1 / 15</span>
+      <div class="task" id="gTask">–</div>
+      <div class="opts" id="opts" role="group" aria-label="다음 장소 예측"></div>
+      <div class="score"><span class="stamp" id="stamps"><span data-s="기권">기권</span><span data-s="수권">수권</span><span data-s="생물권">생물권</span><span data-s="지권">지권</span></span><span><span class="lbl">점수</span><span id="gScore">0</span></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="560" role="img" aria-label="탄소 순환 저장소와 이동 경로"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#9fc6e8"></i>기권</span><span class="key"><i style="background:#3f8fc9"></i>수권</span><span class="key"><i style="background:#5bb974"></i>생물권</span><span class="key"><i style="background:#a98a62"></i>지권</span>
+      <div class="fsinfo" id="fsInfo"></div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k" id="bigK">현재 위치</div><div class="v" id="vBig">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k" id="k1">–</span><span class="v txt" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k" id="k2">–</span><span class="v txt" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k" id="k3">–</span><span class="v txt" id="v3">–</span><span class="d" id="d3"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>탄소의 순환과 권역의 상호작용</h2>
+      <ol class="chain">
+        <li>기권 → 생물권: 식물은 광합성으로 대기 중 이산화 탄소를 흡수해 유기물을 만든다.</li>
+        <li>생물권 → 기권: 생물의 호흡과 유기물의 분해로 이산화 탄소가 대기로 돌아간다.</li>
+        <li>기권 ↔ 수권: 이산화 탄소는 바닷물에 녹아들거나 다시 빠져나온다.</li>
+        <li>수권·생물권 → 지권: 탄산 칼슘 껍데기와 생물의 사체가 쌓여 석회암과 화석 연료가 된다.</li>
+        <li>지권 → 기권: 화산 활동과 화석 연료의 연소로 탄소가 대기로 나온다.</li>
+      </ol>
+      <div class="impact"><b>균형이 깨지면</b>사람이 화석 연료를 태우고 숲을 없애면 지권에 오랫동안 저장되어 있던 탄소가 짧은 시간에 기권으로 옮겨 가, 대기 중 이산화 탄소 농도가 높아지고 지구의 기온이 올라간다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>여행하면서 탄소 원자가 가장 자주 머문 권역은 어디였나요? 탄소가 수백만 년 이상 머무를 수 있는 곳은 어디일까요?</li>
+      <li>광합성과 호흡은 각각 어떤 권역 사이의 상호작용인가요?</li>
+      <li>순환 모형에서 화석 연료 사용을 절반으로 줄이면 2100년의 이산화 탄소 농도는 어떻게 될까요?</li>
+      <li>바다가 이산화 탄소를 더 많이 흡수하면 좋은 점과 걱정되는 점(해양 산성화 등)은 무엇일까요?</li>
+    </ol>
+  </section>
+  <p class="foot">순환 모형은 대기 탄소량(1 ppm ≈ 2.12 GtC), 해양과 육지가 산업화 이전보다 늘어난 대기 탄소에 비례해 흡수한다고 가정한 교육용 단순 모형입니다. 여행 게임의 이동 확률은 실제 탄소 흐름의 크기를 참고해 정한 근삿값입니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle}=Lab,tok=Lab.tok;
+const W=1000,H=560;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const SPH={기권:'#9fc6e8',수권:'#3f8fc9',생물권:'#5bb974',지권:'#a98a62'};
+const N={
+ atm:{n:'대기 (CO₂)',s:'기권',x:500,y:72,stay:'수년'},
+ plant:{n:'식물',s:'생물권',x:190,y:235,stay:'수년~수백 년'},
+ animal:{n:'동물',s:'생물권',x:340,y:285,stay:'수년'},
+ soil:{n:'토양 유기물',s:'지권',x:200,y:395,stay:'수십~수백 년'},
+ fossil:{n:'화석 연료',s:'지권',x:190,y:500,stay:'수백만 년'},
+ ocean:{n:'해양 (녹은 탄소)',s:'수권',x:720,y:270,stay:'수십~수천 년'},
+ sealife:{n:'해양 생물',s:'생물권',x:880,y:350,stay:'수일~수년'},
+ rock:{n:'석회암·퇴적물',s:'지권',x:760,y:490,stay:'수백만 년 이상'},
+ magma:{n:'마그마',s:'지권',x:500,y:475,stay:'수백만 년'}
+};
+const T={ // [목적지, 확률, 과정]
+ atm:[['plant',.42,'광합성'],['ocean',.40,'바닷물에 녹음'],['atm',.18,'바람 따라 이동']],
+ plant:[['atm',.36,'호흡'],['animal',.25,'먹이'],['soil',.34,'낙엽·사체'],['fossil',.05,'오랜 시간 매몰']],
+ animal:[['atm',.6,'호흡'],['soil',.4,'배설물·사체']],
+ soil:[['atm',.66,'미생물의 분해'],['soil',.24,'그대로 머묾'],['fossil',.1,'깊이 매몰']],
+ fossil:[['atm',.85,'화석 연료의 연소 (사람)'],['fossil',.15,'그대로 머묾']],
+ ocean:[['atm',.38,'바다에서 빠져나옴'],['sealife',.34,'플랑크톤 광합성'],['ocean',.18,'해류 따라 이동'],['rock',.1,'탄산 칼슘 침전']],
+ sealife:[['ocean',.6,'호흡'],['rock',.4,'껍데기·사체 퇴적']],
+ rock:[['ocean',.35,'풍화·용해'],['rock',.4,'그대로 머묾'],['magma',.25,'판의 섭입']],
+ magma:[['atm',1,'화산 분출']]
+};
+const st={tab:'trip',t:0,game:null,box:null,play:false};
+/* ---------- 그림 ---------- */
+function scene(){
+  // 하늘, 땅, 바다
+  const g=ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,Lab.isDark()?'#0d1b2a':'#bcd9ee');g.addColorStop(1,Lab.isDark()?'#1a2b3b':'#e7f1f7');ctx.fillStyle=g;ctx.fillRect(0,0,W,200);
+  ctx.fillStyle=Lab.isDark()?'#3f4a35':'#a9c08a';ctx.beginPath();ctx.moveTo(0,200);ctx.lineTo(560,200);ctx.lineTo(600,215);ctx.lineTo(600,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+  ctx.fillStyle=Lab.isDark()?'#4a3a28':'#c7ab82';ctx.fillRect(0,330,600,H-330);ctx.fillStyle=Lab.isDark()?'#2d241a':'#8e7457';ctx.fillRect(0,450,600,H-450);
+  ctx.fillStyle=Lab.isDark()?'#123a55':'#4f9bd0';ctx.beginPath();ctx.moveTo(600,215);ctx.lineTo(W,215);ctx.lineTo(W,450);ctx.lineTo(600,450);ctx.closePath();ctx.fill();
+  ctx.fillStyle=Lab.isDark()?'#0a2538':'#2f6f9f';ctx.fillRect(600,330,W-600,120);ctx.fillStyle=Lab.isDark()?'#3a3226':'#9c8a6c';ctx.fillRect(600,450,W-600,H-450);
+  // 화산
+  ctx.fillStyle=Lab.isDark()?'#55463a':'#7d6a58';ctx.beginPath();ctx.moveTo(420,200);ctx.lineTo(480,130);ctx.lineTo(520,130);ctx.lineTo(580,200);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#e5484d';ctx.beginPath();ctx.moveTo(492,130);ctx.lineTo(508,130);ctx.lineTo(515,470);ctx.lineTo(485,470);ctx.closePath();ctx.globalAlpha=.6;ctx.fill();ctx.globalAlpha=1;
+  // 나무
+  for(let i=0;i<4;i++){const x=80+i*70;ctx.fillStyle='#6b4b2f';ctx.fillRect(x-4,170,8,30);ctx.fillStyle='#3f8f4f';ctx.beginPath();ctx.arc(x,160,22,0,7);ctx.fill();}
+  // 공장
+  ctx.fillStyle='#7f8fa0';ctx.fillRect(320,160,60,40);ctx.fillRect(360,130,12,30);
+  if(st.tab==='box'||Math.sin(st.t*.02)>0){ctx.fillStyle='rgba(120,120,120,.4)';for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(366+i*10,118-i*14-((st.t*.5)%14),8+i*2,0,7);ctx.fill();}}
+}
+function node(k,hl){const n=N[k];const c=SPH[n.s];ctx.fillStyle=Lab.rgba(tok.surface,.92);rr(ctx,n.x-62,n.y-22,124,44,12);ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=hl?4:2.5;ctx.stroke();
+  label(n.n,n.x,n.y-5,{size:13,hw:0});label(n.s,n.x,n.y+12,{size:10,color:c,hw:0,weight:700});}
+function arrow(a,b,w,col,txt){const A=N[a],B=N[b];const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy);if(!L)return;const ux=dx/L,uy=dy/L,off=14;
+  const x1=A.x+ux*58-uy*off,y1=A.y+uy*30-ux*off*.6,x2=B.x-ux*62-uy*off,y2=B.y-uy*30-ux*off*.6;ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w;Lab.arrow(ctx,x1,y1,x2,y2,8+w);
+  if(txt)label(txt,(x1+x2)/2-uy*26,(y1+y2)/2+ux*18,{size:11,color:col});}
+/* ---------- 게임: 여행 ---------- */
+function startTrip(){st.game={at:'atm',i:0,score:0,stamps:new Set(['기권']),visits:{atm:1},path:['atm'],answered:false,anim:null,correct:0};renderTrip();}
+function renderTrip(){const g=st.game;const opts=T[g.at];
+  $('gTag').textContent=`이동 ${g.i+1} / 15`;
+  $('gTask').innerHTML=`탄소 원자는 지금 <b>${N[g.at].n}</b>에 있어요. 다음엔 어디로 갈까요? 예측해 보세요!<small>맞히면 +확률이 낮을수록 높은 점수. 네 권역 도장을 모두 모으면 보너스 +100</small>`;
+  $('opts').innerHTML='';opts.forEach(([to,p,proc])=>{const b=document.createElement('button');b.type='button';b.textContent=`${to===g.at?'그대로 머묾':N[to].n} (${proc})`;b.onclick=()=>roll(to,b);$('opts').appendChild(b);});
+  document.querySelectorAll('#stamps span').forEach(s=>s.classList.toggle('on',g.stamps.has(s.dataset.s)));update();}
+function roll(guess,btn){const g=st.game;if(g.anim)return;const opts=T[g.at];let r=Math.random(),pick=opts[opts.length-1];for(const o of opts){if(r<o[1]){pick=o;break;}r-=o[1];}
+  const ok=pick[0]===guess;[...$('opts').children].forEach((b,i)=>{b.disabled=true;if(opts[i][0]===pick[0])b.classList.add('right');});if(!ok)btn.classList.add('wrong');
+  const p=opts.find(o=>o[0]===guess)[1];const pts=ok?Math.round(30/p):0;g.score+=pts;if(ok)g.correct++;
+  const from=g.at,to=pick[0];g.anim={from,to,t:0,proc:pick[2]};
+  const fs=N[from].s,ts=N[to].s;toast($('toast'),`${pick[2]}: ${fs}${fs!==ts?' → '+ts:''}${ok?` · 예측 성공 +${pts}`:''}`,ok?'good':'',2000);
+  setTimeout(()=>{g.at=to;g.path.push(to);g.visits[to]=(g.visits[to]||0)+1;const before=g.stamps.size;g.stamps.add(N[to].s);if(g.stamps.size===4&&before<4){g.score+=100;toast($('toast'),'네 권역 도장 완성! +100','gold',2200);burst(N[to].x,N[to].y,tok.gold,40);}
+    g.anim=null;g.i++;$('gScore').textContent=g.score;
+    if(g.i>=15){const b=best('carbon',g.score);$('gTag').textContent='여행 끝';const top=Object.entries(g.visits).sort((a,b)=>b[1]-a[1])[0];
+      $('gTask').innerHTML=`예측 성공 ${g.correct}/15 · ${g.score}점 <span class="stars">${stars(g.score>=500?3:g.score>=300?2:g.score>=150?1:0)}</span><small>가장 오래 머문 곳: ${N[top[0]].n} (${top[1]}번) · 최고 기록 ${b}점</small>`;
+      $('opts').innerHTML='';const bt=document.createElement('button');bt.type='button';bt.className='go';bt.textContent='↺ 다시 여행';bt.onclick=startTrip;$('opts').appendChild(bt);update();return;}
+    renderTrip();},Lab.reduce?300:1200);}
+function drawTrip(){
+  Object.keys(T).forEach(a=>T[a].forEach(([b,p])=>{if(a!==b)arrow(a,b,1+p*3,Lab.rgba(tok.muted,.35));}));
+  const g=st.game;if(!g)return;
+  // 경로 흔적
+  ctx.strokeStyle=Lab.rgba(tok.gold,.5);ctx.lineWidth=3;ctx.setLineDash([2,6]);ctx.beginPath();g.path.slice(-6).forEach((k,i)=>{const n=N[k];i?ctx.lineTo(n.x,n.y):ctx.moveTo(n.x,n.y);});ctx.stroke();ctx.setLineDash([]);
+  Object.keys(N).forEach(k=>node(k,k===g.at));
+  T[g.at].forEach(([b,p,proc])=>{if(b!==g.at)arrow(g.at,b,2+p*5,tok.accent,`${proc} ${Math.round(p*100)}%`);});
+  let x=N[g.at].x,y=N[g.at].y-34;if(g.anim){g.anim.t=Math.min(1,g.anim.t+0.018*(Lab.reduce?4:1));const A=N[g.anim.from],B=N[g.anim.to],f=g.anim.t,e=f*f*(3-2*f);x=lerp(A.x,B.x,e);y=lerp(A.y-34,B.y-34,e)-Math.sin(f*Math.PI)*60;}
+  ctx.save();ctx.shadowColor=tok.gold;ctx.shadowBlur=18;ctx.fillStyle='#222';ctx.beginPath();ctx.arc(x,y,12,0,7);ctx.fill();ctx.restore();label('C',x,y,{size:13,color:'#fff',hw:0,weight:700});
+}
+/* ---------- 순환 모형 ---------- */
+const PRE=594;
+function resetBox(){st.box={year:2025,atm:890,land:2150,ocean:38000,fossil:4000,hist:[[2025,890/2.12]]};}
+function stepBox(dt){const b=st.box;if(b.year>=2100)return;const E=+$('fossil').value,Lu=+$('land').value;const ex=b.atm-PRE;const oc=0.0095*ex,ln=0.010*ex;
+  const y=dt;b.atm+=(E+Math.max(0,-Lu)-oc-ln-Math.max(0,Lu))*y; // 벌채(음수)는 배출, 숲 가꾸기(양수)는 흡수
+  b.land+=(ln+Lu)*y;b.ocean+=oc*y;b.fossil-=E*y;b.year+=y;if(Math.floor(b.year)>b.hist[b.hist.length-1][0])b.hist.push([Math.floor(b.year),b.atm/2.12]);}
+function fluxes(){const b=st.box,E=+$('fossil').value,Lu=+$('land').value,ex=b.atm-PRE;return {E,Lu,oc:0.0095*ex,ln:0.01*ex,ppm:b.atm/2.12};}
+function drawBox(){const f=fluxes(),b=st.box;
+  ['atm','plant','soil','fossil','ocean','rock','magma'].forEach(k=>node(k,false));
+  arrow('atm','plant',4,'#3f8f4f','광합성 ≈ 120');arrow('plant','atm',4,'#c9512a','호흡·분해 ≈ 120');
+  arrow('atm','ocean',4,'#2a64c9','용해 ≈ 92');arrow('ocean','atm',3.5,'#2a64c9','방출 ≈ 90');
+  arrow('fossil','atm',1+f.E/2.5,'#c23b3b',`연소 ${f.E.toFixed(1)}`);arrow('magma','atm',1.2,'#e5484d','화산 ≈ 0.1');arrow('plant','soil',2,'#8a6a42','낙엽·사체');arrow('ocean','rock',1.2,'#8a6a42','퇴적');
+  // 저장량 막대
+  const R=[['대기',b.atm,'#9fc6e8'],['육지(식물+토양)',b.land,'#5bb974'],['남은 화석 연료',b.fossil,'#a98a62']];
+  // 그래프
+  const gx=60,gy=18,gw=280,gh=110;ctx.fillStyle=Lab.rgba(tok.surface,.94);rr(ctx,gx-40,gy-8,gw+50,gh+48,10);ctx.fill();
+  const yv=v=>gy+gh-(v-350)/(800-350)*gh,xv=yr=>gx+(yr-2025)/75*gw;
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;[400,500,600,700,800].forEach(v=>{ctx.beginPath();ctx.moveTo(gx,yv(v));ctx.lineTo(gx+gw,yv(v));ctx.stroke();label(String(v),gx-4,yv(v),{size:10,align:'right',hw:0,color:tok.muted,mono:true,weight:500});});
+  [2025,2050,2075,2100].forEach(yr=>label(String(yr),xv(yr),gy+gh+12,{size:10,hw:0,color:tok.muted,mono:true,weight:500}));
+  ctx.strokeStyle=Lab.rgba(tok.good,.7);ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(gx,yv(450));ctx.lineTo(gx+gw,yv(450));ctx.stroke();ctx.setLineDash([]);label('목표 450 ppm',gx+gw-4,yv(450)-8,{size:10,align:'right',color:tok.good,hw:0});
+  ctx.strokeStyle=tok.bad;ctx.lineWidth=2.5;ctx.beginPath();b.hist.forEach(([yr,v],i)=>{i?ctx.lineTo(xv(yr),yv(v)):ctx.moveTo(xv(yr),yv(v));});ctx.lineTo(xv(b.year),yv(b.atm/2.12));ctx.stroke();
+  label(`대기 CO₂ ${f.ppm.toFixed(0)} ppm · ${Math.floor(b.year)}년`,gx+gw/2,gy+gh+28,{size:13,weight:700,color:tok.bad,hw:3});
+}
+function draw(){S.begin();scene();if(st.tab==='trip')drawTrip();else drawBox();drawFx(ctx);}
+/* ---------- 텍스트 ---------- */
+function update(){
+  if(st.tab==='trip'&&st.game){const g=st.game,n=N[g.at];$('stName').textContent=n.s;$('chip').dataset.s='gold';$('bigK').textContent='현재 위치';$('vBig').textContent=n.n;
+    $('k1').textContent='이 장소에 머무는 시간';$('v1').textContent=n.stay;$('d1').textContent='대략적인 평균';
+    $('k2').textContent='모은 권역 도장';$('v2').textContent=[...g.stamps].join(', ');$('d2').textContent=`${g.stamps.size} / 4`;
+    $('k3').textContent='지나온 길';$('v3').textContent=g.path.slice(-5).map(k=>N[k].n.split(' ')[0]).join(' → ');$('d3').textContent=`${g.path.length-1}번 이동`;
+    $('fsInfo').textContent=`${n.n} (${n.s}) · 점수 ${g.score} · 도장 ${g.stamps.size}/4`;}
+  else if(st.box){const f=fluxes(),b=st.box;$('stName').textContent=f.ppm<450?'목표 이하':'목표 초과';$('chip').dataset.s=f.ppm<450?'':'bad';$('bigK').textContent=`${Math.floor(b.year)}년 대기 CO₂`;$('vBig').textContent=`${f.ppm.toFixed(0)} ppm`;
+    const net=f.E+(f.Lu<0?-f.Lu:0)-f.oc-f.ln-(f.Lu>0?f.Lu:0);
+    $('k1').textContent='대기 탄소 순증가';$('v1').textContent=`${net>=0?'+':''}${net.toFixed(1)} GtC/년`;$('d1').textContent=`≈ ${(net/2.12).toFixed(1)} ppm/년`;
+    $('k2').textContent='바다가 흡수';$('v2').textContent=`${f.oc.toFixed(1)} GtC/년`;$('d2').textContent='해양 산성화의 원인';
+    $('k3').textContent='육지가 흡수';$('v3').textContent=`${(f.ln+(f.Lu>0?f.Lu:0)).toFixed(1)} GtC/년`;$('d3').textContent=f.Lu<0?`벌채로 ${(-f.Lu).toFixed(1)} 배출`:'숲 가꾸기 포함';
+    $('fOut').textContent=`${f.E.toFixed(1)} GtC/년`;$('lOut').textContent=f.Lu<0?`벌채 ${(-f.Lu).toFixed(1)} GtC/년`:f.Lu>0?`숲 가꾸기 +${f.Lu.toFixed(1)} GtC/년`:'변화 없음';
+    $('fsInfo').textContent=`${Math.floor(b.year)}년 · CO₂ ${f.ppm.toFixed(0)} ppm · 배출 ${f.E} GtC/년`;}
+}
+function setTab(t){st.tab=t;document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tab===t));$('mission').hidden=t!=='trip';['fBox','lBox','pBox'].forEach(id=>$(id).hidden=t!=='box');if(t==='box'&&!st.box)resetBox();if(t==='trip'&&!st.game)startTrip();update();}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+function setPlay(on){st.play=on;$('pPlay').setAttribute('aria-pressed',on);$('pPlay').textContent=on?'❚❚ 멈춤':'▶ 시간 흐르기';}
+$('pPlay').onclick=()=>{if(st.box.year>=2100)resetBox();setPlay(!st.play);};$('pReset').onclick=()=>{resetBox();setPlay(false);update();};
+$('fossil').addEventListener('input',update);$('land').addEventListener('input',update);
+let fr=0;loop(dt=>{st.t++;fr++;if(st.tab==='box'&&st.play){stepBox(dt*6*Lab.MOTION);if(st.box.year>=2100){setPlay(false);const p=st.box.atm/2.12;toast($('toast'),p<450?`2100년 ${p.toFixed(0)} ppm · 목표 달성!`:`2100년 ${p.toFixed(0)} ppm · 목표 초과`,p<450?'good':'bad',2600);if(p<450)burst(800,100,tok.gold,40);}}draw();if(fr%6===0)update();});
+startTrip();setTab('trip');resetBox();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

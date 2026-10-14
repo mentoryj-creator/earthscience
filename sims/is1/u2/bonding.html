@@ -1,0 +1,437 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>화학 결합 퍼즐</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.lv{display:flex;flex-wrap:wrap;gap:6px}
+.lv button{font-family:var(--f-mono);min-width:3.2em}
+.lv button.done{border-color:var(--good);color:var(--good)}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅱ. 물질과 규칙성 · 화학 결합의 형성과 종류</span></nav>
+  <header>
+    <h1>화학 결합 퍼즐</h1>
+    <p>원자들은 전자를 주고받거나(이온 결합) 함께 나누어 가지며(공유 결합) 18족 원소처럼 안정한 전자 배치를 이룹니다. 원자의 가장 바깥 전자를 끌어 옮기거나 두 원자 사이에 놓아 공유하면서 모든 원자를 안정하게 만들어 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="mission">
+      <span class="tag" id="gTag">퍼즐 1 / 11</span>
+      <div class="task" id="gTask">–</div>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div>
+      <button type="button" id="gNext" class="go" hidden>다음 퍼즐 →</button>
+    </div>
+    <div class="controls">
+      <div class="lv" id="levels" role="group" aria-label="퍼즐 선택"></div>
+      <div class="presets">
+        <button type="button" id="undo">↶ 되돌리기</button>
+        <button type="button" id="reset">↺ 처음부터</button>
+        <button type="button" id="hint">💡 힌트</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="560" role="img" aria-label="원자와 가장 바깥 전자"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:var(--cool);border-radius:50%"></i>원래 가진 전자</span>
+      <span class="key"><i style="background:var(--warm);border-radius:50%"></i>다른 원자에서 받은 전자</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">전자를 끌어 <b>다른 원자 위</b>에 놓으면 전자가 이동하고(이온 결합), <b>두 원자 사이의 점선 칸</b>에 놓거나 그 칸을 누르면 전자쌍을 공유합니다(공유 결합). 원자 아래 숫자는 가장 바깥 껍질의 전자 수입니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="상태">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k">안정한 원자</div><div class="v" id="vOk">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">만들 물질</span><span class="v txt" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k">이동한 전자</span><span class="v" id="v2">0개</span><span class="d">이온 결합</span></div>
+        <div class="m"><span class="k">공유한 전자쌍</span><span class="v" id="v3">0쌍</span><span class="d" id="d3">공유 결합</span></div>
+        <div class="m"><span class="k">조작 횟수</span><span class="v" id="v4">0</span><span class="d" id="d4"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>원소는 어떻게 화학 결합을 형성할까?</h2>
+      <ol class="chain">
+        <li>18족 이외의 원소는 가장 바깥 껍질의 전자를 8개(수소는 2개)로 만들어 안정해지려는 경향이 있다(옥텟 규칙).</li>
+        <li>이온 결합: 금속 원자는 전자를 잃어 양이온, 비금속 원자는 전자를 얻어 음이온이 되고, 두 이온이 정전기적 인력으로 결합한다.</li>
+        <li>공유 결합: 비금속 원자끼리 전자를 하나씩 내놓아 전자쌍을 만들고 그 전자쌍을 함께 가진다.</li>
+        <li>이온 결합 물질은 (+)전하와 (−)전하의 총량이 같아지도록 이온의 개수비가 정해진다(예: CaCl₂).</li>
+      </ol>
+      <div class="impact"><b>2중 결합</b>산소 분자(O₂)처럼 두 원자 사이에서 전자쌍 2개를 공유하면 2중 결합, 질소 분자(N₂)처럼 3개를 공유하면 3중 결합이라고 한다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>나트륨과 염소 사이에서 전자를 공유하려고 하면 어떤 일이 생기나요? 금속과 비금속은 왜 전자를 주고받을까요?</li>
+      <li>물 분자에서 산소 원자 주위에 있는 공유 전자쌍과 비공유 전자쌍은 각각 몇 개인가요?</li>
+      <li>플루오린화 마그네슘이 MgF₂가 되는 까닭을 전자의 이동으로 설명해 보세요.</li>
+      <li>이산화 탄소(CO₂)에서 탄소와 산소 사이에는 몇 중 결합이 생기나요?</li>
+    </ol>
+  </section>
+  <p class="foot">원자는 원자핵 기호와 가장 바깥 전자 껍질의 전자만 나타냈습니다(안쪽 껍질은 생략). 결합 후 실제 분자의 모양(굽은형, 사면체형 등)은 단순화했습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best}=Lab,tok=Lab.tok;
+const W=1000,H=560,AR=40,ER=62;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const EL={H:{v:1,m:0,c:'#e8edf2',z:1,n:'수소'},C:{v:4,m:0,c:'#5f6b75',z:6,n:'탄소'},N:{v:5,m:0,c:'#4f74c9',z:7,n:'질소'},O:{v:6,m:0,c:'#d9534f',z:8,n:'산소'},F:{v:7,m:0,c:'#79c26a',z:9,n:'플루오린'},
+  Na:{v:1,m:1,c:'#9a7fd1',z:11,n:'나트륨'},Mg:{v:2,m:1,c:'#7fb3a0',z:12,n:'마그네슘'},Cl:{v:7,m:0,c:'#46b07a',z:17,n:'염소'},Ca:{v:2,m:1,c:'#b5a28b',z:20,n:'칼슘'}};
+const P=[
+ {f:'H₂',n:'수소 분자',a:[['H',400,280],['H',600,280]],e:[[0,1]],type:'cov',min:1},
+ {f:'NaCl',n:'염화 나트륨',a:[['Na',390,280],['Cl',610,280]],e:[[0,1]],type:'ion',min:1},
+ {f:'H₂O',n:'물',a:[['O',500,230],['H',340,360],['H',660,360]],e:[[0,1],[0,2]],type:'cov',min:2},
+ {f:'O₂',n:'산소 분자',a:[['O',390,280],['O',610,280]],e:[[0,1]],type:'cov',min:2},
+ {f:'MgF₂',n:'플루오린화 마그네슘',a:[['F',290,280],['Mg',500,280],['F',710,280]],e:[[0,1],[1,2]],type:'ion',min:2},
+ {f:'CH₄',n:'메테인',a:[['C',500,280],['H',500,110],['H',500,450],['H',320,280],['H',680,280]],e:[[0,1],[0,2],[0,3],[0,4]],type:'cov',min:4},
+ {f:'NH₃',n:'암모니아',a:[['N',500,220],['H',330,330],['H',670,330],['H',500,420]],e:[[0,1],[0,2],[0,3]],type:'cov',min:3},
+ {f:'CaCl₂',n:'염화 칼슘',a:[['Cl',290,280],['Ca',500,280],['Cl',710,280]],e:[[0,1],[1,2]],type:'ion',min:2},
+ {f:'MgO',n:'산화 마그네슘',a:[['Mg',390,280],['O',610,280]],e:[[0,1]],type:'ion',min:2},
+ {f:'CO₂',n:'이산화 탄소',a:[['O',290,280],['C',500,280],['O',710,280]],e:[[0,1],[1,2]],type:'cov',min:4},
+ {f:'N₂',n:'질소 분자',a:[['N',390,280],['N',610,280]],e:[[0,1]],type:'cov',min:3}
+];
+let L=0,A=[],B=[],hist=[],moves=0,transfers=0,solved=false,score=0,doneSet=new Set(),drag=null,t=0,starsTot={};
+function load(i){L=i;const p=P[i];A=p.a.map(([s,x,y])=>({s,x,y,x0:x,y0:y,own:EL[s].v,recv:0,charge:0}));B=p.e.map(([i,j])=>({i,j,o:0,from:[]}));hist=[];moves=0;transfers=0;solved=false;
+  $('gTag').textContent=`퍼즐 ${i+1} / ${P.length}`;$('gTask').innerHTML=`<b>${p.n} (${p.f})</b>을(를) 만드세요. 모든 원자의 가장 바깥 전자를 ${A.some(a=>a.s==='H')?'8개(수소는 2개)':'8개'}로!<small>전자를 끌어 다른 원자 위(이동) 또는 두 원자 사이 칸(공유)에 놓으세요.</small>`;
+  $('gNext').hidden=true;$('gStars').innerHTML='';renderLevels();update();}
+function renderLevels(){$('levels').innerHTML=P.map((p,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===L}" class="${doneSet.has(i)?'done':''}">${p.f}</button>`).join('');$('levels').querySelectorAll('button').forEach(b=>b.onclick=()=>load(+b.dataset.i));}
+const bondsOf=k=>B.filter(b=>b.i===k||b.j===k).reduce((s,b)=>s+b.o,0);
+const cnt=k=>A[k].own+A[k].recv+2*bondsOf(k);
+function stable(k){const a=A[k],c=cnt(k);if(a.s==='H')return c===2;if(a.own+a.recv===0&&bondsOf(k)===0&&a.charge===EL[a.s].v)return true;return c===8;}
+const isMetal=k=>EL[A[k].s].m===1;
+function snapshot(){hist.push(JSON.stringify({A:A.map(a=>({own:a.own,recv:a.recv,charge:a.charge})),B:B.map(b=>({o:b.o,from:b.from.slice()})),transfers}));}
+$('undo').onclick=()=>{if(!hist.length||solved)return;const s=JSON.parse(hist.pop());s.A.forEach((q,k)=>Object.assign(A[k],q));s.B.forEach((q,k)=>Object.assign(B[k],q));transfers=s.transfers;moves++;update();};
+$('reset').onclick=()=>load(L);
+$('hint').onclick=()=>{const p=P[L];toast($('toast'),p.type==='ion'?'금속 원자의 전자를 비금속 원자 위로 옮겨 보세요':'두 비금속 원자 사이의 점선 칸을 눌러 전자쌍을 공유해 보세요','gold',2600);};
+/* 동작 */
+function give(i,j){ // i의 전자 1개 → j
+  const a=A[i];if(a.own+a.recv<=0){toast($('toast'),'옮길 전자가 없어요','bad');return;}
+  snapshot();if(a.recv>0)a.recv--;else a.own--;a.charge++;A[j].recv++;A[j].charge--;transfers++;moves++;
+  if(!isMetal(i)&&!isMetal(j))toast($('toast'),'비금속끼리는 보통 전자를 공유해요','gold',2200);
+  else if(isMetal(j))toast($('toast'),'금속 원자는 전자를 얻기보다 잃기 쉬워요','gold',2200);
+  check();}
+function share(b){const a=A[b.i],c=A[b.j];if(b.o>=3){toast($('toast'),'3중 결합보다 많이 공유할 수 없어요','bad');return;}
+  if(a.own+a.recv<1||c.own+c.recv<1){toast($('toast'),'공유하려면 두 원자가 전자를 하나씩 내놓아야 해요','bad');return;}
+  snapshot();[a,c].forEach(x=>{if(x.own>0)x.own--;else x.recv--;});b.o++;moves++;
+  if(isMetal(b.i)||isMetal(b.j))toast($('toast'),'금속과 비금속은 전자를 주고받아요(이온 결합)','gold',2200);
+  check();}
+function check(){update();const ok=A.every((a,k)=>stable(k));if(!ok)return;
+  const p=P[L];const wrongCov=B.some(b=>b.o>0&&(isMetal(b.i)||isMetal(b.j)));const wrongIon=transfers>0&&p.type==='cov';
+  if(wrongCov||wrongIon){toast($('toast'),wrongCov?'모두 안정해 보이지만, 금속은 전자를 공유하지 않아요. 되돌려 보세요':'비금속끼리는 전자를 주고받지 않고 공유해요. 되돌려 보세요','bad',3000);return;}
+  solved=true;const extra=moves-p.min;const sN=extra<=0?3:extra<=2?2:1;const pts=sN*50;
+  if(!doneSet.has(L)||(starsTot[L]||0)<sN){score+=pts-(starsTot[L]?starsTot[L]*50:0);starsTot[L]=sN;}
+  doneSet.add(L);$('gScore').textContent=score;$('gStars').innerHTML=stars(sN);best('bonding',score);
+  const kind=p.type==='ion'?'이온 결합':'공유 결합';
+  $('gTask').innerHTML=`완성! <b>${p.n} (${p.f})</b> · ${kind}<small>${p.type==='ion'?ionText():covText()} · 조작 ${moves}번 (최소 ${p.min}번)</small>`;
+  for(let k=0;k<3;k++)burst(400+k*100,200,k%2?tok.gold:tok.good,24);toast($('toast'),`${p.f} 완성!`,'good');
+  $('gNext').hidden=L>=P.length-1;renderLevels();update();}
+function ionText(){return A.map(a=>`${a.s}${a.charge?(Math.abs(a.charge)>1?Math.abs(a.charge):'')+(a.charge>0?'⁺':'⁻'):''}`).join(' + ')+' → (+)전하와 (−)전하의 총량이 같음';}
+function covText(){const pairs=B.reduce((s,b)=>s+b.o,0);const lone=A.reduce((s,a)=>s+Math.floor((a.own+a.recv)/2),0);return `공유 전자쌍 ${pairs}개, 비공유 전자쌍 ${lone}개`+(B.some(b=>b.o===2)?' · 2중 결합 포함':'')+(B.some(b=>b.o===3)?' · 3중 결합 포함':'');}
+$('gNext').onclick=()=>{if(L<P.length-1)load(L+1);};
+/* 전자 위치 */
+function slots(k){ // 비공유 전자들의 위치
+  const a=A[k];const dirs=B.filter(b=>(b.i===k||b.j===k)&&b.o>0).map(b=>{const o=A[b.i===k?b.j:b.i];return Math.atan2(o.y-a.y,o.x-a.x);});
+  const base=[-Math.PI/2,0,Math.PI/2,Math.PI];const free=base.filter(s=>dirs.every(d=>Math.abs(Math.atan2(Math.sin(s-d),Math.cos(s-d)))>0.6));
+  const sl=free.length?free:base;const n=a.own+a.recv;const out=[];const per=sl.map(()=>0);
+  for(let i=0;i<n;i++){let idx=i<sl.length?i:(i-sl.length)%sl.length;if(a.s==='H'||a.s==='He'){idx=0;}per[idx]++;out.push({ang:sl[idx],slot:idx,kind:i<a.own?'own':'recv'});}
+  // 같은 칸에 2개면 나란히
+  const cntS={};return out.map(o=>{cntS[o.slot]=(cntS[o.slot]||0)+1;const two=per[o.slot]>=2;const off=two?(cntS[o.slot]===1?-9:9):0;const r=ER*(a.charge>0&&a.own+a.recv===0?0.9:1);
+    return {x:a.x+Math.cos(o.ang)*r-Math.sin(o.ang)*off,y:a.y+Math.sin(o.ang)*r+Math.cos(o.ang)*off,kind:o.kind};});}
+function bondMid(b){const a=A[b.i],c=A[b.j];return {x:(a.x+c.x)/2,y:(a.y+c.y)/2};}
+/* 그리기 */
+function draw(){
+  S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);
+  const p=P[L];
+  // 이온 결합 완성 시 가까워지기
+  if(solved&&p.type==='ion'){const cx=A.reduce((s,a)=>s+a.x0,0)/A.length;A.forEach(a=>{a.x=lerp(a.x,cx+(a.x0-cx)*0.82,0.05);});}
+  // 결합 칸
+  B.forEach(b=>{const a=A[b.i],c=A[b.j],m=bondMid(b);
+    if(b.o===0&&!solved){ctx.strokeStyle=Lab.rgba(tok.accent,.45);ctx.setLineDash([5,5]);ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(m.x,m.y,22,30,Math.atan2(c.y-a.y,c.x-a.x),0,7);ctx.stroke();ctx.setLineDash([]);}
+    if(b.o>0){const ang=Math.atan2(c.y-a.y,c.x-a.x),px=-Math.sin(ang),py=Math.cos(ang);
+      ctx.fillStyle=Lab.rgba(tok.gold,.16);ctx.beginPath();ctx.ellipse(m.x,m.y,30,14+10*b.o,ang,0,7);ctx.fill();
+      for(let q=0;q<b.o;q++){const off=(q-(b.o-1)/2)*18;for(let s=0;s<2;s++){const ex=m.x+px*off+Math.cos(ang)*(s?7:-7),ey=m.y+py*off+Math.sin(ang)*(s?7:-7);ctx.fillStyle=s?EL[c.s].c:EL[a.s].c;ctx.beginPath();ctx.arc(ex,ey,6.5,0,7);ctx.fill();ctx.strokeStyle=tok.cool;ctx.lineWidth=2.5;ctx.stroke();}}}
+  });
+  // 정전기적 인력 표시
+  if(solved&&p.type==='ion'){ctx.strokeStyle=Lab.rgba(tok.warm,.5);ctx.lineWidth=2;ctx.setLineDash([3,6]);for(let i=0;i<A.length;i++)for(let j=i+1;j<A.length;j++)if(A[i].charge*A[j].charge<0){ctx.beginPath();ctx.moveTo(A[i].x,A[i].y);ctx.lineTo(A[j].x,A[j].y);ctx.stroke();}ctx.setLineDash([]);}
+  // 원자
+  A.forEach((a,k)=>{const e=EL[a.s];const ok=stable(k);
+    ctx.strokeStyle=Lab.rgba(tok.muted,.35);ctx.lineWidth=1.2;ctx.setLineDash([3,4]);ctx.beginPath();ctx.arc(a.x,a.y,ER,0,7);ctx.stroke();ctx.setLineDash([]);
+    const g=ctx.createRadialGradient(a.x-12,a.y-12,4,a.x,a.y,AR);g.addColorStop(0,'#fff');g.addColorStop(.25,e.c);g.addColorStop(1,e.c);ctx.fillStyle=g;ctx.beginPath();ctx.arc(a.x,a.y,AR,0,7);ctx.fill();
+    ctx.strokeStyle=ok?tok.good:Lab.rgba(tok.fg,.3);ctx.lineWidth=ok?3:1.5;ctx.stroke();
+    const darkTxt=['H','Mg','Ca','F'].includes(a.s);
+    label(a.s,a.x,a.y-4,{size:24,weight:700,color:darkTxt?'#15212c':'#fff',hw:0});label(`+${e.z}`,a.x,a.y+18,{size:11,weight:600,color:darkTxt?'#15212c':'#fff',hw:0,mono:true});
+    // 이온 괄호
+    if(a.charge!==0){ctx.strokeStyle=tok.fg;ctx.lineWidth=2;const r=ER+14;ctx.beginPath();ctx.moveTo(a.x-r+8,a.y-r);ctx.lineTo(a.x-r,a.y-r);ctx.lineTo(a.x-r,a.y+r);ctx.lineTo(a.x-r+8,a.y+r);ctx.moveTo(a.x+r-8,a.y-r);ctx.lineTo(a.x+r,a.y-r);ctx.lineTo(a.x+r,a.y+r);ctx.lineTo(a.x+r-8,a.y+r);ctx.stroke();
+      const q=Math.abs(a.charge);label(`${q>1?q:''}${a.charge>0?'+':'−'}`,a.x+r+12,a.y-r+4,{size:18,weight:700,color:a.charge>0?tok.cool:tok.warm});}
+    // 개수
+    const c=cnt(k),target=a.s==='H'?2:8;
+    const inner=a.own+a.recv===0&&bondsOf(k)===0&&a.charge>0;
+    label(inner?'안쪽 껍질 8개(이전 껍질)':`${c} / ${target}`,a.x,a.y+ER+(a.charge?34:22),{size:13,weight:700,color:ok?tok.good:tok.muted,mono:!inner});
+  });
+  // 비공유 전자
+  A.forEach((a,k)=>slots(k).forEach((s,i)=>{if(drag&&drag.k===k&&drag.i===i)return;ctx.fillStyle=s.kind==='own'?tok.cool:tok.warm;ctx.beginPath();ctx.arc(s.x,s.y,7,0,7);ctx.fill();ctx.strokeStyle=tok.surface;ctx.lineWidth=1.5;ctx.stroke();}));
+  if(drag){ctx.fillStyle=drag.kind==='own'?tok.cool:tok.warm;ctx.beginPath();ctx.arc(drag.x,drag.y,8,0,7);ctx.fill();
+    const tgt=target(drag.x,drag.y,drag.k);if(tgt){ctx.strokeStyle=tok.gold;ctx.lineWidth=3;if(tgt.type==='atom'){ctx.beginPath();ctx.arc(A[tgt.k].x,A[tgt.k].y,AR+6,0,7);ctx.stroke();label('전자 주기',A[tgt.k].x,A[tgt.k].y-AR-40,{size:13,color:tok.gold});}else{const m=bondMid(tgt.b);ctx.beginPath();ctx.arc(m.x,m.y,30,0,7);ctx.stroke();label('전자쌍 공유',m.x,m.y-46,{size:13,color:tok.gold});}}}
+  if(solved)label(`${p.f} · ${p.type==='ion'?'이온 결합 물질':'공유 결합 물질(분자)'}`,W/2,H-30,{size:18,color:tok.good});
+  drawFx(ctx);
+}
+function target(x,y,from){for(const b of B){if(b.i!==from&&b.j!==from)continue;const m=bondMid(b);if(Math.hypot(m.x-x,m.y-y)<32)return {type:'bond',b};}
+  for(let k=0;k<A.length;k++){if(k===from)continue;if(Math.hypot(A[k].x-x,A[k].y-y)<AR+10)return {type:'atom',k};}return null;}
+const cvs=$('sim');
+cvs.addEventListener('pointerdown',e=>{if(solved)return;const p=S.pt(e);
+  for(let k=0;k<A.length;k++){const sl=slots(k);for(let i=sl.length-1;i>=0;i--){if(Math.hypot(sl[i].x-p.x,sl[i].y-p.y)<14){drag={k,i,x:p.x,y:p.y,kind:sl[i].kind};cvs.setPointerCapture(e.pointerId);return;}}}
+  for(const b of B){const m=bondMid(b);if(Math.hypot(m.x-p.x,m.y-p.y)<30){share(b);return;}}});
+cvs.addEventListener('pointermove',e=>{if(!drag)return;const p=S.pt(e);drag.x=p.x;drag.y=p.y;});
+cvs.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;const tg=target(d.x,d.y,d.k);if(!tg)return;if(tg.type==='atom')give(d.k,tg.k);else share(tg.b);});
+function update(){const n=A.filter((a,k)=>stable(k)).length;$('vOk').textContent=`${n} / ${A.length}`;$('vOk').className='v '+(n===A.length?'ok':'');
+  const p=P[L];$('v1').textContent=`${p.n} (${p.f})`;$('d1').textContent=A.map(a=>EL[a.s].n).join(' + ');
+  $('v2').textContent=`${transfers}개`;const pairs=B.reduce((s,b)=>s+b.o,0);$('v3').textContent=`${pairs}쌍`;$('d3').textContent=B.some(b=>b.o>=2)?`${B.some(b=>b.o===3)?'3중':'2중'} 결합 있음`:'공유 결합';
+  $('v4').textContent=moves;$('d4').textContent=`최소 ${p.min}번`;
+  $('stName').textContent=solved?'완성':transfers&&pairs?'섞여 있음':transfers?'전자 이동 중':pairs?'전자쌍 공유 중':'시작';$('chip').dataset.s=solved?'':'gold';
+  $('fsInfo').textContent=`${p.f} · 안정한 원자 ${n}/${A.length} · 이동 ${transfers} · 공유 ${pairs}쌍`;}
+load(0);
+loop(()=>{t++;draw();});
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

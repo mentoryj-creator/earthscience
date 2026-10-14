@@ -1,0 +1,415 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>GPS 구조대</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.sat-table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+.sat-table th,.sat-table td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right}
+.sat-table th:first-child,.sat-table td:first-child{text-align:left}
+.sat-table td{font-family:var(--f-mono)}
+.tw{overflow-x:auto}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅰ. 과학의 기초 · 시간과 공간의 측정</span></nav>
+  <header>
+    <h1>GPS 구조대</h1>
+    <p>GPS 수신기는 위성이 보낸 신호가 도착하기까지 걸린 시간으로 위성까지의 거리를 구합니다. 위성 신호를 받아 거리 원을 그리고, 원들이 만나는 곳에서 조난자를 찾아 보세요. 수신기 시계가 틀리면 왜 위성이 하나 더 필요한지도 확인할 수 있습니다.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="mission">
+      <span class="tag" id="gTag">구조 1 / 5</span>
+      <div class="task" id="gTask">–</div>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div>
+      <button type="button" id="go" class="go" disabled>📍 이 위치로 출동</button>
+      <button type="button" id="next" hidden>다음 구조 →</button>
+    </div>
+    <div class="controls">
+      <div class="slider" id="clockBox" hidden>
+        <div class="slider-top"><label for="clock">수신기 시계 오차 보정</label><output id="clockOut">0.00 ms</output></div>
+        <input id="clock" type="range" min="-3" max="3" step="0.01" value="0">
+        <div class="ticks"><span>−3 ms</span><span>0</span><span>+3 ms</span></div>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="tWave" checked>신호 퍼짐 보기</label>
+        <label><input type="checkbox" id="tGrid" checked>거리 눈금</label>
+      </div>
+      <button type="button" id="pPractice" aria-pressed="false">연습 모드 (조난자 보이기)</button>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="위성과 거리 원이 표시된 지도"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">① 위성을 눌러 신호를 받으면 거리 원이 그려집니다. ② 원이 만나는 곳을 지도에서 눌러 표시한 뒤 ‘이 위치로 출동’을 누르세요. 위성을 적게 쓰고 정확히 찾을수록 점수가 높습니다. 지도 1칸 = 500 km (평면으로 단순화).</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stateName">신호 대기</span></span>
+        <div class="big"><div class="k">빛의 속력</div><div class="v">300 000 km/s</div></div>
+      </div>
+      <div class="tw"><table class="sat-table">
+        <thead><tr><th>위성</th><th>신호 도착 시간</th><th>계산한 거리 (c × t)</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="3" style="text-align:left;color:var(--muted)">위성을 눌러 신호를 받아 보세요.</td></tr></tbody>
+      </table></div>
+      <p class="d" style="color:var(--muted);font-size:.82rem;margin:.6rem 0 0">거리 = 빛의 속력 × 걸린 시간. 1 ms(0.001초)만 틀려도 거리는 300 km나 달라집니다.</p>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">시간을 재서 거리를 안다</h2>
+      <ol class="chain" id="exChain">
+        <li>위성은 ‘보낸 시각’과 ‘자기 위치’를 담은 신호를 보낸다.</li>
+        <li>수신기는 신호가 도착한 시각과 비교해 걸린 시간을 구하고, 빛의 속력을 곱해 거리를 계산한다.</li>
+        <li>위성 하나로는 원 위의 어딘가, 둘이면 두 점, 셋이면 한 점으로 위치가 정해진다(삼변측량).</li>
+        <li>수신기 시계는 위성의 원자시계만큼 정확하지 않아 모든 거리가 같은 만큼 틀린다. 그래서 실제로는 네 개 이상의 위성으로 시계 오차까지 함께 구한다.</li>
+      </ol>
+      <div class="impact"><b>측정의 연결</b>정확한 공간(위치) 측정은 정확한 시간 측정 위에서 가능하다. 위성의 원자시계는 수십억분의 1초까지 시간을 잰다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>위성을 하나만 썼을 때와 두 개를 썼을 때 조난자가 있을 수 있는 곳은 각각 어떤 모양인가요?</li>
+      <li>신호 도착 시간이 1 ms 길게 측정되면 거리는 얼마나 길어지나요?</li>
+      <li>시계 오차가 있는 라운드에서 원 세 개가 한 점에서 만나지 않는 까닭은 무엇일까요? 보정 슬라이더로 원이 한 점에 모이게 해 보세요.</li>
+      <li>실제 GPS는 3차원 공간에서 위치를 구합니다. 시계 오차까지 구하려면 최소 몇 개의 위성이 필요할까요?</li>
+    </ol>
+  </section>
+  <p class="foot">실제 GPS 위성은 고도 약 20 200 km에서 돌며 3차원 구의 교점으로 위치를 구합니다. 이 시뮬레이션은 원리를 보여 주기 위해 평면 위의 원으로 단순화했습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,rr,toast,stars,burst,drawFx,loop,best,rand,randi,shuffle}=Lab,tok=Lab.tok;
+const W=1000,H=600,KM=5,C=300000; // 1 px = 5 km, 지도 칸 100 px = 500 km
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const MAP={x0:150,y0:90,x1:850,y1:530};
+const ROUNDS=5;
+// 고정 섬 모양 (점 집합)
+function blob(cx,cy,r,seed,n=40){const p=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const k=1+0.2*Math.sin(a*2+seed)+0.1*Math.sin(a*5+seed*2)+0.04*Math.sin(a*9+seed*3);p.push([cx+Math.cos(a)*r*k*1.25,cy+Math.sin(a)*r*k*.85]);}return p;}
+const islands=[blob(420,300,150,1.3),blob(700,220,70,2.1),blob(680,430,55,4.2),blob(250,460,45,0.7)];
+const SLOTS=[[60,60],[500,40],[940,70],[960,330],[930,560],[500,575],[60,560],[40,320]];
+let G={round:0,score:0,starsTot:0,practice:false};
+function newRound(){
+  const clockErr=G.round>=3;
+  const sl=shuffle(SLOTS).slice(0,clockErr?4:3);
+  G.sats=sl.map(([x,y],i)=>({x,y,id:'ABCD'[i],got:false,wave:0}));
+  G.rx={x:rand(MAP.x0+60,MAP.x1-60),y:rand(MAP.y0+50,MAP.y1-50)};
+  G.bias=clockErr?(Math.random()<.5?-1:1)*+rand(0.8,2.2).toFixed(2):0;
+  G.corr=0;$('clock').value=0;$('clockBox').hidden=!clockErr;
+  G.guess=null;G.done=false;G.clockErr=clockErr;$('go').disabled=true;
+  $('gTag').textContent=`구조 ${G.round+1} / ${ROUNDS}`;
+  $('gTask').innerHTML=clockErr?'수신기 시계가 틀려 있어요! 위성 신호를 받고, <b>시계 오차 보정</b>으로 원들이 한 점에서 만나게 한 뒤 위치를 찍으세요.<small>이번에는 위성이 4개 있어요.</small>'
+    :'위성을 눌러 신호를 받고, 원이 만나는 곳을 눌러 조난자를 찾으세요.<small>위성을 적게 쓸수록 보너스! 하지만 틀리면 점수가 깎여요.</small>';
+  $('next').hidden=true;$('gStars').innerHTML='';
+  table();
+}
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const tMeas=s=>dist(s,G.rx)*KM/C*1000+G.bias; // ms
+const rad=s=>(tMeas(s)-G.corr)*C/1000/KM;     // px
+function table(){
+  const rows=G.sats.filter(s=>s.got).map(s=>`<tr><td>위성 ${s.id}</td><td>${tMeas(s).toFixed(2)} ms</td><td>${Math.round(rad(s)*KM).toLocaleString()} km</td></tr>`);
+  $('tbody').innerHTML=rows.join('')||'<tr><td colspan="3" style="text-align:left;color:var(--muted)">위성을 눌러 신호를 받아 보세요.</td></tr>';
+  const n=G.sats.filter(s=>s.got).length;
+  $('stateName').textContent=G.done?'구조 완료':n===0?'신호 대기':n===1?'원 위의 어딘가':n===2?'두 점 중 하나':'위치 결정 가능';
+  $('chip').dataset.s=G.done?'':n>=3?'':'gold';
+  $('clockOut').textContent=`${G.corr>=0?'+':'−'}${Math.abs(G.corr).toFixed(2)} ms`;
+  $('fsInfo').textContent=`구조 ${G.round+1} · 받은 신호 ${n}개 · ${$('stateName').textContent}`;
+}
+// 원 교점 이용: 보정이 맞는지(모든 원이 한 점 근처에서 만나는지)
+function spread(){const got=G.sats.filter(s=>s.got);if(got.length<3)return null;let sum=0;got.forEach(s=>{sum+=Math.abs(dist(s,G.rx)-rad(s));});return sum/got.length*KM;}
+function satIcon(s){
+  ctx.save();ctx.translate(s.x,s.y);
+  ctx.fillStyle=tok['air'];ctx.fillRect(-26,-6,18,12);ctx.fillRect(8,-6,18,12);
+  ctx.strokeStyle=tok.surface;ctx.lineWidth=1;for(let i=-22;i<-8;i+=5){ctx.beginPath();ctx.moveTo(i,-6);ctx.lineTo(i,6);ctx.stroke();}for(let i=12;i<26;i+=5){ctx.beginPath();ctx.moveTo(i,-6);ctx.lineTo(i,6);ctx.stroke();}
+  ctx.fillStyle=s.got?tok.accent:tok.gold;ctx.beginPath();ctx.arc(0,0,10,0,7);ctx.fill();
+  ctx.restore();
+  label(`위성 ${s.id}`,s.x,s.y+(s.y<300?26:-24),{size:13,color:s.got?tok.accent:tok.gold});
+  if(!s.got&&!G.done){ctx.strokeStyle=tok.gold;ctx.lineWidth=2;ctx.globalAlpha=.5+.5*Math.sin(t*.1);ctx.beginPath();ctx.arc(s.x,s.y,17,0,7);ctx.stroke();ctx.globalAlpha=1;}
+}
+let t=0;
+function draw(){
+  S.begin();
+  ctx.fillStyle=Lab.isDark()?'#0f2638':'#cfe3ef';ctx.fillRect(0,0,W,H);
+  islands.forEach(p=>{ctx.fillStyle=Lab.isDark()?'#3f4a35':'#b7c9a0';ctx.strokeStyle=Lab.isDark()?'#56644a':'#93a87d';ctx.lineWidth=2;ctx.beginPath();p.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();});
+  if($('tGrid').checked){ctx.strokeStyle=Lab.rgba(tok.fg,.08);ctx.lineWidth=1;for(let x=0;x<=W;x+=100){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}for(let y=0;y<=H;y+=100){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.strokeStyle=tok.fg;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(30,H-24);ctx.lineTo(130,H-24);ctx.stroke();label('500 km',80,H-38,{size:12});}
+  // 원
+  const cols=[tok.accent,tok.warm,tok.calm,tok.cool];
+  G.sats.forEach((s,i)=>{if(!s.got)return;const r=rad(s);
+    if($('tWave').checked&&s.wave<1){s.wave=Math.min(1,s.wave+0.012*(Lab.reduce?4:1));const rw=r*s.wave;ctx.strokeStyle=cols[i];ctx.globalAlpha=.6;ctx.lineWidth=3;ctx.beginPath();ctx.arc(s.x,s.y,rw,0,7);ctx.stroke();ctx.globalAlpha=1;
+      for(let k=1;k<4;k++){const rk=rw-k*18;if(rk>0){ctx.globalAlpha=.25/k;ctx.beginPath();ctx.arc(s.x,s.y,rk,0,7);ctx.stroke();}}ctx.globalAlpha=1;return;}
+    s.wave=1;ctx.strokeStyle=cols[i];ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(s.x,s.y,Math.max(r,1),0,7);ctx.stroke();
+    ctx.setLineDash([3,5]);ctx.lineWidth=1;const ang=-0.6+i*1.3;ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+Math.cos(ang)*r,s.y+Math.sin(ang)*r);ctx.stroke();ctx.setLineDash([]);
+    label(`${Math.round(r*KM).toLocaleString()} km`,s.x+Math.cos(ang)*r*.55,s.y+Math.sin(ang)*r*.55,{size:12,color:cols[i]});
+  });
+  G.sats.forEach(satIcon);
+  // 조난자
+  if(G.done||G.practice){ctx.fillStyle=tok.bad;ctx.beginPath();ctx.arc(G.rx.x,G.rx.y,7,0,7);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();label('조난자',G.rx.x,G.rx.y-18,{size:13,color:tok.bad});}
+  if(G.guess){ctx.strokeStyle=tok.fg;ctx.lineWidth=2.5;const g=G.guess;ctx.beginPath();ctx.moveTo(g.x-9,g.y-9);ctx.lineTo(g.x+9,g.y+9);ctx.moveTo(g.x+9,g.y-9);ctx.lineTo(g.x-9,g.y+9);ctx.stroke();
+    if(G.done){ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(g.x,g.y);ctx.lineTo(G.rx.x,G.rx.y);ctx.stroke();ctx.setLineDash([]);label(`오차 ${Math.round(dist(g,G.rx)*KM)} km`,(g.x+G.rx.x)/2,(g.y+G.rx.y)/2-14,{size:13});}}
+  if(G.clockErr&&!G.done){const sp=spread();if(sp!=null)label(sp<40?'원들이 한 점에서 만나요!':`원들이 어긋나 있어요 (평균 ${Math.round(sp)} km)`,W/2,24,{size:14,color:sp<40?tok.good:tok.warm});}
+  drawFx(ctx);
+}
+const cvs=$('sim');
+cvs.addEventListener('pointerdown',e=>{if(G.done)return;const p=S.pt(e);
+  const s=G.sats.find(s=>Math.hypot(s.x-p.x,s.y-p.y)<34);
+  if(s){if(!s.got){s.got=true;s.wave=$('tWave').checked?0:1;table();toast($('toast'),`위성 ${s.id}: 신호가 ${tMeas(s).toFixed(2)} ms 만에 도착`,'',1500);}return;}
+  const n=G.sats.filter(s=>s.got).length;if(n===0){toast($('toast'),'먼저 위성을 눌러 신호를 받으세요','bad');return;}
+  G.guess=p;$('go').disabled=false;});
+$('go').onclick=()=>{if(G.done||!G.guess)return;const p=G.guess,n=G.sats.filter(s=>s.got).length;
+  G.done=true;$('go').disabled=true;
+  const err=dist(p,G.rx)*KM,bonus=n===1?40:n===2?20:0;
+  const base=Math.max(0,Math.round(100-err/6));const pts=base>0?base+(base>=70?bonus:0):0;
+  const sN=err<60?3:err<180?2:err<400?1:0;
+  G.score+=pts;G.starsTot+=sN;$('gScore').textContent=G.score;$('gStars').innerHTML=stars(sN);
+  $('gTask').innerHTML=`위치 오차 ${Math.round(err)} km · +${pts}점${base>=70&&bonus?` (위성 ${n}개만 써서 보너스 +${bonus})`:''}<small>${sN===3?'정확한 구조!':sN>=1?'근처까지 찾았어요.':'원이 만나는 곳을 다시 확인해 보세요.'}${G.clockErr&&Math.abs(G.corr-G.bias)>0.15?` 실제 시계 오차는 ${G.bias>0?'+':''}${G.bias} ms였어요.`:''}</small>`;
+  if(sN===3)burst(G.rx.x,G.rx.y,tok.gold,30);
+  toast($('toast'),sN===3?'구조 성공!':sN?'근처예요':'놓쳤어요',sN>=2?'good':sN?'gold':'bad');
+  $('next').hidden=false;$('next').textContent=G.round+1>=ROUNDS?'결과 보기 →':'다음 구조 →';table();
+};
+$('next').onclick=()=>{G.round++;if(G.round>=ROUNDS){const b=best('gps',G.score);$('gTag').textContent='결과';$('gTask').innerHTML=`총점 <b>${G.score}점</b> (★ ${G.starsTot}/${ROUNDS*3})<small>최고 기록 ${b}점</small>`;$('next').textContent='↺ 다시 하기';$('next').onclick=()=>location.reload();return;}newRound();};
+$('clock').addEventListener('input',e=>{G.corr=+e.target.value;table();});
+$('pPractice').onclick=()=>{G.practice=!G.practice;$('pPractice').setAttribute('aria-pressed',G.practice);if(G.practice)toast($('toast'),'연습 모드: 점수는 기록되지만 조난자가 보여요','gold');};
+newRound();
+loop(()=>{t++;draw();});
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

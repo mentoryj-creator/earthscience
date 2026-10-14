@@ -1,0 +1,432 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>반도체 실험실</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅱ. 물질과 규칙성 · 물질의 전기적 성질과 첨단 기술의 활용</span></nav>
+  <header>
+    <h1>반도체 실험실</h1>
+    <p>물질은 자유 전자의 양에 따라 도체, 부도체, 반도체로 나뉩니다. 반도체는 온도와 불순물(도핑)에 따라 전기가 흐르는 정도가 크게 달라집니다. 물질 속 전자의 움직임을 관찰하고, 다이오드가 교류를 한 방향 전류로 바꾸는 모습도 확인해 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="실험"><button type="button" data-tab="mat" aria-pressed="true">① 물질 속 전자</button><button type="button" data-tab="diode" aria-pressed="false">② 다이오드와 LED</button></div>
+      <div class="grp" id="matBox"><span class="k">물질</span><div class="seg" role="group" aria-label="물질" id="matSeg"></div></div>
+      <div class="slider" id="tempBox"><div class="slider-top"><label for="temp">온도</label><output id="tempOut">25 ℃</output></div><input id="temp" type="range" min="-50" max="200" step="1" value="25"></div>
+      <div class="slider" id="dopeBox"><div class="slider-top"><label for="dope">불순물 첨가 (도핑)</label><output id="dopeOut">없음</output></div><input id="dope" type="range" min="0" max="6" step="0.1" value="0"><div class="ticks"><span>순수</span><span>100만 개 중 1개</span><span>많이</span></div></div>
+      <div class="presets" id="diodeBox" hidden><button type="button" id="flip">⇄ 다이오드 뒤집기</button><button type="button" id="acdc" aria-pressed="true">교류 전원</button></div>
+      <button type="button" id="pGame" class="go">🎯 전류 맞추기</button>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">목표 1 / 5</span>
+      <div class="task" id="gTask">–</div>
+      <div class="score"><span><span class="lbl">남은 시간</span><span id="gTime">–</span></span><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="560" role="img" aria-label="물질 속 원자와 전자, 회로"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#3e8ef7;border-radius:50%"></i>자유 전자</span>
+      <span class="key"><i style="border:2px solid #e5484d;border-radius:50%;background:transparent"></i>양공 (전자가 빠진 자리)</span>
+      <span class="key"><i style="background:#f28c28;border-radius:50%"></i>인(P) – 원자가 전자 5개</span>
+      <span class="key"><i style="background:#8e4ec6;border-radius:50%"></i>붕소(B) – 원자가 전자 3개</span>
+      <div class="fsinfo" id="fsInfo"></div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k">전류 (상대값)</div><div class="v" id="vI">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">자유롭게 움직이는 전하</span><span class="v txt" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k">전기 저항</span><span class="v txt" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k">활용 예</span><span class="v txt" id="v3">–</span><span class="d" id="d3"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">–</h2>
+      <ol class="chain" id="exChain"></ol>
+      <div class="impact"><b>정리</b><span id="exImpact"></span></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>구리와 유리에 같은 전압을 걸었을 때 전류의 차이가 생기는 까닭을 자유 전자로 설명해 보세요.</li>
+      <li>순수한 규소의 온도를 높이면 전류는 어떻게 변하나요? 금속과 반대인 까닭은 무엇일까요?</li>
+      <li>규소에 인(P)이나 붕소(B)를 아주 조금 넣으면 왜 전류가 잘 흐르게 될까요?</li>
+      <li>다이오드를 뒤집으면 LED는 어떻게 되나요? 교류를 직류로 바꾸는 ‘정류 작용’이 필요한 까닭은?</li>
+    </ol>
+  </section>
+  <p class="foot">전류계는 매우 넓은 범위를 담기 위해 로그 눈금(한 칸에 10배)으로 나타냈습니다. 원자와 전자의 수, 움직임은 원리를 보여 주기 위해 단순화했습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,rand}=Lab,tok=Lab.tok;
+const W=1000,H=560;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const MAT={cu:{n:'구리 (도체)'},glass:{n:'유리 (부도체)'},si:{n:'규소 (반도체)'},sin:{n:'규소 + 인 (n형)'},sip:{n:'규소 + 붕소 (p형)'}};
+const st={tab:'mat',mat:'si',T:25,dope:0,t:0,parts:[],flip:false,ac:true,game:null,phase:0};
+/* 모델: log10(상대 전도도) */
+function logSigma(){const m=st.mat,TK=st.T+273;
+  if(m==='cu')return 6-0.0018*(st.T-25); // 온도가 오르면 약간 감소
+  if(m==='glass')return -12+0.01*(st.T-25);
+  const ni=10+(-1.12/(2*8.617e-5))*(1/TK-1/298)/Math.LN10; // log10 n_i (cm⁻³), 25℃ ≈ 10
+  const nd=m==='si'?0:(st.dope<=0?0:12+st.dope);           // log10 도핑 농도
+  const n=Math.log10(Math.pow(10,ni)+(nd?Math.pow(10,nd):0));
+  return -7+(n-10)*0.92;}
+const I=()=>logSigma(); // 상대 전류 = 전도도 (같은 전압)
+function carriers(){const L=I();return {e:clamp(Math.round((L+8)*4.2),0,60),h:st.mat==='sip'?clamp(Math.round((L+8)*4.2),0,60):st.mat==='si'?clamp(Math.round((L+8)*4.2),0,60):0};}
+/* 입자 */
+const GX=10,GY=6,X0=110,Y0=150,DX=56,DY=56;
+function rebuild(){const P=[];const c=carriers(),m=st.mat;
+  if(m==='cu'){for(let i=0;i<60;i++)P.push({t:'e',x:rand(X0-30,X0+DX*(GX-1)+30),y:rand(Y0-20,Y0+DY*(GY-1)+20),vx:rand(-1,1),vy:rand(-1,1)});}
+  else if(m!=='glass'){const ne=m==='sip'?Math.round(c.e*0.15):c.e;const nh=m==='sin'?Math.round(c.e*0.15):m==='sip'?c.h:c.e;
+    for(let i=0;i<ne;i++)P.push({t:'e',x:rand(X0,X0+DX*(GX-1)),y:Y0+DY*Lab.randi(0,GY-1)+DY/2*(Math.random()<.5?1:0),vx:rand(-1,1),vy:0});
+    for(let i=0;i<nh;i++)P.push({t:'h',x:X0+DX*Lab.randi(0,GX-1),y:Y0+DY*Lab.randi(0,GY-1),vx:0,vy:0,tick:Lab.randi(0,40)});}
+  st.parts=P;}
+let lastKey='';
+function step(){const key=st.mat+'|'+Math.round(I()*3);if(key!==lastKey){lastKey=key;rebuild();}
+  const M=Lab.MOTION;
+  st.parts.forEach(p=>{if(p.t==='e'){p.vx+=0.05+rand(-.25,.25);p.vy+=rand(-.25,.25);p.vx*=.9;p.vy*=.9;p.x+=p.vx*2*M;p.y+=p.vy*2*M;if(p.x>X0+DX*(GX-1)+30)p.x=X0-30;if(p.y<Y0-25||p.y>Y0+DY*(GY-1)+25)p.vy*=-1;}
+    else{p.tick--;if(p.tick<=0){p.x-=DX;p.tick=Lab.randi(18,40)/M;if(p.x<X0)p.x=X0+DX*(GX-1);}}});}
+function isDopant(i,j){const k=(i*7+j*13)%17;return k===3||k===11;}
+function drawLattice(){
+  const m=st.mat;ctx.fillStyle=Lab.isDark()?'#0f1820':'#f6f9fb';rr(ctx,40,90,640,420,14);ctx.fill();
+  // 전극
+  ctx.fillStyle='#5f6b75';rr(ctx,50,100,26,400,6);ctx.fill();ctx.fillStyle='#c0504d';rr(ctx,644,100,26,400,6);ctx.fill();
+  label('(−)',63,86,{size:14,weight:700});label('(+)',657,86,{size:14,weight:700});
+  for(let i=0;i<GX;i++)for(let j=0;j<GY;j++){const x=X0+i*DX,y=Y0+j*DY;
+    if(m!=='cu'){ctx.strokeStyle=Lab.rgba(tok.muted,.5);ctx.lineWidth=2;if(i<GX-1){ctx.beginPath();ctx.moveTo(x+14,y);ctx.lineTo(x+DX-14,y);ctx.stroke();ctx.fillStyle=tok.cool;[-3,3].forEach(o=>{ctx.beginPath();ctx.arc(x+DX/2,y+o,2.2,0,7);ctx.fill();});}
+      if(j<GY-1){ctx.beginPath();ctx.moveTo(x,y+14);ctx.lineTo(x,y+DY-14);ctx.stroke();ctx.fillStyle=tok.cool;[-3,3].forEach(o=>{ctx.beginPath();ctx.arc(x+o,y+DY/2,2.2,0,7);ctx.fill();});}}
+    let c='#8a96a3',t='Si';if(m==='cu'){c='#c97b4a';t='+';}else if(m==='glass'){c=(i+j)%2?'#9fb9c9':'#d9534f';t=(i+j)%2?'Si':'O';}
+    else if(m==='sin'&&st.dope>0&&isDopant(i,j)){c='#f28c28';t='P';}else if(m==='sip'&&st.dope>0&&isDopant(i,j)){c='#8e4ec6';t='B';}
+    ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,13,0,7);ctx.fill();label(t,x,y,{size:11,color:'#fff',hw:0,weight:700});}
+  st.parts.forEach(p=>{if(p.t==='e'){ctx.fillStyle='#3e8ef7';ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,7);ctx.fill();}else{ctx.strokeStyle='#e5484d';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x+DX/2,p.y,5,0,7);ctx.stroke();}});
+  label(MAT[m].n,360,535,{size:15,weight:700});
+}
+function meter(x,y,r){ // 로그 전류계 (10⁻¹²~10⁶)
+  ctx.fillStyle=tok.surface;ctx.beginPath();ctx.arc(x,y,r,Math.PI,0);ctx.closePath();ctx.fill();ctx.strokeStyle=tok.line;ctx.lineWidth=2;ctx.stroke();
+  const ang=v=>Math.PI+clamp((v+12)/18,0,1)*Math.PI;
+  if(st.game&&st.game.target!=null){const g=st.game;ctx.strokeStyle=Lab.rgba(tok.gold,.55);ctx.lineWidth=14;ctx.beginPath();ctx.arc(x,y,r-14,ang(g.target-0.5),ang(g.target+0.5));ctx.stroke();}
+  for(let v=-12;v<=6;v+=3){const a=ang(v);ctx.strokeStyle=tok.muted;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+Math.cos(a)*(r-6),y+Math.sin(a)*(r-6));ctx.lineTo(x+Math.cos(a)*(r-18),y+Math.sin(a)*(r-18));ctx.stroke();label(`10${Lab.sup(v)}`,x+Math.cos(a)*(r-34),y+Math.sin(a)*(r-34),{size:10,color:tok.muted,hw:0,mono:true,weight:500});}
+  const a=ang(I()+Math.sin(st.t*.3)*.03);ctx.strokeStyle=tok.bad;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(a)*(r-10),y+Math.sin(a)*(r-10));ctx.stroke();ctx.fillStyle=tok.fg;ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();
+  label('전류계 (한 칸 = 10배)',x,y+18,{size:12,color:tok.muted});}
+function bulb(x,y,b){ctx.save();if(b>0.05){ctx.shadowColor='rgba(255,220,100,.9)';ctx.shadowBlur=40*b;}ctx.fillStyle=`rgba(255,${200+40*b|0},${80+60*b|0},${.25+.75*b})`;ctx.beginPath();ctx.arc(x,y,26,0,7);ctx.fill();ctx.restore();ctx.strokeStyle=tok.muted;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,26,0,7);ctx.stroke();ctx.fillStyle=tok.muted;ctx.fillRect(x-10,y+24,20,14);}
+function drawMat(){drawLattice();meter(840,250,130);const b=clamp((I()+2)/6,0,1);bulb(840,370,b);label(b>0.6?'전구가 밝게 켜짐':b>0.1?'희미하게 켜짐':'꺼짐',840,430,{size:13});
+  if(st.mat!=='cu'&&st.mat!=='glass')label(`온도 ${st.T} ℃`,840,470,{size:13,color:st.T>60?tok.warm:tok.muted});}
+/* 다이오드 */
+function drawDiode(){
+  ctx.fillStyle=Lab.isDark()?'#0f1820':'#f6f9fb';rr(ctx,30,30,940,500,14);ctx.fill();
+  // p-n 접합
+  const px=90,py=80,pw=320,ph=150;
+  const fw=!st.flip;const v=st.ac?Math.sin(st.phase):1;const fwd=(v>0)===fw;const on=fwd&&Math.abs(v)>0.15;
+  ctx.fillStyle='rgba(142,78,198,.18)';rr(ctx,px,py,pw/2,ph,8);ctx.fill();ctx.fillStyle='rgba(242,140,40,.18)';rr(ctx,px+pw/2,py,pw/2,ph,8);ctx.fill();
+  label(fw?'p형':'n형',px+pw/4,py-14,{size:14,weight:700,color:fw?'#8e4ec6':'#f28c28'});label(fw?'n형':'p형',px+3*pw/4,py-14,{size:14,weight:700,color:fw?'#f28c28':'#8e4ec6'});
+  for(let i=0;i<14;i++){const sx=((i*53+st.t*(on?2:0))%(pw/2-30));const yy=py+20+(i*37)%(ph-40);
+    ctx.strokeStyle='#e5484d';ctx.lineWidth=2;ctx.beginPath();ctx.arc(fw?px+15+sx:px+pw/2+15+sx,yy,5,0,7);ctx.stroke();
+    ctx.fillStyle='#3e8ef7';ctx.beginPath();ctx.arc(fw?px+pw-15-sx:px+pw/2-15-sx,yy+8,4.5,0,7);ctx.fill();}
+  label(on?'순방향: 전자와 양공이 접합면에서 만나 전류가 흐름':'역방향: 전하가 접합면에서 멀어져 전류가 거의 흐르지 않음',px+pw/2,py+ph+24,{size:13,color:on?tok.good:tok.muted});
+  // 회로 기호
+  const cx=620,cy=150;ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(470,cy);ctx.lineTo(cx-30,cy);ctx.moveTo(cx+30,cy);ctx.lineTo(880,cy);ctx.lineTo(880,300);ctx.moveTo(470,cy);ctx.lineTo(470,300);ctx.stroke();
+  ctx.fillStyle=tok.fg;ctx.beginPath();if(fw){ctx.moveTo(cx-20,cy-22);ctx.lineTo(cx-20,cy+22);ctx.lineTo(cx+18,cy);}else{ctx.moveTo(cx+20,cy-22);ctx.lineTo(cx+20,cy+22);ctx.lineTo(cx-18,cy);}ctx.closePath();ctx.fill();
+  ctx.lineWidth=4;ctx.beginPath();const bx=fw?cx+20:cx-20;ctx.moveTo(bx,cy-22);ctx.lineTo(bx,cy+22);ctx.stroke();label('다이오드',cx,cy-38,{size:13});
+  // LED
+  ctx.save();if(on){ctx.shadowColor='#ff5050';ctx.shadowBlur=30*Math.abs(v);}ctx.fillStyle=on?`rgba(255,80,80,${.4+.6*Math.abs(v)})`:'rgba(255,80,80,.18)';ctx.beginPath();ctx.arc(880,330,22,0,7);ctx.fill();ctx.restore();label('LED',880,368,{size:13});
+  // 전원
+  ctx.strokeStyle=tok.fg;ctx.lineWidth=2;ctx.beginPath();ctx.arc(470,330,26,0,7);ctx.stroke();ctx.beginPath();for(let i=0;i<=20;i++){const xx=452+i*1.8,yy=330-Math.sin(i/20*Math.PI*2)*10;i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.stroke();label(st.ac?'교류 전원':'직류 전원',470,374,{size:13});
+  ctx.strokeStyle=tok.fg;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(470,356);ctx.lineTo(470,400);ctx.lineTo(880,400);ctx.lineTo(880,352);ctx.stroke();
+  if(on){ctx.fillStyle=tok.gold;for(let i=0;i<10;i++){const s=((st.t*3+i*80)%1180)/1180;let x,y;const L=[[470,150],[880,150],[880,400],[470,400],[470,150]];const seg=Math.floor(s*4),f=s*4-seg;const a=fw?L[seg]:L[4-seg],b=fw?L[seg+1]:L[3-seg];x=lerp(a[0],b[0],f);y=lerp(a[1],b[1],f);ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();}}
+  // 그래프
+  const gx=90,gy=320,gw=320,gh=170;ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(gx,gy,gw,gh);ctx.beginPath();ctx.moveTo(gx,gy+gh/2);ctx.lineTo(gx+gw,gy+gh/2);ctx.stroke();
+  label('전원 전압',gx+6,gy+12,{size:11,align:'left',color:tok.muted});label('LED에 흐르는 전류',gx+6,gy+28,{size:11,align:'left',color:tok.accent});
+  ctx.strokeStyle=tok.muted;ctx.lineWidth=1.5;ctx.beginPath();for(let i=0;i<=gw;i++){const ph=st.phase-(gw-i)*0.04;const vv=st.ac?Math.sin(ph):1;const y=gy+gh/2-vv*gh*.4;i?ctx.lineTo(gx+i,y):ctx.moveTo(gx+i,y);}ctx.stroke();
+  ctx.strokeStyle=tok.accent;ctx.lineWidth=2.5;ctx.beginPath();for(let i=0;i<=gw;i++){const ph=st.phase-(gw-i)*0.04;const vv=st.ac?Math.sin(ph):1;const ii=((vv>0)===fw)&&Math.abs(vv)>0.15?(Math.abs(vv)-0.15)*1.15*(fw?1:-1):0;const y=gy+gh/2-ii*gh*.4;i?ctx.lineTo(gx+i,y):ctx.moveTo(gx+i,y);}ctx.stroke();
+  label('시간 →',gx+gw-4,gy+gh+12,{size:11,align:'right',color:tok.muted,hw:0});
+}
+function draw(){S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);if(st.tab==='mat')drawMat();else drawDiode();drawFx(ctx);}
+/* 텍스트 */
+const EX={
+ cu:['도체: 자유 전자가 많아 전류가 잘 흐른다',['구리, 철, 알루미늄 같은 금속에는 원자핵의 인력에서 벗어난 자유 전자가 많다.','전압을 걸면 자유 전자가 한 방향으로 이동해 전류가 흐른다.','온도가 오르면 원자의 진동이 커져 전류가 오히려 약간 줄어든다.'],'전선, 전기 회로의 연결선'],
+ glass:['부도체: 자유 전자가 거의 없다',['유리, 고무, 나무 등은 전자가 원자에 단단히 묶여 있다.','전압을 걸어도 전하를 옮길 입자가 거의 없어 전류가 흐르지 않는다.'],'전선 피복, 절연체, 안전 장갑'],
+ si:['반도체: 도체와 부도체의 중간',['규소(Si)는 원자가 전자 4개로 이웃 원자와 공유 결합을 해 상온에서는 전류가 잘 흐르지 않는다.','온도를 높이면 일부 결합에서 전자가 떨어져 나와 자유 전자와 양공이 생기고 전류가 커진다.','온도, 압력, 빛 등의 조건에 따라 전기 저항이 크게 변한다.'],'온도 센서, 빛 센서'],
+ sin:['n형 반도체: 원자가 전자 5개인 인(P) 첨가',['규소에 인을 아주 조금 넣으면 공유 결합에 쓰이고 남는 전자 1개가 자유 전자가 된다.','100만 개 중 1개 정도만 넣어도 전류가 매우 잘 흐르게 된다.'],'다이오드, 트랜지스터, 태양 전지'],
+ sip:['p형 반도체: 원자가 전자 3개인 붕소(B) 첨가',['규소에 붕소를 넣으면 공유 결합에 전자가 1개 모자란 자리(양공)가 생긴다.','이웃 전자가 양공으로 옮겨 가며 양공이 반대 방향으로 움직이는 것처럼 보여 전류가 흐른다.'],'다이오드, 트랜지스터, LED']
+};
+const EXD=['다이오드와 정류 작용',['p형 반도체와 n형 반도체를 붙이면 다이오드가 된다.','순방향일 때만 전류가 흐르고 역방향일 때는 거의 흐르지 않는다.','그래서 방향이 계속 바뀌는 교류를 한 방향으로 흐르는 전류(직류)로 바꿀 수 있다(정류 작용).','발광 다이오드(LED)는 전류가 흐를 때 빛을 낸다.'],'발전소에서 오는 전기는 교류이지만, 컴퓨터 같은 전자 장치는 대부분 직류를 사용한다. 그래서 충전기 속에 다이오드가 있다.'];
+let lastEx='';
+function update(){
+  const L=I();$('vI').textContent=st.tab==='mat'?`10${Lab.sup(Math.round(L))}`:(st.flip?'역방향':'순방향');
+  $('tempOut').textContent=`${st.T} ℃`;$('dopeOut').textContent=st.dope<=0?'없음':`${Math.round(st.dope*10)/10} 단계`;
+  const m=st.mat;$('dopeBox').hidden=st.tab!=='mat'||!(m==='sin'||m==='sip');$('tempBox').hidden=st.tab!=='mat';$('matBox').hidden=st.tab!=='mat';$('diodeBox').hidden=st.tab!=='diode';
+  const key=st.tab==='mat'?m:'diode';
+  if(key!==lastEx){lastEx=key;const e=st.tab==='mat'?EX[m]:EXD;$('exTitle').textContent=e[0];$('exChain').innerHTML=e[1].map(x=>`<li>${x}</li>`).join('');$('exImpact').textContent=st.tab==='mat'?`활용: ${e[2]}`:e[2];}
+  if(st.tab==='mat'){$('stName').textContent=MAT[m].n;$('chip').dataset.s=L>2?'gold':L>-4?'warm':'';
+    $('v1').textContent=m==='cu'?'매우 많은 자유 전자':m==='glass'?'거의 없음':m==='sin'?'자유 전자 (인이 내놓은 전자)':m==='sip'?'양공 (붕소 자리)':'열로 생긴 자유 전자·양공';
+    $('d1').textContent=m==='si'?(st.T>80?'온도가 높아 많이 생김':'상온에서는 아주 적음'):'';
+    $('v2').textContent=L>2?'매우 작음':L>-4?'중간':'매우 큼';$('d2').textContent=`전류 ≈ 10${Lab.sup(Math.round(L))} (상대값)`;
+    $('v3').textContent=EX[m][2];}
+  else{$('stName').textContent='다이오드';$('chip').dataset.s='gold';$('v1').textContent='자유 전자와 양공';$('d1').textContent='접합면에서 만남';$('v2').textContent=st.flip?'역방향: 매우 큼':'순방향: 작음';$('d2').textContent='';$('v3').textContent='충전기(정류), LED 조명, 디스플레이';}
+  $('fsInfo').textContent=st.tab==='mat'?`${MAT[m].n} · ${st.T} ℃ · 전류 10${Lab.sup(Math.round(L))}`:`다이오드 ${st.flip?'역방향':'순방향'} · ${st.ac?'교류':'직류'}`;
+}
+function renderMat(){$('matSeg').innerHTML=Object.entries(MAT).map(([k,v])=>`<button type="button" data-k="${k}" aria-pressed="${st.mat===k}">${v.n.split(' (')[0]}${k==='sin'||k==='sip'?'':''}</button>`).join('');
+  $('matSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{st.mat=b.dataset.k;if((st.mat==='sin'||st.mat==='sip')&&st.dope===0){st.dope=2;$('dope').value=2;}renderMat();update();});}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x===b));if(st.game)endGame();update();});
+$('temp').addEventListener('input',e=>{st.T=+e.target.value;update();});$('dope').addEventListener('input',e=>{st.dope=+e.target.value;update();});
+$('flip').onclick=()=>{st.flip=!st.flip;update();};$('acdc').onclick=()=>{st.ac=!st.ac;$('acdc').setAttribute('aria-pressed',st.ac);$('acdc').textContent=st.ac?'교류 전원':'직류 전원';update();};
+/* 게임 */
+const TARGETS=[{mat:'si',t:-6,hint:'순수한 규소의 온도를 높여 보세요'},{mat:'sin',t:0,hint:'인을 첨가하는 양을 조절하세요'},{mat:'si',t:-9,hint:'이번에는 규소를 차갑게 식혀 보세요'},{mat:'sip',t:-2,hint:'붕소를 넣는 양을 조절하세요'},{mat:'si',t:-4,hint:'꽤 뜨겁게!'}];
+function startGame(){st.tab='mat';document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tab==='mat'));st.game={i:0,score:0,hold:0,left:20,ok:0};$('mission').hidden=false;$('pGame').textContent='↺ 다시 시작';setTarget();}
+function setTarget(){const g=st.game;const T=TARGETS[g.i];g.target=T.t;g.hold=0;g.left=20;st.mat=T.mat;st.T=25;st.dope=T.mat==='si'?0:0.5;$('temp').value=25;$('dope').value=st.dope;renderMat();
+  $('gTag').textContent=`목표 ${g.i+1} / ${TARGETS.length}`;$('gTask').innerHTML=`${MAT[T.mat].n}의 전류를 <b>10${Lab.sup(T.t)}</b> 근처(노란 띠)로 맞추고 1초 동안 유지하세요!<small>${T.hint}</small>`;update();}
+function endGame(){st.game=null;$('mission').hidden=true;$('pGame').textContent='🎯 전류 맞추기';}
+function gameTick(dt){const g=st.game;if(!g||g.target==null)return;g.left-=dt;$('gTime').textContent=Math.max(0,g.left).toFixed(1);
+  if(Math.abs(I()-g.target)<0.5){g.hold+=dt;if(g.hold>=1){const pts=Math.round(50+g.left*5);g.score+=pts;g.ok++;$('gScore').textContent=g.score;burst(840,200,tok.gold,30);toast($('toast'),`성공! +${pts}`,'good');nextT();}}else g.hold=0;
+  if(g.left<=0){toast($('toast'),'시간 초과','bad');nextT();}}
+function nextT(){const g=st.game;g.i++;if(g.i>=TARGETS.length){const b=best('semi',g.score);g.target=null;$('gTag').textContent='결과';$('gTask').innerHTML=`성공 ${g.ok}/${TARGETS.length} · ${g.score}점<small>최고 기록 ${b}점 · 반도체는 온도와 도핑으로 전류를 조절할 수 있어요!</small>`;$('gStars').innerHTML=stars(g.ok>=5?3:g.ok>=4?2:g.ok>=2?1:0);return;}setTarget();}
+$('pGame').onclick=startGame;
+let fr=0;loop(dt=>{st.t++;fr++;st.phase+=0.05*Lab.MOTION;if(st.tab==='mat')step();if(st.game)gameTick(dt);draw();if(fr%8===0&&st.tab==='diode')update();});
+renderMat();update();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

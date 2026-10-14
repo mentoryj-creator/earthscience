@@ -1,0 +1,485 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>빅뱅 타임머신</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅱ. 물질과 규칙성 · 우주 초기 원소의 생성</span></nav>
+  <header>
+    <h1>빅뱅 타임머신</h1>
+    <p>빅뱅 직후 기본 입자에서 양성자와 중성자가 생기고, 약 3분 무렵 헬륨 원자핵이, 약 38만 년 뒤 중성 원자가 만들어집니다. 시간을 앞뒤로 움직이며 우주의 온도와 입자의 변화를 관찰하고, 3분의 기회 안에 헬륨 원자핵을 직접 만들어 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="slider">
+        <div class="slider-top"><label for="time">우주의 나이</label><output id="tOut">–</output></div>
+        <input id="time" type="range" min="0" max="100" step="0.1" value="5">
+        <div class="ticks" id="tTicks" style="position:relative;height:1.2em;display:block"></div>
+      </div>
+      <div class="presets">
+        <button type="button" id="pPlay" aria-pressed="false">▶ 시간 흐르기</button>
+        <button type="button" id="pGame" class="go">🎮 헬륨 원자핵 만들기 도전</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">핵합성 시간</span>
+      <div class="task" id="gTask">–</div>
+      <div class="score"><span><span class="lbl">남은 시간</span><span id="gTime">–</span></span><span class="stars" id="gStars"></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="초기 우주의 입자와 온도 변화"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#e5484d;border-radius:50%"></i>양성자</span>
+      <span class="key"><i style="background:#9aa5b1;border-radius:50%"></i>중성자</span>
+      <span class="key"><i style="background:#3e8ef7;border-radius:50%"></i>전자</span>
+      <span class="key"><i style="background:#f2c12e;border-radius:50%"></i>빛(광자)</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">입자 64개(양성자 56 : 중성자 8)로 단순화했습니다. 바탕 격자 간격이 넓어지는 것은 우주의 팽창을 나타냅니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="epoch">–</span></span>
+        <div class="big"><div class="k">우주의 온도</div><div class="v" id="vT">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">수소 : 헬륨 (질량비)</span><span class="v" id="vR">–</span><span class="d" id="dR"></span></div>
+        <div class="m"><span class="k">헬륨 원자핵 수</span><span class="v" id="vHe">–</span><span class="d">양성자 2 + 중성자 2</span></div>
+        <div class="m"><span class="k">자유롭게 움직이는 전자</span><span class="v" id="vE">–</span><span class="d" id="dE"></span></div>
+        <div class="m"><span class="k">빛의 진행</span><span class="v txt" id="vL">–</span><span class="d" id="dL"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">–</h2>
+      <ol class="chain" id="exChain"></ol>
+      <div class="impact"><b>정리</b><span id="exImpact"></span></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>헬륨 원자핵을 모두 만들었을 때 수소와 헬륨의 질량비는 얼마인가요? 실제 관측값(약 3 : 1)과 비교해 보세요.</li>
+      <li>중성자가 양성자보다 훨씬 적었는데, 헬륨 원자핵을 더 많이 만들 수 없었던 까닭은 무엇일까요?</li>
+      <li>약 3분이 지난 뒤에는 왜 더 무거운 원자핵이 만들어지지 못했을까요? 온도와 관련지어 설명해 보세요.</li>
+      <li>38만 년 무렵 중성 원자가 생기자 빛이 멀리 나아갈 수 있게 된 까닭은? 이때의 빛을 지금 무엇이라고 부를까요?</li>
+    </ol>
+  </section>
+  <p class="foot">온도는 복사가 우세한 시기의 근사식(T ≈ 1.5×10¹⁰ K ÷ √t초)과 이후의 대표값으로 나타냈습니다. 시간 축은 아주 짧은 시간부터 1억 년까지를 한 화면에 담기 위해 구간마다 다른 로그 눈금을 썼습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,rand}=Lab,tok=Lab.tok;
+const W=1000,H=600,BX=20,BY=20,BW=640,BH=500;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const YR=3.156e7;
+const sm=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
+/* 시간 축: 구간별 로그 */
+const SEG=[[0,20,-12,-6],[20,40,-6,0],[40,60,0,Math.log10(1200)],[60,85,Math.log10(1200),Math.log10(3.8e5*YR)],[85,100,Math.log10(3.8e5*YR),Math.log10(1e8*YR)]];
+function age(s){for(const [a,b,l0,l1] of SEG)if(s<=b)return Math.pow(10,lerp(l0,l1,(s-a)/(b-a)));return 1e8*YR;}
+function sOf(sec){const L=Math.log10(sec);for(const [a,b,l0,l1] of SEG)if(L<=l1)return a+(L-l0)/(l1-l0)*(b-a);return 100;}
+const S_HE=sOf(180),S_REC=sOf(3.8e5*YR);
+$('tTicks').innerHTML=[[0,'빅뱅 직후','0%'],[sOf(1),'1초','-50%'],[S_HE,'3분','-50%'],[S_REC,'38만 년','-50%'],[100,'1억 년','-100%']].map(([v,t,tx])=>`<span style="position:absolute;left:${v}%;transform:translateX(${tx});white-space:nowrap">${t}</span>`).join('');
+function fmtAge(t){if(t<1e-3)return `${(t/Math.pow(10,Math.floor(Math.log10(t)))).toFixed(1)}×10${Lab.sup(Math.floor(Math.log10(t)))}초`;if(t<1)return `${(t*1000).toPrecision(2)} ms`;if(t<120)return `${t.toPrecision(2)}초`;if(t<7200)return `${(t/60).toFixed(1)}분`;if(t<86400*2)return `${(t/3600).toFixed(1)}시간`;if(t<YR)return `${Math.round(t/86400)}일`;if(t<1e4*YR)return `${Math.round(t/YR).toLocaleString()}년`;if(t<1e8*YR)return `${(t/YR/1e4).toFixed(t<1e6*YR?1:0)}만 년`;return `${(t/YR/1e8).toFixed(1)}억 년`;}
+function temp(t){if(t<3.8e5*YR*1.05)return 1.5e10/Math.sqrt(t);return 3000*Math.pow(3.8e5*YR/t,2/3);}
+
+/* 입자 */
+const NP=56,NN=8;const nuc=[];
+for(let i=0;i<NP+NN;i++)nuc.push({t:i<NP?'p':'n',x:rand(BX+20,BX+BW-20),y:rand(BY+20,BY+BH-20),vx:rand(-1,1),vy:rand(-1,1),q:[0,1,2].map(()=>({ox:rand(-1,1),oy:rand(-1,1),ph:rand(0,7)})),grp:-1,d:-1,dec:false});
+// 자동 모드용 헬륨 그룹 (중성자 2 + 양성자 2)
+const AUTO=[];for(let g=0;g<4;g++)AUTO.push([NP+g*2,NP+g*2+1,g*2,g*2+1]);
+const ele=[];for(let i=0;i<NP+NN;i++)ele.push({x:rand(BX,BX+BW),y:rand(BY,BY+BH),vx:rand(-2,2),vy:rand(-2,2),ph:rand(0,7)});
+const pho=[];for(let i=0;i<46;i++)pho.push({x:rand(BX,BX+BW),y:rand(BY,BY+BH),a:rand(0,7),k:0});
+const st={s:5,play:false,game:null,t:0};
+/* 게임 상태: 사용자가 만든 결합 */
+function freshGame(){return {left:25,on:true,groups:[],deut:[],done:false,decayed:0};}
+function heGroups(){ // 현재 헬륨 그룹과 형성 진행도
+  if(st.game&&(st.game.on||st.game.done))return st.game.groups.map(g=>({m:g,h:1}));
+  const h=sm(S_HE-3,S_HE+3,st.s);return h>0?AUTO.map(m=>({m,h})):[];}
+function stateNow(){
+  const fq=sm(21,37,st.s),rec=sm(S_REC-2,S_REC+3,st.s);
+  const He=heGroups();const inHe=new Set();He.forEach(g=>{if(g.h>=1)g.m.forEach(i=>inHe.add(i));});
+  const nHe=He.filter(g=>g.h>=1).length;
+  // 중성자 붕괴(게임 후 남은 중성자)
+  let decayed=st.game&&st.game.done?st.game.decayed:0;
+  const nD=st.game&&(st.game.on||st.game.done)?st.game.deut.length:0;
+  const heMass=nHe*4/64;
+  return {fq,rec,He,inHe,nHe,heMass,nD,decayed};
+}
+/* 그리기 */
+function bgColor(T){ // 뜨거울수록 흰색-노랑, 식으면 빨강-어두움
+  const L=Math.log10(T);const k=clamp((L-3.4)/8,0,1);
+  const r=lerp(40,255,clamp(k*1.6,0,1)),g=lerp(12,240,clamp((k-.2)*1.5,0,1)),b=lerp(18,220,clamp((k-.55)*2.2,0,1));
+  return [r|0,g|0,b|0];}
+function ball(x,y,r,c){ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1;ctx.stroke();}
+function draw(){
+  S.begin();const t=age(st.s),T=temp(t),Z=stateNow();
+  ctx.fillStyle=Lab.isDark()?'#0a1118':'#e9eef2';ctx.fillRect(0,0,W,H);
+  // 우주 상자
+  const c=bgColor(T);const after=Z.rec;
+  const g=ctx.createRadialGradient(BX+BW/2,BY+BH/2,50,BX+BW/2,BY+BH/2,BW*.7);
+  g.addColorStop(0,`rgb(${c.map(v=>v*(1-after*.85)|0)})`);g.addColorStop(1,`rgb(${c.map(v=>v*(1-after*.85)*.75|0)})`);
+  ctx.save();rr(ctx,BX,BY,BW,BH,14);ctx.clip();ctx.fillStyle=g;ctx.fillRect(BX,BY,BW,BH);
+  // 팽창 격자
+  const scale=Math.pow(10,(st.s/100)*1.2);const sp=24*scale;ctx.strokeStyle=`rgba(${c[0]>150?'0,0,0':'255,255,255'},.08)`;ctx.lineWidth=1;
+  for(let x=BX+BW/2%sp;x<BX+BW;x+=sp){ctx.beginPath();ctx.moveTo(x,BY);ctx.lineTo(x,BY+BH);ctx.stroke();}for(let y=BY+BH/2%sp;y<BY+BH;y+=sp){ctx.beginPath();ctx.moveTo(BX,y);ctx.lineTo(BX+BW,y);ctx.stroke();}
+  // 광자
+  pho.forEach(p=>{ctx.strokeStyle=`rgba(242,193,46,${.85-after*.5})`;ctx.lineWidth=1.6;ctx.beginPath();for(let k=0;k<10;k++){const xx=p.x-Math.cos(p.a)*k*1.6,yy=p.y-Math.sin(p.a)*k*1.6+Math.sin(k*1.4+st.t*.3)*2;k?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.stroke();});
+  // 핵자 + 쿼크
+  const pos=nuc.map(n=>({x:n.x,y:n.y}));
+  Z.He.forEach(gr=>{const cx=nuc[gr.m[0]].x,cy=nuc[gr.m[0]].y;gr.m.forEach((i,k)=>{const ox=[-4,4,-4,4][k],oy=[-4,-4,4,4][k];pos[i]={x:lerp(nuc[i].x,cx+ox,gr.h),y:lerp(nuc[i].y,cy+oy,gr.h)};});gr.cx=cx;gr.cy=cy;});
+  if(st.game)st.game.deut.forEach(([a,b])=>{const cx=(nuc[a].x+nuc[b].x)/2,cy=(nuc[a].y+nuc[b].y)/2;pos[a]={x:cx-4,y:cy};pos[b]={x:cx+4,y:cy};});
+  const QC=['#e5484d','#46a758','#3e8ef7'];
+  nuc.forEach((n,i)=>{const p=pos[i];if(Z.fq<1){const spread=lerp(26,0,Z.fq);n.q.forEach((q,k)=>{const x=p.x+q.ox*spread+Math.cos(st.t*.07+q.ph)*spread*.3,y=p.y+q.oy*spread+Math.sin(st.t*.07+q.ph)*spread*.3;ctx.globalAlpha=1-Z.fq*.8;ball(x,y,2.6,QC[k]);ctx.globalAlpha=1;});}
+    if(Z.fq>0){ctx.globalAlpha=Z.fq;ball(p.x,p.y,5,n.t==='p'?'#e5484d':'#9aa5b1');ctx.globalAlpha=1;}});
+  // 게임: 클릭 가능한 중성자 강조
+  if(st.game&&st.game.on){nuc.forEach((n,i)=>{if(n.t==='n'&&n.grp<0&&n.d<0){ctx.strokeStyle=tok.gold;ctx.lineWidth=2;ctx.globalAlpha=.6+.4*Math.sin(st.t*.15);ctx.beginPath();ctx.arc(pos[i].x,pos[i].y,10,0,7);ctx.stroke();ctx.globalAlpha=1;}});
+    st.game.deut.forEach(([a,b])=>{const x=(pos[a].x+pos[b].x)/2,y=(pos[a].y+pos[b].y)/2;ctx.strokeStyle='#8e4ec6';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,12,0,7);ctx.stroke();});}
+  // 헬륨 테두리
+  Z.He.forEach(gr=>{if(gr.h>=1){ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(gr.cx,gr.cy,11,0,7);ctx.stroke();}});
+  // 전자
+  const protonsFree=nuc.map((n,i)=>i).filter(i=>(nuc[i].t==='p'||nuc[i].dec)&&!Z.inHe.has(i));
+  const hosts=[];protonsFree.forEach(i=>hosts.push({x:pos[i].x,y:pos[i].y,r:12}));Z.He.forEach(gr=>{if(gr.h>=1){hosts.push({x:gr.cx,y:gr.cy,r:16});hosts.push({x:gr.cx,y:gr.cy,r:16,ph:Math.PI});}});
+  const nE=hosts.length;
+  for(let i=0;i<nE;i++){const e=ele[i],h=hosts[i];const a=st.t*.12+e.ph+(h.ph||0);const bx=h.x+Math.cos(a)*h.r,by=h.y+Math.sin(a)*h.r;
+    const x=lerp(e.x,bx,Z.rec),y=lerp(e.y,by,Z.rec);
+    if(Z.rec>0.5){ctx.strokeStyle='rgba(62,142,247,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,7);ctx.stroke();}
+    ball(x,y,2.6,'#3e8ef7');}
+  ctx.restore();
+  ctx.strokeStyle=tok.line;ctx.lineWidth=2;rr(ctx,BX,BY,BW,BH,14);ctx.stroke();
+  // 게임 남은 시간 막대
+  if(st.game&&st.game.on){const f=st.game.left/25;ctx.fillStyle=Lab.rgba(tok.surface,.85);rr(ctx,BX+16,BY+14,BW-32,14,7);ctx.fill();ctx.fillStyle=f>.3?tok.gold:tok.bad;rr(ctx,BX+16,BY+14,(BW-32)*f,14,7);ctx.fill();
+    label('온도가 떨어지기 전에! 노란 테두리 중성자를 누르면 양성자와 짝(중수소), 보라 테두리 중수소를 누르면 둘이 모여 헬륨',BX+BW/2,BY+44,{size:13});}
+  // 오른쪽: 온도계 + 파이
+  const RX=690;
+  label('우주의 온도',RX+140,40,{size:14});
+  const tx=RX+40,ty0=70,ty1=380;ctx.fillStyle=tok.strip;rr(ctx,tx-9,ty0,18,ty1-ty0,9);ctx.fill();
+  const LT=Math.log10(T),f=clamp((LT-2)/(14-2),0,1);const yv=ty1-(ty1-ty0)*f;
+  const gg=ctx.createLinearGradient(0,ty1,0,ty0);gg.addColorStop(0,'#5b2a86');gg.addColorStop(.4,'#e5484d');gg.addColorStop(.75,'#f2c12e');gg.addColorStop(1,'#ffffff');ctx.fillStyle=gg;rr(ctx,tx-6,yv,12,ty1-yv,6);ctx.fill();
+  ctx.fillStyle='#e5484d';ctx.beginPath();ctx.arc(tx,ty1+12,14,0,7);ctx.fill();
+  [[13,'10¹³ K'],[10,'10¹⁰ K'],[9,'10⁹ K'],[6,'10⁶ K'],[3,'10³ K']].forEach(([l,txt])=>{const y=ty1-(ty1-ty0)*(l-2)/12;ctx.strokeStyle=tok.muted;ctx.beginPath();ctx.moveTo(tx+10,y);ctx.lineTo(tx+16,y);ctx.stroke();label(txt,tx+20,y,{size:11,align:'left',color:tok.muted,hw:0,mono:true,weight:500});});
+  const ev=[[13,'쿼크→양성자·중성자'],[9,'헬륨 원자핵 생성'],[3.5,'중성 원자 생성']];ev.forEach(([l,txt])=>{const y=ty1-(ty1-ty0)*(l-2)/12;label('◀ '+txt,tx+80,y,{size:11,align:'left',color:tok.accent,hw:0});});
+  // 질량비 파이
+  const pcx=RX+150,pcy=490,pr=58;const he=Z.heMass;
+  ctx.fillStyle='#e5484d';ctx.beginPath();ctx.moveTo(pcx,pcy);ctx.arc(pcx,pcy,pr,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-he));ctx.closePath();ctx.fill();
+  if(he>0){ctx.fillStyle='#f2c12e';ctx.beginPath();ctx.moveTo(pcx,pcy);ctx.arc(pcx,pcy,pr,-Math.PI/2+Math.PI*2*(1-he),Math.PI*1.5);ctx.closePath();ctx.fill();}
+  label('질량비',pcx,pcy-pr-14,{size:13});label(`수소 ${Math.round((1-he)*100)}%`,pcx-pr-10,pcy,{size:12,align:'right',color:'#e5484d'});label(`헬륨 ${Math.round(he*100)}%`,pcx+pr+10,pcy,{size:12,align:'left',color:tok.gold});
+  // 시간 표시
+  label(fmtAge(t),BX+BW-16,BY+BH-18,{size:16,align:'right',mono:true,color:'#fff',halo:'rgba(0,0,0,.55)'});
+  drawFx(ctx);
+}
+/* 이동 */
+function move(){
+  const Z=stateNow();const sp=Lab.MOTION*(1.2-Z.rec*0.7);
+  nuc.forEach(n=>{n.x+=n.vx*sp;n.y+=n.vy*sp;if(n.x<BX+10||n.x>BX+BW-10)n.vx*=-1;if(n.y<BY+10||n.y>BY+BH-10)n.vy*=-1;n.x=clamp(n.x,BX+10,BX+BW-10);n.y=clamp(n.y,BY+10,BY+BH-10);});
+  ele.forEach(e=>{e.x+=e.vx*sp*1.4;e.y+=e.vy*sp*1.4;if(e.x<BX||e.x>BX+BW)e.vx*=-1;if(e.y<BY||e.y>BY+BH)e.vy*=-1;});
+  pho.forEach(p=>{p.x+=Math.cos(p.a)*4*Lab.MOTION;p.y+=Math.sin(p.a)*4*Lab.MOTION;
+    if(Z.rec<0.6&&Math.random()<0.06*(1-Z.rec))p.a=rand(0,7); // 전자와 충돌해 산란
+    if(p.x<BX)p.x+=BW;if(p.x>BX+BW)p.x-=BW;if(p.y<BY)p.y+=BH;if(p.y>BY+BH)p.y-=BH;});
+}
+/* 설명 */
+const EP=[
+ [20,'기본 입자의 시대','빅뱅 직후 매우 뜨겁고 밀도가 높은 우주',['우주는 약 138억 년 전 매우 뜨겁고 밀도가 높은 한 점에서 팽창하기 시작했다.','쿼크, 전자 같은 기본 입자가 생겨나고 사라지기를 반복했다.','온도가 너무 높아 입자들이 결합하지 못하고 흩어져 있다.'],'우주의 재료가 되는 가장 작은 입자들이 만들어진 시기'],
+ [38,'양성자와 중성자의 생성','빅뱅 후 1초가 되기 전',['우주가 팽창하며 식자 쿼크 3개씩이 결합해 양성자와 중성자를 만들었다.','양성자 1개는 그 자체로 수소 원자핵이다.','이때 중성자는 양성자보다 훨씬 적게 남았다(약 1 : 7).'],'빅뱅 직후 1초가 되기 전에 수소 원자핵(양성자)이 생겨났다.'],
+ [56,'헬륨 원자핵의 생성','빅뱅 후 약 3분',['양성자 2개와 중성자 2개가 결합해 헬륨 원자핵이 만들어졌다.','중성자가 거의 모두 헬륨 원자핵에 들어가자 수소 : 헬륨의 질량비가 약 3 : 1이 되었다.','우주가 더 식으면서 새로운 원자핵을 만들 수 없게 되었다.'],'우주에 수소와 헬륨이 가장 많은 까닭은 우주 초기에 이 원소들이 만들어진 뒤 온도가 낮아져 핵융합이 멈췄기 때문이다.'],
+ [S_REC-1,'원자핵과 전자가 따로 노는 시기','약 3분 ~ 38만 년',['원자핵과 전자가 따로따로 빠르게 움직인다.','빛은 자유 전자와 계속 부딪혀 똑바로 나아가지 못한다(불투명한 우주).','우주는 팽창하며 계속 식는다.'],'이 시기의 우주는 짙은 안개 속처럼 빛이 멀리 가지 못했다.'],
+ [101,'중성 원자의 생성','빅뱅 후 약 38만 년',['온도가 약 3000 K로 낮아지자 전자가 원자핵에 붙잡혀 중성 원자가 되었다.','수소 원자핵은 전자 1개, 헬륨 원자핵은 전자 2개와 결합했다.','빛이 전자와 부딪히지 않고 멀리 나아갈 수 있게 되었다.'],'이때 퍼져 나간 빛이 지금 관측되는 우주 배경 복사(약 2.7 K)이다.']
+];
+let lastE='';
+function updateText(){
+  const t=age(st.s),T=temp(t),Z=stateNow();
+  $('tOut').textContent=fmtAge(t);
+  const L=Math.log10(T);$('vT').textContent=`${(T/Math.pow(10,Math.floor(L))).toFixed(1)}×10${Lab.sup(Math.floor(L))} K`;
+  const ep=EP.find(e=>st.s<e[0]);
+  if(ep[1]!==lastE){lastE=ep[1];$('epoch').textContent=ep[1];$('exTitle').textContent=`${ep[1]} · ${ep[2]}`;$('exChain').innerHTML=ep[3].map(x=>`<li>${x}</li>`).join('');$('exImpact').textContent=ep[4];}
+  const he=Z.heMass;$('vR').textContent=Z.fq<0.5?'아직 원자핵 없음':`${Math.round((1-he)*100)} : ${Math.round(he*100)}`;$('dR').textContent=he>0?`≈ ${(he>0?((1-he)/he).toFixed(1):'–')} : 1`:'';
+  $('vHe').textContent=`${Z.nHe}개`;
+  const freeE=Math.round(64*(1-Z.rec));$('vE').textContent=Z.rec>=1?'거의 없음':'많음';$('dE').textContent=Z.rec>0.5?'원자핵에 붙잡힘':'원자핵과 따로 움직임';
+  $('vL').textContent=Z.rec>0.6?'똑바로 멀리 나아감':'전자와 부딪혀 산란';$('dL').textContent=Z.rec>0.6?'우주가 투명해짐':'불투명한 우주';
+  $('chip').dataset.s=st.s<S_HE?'warm':st.s<S_REC?'gold':'cool';
+  $('fsInfo').textContent=`${fmtAge(t)} · ${$('vT').textContent} · ${ep[1]} · 수소:헬륨 ${$('vR').textContent}`;
+}
+/* 컨트롤 */
+const sl=$('time');
+sl.addEventListener('input',()=>{setPlay(false);st.s=+sl.value;if(st.game&&!st.game.on&&st.s<S_HE-4)resetGame();});
+function setPlay(on){st.play=on;$('pPlay').setAttribute('aria-pressed',on);$('pPlay').textContent=on?'❚❚ 멈춤':'▶ 시간 흐르기';}
+$('pPlay').onclick=()=>{if(st.game&&st.game.on)return;if(st.s>=99.5)st.s=0;setPlay(!st.play);};
+function resetGame(){nuc.forEach(n=>{n.grp=-1;n.d=-1;n.dec=false;if(n.t0){n.t=n.t0;}});st.game=null;$('mission').hidden=true;}
+$('pGame').onclick=()=>{resetGame();setPlay(false);st.s=S_HE-1.2;sl.value=st.s;st.game=freshGame();$('mission').hidden=false;sl.disabled=true;
+  $('gTag').textContent='핵합성 시간';$('gTask').innerHTML='중성자를 눌러 양성자와 짝을 짓고(중수소), 중수소끼리 모아 <b>헬륨 원자핵</b>을 만드세요!<small>중성자는 8개뿐! 헬륨은 최대 4개까지 만들 수 있어요.</small>';$('gStars').innerHTML='';};
+const cvs=$('sim');
+cvs.addEventListener('pointerdown',e=>{const g=st.game;if(!g||!g.on)return;const p=S.pt(e);
+  // 가장 가까운 대상
+  let best=null,bd=22;
+  nuc.forEach((n,i)=>{if(n.grp>=0)return;const d=Math.hypot(n.x-p.x,n.y-p.y);if(d<bd&&(n.t==='n'||n.d>=0)){bd=d;best=i;}});
+  if(best==null)return;const n=nuc[best];
+  if(n.d<0&&n.t==='n'){ // 가장 가까운 자유 양성자와 짝
+    let q=null,qd=1e9;nuc.forEach((m,i)=>{if(m.t==='p'&&m.grp<0&&m.d<0){const d=Math.hypot(m.x-n.x,m.y-n.y);if(d<qd){qd=d;q=i;}}});if(q==null)return;
+    const id=g.deut.length;g.deut.push([best,q]);n.d=id;nuc[q].d=id;nuc[q].vx=n.vx;nuc[q].vy=n.vy;nuc[q].x=n.x+8;nuc[q].y=n.y;burst(n.x,n.y,'#8e4ec6',10,2);
+  }else{ // 중수소 → 다른 중수소와 합쳐 헬륨
+    const di=g.deut.findIndex(d=>d.includes(best));if(di<0)return;const A=g.deut[di];
+    let oj=-1,od=1e9;g.deut.forEach((d,j)=>{if(j===di)return;const dd=Math.hypot(nuc[d[0]].x-nuc[A[0]].x,nuc[d[0]].y-nuc[A[0]].y);if(dd<od){od=dd;oj=j;}});
+    if(oj<0){toast($('toast'),'중수소가 하나 더 필요해요','gold');return;}
+    const B=g.deut[oj];const m=[A[0],B[0],A[1],B[1]];m.forEach(i=>{nuc[i].grp=g.groups.length;nuc[i].d=-1;nuc[i].vx=nuc[A[0]].vx;nuc[i].vy=nuc[A[0]].vy;nuc[i].x=nuc[A[0]].x+rand(-6,6);nuc[i].y=nuc[A[0]].y+rand(-6,6);});
+    g.groups.push(m);g.deut=g.deut.filter((d,j)=>j!==di&&j!==oj);g.deut.forEach((d,k)=>d.forEach(i=>nuc[i].d=k));
+    burst(nuc[A[0]].x,nuc[A[0]].y,tok.gold,26);toast($('toast'),`헬륨 원자핵 ${g.groups.length}개!`,'good',1000);
+    if(g.groups.length===4)endGame();
+  }
+});
+function endGame(){const g=st.game;g.on=false;g.done=true;sl.disabled=false;
+  // 남은 중성자는 붕괴(양성자+전자), 중수소는 일부 남음
+  nuc.forEach(n=>{if(n.t==='n'&&n.grp<0&&n.d<0){n.t0='n';n.t='p';n.dec=true;g.decayed++;}});
+  const nHe=g.groups.length,he=nHe*4/64,sN=nHe===4?3:nHe===3?2:nHe>=1?1:0;
+  const b=best('bigbang',nHe);
+  $('gTag').textContent='결과';$('gStars').innerHTML=stars(sN);$('gTime').textContent='끝';
+  $('gTask').innerHTML=`헬륨 원자핵 ${nHe}개 → 수소 : 헬륨 질량비 ${Math.round((1-he)*100)} : ${Math.round(he*100)}<small>${nHe===4?'관측값(약 3 : 1)과 같은 우주를 만들었어요!':'관측된 우주(약 3 : 1)보다 헬륨이 적어요. 다시 도전해 보세요.'} ${g.deut.length?`짝만 지은 중수소 ${g.deut.length}개도 남았어요(실제 우주에도 중수소가 아주 조금 있어요).`:''} 최고 기록 헬륨 ${b}개</small>`;
+  if(nHe===4)for(let i=0;i<4;i++)burst(200+i*120,200,i%2?tok.gold:'#e5484d',30);
+  setTimeout(()=>{if(st.game===g){setPlay(true);}},1500);
+}
+let fr=0;
+loop(dt=>{st.t++;fr++;
+  if(st.game&&st.game.on){st.game.left-=dt;$('gTime').textContent=`${Math.max(0,st.game.left).toFixed(1)}초`;if(st.game.left<=0)endGame();}
+  if(st.play){st.s+=dt*(st.s<S_HE+4&&st.s>S_HE-6?1.6:3.2)*Lab.MOTION;if(st.s>=100){st.s=100;setPlay(false);}sl.value=st.s;}
+  move();draw();if(fr%4===0)updateText();});
+updateText();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

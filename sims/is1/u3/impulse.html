@@ -1,0 +1,424 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>달걀 구출 작전</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅲ. 시스템과 상호작용 · 일상생활에서의 충돌과 안전장치</span></nav>
+  <header>
+    <h1>달걀 구출 작전</h1>
+    <p>같은 높이에서 떨어진 달걀은 바닥에서도, 푹신한 매트에서도 같은 충격량을 받습니다. 그런데 왜 매트 위에서는 깨지지 않을까요? 힘–시간 그래프로 확인하고, 최소한의 쿠션으로 달걀을 지켜 보세요. 트럭과 승용차의 충돌도 실험할 수 있습니다.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="실험"><button type="button" data-tab="egg" aria-pressed="true">① 달걀 낙하</button><button type="button" data-tab="car" aria-pressed="false">② 트럭과 승용차 충돌</button></div>
+      <div id="eggCtl" style="display:contents">
+        <div class="slider"><div class="slider-top"><label for="h">떨어뜨리는 높이</label><output id="hOut">1.0 m</output></div><input id="h" type="range" min="0.2" max="5" step="0.1" value="1"></div>
+        <div class="grp"><span class="k">쿠션</span><div class="seg" role="group" aria-label="쿠션" id="cSeg"></div></div>
+        <div class="slider"><div class="slider-top"><label for="th">쿠션 두께</label><output id="thOut">5 cm</output></div><input id="th" type="range" min="0" max="30" step="0.5" value="5"></div>
+        <div class="presets"><button type="button" id="pDrop" class="go">⬇ 떨어뜨리기</button><button type="button" id="pClr">그래프 지우기</button></div>
+      </div>
+      <div id="carCtl" style="display:none">
+        <div class="slider"><div class="slider-top"><label for="m1">트럭 질량</label><output id="m1Out">4000 kg</output></div><input id="m1" type="range" min="500" max="8000" step="100" value="4000"></div>
+        <div class="slider"><div class="slider-top"><label for="v1">트럭 속력</label><output id="v1Out">10 m/s</output></div><input id="v1" type="range" min="1" max="25" step="0.5" value="10"></div>
+        <div class="slider"><div class="slider-top"><label for="m2">승용차 질량 (정지)</label><output id="m2Out">1000 kg</output></div><input id="m2" type="range" min="500" max="8000" step="100" value="1000"></div>
+        <div class="grp"><span class="k">충돌 후</span><div class="seg" role="group" aria-label="충돌 종류"><button type="button" data-col="stick" aria-pressed="true">붙어서 이동</button><button type="button" data-col="bounce" aria-pressed="false">튕겨 나감</button></div></div>
+        <button type="button" id="pCrash" class="go">▶ 충돌!</button>
+      </div>
+      <button type="button" id="pGame" class="warm">🥚 구출 챌린지</button>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">작전 1 / 5</span>
+      <div class="task" id="gTask">–</div>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="560" role="img" aria-label="떨어지는 달걀과 힘-시간 그래프"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note" id="note">달걀 질량 60 g, 달걀이 견디는 평균 힘은 약 25 N으로 가정했습니다. 그래프 아래 넓이가 충격량입니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">준비</span></span>
+        <div class="big"><div class="k" id="bigK">평균 힘</div><div class="v" id="vF">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k" id="k1">닿기 직전 속력</span><span class="v" id="v1x">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k" id="k2">충격량 (운동량의 변화량)</span><span class="v" id="v2x">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k" id="k3">충돌 시간</span><span class="v" id="v3x">–</span><span class="d" id="d3"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>운동량과 충격량</h2>
+      <ol class="chain">
+        <li>운동량 = 질량 × 속도. 질량이 클수록, 속도가 빠를수록 운동량이 크다.</li>
+        <li>충격량 = 힘 × 힘이 작용한 시간 = 운동량의 변화량. 힘–시간 그래프 아래 넓이와 같다.</li>
+        <li>같은 높이에서 떨어진 달걀이 멈출 때 받는 충격량은 같다. 하지만 충돌 시간이 길어지면 평균 힘이 작아진다(평균 힘 = 충격량 ÷ 충돌 시간).</li>
+        <li>두 물체가 충돌하면 서로 같은 크기의 힘을 반대 방향으로 같은 시간 동안 주고받으므로 받은 충격량의 크기가 같다. 질량이 작은 쪽의 속도가 더 크게 변한다.</li>
+      </ol>
+      <div class="impact"><b>안전장치</b>에어백, 범퍼, 안전 매트, 포장재의 공기 주머니, 공을 받을 때 손을 당기는 동작은 모두 충돌 시간을 늘려 몸이 받는 힘을 줄인다. 안전띠는 관성으로 몸이 앞으로 쏠려 부딪히는 것을 막는다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>바닥과 스펀지에 떨어뜨렸을 때 힘–시간 그래프의 넓이와 최댓값을 비교해 보세요.</li>
+      <li>높이를 4배로 하면 닿기 직전 속력과 충격량은 각각 몇 배가 될까요?</li>
+      <li>트럭이 정지한 승용차와 충돌할 때, 두 차가 받는 충격량과 속도 변화를 비교해 보세요.</li>
+      <li>멀리뛰기 선수가 착지할 때 무릎을 굽히는 까닭을 충격량과 충돌 시간으로 설명해 보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">쿠션은 일정한 힘으로 눌리며 달걀을 멈춘다고 가정했습니다(평균 힘 = 운동 에너지 ÷ 눌린 거리). 쿠션이 눌릴 수 있는 정도는 재질마다 다르게 정했으며, 실제 값과는 차이가 있습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,rand}=Lab,tok=Lab.tok;
+const W=1000,H=560;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const M=0.06,G=9.8,FB=25;
+const CU={floor:{n:'콘크리트',c:'#9aa5b1',k:0,base:0.0008},wood:{n:'나무판',c:'#b8875a',k:0.1,base:0.002},towel:{n:'수건',c:'#e8a0b4',k:0.5,base:0.003},sponge:{n:'스펀지',c:'#f2d16b',k:0.8,base:0.003},air:{n:'에어 매트',c:'#7fc4e8',k:0.95,base:0.003}};
+const st={tab:'egg',h:1,cu:'sponge',th:5,drop:null,trials:[],t:0,game:null,car:null,col:'stick'};
+const stopDist=()=>{const c=CU[st.cu];return c.base+(c.k*st.th/100);};
+function physics(h=st.h){const v=Math.sqrt(2*G*h),d=stopDist(),J=M*v,dt=2*d/v,F=J/dt;return {v,d,J,dt,F,broken:F>FB};}
+/* 달걀 그리기 */
+const X0=260,GY=470,TOPY=60;
+function egg(x,y,sq,broken){ctx.save();ctx.translate(x,y);if(broken){ctx.fillStyle='#fff7e6';ctx.beginPath();ctx.ellipse(0,-4,38,8,0,0,7);ctx.fill();ctx.fillStyle='#f2b632';ctx.beginPath();ctx.ellipse(4,-6,12,6,0,0,7);ctx.fill();
+  ctx.fillStyle='#f4eadc';ctx.strokeStyle='#c9b79a';ctx.lineWidth=1.5;[[-26,-10,.6],[20,-12,-.5],[-6,-14,.2]].forEach(([dx,dy,a])=>{ctx.save();ctx.translate(dx,dy);ctx.rotate(a);ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(-3,-8);ctx.lineTo(2,-2);ctx.lineTo(7,-9);ctx.lineTo(9,0);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();});ctx.restore();return;}
+  ctx.scale(1+sq*.25,1-sq*.25);const g=ctx.createRadialGradient(-6,-30,4,0,-22,26);g.addColorStop(0,'#fffdf8');g.addColorStop(1,'#efe1c8');ctx.fillStyle=g;ctx.strokeStyle='#c9b79a';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,-22,17,22,0,0,7);ctx.fill();ctx.stroke();ctx.restore();}
+function drawEgg(){
+  const p=physics();const scY=(GY-TOPY)/5.2;
+  ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);
+  // 눈금
+  for(let m=0;m<=5;m++){const y=GY-m*scY;ctx.strokeStyle=Lab.rgba(tok.fg,.12);ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(460,y);ctx.stroke();label(`${m} m`,52,y,{size:11,align:'right',color:tok.muted,hw:0,mono:true});}
+  ctx.fillStyle='#8a96a3';ctx.fillRect(0,GY,500,H-GY);
+  // 쿠션
+  const thPx=Math.max(4,st.th*2.4*(CU[st.cu].k>0?1:0)+(st.cu==='floor'?0:6));const d=st.drop;
+  let comp=0;if(d&&d.phase==='contact')comp=clamp(d.ct/d.dt,0,1);if(d&&(d.phase==='rest'))comp=d.broken?1:0.4;
+  const cushionTop=GY-thPx*(1-0.7*CU[st.cu].k*Math.sin(Math.PI*clamp(comp,0,1))*(d&&d.phase==='contact'?1:0));
+  if(st.cu!=='floor'){ctx.fillStyle=CU[st.cu].c;rr(ctx,X0-110,cushionTop,220,GY-cushionTop,6);ctx.fill();label(`${CU[st.cu].n} ${st.th} cm`,X0,GY+20,{size:13,color:'#fff',halo:'rgba(0,0,0,.4)'});}
+  else label('콘크리트 바닥',X0,GY+20,{size:13,color:'#fff',halo:'rgba(0,0,0,.4)'});
+  // 높이 표시
+  const hy=GY-st.h*scY;ctx.strokeStyle=tok.accent;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(X0+60,hy);ctx.lineTo(X0+140,hy);ctx.stroke();ctx.setLineDash([]);label(`${st.h.toFixed(1)} m`,X0+150,hy,{size:13,align:'left',color:tok.accent});
+  // 달걀
+  let ey=hy,sq=0,br=false;if(d){if(d.phase==='fall')ey=GY-(d.h-0.5*G*d.t*d.t)*scY-(GY-cushionTop);if(d.phase==='contact'){ey=cushionTop;sq=Math.sin(Math.PI*comp)*.6;}if(d.phase==='rest'){ey=cushionTop;br=d.broken;}}
+  if(!d)ey=hy;egg(X0,Math.min(ey,cushionTop),sq,br);
+  // 그래프
+  const gx=560,gy=50,gw=400,gh=360;ctx.fillStyle=tok.surface;rr(ctx,gx-50,gy-30,gw+70,gh+90,12);ctx.fill();
+  const tMax=Math.max(0.02,...st.trials.map(t=>t.dt*1.3));const fMax=Math.max(40,...st.trials.map(t=>t.F*1.6*1.1));
+  const X=t=>gx+t/tMax*gw,Y=f=>gy+gh-f/fMax*gh;
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;for(let i=0;i<=4;i++){const f=fMax*i/4;ctx.beginPath();ctx.moveTo(gx,Y(f));ctx.lineTo(gx+gw,Y(f));ctx.stroke();label(f.toFixed(0),gx-6,Y(f),{size:10,align:'right',color:tok.muted,hw:0,mono:true});}
+  for(let i=0;i<=4;i++){const t=tMax*i/4;label(`${(t*1000).toFixed(0)}`,X(t),gy+gh+14,{size:10,color:tok.muted,hw:0,mono:true});}
+  label('시간 (ms)',gx+gw/2,gy+gh+32,{size:11,color:tok.muted,hw:0});label('힘 (N)',gx-30,gy-14,{size:11,color:tok.muted,hw:0});
+  ctx.strokeStyle=tok.bad;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(gx,Y(FB));ctx.lineTo(gx+gw,Y(FB));ctx.stroke();ctx.setLineDash([]);label('달걀이 견디는 평균 힘 25 N',gx+gw-4,Y(FB)-10,{size:11,align:'right',color:tok.bad,hw:3});
+  const cols=['#2a64c9','#e5484d','#30a46c','#8e4ec6','#f28c28','#0a6a8a'];
+  st.trials.forEach((t,i)=>{const c=cols[i%cols.length];const pk=t.F*Math.PI/2;ctx.fillStyle=Lab.rgba(c,.16);ctx.strokeStyle=c;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(X(0),Y(0));
+    const frac=st.drop&&st.drop.trial===t&&st.drop.phase==='contact'?clamp(st.drop.ct/t.dt,0,1):1;for(let k=0;k<=60;k++){const tt=t.dt*k/60;if(k/60>frac)break;ctx.lineTo(X(tt),Y(pk*Math.sin(Math.PI*tt/t.dt)));}ctx.lineTo(X(t.dt*frac),Y(0));ctx.closePath();ctx.fill();ctx.stroke();
+    label(`${t.name}: ${t.F.toFixed(1)} N`,gx+8,gy+12+i*16,{size:11,align:'left',color:c,hw:3});});
+  if(!st.trials.length)label('달걀을 떨어뜨리면 힘–시간 그래프가 그려져요',gx+gw/2,gy+gh/2,{size:13,color:tok.muted});
+  label('넓이 = 충격량 (높이가 같으면 같은 넓이)',gx+gw/2,gy+gh+52,{size:12,color:tok.accent,hw:0});
+  drawFx(ctx);
+}
+/* 충돌 */
+function crash(){const m1=+$('m1').value,v1=+$('v1').value,m2=+$('m2').value;let u1,u2;if(st.col==='stick'){u1=u2=m1*v1/(m1+m2);}else{u1=(m1-m2)/(m1+m2)*v1;u2=2*m1/(m1+m2)*v1;}
+  st.car={m1,m2,v1,u1,u2,x1:120,x2:560,t:0,hit:false,T:0};}
+function truck(x,y,w,c,lbl){ctx.fillStyle=c;rr(ctx,x,y-46,w,40,6);ctx.fill();ctx.fillStyle='#cfe3f2';rr(ctx,x+w-40,y-42,30,16,4);ctx.fill();ctx.fillStyle='#1d252c';[x+18,x+w-22].forEach(cx=>{ctx.beginPath();ctx.arc(cx,y-4,10,0,7);ctx.fill();});label(lbl,x+w/2,y-26,{size:12,color:'#fff',hw:0});}
+function drawCar(){ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);ctx.fillStyle='#5f6b75';ctx.fillRect(0,250,W,60);ctx.strokeStyle='#fff';ctx.setLineDash([30,20]);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,280);ctx.lineTo(W,280);ctx.stroke();ctx.setLineDash([]);
+  const c=st.car||{m1:+$('m1').value,m2:+$('m2').value,v1:+$('v1').value,x1:120,x2:560,u1:0,u2:0,hit:false};
+  const w1=60+c.m1/8000*120,w2=60+c.m2/8000*120;truck(c.x1-w1,300,w1,'#c9512a','트럭');truck(c.x2,300,w2,'#2a64c9','승용차');
+  if(c.flash>0){ctx.fillStyle=`rgba(255,220,100,${c.flash})`;ctx.beginPath();ctx.arc(c.x1,270,30*c.flash+10,0,7);ctx.fill();}
+  // 막대 그래프: 운동량
+  const bx=80,by=360;ctx.fillStyle=tok.surface;rr(ctx,40,340,920,200,12);ctx.fill();
+  const p1b=c.m1*c.v1,p1a=c.m1*(c.hit?c.u1:c.v1),p2a=c.m2*(c.hit?c.u2:0),pmax=Math.max(p1b,1)*1.1;const BW=360;
+  const bar=(y,val,col,txt)=>{ctx.fillStyle=col;const w=val/pmax*BW;ctx.fillRect(bx+140,y,w,22);label(txt,bx+130,y+11,{size:12,align:'right',hw:0});label(`${(val/1000).toFixed(1)}×10³ kg·m/s`,bx+146+Math.max(0,w),y+11,{size:12,align:'left',mono:true,hw:0,color:tok.muted});};
+  label(c.hit?'충돌 후 운동량':'충돌 전 운동량',bx,by+4,{size:13,align:'left'});
+  bar(by+20,p1a,'#c9512a','트럭');bar(by+50,p2a,'#2a64c9','승용차');bar(by+80,p1a+p2a,'#5f6b75','합계');
+  if(c.hit){const J=c.m2*c.u2;label(`두 차가 받은 충격량의 크기: ${(J/1000).toFixed(1)}×10³ N·s (같음, 방향 반대)`,bx+460,by+130,{size:13,color:tok.accent});
+    label(`속도 변화 · 트럭 ${(c.u1-c.v1).toFixed(1)} m/s, 승용차 +${c.u2.toFixed(1)} m/s`,bx+460,by+156,{size:13,color:tok.warm});}
+  label(`트럭 ${c.hit?c.u1.toFixed(1):c.v1.toFixed(1)} m/s →`,c.x1-w1/2,220,{size:13,color:'#c9512a'});label(`승용차 ${c.hit?c.u2.toFixed(1):'0.0'} m/s`,c.x2+w2/2,220,{size:13,color:'#2a64c9'});
+  drawFx(ctx);}
+function draw(){S.begin();st.tab==='egg'?drawEgg():drawCar();}
+/* 텍스트 */
+function update(){
+  if(st.tab==='egg'){const p=physics();$('hOut').textContent=`${st.h.toFixed(1)} m`;$('thOut').textContent=`${st.th} cm`;$('th').disabled=st.cu==='floor';
+    $('bigK').textContent='평균 힘 (예상)';$('vF').textContent=`${p.F.toFixed(1)} N`;$('vF').className='v '+(p.broken?'no':'ok');
+    $('stName').textContent=st.drop&&st.drop.phase==='rest'?(st.drop.broken?'깨짐!':'무사함'):p.broken?'깨질 위험':'안전해 보임';$('chip').dataset.s=p.broken?'bad':'';
+    $('k1').textContent='닿기 직전 속력';$('v1x').textContent=`${p.v.toFixed(2)} m/s`;$('d1').textContent='√(2gh)';
+    $('k2').textContent='충격량 (운동량의 변화량)';$('v2x').textContent=`${p.J.toFixed(3)} N·s`;$('d2').textContent='쿠션과 관계없이 같음';
+    $('k3').textContent='충돌 시간';$('v3x').textContent=`${(p.dt*1000).toFixed(1)} ms`;$('d3').textContent=`눌린 거리 ${(p.d*100).toFixed(1)} cm`;
+    $('fsInfo').textContent=`높이 ${st.h} m · ${CU[st.cu].n} ${st.th} cm · 충격량 ${p.J.toFixed(3)} N·s · 평균 힘 ${p.F.toFixed(1)} N`;}
+  else{const m1=+$('m1').value,v1=+$('v1').value,m2=+$('m2').value;$('m1Out').textContent=`${m1} kg`;$('v1Out').textContent=`${v1} m/s`;$('m2Out').textContent=`${m2} kg`;
+    const c=st.car;$('bigK').textContent='전체 운동량';$('vF').textContent=`${(m1*v1/1000).toFixed(1)}×10³`;$('vF').className='v';$('stName').textContent=c&&c.hit?'충돌 후':'충돌 전';$('chip').dataset.s='gold';
+    $('k1').textContent='트럭 운동량 (충돌 전)';$('v1x').textContent=`${(m1*v1).toLocaleString()} kg·m/s`;$('d1').textContent='질량 × 속도';
+    $('k2').textContent='각자 받은 충격량';$('v2x').textContent=c&&c.hit?`${Math.round(m2*c.u2).toLocaleString()} N·s`:'–';$('d2').textContent='크기 같고 방향 반대';
+    $('k3').textContent='속도 변화가 더 큰 차';$('v3x').textContent=m2<m1?'승용차':m2>m1?'트럭':'같음';$('d3').textContent='질량이 작을수록 속도가 크게 변함';
+    $('fsInfo').textContent=`트럭 ${m1} kg ${v1} m/s → 승용차 ${m2} kg`;}
+}
+function renderCu(){$('cSeg').innerHTML=Object.entries(CU).map(([k,v])=>`<button type="button" data-k="${k}" aria-pressed="${st.cu===k}">${v.n}</button>`).join('');$('cSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(st.drop&&st.drop.phase!=='rest')return;if(st.game&&st.game.lockCu&&b.dataset.k!==st.game.lockCu)return;st.cu=b.dataset.k;st.drop=null;renderCu();update();});}
+function drop(){if(st.drop&&st.drop.phase!=='rest')return;if(st.game&&st.game.done)return;const p=physics();const tr={...p,name:`${CU[st.cu].n} ${st.cu==='floor'?'':st.th+'cm '}${st.h}m`};st.trials.push(tr);if(st.trials.length>6)st.trials.shift();
+  st.drop={phase:'fall',t:0,h:st.h,trial:tr,dt:p.dt,ct:0,broken:p.broken};}
+$('pDrop').onclick=drop;$('pClr').onclick=()=>{st.trials=[];};
+$('h').addEventListener('input',e=>{if(st.game)return;st.h=+e.target.value;st.drop=null;update();});$('th').addEventListener('input',e=>{st.th=+e.target.value;st.drop=null;update();});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('eggCtl').style.display=st.tab==='egg'?'contents':'none';$('carCtl').style.display=st.tab==='car'?'contents':'none';$('pGame').hidden=st.tab!=='egg';$('note').textContent=st.tab==='egg'?'달걀 질량 60 g, 달걀이 견디는 평균 힘은 약 25 N으로 가정했습니다. 그래프 아래 넓이가 충격량입니다.':'마찰은 무시합니다. 운동량의 합은 충돌 전후에 같습니다.';update();});
+['m1','v1','m2'].forEach(id=>$(id).addEventListener('input',()=>{st.car=null;update();}));
+document.querySelectorAll('[data-col]').forEach(b=>b.onclick=()=>{st.col=b.dataset.col;document.querySelectorAll('[data-col]').forEach(x=>x.setAttribute('aria-pressed',x===b));st.car=null;});
+$('pCrash').onclick=crash;
+/* 게임 */
+const LV=[{h:0.5,cu:null},{h:1.5,cu:'towel'},{h:2,cu:'sponge'},{h:3.5,cu:'air'},{h:5,cu:null}];
+function startGame(){st.game={i:0,score:0,ok:0};$('mission').hidden=false;$('pGame').textContent='↺ 다시 시작';setLv();}
+function setLv(){const G=st.game,L=LV[G.i];G.lockCu=L.cu;G.done=false;st.h=L.h;$('h').value=L.h;$('h').disabled=true;if(L.cu)st.cu=L.cu;st.drop=null;st.trials=[];renderCu();
+  $('gTag').textContent=`작전 ${G.i+1} / ${LV.length}`;$('gTask').innerHTML=`${L.h} m 높이에서 달걀을 떨어뜨려요. ${L.cu?`<b>${CU[L.cu].n}</b>으로`:'쿠션을 골라'} <b>가장 얇게</b> 깔아 달걀을 지키세요!<small>깨지지 않으면서 얇을수록 점수가 높아요. 한 번만 떨어뜨릴 수 있어요.</small>`;update();}
+function judge(){const G=st.game;if(!G||G.done)return;G.done=true;const p=physics();
+  if(p.broken){toast($('toast'),'달걀이 깨졌어요…','bad');}
+  else{const c=CU[st.cu];const need=c.k>0?Math.max(0,(M*G2(st.h)/FB-c.base)/c.k*100):0;const extra=st.th-need;const pts=Math.max(20,Math.round(100-extra*8));G.score+=pts;G.ok++;$('gScore').textContent=G.score;toast($('toast'),`무사! 최소 두께 약 ${need.toFixed(1)} cm · +${pts}`,'good',2200);burst(X0,GY-60,tok.gold,30);}
+  setTimeout(()=>{G.i++;if(G.i>=LV.length){const b=best('impulse',G.score);$('gTag').textContent='결과';$('gTask').innerHTML=`구출 ${G.ok}/${LV.length} · ${G.score}점<small>최고 기록 ${b}점 · 평균 힘 = (질량 × 속력) ÷ 충돌 시간</small>`;$('gStars').innerHTML=stars(G.ok>=5?3:G.ok>=4?2:G.ok>=2?1:0);$('h').disabled=false;st.game=null;$('pGame').textContent='🥚 구출 챌린지';renderCu();return;}setLv();},2300);}
+const G2=h=>G*h;
+$('pGame').onclick=startGame;
+let fr=0;loop(dt=>{st.t++;fr++;const d=st.drop;
+  if(d){if(d.phase==='fall'){d.t+=dt;if(0.5*G*d.t*d.t>=d.h){d.phase='contact';d.ct=0;}}else if(d.phase==='contact'){d.ct+=dt*0.02;if(d.ct>=d.dt){d.phase='rest';if(d.broken)burst(X0,GY-20,'#f2b632',20,3);update();if(st.game)judge();}}}
+  if(st.car){const c=st.car;c.flash=Math.max(0,(c.flash||0)-0.05);const sp=Lab.MOTION*0.9;if(!c.hit){c.x1+=c.v1*sp;if(c.x1>=c.x2){c.hit=true;c.flash=1;burst(c.x1,270,'#ffcf5a',20,3);update();}}else{c.x1+=c.u1*sp;c.x2+=c.u2*sp;}if(c.x2>W+200)st.car.x2=W+200;}
+  draw();if(fr%10===0)update();});
+renderCu();update();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

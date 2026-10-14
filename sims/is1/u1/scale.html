@@ -1,0 +1,629 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>우주 규모 탐험대</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅰ. 과학의 기초 · 자연을 나타내는 표준, 시간과 공간</span></nav>
+  <header>
+    <h1>우주 규모 탐험대</h1>
+    <p>10배씩 확대하거나 축소하며 원자핵에서 관측 가능한 우주까지, 세슘 원자의 진동에서 우주의 나이까지 자연의 규모를 비교합니다. 규모마다 어떤 도구로 측정하는지도 함께 확인하세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="규모 종류">
+        <button type="button" id="mSpace" aria-pressed="true">공간 규모 (m)</button>
+        <button type="button" id="mTime" aria-pressed="false">시간 규모 (s)</button>
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="zoom">화면 한 칸의 크기</label><output id="zoomOut">10⁰ m</output></div>
+        <input id="zoom" type="range" min="-15" max="27" step="0.01" value="0.6">
+        <div class="ticks"><span id="tL">10⁻¹⁵</span><span>← 축소 · 확대 →</span><span id="tR">10²⁷</span></div>
+      </div>
+      <div class="presets">
+        <button type="button" id="pAuto" aria-pressed="false">▶ 자동 여행</button>
+        <button type="button" id="pGame" class="go">🎯 규모 감각 게임</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">Q 1 / 8</span>
+      <div class="task" id="gTask">문제</div>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span><span class="stars" id="gStars"></span></div>
+      <button type="button" id="gNext" disabled>다음 문제 →</button>
+      <button type="button" id="gQuit">그만하기</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="크기 비교 화면과 10의 거듭제곱 눈금자"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">위 화면의 눈금 막대 길이가 ‘화면 한 칸’입니다. 아래 눈금자는 10의 거듭제곱(로그 눈금)으로, 한 칸 갈 때마다 10배씩 커집니다. 눈금자를 끌어서 이동할 수도 있어요.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="world">인간의 세계</span></span>
+        <div class="big"><div class="k">화면 한 칸</div><div class="v" id="vSpan">1 m</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k" id="k1">사람 키(1.6 m)와 비교</span><span class="v" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k" id="k2">빛이 이 거리를 가는 시간</span><span class="v" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k">이 규모를 재는 도구</span><span class="v txt" id="v3">–</span><span class="d" id="d3"></span></div>
+        <div class="m"><span class="k">화면에 보이는 대상</span><span class="v txt" id="v4">–</span><span class="d" id="d4"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">규모</h2>
+      <ol class="chain" id="exChain"></ol>
+      <div class="impact"><b>생각해 볼 점</b><span id="exImpact"></span></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>수소 원자의 반지름(5.3×10⁻¹¹ m)과 지구의 반지름(6378 km)은 10의 몇 제곱 배 차이가 날까요? 눈금자에서 몇 칸인지 세어 보세요.</li>
+      <li>원자 힘 현미경과 제임스 웹 우주 망원경은 각각 어떤 규모를 측정하는 데 알맞을까요? 도구가 달라지는 까닭은 무엇일까요?</li>
+      <li>‘빛이 도달하는 데 시간이 걸린다’는 생각은 어떤 규모에서 특히 중요해질까요? 화면 한 칸을 10¹⁶ m로 맞추고 빛의 이동 시간을 확인해 보세요.</li>
+      <li>시간 규모에서 사람의 평균 수명(80년)은 우주의 나이(138억 년)와 비교해 몇 자릿수 차이일까요?</li>
+    </ol>
+  </section>
+  <p class="foot">크기 값은 교과서 제시값(수소 원자 반지름 5.3×10⁻¹¹ m, 적혈구 반지름 4×10⁻⁶ m, 에베레스트산 8849 m, 지구 반지름 6378 km, 우리은하 반지름 5만 광년, 관측 가능한 우주 반지름 465억 광년 등)과 널리 쓰이는 대표값을 사용했습니다. 화면에서는 각 대상의 지름(또는 높이, 길이)을 같은 축척으로 비교합니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,sup,sci,toast,stars,burst,drawFx,loop,best,shuffle}=Lab,tok=Lab.tok;
+const W=1000,H=600,BASE=410,RY=505,RX0=40,RX1=960;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const LY=9.4607e15, YR=3.156e7;
+
+/* ---------- 대상 ---------- */
+const SPACE=[
+ {n:'양성자',s:1.7e-15,t:'sphere',c:'#d9534f',k:'원자핵을 이루는 입자'},
+ {n:'탄소 원자핵',s:5.5e-15,t:'nucleus',c:'#c9512a',k:'양성자 6 + 중성자 6'},
+ {n:'수소 원자',s:1.06e-10,t:'atom',c:'#2a64c9',k:'반지름 5.3×10⁻¹¹ m'},
+ {n:'DNA 이중나선 폭',s:2e-9,t:'helix',c:'#3f7f55',k:'지름 약 2 nm'},
+ {n:'바이러스',s:1.0e-7,t:'virus',c:'#8a4fb5',k:'지름 약 100 nm'},
+ {n:'대장균',s:2e-6,t:'bact',c:'#4f9a6b',k:'길이 약 2 μm'},
+ {n:'적혈구',s:8e-6,t:'rbc',c:'#c23b3b',k:'반지름 4×10⁻⁶ m'},
+ {n:'머리카락 굵기',s:8e-5,t:'hair',c:'#6b4b2f',k:'약 0.08 mm'},
+ {n:'개미',s:5e-3,t:'ant',c:'#5a3a22',k:'몸길이 약 5 mm'},
+ {n:'500원 동전',s:2.65e-2,t:'coin',c:'#b9a46a',k:'지름 26.5 mm'},
+ {n:'사람',s:1.6,t:'person',c:'#0a6a8a',k:'키 약 1.6 m'},
+ {n:'대왕고래',s:25,t:'whale',c:'#4a6f8f',k:'몸길이 약 25 m'},
+ {n:'롯데월드타워',s:555,t:'tower',c:'#7f8fa0',k:'높이 555 m'},
+ {n:'에베레스트산',s:8849,t:'mountain',c:'#8a7c58',k:'높이 8849 m'},
+ {n:'지구',s:1.2756e7,t:'earth',c:'#2c7fa8',k:'반지름 6378 km'},
+ {n:'목성',s:1.43e8,t:'jupiter',c:'#c9a27a',k:'지름 약 14만 km'},
+ {n:'태양',s:1.39e9,t:'sun',c:'#f2b632',k:'지름 약 139만 km'},
+ {n:'지구 공전 궤도',s:3.0e11,t:'orbit',c:'#2c7fa8',k:'태양–지구 1.5억 km'},
+ {n:'태양계(해왕성 궤도)',s:9.0e12,t:'orbit',c:'#5b7fbf',k:'지름 약 60 AU'},
+ {n:'가장 가까운 별까지',s:4.0e16,t:'gap',c:'#f2b632',k:'약 4.2광년'},
+ {n:'우리은하',s:9.46e20,t:'galaxy',c:'#b9a0e0',k:'반지름 5만 광년'},
+ {n:'국부 은하군',s:9.5e22,t:'cluster',c:'#9fb4e0',k:'지름 약 1000만 광년'},
+ {n:'관측 가능한 우주',s:8.8e26,t:'universe',c:'#7f6fd0',k:'반지름 465억 광년'}
+];
+const TIME=[
+ {n:'세슘 원자의 빛 1회 진동',s:1.09e-10,c:'#7f6fd0',k:'원자시계의 기준'},
+ {n:'컴퓨터 클록 1회 (3 GHz)',s:3.3e-10,c:'#8a4fb5',k:''},
+ {n:'빛이 1 km를 가는 시간',s:3.3e-6,c:'#c9a20b',k:''},
+ {n:'빛이 300 km를 가는 시간',s:1e-3,c:'#d1a400',k:''},
+ {n:'벌새의 날갯짓 1회',s:1e-2,c:'#3f7f55',k:''},
+ {n:'눈 깜빡임',s:1e-1,c:'#0a6a8a',k:''},
+ {n:'심장 박동 1회',s:0.8,c:'#c23b3b',k:''},
+ {n:'100 m 달리기 세계 기록',s:9.58,c:'#c9512a',k:''},
+ {n:'하루',s:86400,c:'#f2b632',k:'지구 자전 1회'},
+ {n:'꿀벌이 다 자라는 데',s:20*86400,c:'#b9860b',k:'20일'},
+ {n:'지구의 공전 주기',s:YR,c:'#2c7fa8',k:'1년'},
+ {n:'사람의 평균 수명',s:80*YR,c:'#0a6a8a',k:'80년'},
+ {n:'인류 문명의 역사',s:1e4*YR,c:'#8a7c58',k:'약 1만 년'},
+ {n:'공룡이 번성한 기간',s:1.5e8*YR,c:'#4f9a6b',k:'1.5억 년'},
+ {n:'지구의 나이',s:4.6e9*YR,c:'#2c7fa8',k:'46억 년'},
+ {n:'우주의 나이',s:1.38e10*YR,c:'#7f6fd0',k:'138억 년'}
+];
+const RANGE={space:[-16,27.5],time:[-11,18.2]};
+const SL={space:[-15,27],time:[-10,18]};
+
+/* ---------- 단위 표기 ---------- */
+function num(v){if(v>=1e4||v<0.01)return sci(v,1);return (+v.toPrecision(3)).toLocaleString('ko-KR');}
+function fmtLen(m){
+  if(m<1e-12)return num(m/1e-15)+' fm';
+  if(m<1e-9)return num(m/1e-12)+' pm';
+  if(m<1e-6)return num(m/1e-9)+' nm';
+  if(m<1e-3)return num(m/1e-6)+' μm';
+  if(m<1e-2)return num(m/1e-3)+' mm';
+  if(m<1)return num(m/1e-2)+' cm';
+  if(m<1e3)return num(m)+' m';
+  if(m<1e14)return num(m/1e3)+' km';
+  return num(m/LY)+' 광년';
+}
+function fmtTime(s){
+  if(s<1e-6)return num(s/1e-9)+' ns';
+  if(s<1e-3)return num(s/1e-6)+' μs';
+  if(s<1)return num(s/1e-3)+' ms';
+  if(s<120)return num(s)+' 초';
+  if(s<7200)return num(s/60)+' 분';
+  if(s<172800)return num(s/3600)+' 시간';
+  if(s<YR)return num(s/86400)+' 일';
+  if(s<1e4*YR)return num(s/YR)+' 년';
+  if(s<1e8*YR)return num(s/YR/1e4)+' 만 년';
+  return num(s/YR/1e8)+' 억 년';
+}
+const powLbl=(z,u)=>`10${sup(Math.round(z))} ${u}`;
+
+/* ---------- 상태 ---------- */
+const st={mode:'space',z:0.6,tz:0.6,auto:false,dir:1,drag:false,game:null,t:0};
+const list=()=>st.mode==='space'?SPACE:TIME;
+const rx=v=>{const [a,b]=RANGE[st.mode];return RX0+(v-a)/(b-a)*(RX1-RX0);};
+const rv=x=>{const [a,b]=RANGE[st.mode];return a+(x-RX0)/(RX1-RX0)*(b-a);};
+const PXU=300; // 화면 한 칸 = 300 px
+const MAXH=330,MAXW=880;
+
+/* ---------- 도형 ---------- */
+function shade(c,k){const n=parseInt(c.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;r=clamp(Math.round(r*k),0,255);g=clamp(Math.round(g*k),0,255);b=clamp(Math.round(b*k),0,255);return `rgb(${r},${g},${b})`;}
+function ball(x,y,r,c){const g=ctx.createRadialGradient(x-r*.35,y-r*.35,r*.1,x,y,r);g.addColorStop(0,shade(c,1.35));g.addColorStop(1,shade(c,.75));ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,Math.max(r,.8),0,7);ctx.fill();}
+// 각 형태의 (너비, 높이) 비율: 주 치수 px 기준
+const FOOT={sphere:[1,1],nucleus:[1,1],atom:[1,1],helix:[1,2.2],virus:[1,1],bact:[1,.45],rbc:[1,.4],hair:[1,3],ant:[1,.45],coin:[1,1],person:[.38,1],whale:[1,.3],tower:[.16,1],mountain:[2.2,1],earth:[1,1],jupiter:[1,1],sun:[1,1],orbit:[1,1],gap:[1,.12],galaxy:[1,.42],cluster:[1,.7],universe:[1,1]};
+function drawObj(o,x,yb,p,a){ // x: 왼쪽, yb: 바닥선, p: 주 치수 px
+  const f=FOOT[o.t]||[1,1],w=p*f[0],h=p*f[1],cx=x+w/2,cy=yb-h/2,r=Math.min(w,h)/2;
+  ctx.save();ctx.globalAlpha=a;
+  switch(o.t){
+    case 'sphere':ball(cx,cy,r,o.c);break;
+    case 'nucleus':{const k=[[0,0],[.45,.1],[-.4,.2],[.1,-.45],[-.15,.45],[.4,-.35],[-.45,-.25],[.25,.4]];k.forEach(([dx,dy],i)=>ball(cx+dx*r*.75,cy+dy*r*.75,r*.36,i%2?'#d9534f':'#9aa5b1'));break;}
+    case 'atom':{const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,'rgba(80,140,230,.55)');g.addColorStop(1,'rgba(80,140,230,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();
+      ctx.strokeStyle='rgba(42,100,201,.6)';ctx.lineWidth=1;ctx.setLineDash([3,4]);ctx.beginPath();ctx.arc(cx,cy,r*.5,0,7);ctx.stroke();ctx.setLineDash([]);
+      ball(cx+r*.5*Math.cos(st.t*.04),cy+r*.5*Math.sin(st.t*.04),Math.max(1.5,r*.05),'#2a64c9');ball(cx,cy,Math.max(1,r*.03),'#d9534f');break;}
+    case 'helix':{ctx.lineWidth=Math.max(1,w*.12);for(let s=0;s<2;s++){ctx.strokeStyle=s?'#2a64c9':'#3f7f55';ctx.beginPath();for(let i=0;i<=40;i++){const yy=yb-h*i/40,xx=cx+Math.sin(i/40*Math.PI*4+s*Math.PI+st.t*.02)*w*.42;i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.stroke();}break;}
+    case 'virus':{ctx.strokeStyle=o.c;ctx.lineWidth=Math.max(1,r*.08);for(let i=0;i<14;i++){const an=i/14*Math.PI*2;ctx.beginPath();ctx.moveTo(cx+Math.cos(an)*r*.7,cy+Math.sin(an)*r*.7);ctx.lineTo(cx+Math.cos(an)*r,cy+Math.sin(an)*r);ctx.stroke();ball(cx+Math.cos(an)*r*.95,cy+Math.sin(an)*r*.95,r*.09,o.c);}ball(cx,cy,r*.72,o.c);break;}
+    case 'bact':{ctx.fillStyle=o.c;rr(ctx,x,yb-h,w,h,h/2);ctx.fill();ctx.strokeStyle=shade(o.c,.7);ctx.lineWidth=Math.max(1,h*.06);ctx.stroke();break;}
+    case 'rbc':{ctx.fillStyle=o.c;ctx.beginPath();ctx.ellipse(cx,cy,w/2,h/2,0,0,7);ctx.fill();ctx.fillStyle=shade(o.c,1.3);ctx.beginPath();ctx.ellipse(cx,cy,w*.25,h*.18,0,0,7);ctx.fill();break;}
+    case 'hair':{const g=ctx.createLinearGradient(x,0,x+w,0);g.addColorStop(0,shade(o.c,.7));g.addColorStop(.5,shade(o.c,1.3));g.addColorStop(1,shade(o.c,.7));ctx.fillStyle=g;ctx.fillRect(x,yb-h,w,h);break;}
+    case 'ant':{ctx.fillStyle=o.c;[[.15,.32],[.45,.22],[.78,.36]].forEach(([fx,fr])=>{ctx.beginPath();ctx.ellipse(x+w*fx,cy,w*fr*.5,h*.42,0,0,7);ctx.fill();});ctx.strokeStyle=o.c;ctx.lineWidth=Math.max(1,h*.05);for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x+w*(.35+i*.1),cy);ctx.lineTo(x+w*(.25+i*.15),yb);ctx.stroke();}break;}
+    case 'coin':{ball(cx,cy,r,o.c);ctx.strokeStyle=shade(o.c,.7);ctx.lineWidth=Math.max(1,r*.06);ctx.beginPath();ctx.arc(cx,cy,r*.82,0,7);ctx.stroke();break;}
+    case 'person':{ctx.fillStyle=o.c;ctx.strokeStyle=o.c;const hd=h*.12;ctx.beginPath();ctx.arc(cx,yb-h+hd,hd,0,7);ctx.fill();ctx.lineCap='round';ctx.lineWidth=Math.max(1.5,w*.16);ctx.beginPath();ctx.moveTo(cx,yb-h+hd*2);ctx.lineTo(cx,yb-h*.45);ctx.moveTo(cx,yb-h*.45);ctx.lineTo(x+w*.15,yb);ctx.moveTo(cx,yb-h*.45);ctx.lineTo(x+w*.85,yb);ctx.moveTo(x+w*.05,yb-h*.62);ctx.lineTo(x+w*.95,yb-h*.62);ctx.stroke();break;}
+    case 'whale':{ctx.fillStyle=o.c;ctx.beginPath();ctx.ellipse(x+w*.45,cy,w*.45,h*.42,0,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(x+w*.85,cy);ctx.lineTo(x+w,cy-h*.45);ctx.lineTo(x+w*.95,cy);ctx.lineTo(x+w,cy+h*.45);ctx.closePath();ctx.fill();break;}
+    case 'tower':{ctx.fillStyle=o.c;ctx.beginPath();ctx.moveTo(x,yb);ctx.lineTo(x+w*.2,yb-h*.92);ctx.lineTo(cx,yb-h);ctx.lineTo(x+w*.8,yb-h*.92);ctx.lineTo(x+w,yb);ctx.closePath();ctx.fill();break;}
+    case 'mountain':{ctx.fillStyle=o.c;ctx.beginPath();ctx.moveTo(x,yb);ctx.lineTo(x+w*.42,yb-h);ctx.lineTo(x+w*.58,yb-h*.82);ctx.lineTo(x+w*.7,yb-h*.9);ctx.lineTo(x+w,yb);ctx.closePath();ctx.fill();ctx.fillStyle='#f4f7fa';ctx.beginPath();ctx.moveTo(x+w*.32,yb-h*.77);ctx.lineTo(x+w*.42,yb-h);ctx.lineTo(x+w*.52,yb-h*.79);ctx.closePath();ctx.fill();break;}
+    case 'earth':{ball(cx,cy,r,'#2c7fa8');ctx.fillStyle='#4f9a6b';ctx.beginPath();ctx.ellipse(cx-r*.25,cy-r*.15,r*.3,r*.42,.4,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(cx+r*.35,cy+r*.25,r*.22,r*.3,-.3,0,7);ctx.fill();break;}
+    case 'jupiter':{ball(cx,cy,r,o.c);ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.clip();ctx.fillStyle='rgba(140,90,50,.35)';for(let i=-3;i<=3;i++)ctx.fillRect(cx-r,cy+i*r*.28-r*.05,2*r,r*.1);ctx.restore();break;}
+    case 'sun':{const g=ctx.createRadialGradient(cx,cy,r*.6,cx,cy,r*1.3);g.addColorStop(0,'rgba(242,182,50,.5)');g.addColorStop(1,'rgba(242,182,50,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r*1.3,0,7);ctx.fill();ball(cx,cy,r,'#f2b632');break;}
+    case 'orbit':{ctx.strokeStyle=o.c;ctx.lineWidth=1.5;ctx.setLineDash([5,5]);ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke();ctx.setLineDash([]);ball(cx,cy,Math.max(2.5,r*.04),'#f2b632');const an=st.t*.01;ball(cx+Math.cos(an)*r,cy+Math.sin(an)*r,3,o.c);break;}
+    case 'gap':{ball(x+3,cy,3.5,'#f2b632');ball(x+w-3,cy,3.5,'#e86a50');ctx.strokeStyle=tok.muted;ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x+8,cy);ctx.lineTo(x+w-8,cy);ctx.stroke();ctx.setLineDash([]);break;}
+    case 'galaxy':{ctx.translate(cx,cy);ctx.scale(1,f[1]);const g=ctx.createRadialGradient(0,0,0,0,0,w/2);g.addColorStop(0,'rgba(255,240,200,.95)');g.addColorStop(.25,'rgba(185,160,224,.6)');g.addColorStop(1,'rgba(185,160,224,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,w/2,0,7);ctx.fill();
+      ctx.strokeStyle='rgba(220,210,255,.55)';ctx.lineWidth=Math.max(1,w*.02);for(let k=0;k<2;k++){ctx.beginPath();for(let i=0;i<60;i++){const th=i/60*Math.PI*3+k*Math.PI+st.t*.003,rad=w*.48*i/60;i?ctx.lineTo(Math.cos(th)*rad,Math.sin(th)*rad):ctx.moveTo(0,0);}ctx.stroke();}break;}
+    case 'cluster':{for(let i=0;i<28;i++){const a2=i*2.39996,rad=Math.sqrt(i/28)*Math.min(w,h)*.48;ctx.fillStyle='rgba(185,170,240,.8)';ctx.beginPath();ctx.ellipse(cx+Math.cos(a2)*rad*w/Math.min(w,h),cy+Math.sin(a2)*rad,Math.max(1,w*.02),Math.max(.6,w*.008),a2,0,7);ctx.fill();}break;}
+    case 'universe':{const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,'rgba(127,111,208,.35)');g.addColorStop(1,'rgba(127,111,208,.08)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();ctx.strokeStyle='rgba(127,111,208,.7)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<90;i++){const a2=i*2.39996,rad=Math.sqrt(i/90)*r*.95;ctx.fillRect(cx+Math.cos(a2)*rad,cy+Math.sin(a2)*rad,1.4,1.4);}break;}
+  }
+  ctx.restore();
+  return [w,h];
+}
+
+/* ---------- 그리기 ---------- */
+let visible=[];
+function drawSpace(){
+  const z=st.z,objs=SPACE.map(o=>{const p=PXU*Math.pow(10,Math.log10(o.s)-z),f=FOOT[o.t]||[1,1];return {o,p,big:Math.max(p*f[1]/MAXH,p*f[0]/MAXW)};}).filter(q=>q.p>=2.5&&q.big<=1.15);
+  // 오른쪽부터 배치
+  let xr=960;const placed=[];
+  for(let i=objs.length-1;i>=0;i--){const q=objs[i],f=FOOT[q.o.t]||[1,1],w=q.p*f[0];const xl=xr-w;placed.push({...q,x:xl,w});xr=xl-Math.max(18,Math.min(46,w*.15));}
+  visible=placed.map(q=>q.o.n);
+  // 바닥
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(20,BASE+.5);ctx.lineTo(980,BASE+.5);ctx.stroke();
+  for(const q of placed){
+    const a=clamp((q.p-2.5)/6,0,1)*clamp((1.15-q.big)/0.3,0,1);
+    if(st.game&&st.game.hide===q.o.n)continue;
+    const [w,h]=drawObj(q.o,q.x,BASE,q.p,a);
+    if(q.p>=9&&q.x>-40){
+      ctx.globalAlpha=a;
+      const lx=q.x+w/2;
+      label(q.o.n,lx,BASE+16,{size:13});
+      label(fmtLen(q.o.s),lx,BASE+33,{size:11.5,weight:500,color:tok.muted,mono:true});
+      ctx.globalAlpha=1;
+    }
+  }
+  // 축척 막대
+  const sx=60,sy=46;/*scale bar*/
+  ctx.strokeStyle=tok.fg;ctx.fillStyle=tok.fg;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+PXU,sy);ctx.moveTo(sx,sy-7);ctx.lineTo(sx,sy+7);ctx.moveTo(sx+PXU,sy-7);ctx.lineTo(sx+PXU,sy+7);ctx.stroke();
+  ctx.lineWidth=1;ctx.globalAlpha=.5;for(let i=1;i<10;i++){ctx.beginPath();ctx.moveTo(sx+i*PXU/10,sy-3);ctx.lineTo(sx+i*PXU/10,sy+3);ctx.stroke();}ctx.globalAlpha=1;
+  label(`화면 한 칸 = ${fmtLen(Math.pow(10,z))}  (10${sup(z.toFixed(1))} m)`,sx+PXU/2,sy-18,{size:14});
+}
+function drawTime(){
+  const z=st.z,X=60,objs=TIME.map(o=>({o,p:860*Math.pow(10,Math.log10(o.s)-z)})).filter(q=>q.p>=2&&q.p<=9000);
+  const rows=objs.slice(-9);visible=rows.map(q=>q.o.n);
+  const top=88,rh=Math.min(36,(BASE-top)/Math.max(rows.length,1));
+  // 기준선
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(X,top-10);ctx.lineTo(X,BASE);ctx.moveTo(X+860,top-10);ctx.lineTo(X+860,BASE);ctx.stroke();
+  rows.forEach((q,i)=>{
+    if(st.game&&st.game.hide===q.o.n)return;
+    const y=top+i*rh,len=Math.min(q.p,880),a=clamp((q.p-2)/6,0,1);
+    ctx.globalAlpha=a;ctx.fillStyle=q.o.c;rr(ctx,X,y,Math.max(len,2),rh*.5,4);ctx.fill();
+    if(q.p>880){ctx.fillStyle=q.o.c;ctx.beginPath();ctx.moveTo(X+884,y-2);ctx.lineTo(X+898,y+rh*.25);ctx.lineTo(X+884,y+rh*.5+2);ctx.fill();}
+    const tx=len<420?X+len+10:X+10,ty=y+rh*.25,inBar=len>=420;
+    label(`${q.o.n} · ${fmtTime(q.o.s)}`,tx,ty,{size:13,align:'left',color:inBar?'#fff':tok.fg,halo:inBar?'rgba(0,0,0,.35)':undefined,hw:inBar?3:4});
+    ctx.globalAlpha=1;
+  });
+  // 축척
+  const sy=46;ctx.strokeStyle=tok.fg;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X,sy);ctx.lineTo(X+860,sy);ctx.moveTo(X,sy-7);ctx.lineTo(X,sy+7);ctx.moveTo(X+860,sy-7);ctx.lineTo(X+860,sy+7);ctx.stroke();
+  label(`화면 한 칸 = ${fmtTime(Math.pow(10,z))}  (10${sup(z.toFixed(1))} 초)`,X+430,sy-18,{size:14});
+}
+function drawRuler(){
+  const [a,b]=RANGE[st.mode],u=st.mode==='space'?'m':'s';
+  ctx.fillStyle=tok.strip;ctx.fillRect(0,462,W,H-462);
+  ctx.strokeStyle=tok.line;ctx.beginPath();ctx.moveTo(0,462.5);ctx.lineTo(W,462.5);ctx.stroke();
+  // 보이는 범위
+  if(!st.game||st.game.answered){
+    const lo=rx(st.z+Math.log10(2.5/(st.mode==='space'?PXU:860))),hi=rx(st.z+Math.log10(st.mode==='space'?MAXH/PXU:1));
+    ctx.fillStyle=Lab.rgba(tok.accent,.18);ctx.fillRect(lo,RY-16,hi-lo,32);ctx.strokeStyle=tok.accent;ctx.lineWidth=1.5;ctx.strokeRect(lo,RY-16,hi-lo,32);
+  }
+  ctx.strokeStyle=tok.muted;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(RX0,RY);ctx.lineTo(RX1,RY);ctx.stroke();
+  for(let e=Math.ceil(a);e<=b;e++){const x=rx(e),maj=e%3===0;ctx.strokeStyle=tok.muted;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,RY-(maj?9:5));ctx.lineTo(x,RY+(maj?9:5));ctx.stroke();
+    if(maj)label(`10${sup(e)}`,x,RY+24,{size:12,weight:500,color:tok.muted,hw:0,mono:true});}
+  label(u,RX1+20,RY+24,{size:12,color:tok.muted,hw:0});
+  if(!st.game){
+    list().forEach(o=>{const x=rx(Math.log10(o.s));ctx.fillStyle=o.c;ctx.beginPath();ctx.arc(x,RY-22,3.5,0,7);ctx.fill();});
+  }
+  // 현재 위치
+  const cx=rx(st.z);ctx.fillStyle=tok.accent;ctx.beginPath();ctx.moveTo(cx,RY-6);ctx.lineTo(cx-7,RY-18);ctx.lineTo(cx+7,RY-18);ctx.closePath();if(!st.game||st.game.answered)ctx.fill();
+  label(st.game&&!st.game.answered?'눈금자를 눌러 답을 고르세요':'◀ 작은 세계        큰 세계 ▶',W/2,582,{size:12,color:tok.muted,hw:0});
+  // 게임 표시
+  const g=st.game;
+  if(g&&g.answered){
+    const gx=rx(g.guess),tx=rx(Math.log10(g.item.s));
+    ctx.strokeStyle=tok.warm;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(gx,RY-28);ctx.lineTo(gx,RY+8);ctx.stroke();label('내 답',gx,RY-38,{size:12,color:tok.warm});
+    ctx.strokeStyle=tok.good;ctx.beginPath();ctx.moveTo(tx,RY-28);ctx.lineTo(tx,RY+8);ctx.stroke();label('정답',tx,RY+40,{size:12,color:tok.good});
+  }else if(g&&g.hover!=null){const hx=rx(g.hover);ctx.strokeStyle=tok.warm;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(hx,RY-24);ctx.lineTo(hx,RY+8);ctx.stroke();ctx.setLineDash([]);label(`10${sup(g.hover.toFixed(1))}`,hx,RY-34,{size:12,color:tok.warm,mono:true});}
+}
+function drawQuestion(){
+  const g=st.game;ctx.fillStyle=Lab.rgba(tok.surface,.86);ctx.fillRect(0,70,W,392);
+  const o=g.item,u=st.mode==='space'?'m':'초';
+  label('이 대상의 크기는 10의 몇 제곱일까?',W/2,170,{size:20,weight:700});
+  label(o.n,W/2,232,{size:36,weight:700,color:tok.accent});
+  if(st.mode==='space'){ctx.save();drawObj(o,W/2-45*(FOOT[o.t]||[1])[0],372,90,1);ctx.restore();}
+  else label(o.k||'시간 규모',W/2,300,{size:15,color:tok.muted});
+  label(`단위: ${u}  ·  한 칸 = 10배`,W/2,430,{size:13,color:tok.muted});
+}
+function draw(){
+  S.begin();
+  const g=ctx.createLinearGradient(0,0,0,462);
+  if(st.mode==='space'){const k=clamp((st.z-6)/6,0,1);g.addColorStop(0,Lab.isDark()?'#06101a':(k>0.5?'#0d1b2a':tok['sky-top']));g.addColorStop(1,tok['sky-bot']);}
+  else{g.addColorStop(0,tok.surface);g.addColorStop(1,tok['sky-bot']);}
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,462);
+  if(st.mode==='space'&&st.z>7){ctx.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<60;i++){const x=(i*137.5)%W,y=(i*71.3)%380;ctx.fillRect(x,y,1.3,1.3);}}
+  st.mode==='space'?drawSpace():drawTime();
+  if(st.game&&!st.game.answered)drawQuestion();
+  drawRuler();drawFx(ctx);
+}
+
+/* ---------- 텍스트 ---------- */
+const WORLD_S=[
+ [-13,'원자핵의 세계','양성자와 중성자가 강한 힘으로 뭉쳐 있는 규모입니다.','입자 가속기, 산란 실험',['원자 질량의 대부분은 지름이 원자의 약 10만분의 1인 원자핵에 모여 있다.','이 규모에서는 ‘단단한 물체’라는 개념이 의미가 없다.'],'원자를 운동장만 하게 키우면 원자핵은 그 한가운데의 모래알만 하다.'],
+ [-8,'원자와 분자의 세계','원자, 분자, DNA처럼 맨눈으로 볼 수 없는 미시 세계입니다.','원자 힘 현미경(AFM), 전자 현미경',['원자 힘 현미경은 탐침과 원자 사이의 힘을 감지해 10⁻¹⁰ m 수준의 표면을 그린다.','DNA의 폭은 약 2 nm로, 수소 원자 20개 정도를 나란히 놓은 크기다.'],'미시 세계와 거시 세계의 구분은 관점(양자역학 적용 여부, 맨눈 관찰 여부 등)에 따라 달라지는 상대적인 개념이다.'],
+ [-4,'세포의 세계','바이러스, 세균, 적혈구 같은 생명체의 기본 단위가 있는 규모입니다.','광학 현미경, 전자 현미경',['적혈구(지름 약 8 μm)는 광학 현미경으로 볼 수 있다.','바이러스는 광학 현미경으로 보기 어려워 전자 현미경을 쓴다.'],'정밀한 현미경을 개발해 DNA를 관찰하고 질병의 원인을 알아낼 수 있게 되었다.'],
+ [4,'인간의 세계','자와 줄자로 잴 수 있는, 우리가 직접 경험하는 규모입니다.','자, 줄자, 버니어캘리퍼스, 레이저 거리 측정기',['우리 감각은 대략 0.1 mm부터 수 km까지의 규모에 익숙하다.','길이의 기준 1 m는 빛이 진공에서 1/299 792 458초 동안 가는 거리로 정의한다.'],'숫자만 보지 말고 단위를 함께 보아야 규모를 비교할 수 있다. 10 cm보다 1 m가 10배 크다.'],
+ [8,'지구의 세계','산맥, 대륙, 지구 전체처럼 줄자로는 잴 수 없는 규모입니다.','GPS, 인공위성 측량, 삼각 측량',['GPS 수신기는 위성 신호가 도착한 시간 차이로 거리를 구해 위치를 계산한다.','지구 둘레는 약 4만 km로, 처음 1 m를 정할 때 기준이 되었다.'],'정확한 시간 측정 기술이 있어야 정확한 위치(공간)를 측정할 수 있다.'],
+ [13,'태양계의 세계','행성과 태양, 행성의 궤도가 있는 규모입니다.','레이더·레이저 거리 측정, 탐사선',['달에 레이저를 쏘아 되돌아오는 시간을 재어 지구–달 거리를 측정한다.','태양–지구 거리는 약 1.5억 km로, 빛으로 약 8분 20초 걸린다.'],'빛이 도달하는 데 걸리는 시간이 이 규모부터 눈에 띄게 중요해진다.'],
+ [19,'별의 세계','별과 별 사이, 성운이 있는 규모입니다. 거리는 광년으로 나타냅니다.','연주 시차, 우주 망원경',['가장 가까운 별(프록시마 센타우리)까지 빛으로 약 4.2년 걸린다.','지구 공전으로 별의 겉보기 위치가 바뀌는 각(연주 시차)으로 거리를 구한다.'],'지금 보는 별빛은 과거에 출발한 빛이다. 멀리 볼수록 과거를 본다.'],
+ [99,'은하와 우주의 세계','은하, 은하군, 관측 가능한 우주 전체의 규모입니다.','제임스 웹·허블 우주 망원경, 적색 편이',['우리은하의 반지름은 약 5만 광년이다.','관측 가능한 우주의 반지름은 약 465억 광년이다(우주가 팽창했기 때문에 138억 광년보다 크다).'],'우주 망원경의 발달로 천체의 나이와 거리를 더 정확하게 측정할 수 있게 되었다.']
+];
+const WORLD_T=[
+ [-5,'원자의 시간','원자 속 전자의 변화나 빛의 진동처럼 아주 짧은 시간입니다.','원자시계, 펄스 레이저',['1초는 세슘-133 원자가 내는 빛이 9 192 631 770번 진동하는 시간으로 정의한다.','원자시계는 수십억분의 1초까지 잴 수 있다.'],'GPS, 인터넷, 금융 거래 시간 기록은 모두 원자시계의 정확한 시간을 기준으로 한다.'],
+ [-1,'찰나의 시간','벌새의 날갯짓, 눈 깜빡임처럼 사람이 겨우 느끼거나 느끼지 못하는 시간입니다.','전자 타이머, 고속 카메라, 광센서',['100 m 달리기는 0.01초 단위까지 정밀한 전자 시계로 측정한다.','고속 카메라는 1초에 수천 장 이상을 찍어 빠른 운동을 분석한다.'],'측정 도구의 정밀도가 높아질수록 더 짧은 변화를 볼 수 있다.'],
+ [5,'일상의 시간','초, 분, 시간, 하루처럼 생활에서 쓰는 시간입니다.','시계, 스톱워치, 해시계(앙부일구), 물시계(자격루)',['하루는 지구가 한 번 자전하는 시간이다.','조선 시대에도 해시계·물시계로 시각을 측정하고 일식을 예보했다.'],'같은 기준(표준시)을 써야 사람들이 약속하고 함께 일할 수 있다.'],
+ [10,'달력의 시간','1년, 사람의 일생처럼 천체의 운동으로 재는 시간입니다.','달력, 천체 관측, 나이테',['1년은 지구가 태양 주위를 한 바퀴 도는 시간이다.','나무의 나이테는 계절 변화에 따라 1년에 하나씩 생긴다.'],'자연의 주기적 현상은 시간을 재는 자연스러운 기준이 된다.'],
+ [99,'지질과 우주의 시간','인류 역사, 공룡의 시대, 지구와 우주의 나이처럼 매우 긴 시간입니다.','방사성 동위원소 연대 측정, 우주 배경 복사 관측',['화석이나 암석 속 방사성 원소가 일정하게 붕괴하는 성질을 이용해 연대를 측정한다.','우주의 나이 138억 년은 우주 팽창과 우주 배경 복사 관측으로 알아낸다.'],'우주의 나이를 하루로 줄이면 인류 문명의 역사는 마지막 0.06초 정도다.']
+];
+let lastW='';
+function world(){const L=st.mode==='space'?WORLD_S:WORLD_T;for(const w of L)if(st.z<w[0])return w;return L[L.length-1];}
+function updateText(){
+  const z=st.z,v=Math.pow(10,z),sp=st.mode==='space';
+  $('zoomOut').textContent=sp?`${fmtLen(v)} · 10${sup(z.toFixed(1))} m`:`${fmtTime(v)} · 10${sup(z.toFixed(1))} s`;
+  $('vSpan').textContent=sp?fmtLen(v):fmtTime(v);
+  const w=world();
+  if(w[1]!==lastW){lastW=w[1];$('world').textContent=w[1];$('exTitle').textContent=`${w[1]}: ${w[2]}`;$('exChain').innerHTML=w[4].map(x=>`<li>${x}</li>`).join('');$('exImpact').textContent=w[5];}
+  $('v3').textContent=w[3];$('d3').textContent=sp?'측정 대상의 규모에 따라 도구가 달라진다':'짧은 시간일수록 더 빠르게 진동하는 기준이 필요하다';
+  if(sp){
+    $('k1').textContent='사람 키(1.6 m)와 비교';const r=v/1.6;$('v1').textContent=r>=1?`${sci(r,1)}배`:`1/${sci(1/r,1)}`;$('d1').textContent=r>=1?'사람보다 큼':'사람보다 작음';
+    $('k2').textContent='빛이 이 거리를 가는 시간';const t=v/2.998e8;$('v2').textContent=fmtTime(t);$('d2').textContent=t>1?'빛의 이동 시간이 의미 있는 규모':'빛이 사실상 순간에 도달';
+  }else{
+    $('k1').textContent='1초와 비교';$('v1').textContent=v>=1?`${sci(v,1)}배`:`1/${sci(1/v,1)}`;$('d1').textContent=v>=1?'1초보다 긺':'1초보다 짧음';
+    $('k2').textContent='이 시간 동안 빛이 가는 거리';$('v2').textContent=fmtLen(v*2.998e8);$('d2').textContent='빛의 속력 약 30만 km/s';
+  }
+  $('v4').textContent=visible.length?visible.slice(-2).reverse().join(', '):'없음';$('d4').textContent=`모두 ${visible.length}개`;
+  $('fsInfo').textContent=`${w[1]} · 한 칸 ${sp?fmtLen(v):fmtTime(v)} · ${w[3]}`;
+}
+
+/* ---------- 컨트롤 ---------- */
+const zoom=$('zoom');
+function setMode(m){if(st.game)endGame();st.mode=m;$('mSpace').setAttribute('aria-pressed',m==='space');$('mTime').setAttribute('aria-pressed',m==='time');
+  zoom.min=SL[m][0];zoom.max=SL[m][1];$('tL').textContent='10'+sup(SL[m][0]);$('tR').textContent='10'+sup(SL[m][1]);
+  st.tz=st.z=m==='space'?0.6:0.5;zoom.value=st.z;lastW='';}
+$('mSpace').onclick=()=>setMode('space');$('mTime').onclick=()=>setMode('time');
+zoom.addEventListener('input',()=>{setAuto(false);st.tz=+zoom.value;});
+const autoBtn=$('pAuto');
+function setAuto(on){st.auto=on;autoBtn.setAttribute('aria-pressed',on);autoBtn.textContent=on?'❚❚ 멈춤':'▶ 자동 여행';}
+autoBtn.onclick=()=>{if(st.game&&!st.game.done)return;setAuto(!st.auto);};
+// 눈금자 드래그
+const cvs=$('sim');
+function onRuler(p){return p.y>470;}
+cvs.addEventListener('pointerdown',e=>{const p=S.pt(e);if(!onRuler(p))return;
+  if(st.game&&!st.game.answered){answer(clamp(rv(p.x),...RANGE[st.mode]));return;}
+  st.drag=true;setAuto(false);setZ(rv(p.x));cvs.setPointerCapture(e.pointerId);});
+cvs.addEventListener('pointermove',e=>{const p=S.pt(e);if(st.game&&!st.game.answered){st.game.hover=onRuler(p)?clamp(rv(p.x),...RANGE[st.mode]):null;return;}if(st.drag)setZ(rv(p.x));});
+cvs.addEventListener('pointerup',()=>st.drag=false);
+cvs.addEventListener('wheel',e=>{if(st.game&&!st.game.answered)return;e.preventDefault();setAuto(false);setZ(st.tz+(e.deltaY>0?0.25:-0.25));},{passive:false});
+function setZ(z){st.tz=clamp(z,+zoom.min,+zoom.max);zoom.value=st.tz;}
+
+/* ---------- 게임 ---------- */
+const ROUNDS=8;
+function startGame(){
+  setAuto(false);const pool=shuffle(list()).slice(0,ROUNDS);
+  st.game={pool,i:0,score:0,item:null,answered:false,guess:0,hover:null,hide:null,starsTot:0};
+  $('mission').hidden=false;$('pGame').textContent='↺ 다시 시작';nextQ();
+}
+function nextQ(){const g=st.game;if(g.i>=ROUNDS)return finish();g.item=g.pool[g.i];g.answered=false;g.hide=g.item.n;g.hover=null;
+  $('gTag').textContent=`Q ${g.i+1} / ${ROUNDS}`;$('gTask').innerHTML=`<b>${g.item.n}</b>의 ${st.mode==='space'?'크기':'시간'}는 10의 몇 제곱 ${st.mode==='space'?'m':'초'}일까?<small>아래 눈금자에서 위치를 눌러 답하세요. 한 칸 차이마다 점수가 깎여요.</small>`;
+  $('gNext').disabled=true;zoom.disabled=true;}
+function answer(gv){const g=st.game;g.answered=true;g.guess=gv;const tr=Math.log10(g.item.s),err=Math.abs(gv-tr);
+  const pts=Math.max(0,Math.round(100-45*err));g.score+=pts;const sN=err<0.5?3:err<1.2?2:err<2.2?1:0;g.starsTot+=sN;
+  $('gScore').textContent=g.score;$('gStars').innerHTML=stars(sN);
+  const msg=sN===3?'정확해요!':sN===2?'아주 가까워요':sN===1?'자릿수가 조금 달라요':'규모 차이가 커요';
+  Lab.toast($('toast'),`${msg} +${pts}점 · 정답 ${st.mode==='space'?fmtLen(g.item.s):fmtTime(g.item.s)}`,sN>=2?'good':sN===1?'gold':'bad',2600);
+  if(sN===3)burst(rx(tr),RY-10,tok.gold,30);
+  $('gTask').innerHTML=`<b>${g.item.n}</b>: ${st.mode==='space'?fmtLen(g.item.s):fmtTime(g.item.s)} = 10<sup>${tr.toFixed(1)}</sup> ${st.mode==='space'?'m':'s'} <small>${g.item.k||''} · 오차 ${err.toFixed(1)}칸</small>`;
+  g.hide=null;st.tz=tr+0.35;zoom.value=st.tz;g.i++;$('gNext').disabled=false;$('gNext').textContent=g.i>=ROUNDS?'결과 보기 →':'다음 문제 →';$('gNext').focus();}
+function finish(){const g=st.game,b=best('scale-'+st.mode,g.score);
+  $('gTag').textContent='결과';$('gTask').innerHTML=`${ROUNDS}문제 중 ${g.score}점 (★ ${g.starsTot}/${ROUNDS*3}) <small>최고 기록 ${b}점 · ${g.score>=650?'규모 감각 마스터!':g.score>=450?'좋은 규모 감각이에요.':'눈금자를 보며 한 번 더 도전해 보세요.'}</small>`;
+  $('gNext').disabled=true;zoom.disabled=false;if(g.score>=650)for(let i=0;i<4;i++)burst(200+i*200,200,i%2?tok.gold:tok.accent,30);
+  g.done=true;}
+function endGame(){st.game=null;$('mission').hidden=true;$('pGame').textContent='🎯 규모 감각 게임';zoom.disabled=false;}
+$('pGame').onclick=startGame;$('gNext').onclick=()=>nextQ();$('gQuit').onclick=endGame;
+
+/* ---------- 루프 ---------- */
+let fr=0;
+loop(dt=>{
+  st.t+=1;fr++;
+  if(st.auto){st.tz+=st.dir*dt*0.9*Lab.MOTION;const [a,b]=SL[st.mode];if(st.tz>b){st.tz=b;st.dir=-1;}if(st.tz<a){st.tz=a;st.dir=1;}zoom.value=st.tz;}
+  st.z+=(st.tz-st.z)*Math.min(1,dt*7);
+  draw();if(fr%4===0)updateText();
+});
+updateText();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

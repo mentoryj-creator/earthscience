@@ -1,0 +1,391 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>DNA 지퍼 게임</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.pad{display:flex;flex-wrap:wrap;gap:10px}
+.pad button{font-family:var(--f-mono);font-size:1.15rem;font-weight:700;min-width:3.4em;padding:10px 16px;border-width:2px}
+.pad button[data-b=A]{border-color:#e5484d;color:#e5484d}.pad button[data-b=T]{border-color:#d19a00;color:#b88400}
+.pad button[data-b=G]{border-color:#30a46c;color:#2b8a5c}.pad button[data-b=C]{border-color:#3e8ef7;color:#2f6fd0}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅱ. 물질과 규칙성 · 생명체의 주요 물질을 이루는 결합</span></nav>
+  <header>
+    <h1>DNA 지퍼 게임</h1>
+    <p>DNA는 뉴클레오타이드(인산·당·염기)가 길게 연결된 두 가닥이 염기끼리 짝을 지어 꼬인 이중나선 구조입니다. A는 T와, G는 C와만 결합합니다. 주어진 가닥에 맞는 짝 염기를 빠르게 붙여 DNA를 완성해 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="mission">
+      <span class="tag" id="gTag">준비</span>
+      <div class="task" id="gTask">‘게임 시작’을 누르고, 아래 가닥의 빈칸에 들어갈 짝 염기를 누르세요. 키보드 A·T·G·C로도 할 수 있어요.<small>30초 동안 최대한 많이! 연속으로 맞히면 콤보 보너스.</small></div>
+      <div class="score"><span><span class="lbl">남은 시간</span><span id="gTime">30.0</span></span><span><span class="lbl">점수</span><span id="gScore">0</span></span><span><span class="lbl">콤보</span><span id="gCombo">0</span></span></div>
+      <button type="button" id="gStart" class="go">▶ 게임 시작</button>
+    </div>
+    <div class="controls">
+      <div class="pad" role="group" aria-label="염기 고르기">
+        <button type="button" data-b="A">A</button><button type="button" data-b="T">T</button><button type="button" data-b="G">G</button><button type="button" data-b="C">C</button>
+      </div>
+      <div class="slider" style="flex-basis:200px"><div class="slider-top"><label for="spin">나선 회전 속도</label><output id="spinOut">보통</output></div><input id="spin" type="range" min="0" max="2" step="0.05" value="1"></div>
+      <div class="toggles"><label><input type="checkbox" id="tH" checked>수소 결합 보기</label></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="540" role="img" aria-label="DNA 이중나선과 염기쌍 맞추기"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#e5484d"></i>A 아데닌</span><span class="key"><i style="background:#e0b400"></i>T 타이민</span>
+      <span class="key"><i style="background:#30a46c"></i>G 구아닌</span><span class="key"><i style="background:#3e8ef7"></i>C 사이토신</span>
+      <span class="key"><i style="background:#8a96a3"></i>당–인산 골격</span>
+      <div class="fsinfo" id="fsInfo"></div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">이중나선</span></span>
+        <div class="big"><div class="k">완성한 염기쌍</div><div class="v" id="vPairs">0</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">A · T · G · C 개수</span><span class="v" id="v1">–</span><span class="d">A = T, G = C 가 항상 성립</span></div>
+        <div class="m"><span class="k">수소 결합 수</span><span class="v" id="v2">–</span><span class="d">A–T 2개, G–C 3개</span></div>
+        <div class="m"><span class="k">이 길이로 가능한 염기 서열</span><span class="v" id="v3">–</span><span class="d" id="d3">4가지 염기의 조합</span></div>
+        <div class="m"><span class="k">아미노산 10개로 만들 수 있는 단백질</span><span class="v">20¹⁰ ≈ 1.0×10¹³</span><span class="d">20여 가지 아미노산의 순서 조합</span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>핵산의 구성 원리</h2>
+      <ol class="chain">
+        <li>핵산의 단위체는 인산, 당, 염기가 1 : 1 : 1로 결합한 뉴클레오타이드이다.</li>
+        <li>한 뉴클레오타이드의 당에 다른 뉴클레오타이드의 인산이 결합하는 것이 반복되어 긴 폴리뉴클레오타이드가 된다.</li>
+        <li>DNA는 두 가닥의 폴리뉴클레오타이드가 안쪽에서 염기끼리 수소 결합(A–T, G–C)으로 짝을 짓고 꼬인 이중나선 구조이다.</li>
+        <li>RNA는 당의 종류가 다르고(라이보스), T 대신 U를 가지며, 한 가닥으로 되어 있다.</li>
+      </ol>
+      <div class="impact"><b>규칙성과 다양성</b>염기는 4종류뿐이지만 결합 순서가 달라 생물마다 고유한 유전정보를 가진다. 단백질도 20여 가지 아미노산이 결합하는 순서에 따라 수많은 종류가 만들어진다(한글 자음과 모음으로 다양한 글자를 만드는 것과 비슷).</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>한 가닥의 염기 서열이 ATGCCA라면 다른 가닥의 서열은 무엇일까요?</li>
+      <li>어떤 DNA에 A가 30%라면 T, G, C는 각각 몇 %일까요?</li>
+      <li>염기가 10개 이어진 가닥으로 만들 수 있는 서로 다른 서열은 몇 가지일까요? 이것이 생물의 다양성과 어떤 관계가 있을까요?</li>
+      <li>규산염 광물과 DNA는 모두 단위체가 결합해 만들어집니다. 두 물질의 공통점과 차이점을 말해 보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">이중나선은 평면에 투영한 모식도이며 실제 DNA는 약 10개의 염기쌍마다 한 바퀴 꼬입니다. 단백질 조합 수는 아미노산 20종을 기준으로 계산했습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,pick}=Lab,tok=Lab.tok;
+const W=1000,H=540;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const COL={A:'#e5484d',T:'#e0b400',G:'#30a46c',C:'#3e8ef7'};const PAIR={A:'T',T:'A',G:'C',C:'G'};const HB={A:2,T:2,G:3,C:3};
+const N=12;
+const st={ph:0,spin:1,helix:'ATGCGTACCGTA'.split(''),tmpl:[],fill:[],cur:0,game:null,shake:0,t:0,total:0,twist:0};
+function newStrand(){st.tmpl=Array.from({length:N},()=>pick(['A','T','G','C']));st.fill=Array(N).fill(null);st.cur=0;}
+newStrand();
+/* 나선 */
+function drawHelix(seq,cx,cy,w,amp,ph){
+  const n=seq.length,dx=w/(n-1),x0=cx-w/2;const items=[];
+  for(let i=0;i<n;i++){const a=ph+i*0.62;const y1=cy+Math.sin(a)*amp,y2=cy+Math.sin(a+Math.PI)*amp,z1=Math.cos(a),z2=Math.cos(a+Math.PI);items.push({i,x:x0+i*dx,y1,y2,z1,z2});}
+  // 뒤쪽 골격
+  const back=(z)=>z<0;
+  for(const s of [0,1]){ctx.lineWidth=7;ctx.lineCap='round';for(let i=0;i<n-1;i++){const p=items[i],q=items[i+1];const z=s?p.z2:p.z1;if(!back(z))continue;ctx.strokeStyle='rgba(138,150,163,.45)';ctx.beginPath();ctx.moveTo(p.x,s?p.y2:p.y1);ctx.lineTo(q.x,s?q.y2:q.y1);ctx.stroke();}}
+  // 염기쌍
+  items.forEach(p=>{const b=seq[p.i],c=PAIR[b];const ym=(p.y1+p.y2)/2;const alpha=.55+.45*Math.abs(p.z1);ctx.globalAlpha=alpha;ctx.lineWidth=8;ctx.lineCap='butt';
+    ctx.strokeStyle=COL[b];ctx.beginPath();ctx.moveTo(p.x,p.y1);ctx.lineTo(p.x,ym-2);ctx.stroke();ctx.strokeStyle=COL[c];ctx.beginPath();ctx.moveTo(p.x,ym+2);ctx.lineTo(p.x,p.y2);ctx.stroke();ctx.globalAlpha=1;
+    if(Math.abs(p.y1-p.y2)>40){label(b,p.x+12,(p.y1+ym)/2,{size:11,color:COL[b],weight:700});label(c,p.x+12,(p.y2+ym)/2,{size:11,color:COL[c],weight:700});}});
+  // 앞쪽 골격
+  for(const s of [0,1]){ctx.lineWidth=8;ctx.lineCap='round';for(let i=0;i<n-1;i++){const p=items[i],q=items[i+1];const z=s?p.z2:p.z1;if(back(z))continue;ctx.strokeStyle='#8a96a3';ctx.beginPath();ctx.moveTo(p.x,s?p.y2:p.y1);ctx.lineTo(q.x,s?q.y2:q.y1);ctx.stroke();}
+    items.forEach(p=>{const z=s?p.z2:p.z1;if(back(z))return;ctx.fillStyle='#e3b341';ctx.beginPath();ctx.arc(p.x,s?p.y2:p.y1,4,0,7);ctx.fill();});}
+}
+/* 사다리(게임) */
+function nucleo(x,y,b,up,ghost){ // 인산(원)–당(오각형)–염기(막대)
+  const dir=up?1:-1;ctx.globalAlpha=ghost?.35:1;
+  ctx.fillStyle='#e3b341';ctx.beginPath();ctx.arc(x-20,y,7,0,7);ctx.fill();
+  ctx.fillStyle='#8a96a3';ctx.beginPath();for(let k=0;k<5;k++){const a=-Math.PI/2+k*2*Math.PI/5;ctx.lineTo(x+Math.cos(a)*11,y+Math.sin(a)*11);}ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#8a96a3';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-13,y);ctx.lineTo(x-9,y);ctx.stroke();
+  if(b){ctx.fillStyle=COL[b];rr(ctx,x-9,up?y+10:y-58,18,48,4);ctx.fill();label(b,x,up?y+34:y-34,{size:15,color:'#fff',hw:0,weight:700});}
+  ctx.globalAlpha=1;}
+function drawLadder(){
+  const y0=330,y1=490,x0=96,dx=74;
+  ctx.fillStyle=Lab.isDark()?'#0f1820':'#f6f9fb';rr(ctx,20,280,960,250,14);ctx.fill();
+  label('주어진 가닥 (아래) 에 짝 염기를 붙이세요 →',40,300,{size:13,align:'left',color:tok.muted});
+  // 골격 선
+  ctx.strokeStyle='#8a96a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x0-30,y1);ctx.lineTo(x0+dx*(N-1)+20,y1);ctx.stroke();
+  for(let i=0;i<N;i++){const x=x0+i*dx+(i===st.cur&&st.shake>0?Math.sin(st.t*1.6)*6*st.shake:0);
+    nucleo(x,y1,st.tmpl[i],false,false);
+    if(st.fill[i]){nucleo(x,y0,st.fill[i],true,false);
+      if($('tH').checked){ctx.strokeStyle=tok.muted;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);for(let h=0;h<HB[st.fill[i]];h++){const xx=x-5+h*5*(HB[st.fill[i]]===2?2:1);ctx.beginPath();ctx.moveTo(xx,y0+58);ctx.lineTo(xx,y1-58);ctx.stroke();}ctx.setLineDash([]);}}
+    else if(i===st.cur){ctx.strokeStyle=tok.gold;ctx.lineWidth=3;ctx.setLineDash([6,4]);rr(ctx,x-16,y0-14,32,82,6);ctx.stroke();ctx.setLineDash([]);label('?',x,y0+34,{size:22,color:tok.gold,weight:700});}
+    else nucleo(x,y0,null,true,true);}
+  if(st.fill.every(Boolean)){ctx.strokeStyle='#8a96a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x0-30,y0);ctx.lineTo(x0+dx*(N-1)+20,y0);ctx.stroke();}
+}
+function draw(){S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);
+  label('완성된 DNA 이중나선',500,24,{size:14,color:tok.muted});
+  drawHelix(st.helix,500,140,860,88,st.ph);
+  drawLadder();drawFx(ctx);}
+/* 입력 */
+function press(b){const g=st.game;if(!g||!g.on){toast($('toast'),'‘게임 시작’을 눌러 주세요','gold',1000);return;}
+  const need=PAIR[st.tmpl[st.cur]];
+  if(b===need){st.fill[st.cur]=b;g.combo++;g.score+=10+Math.min(g.combo,10)*2;g.pairs++;st.total++;burst(96+st.cur*74,360,COL[b],10,2.5);
+    st.cur++;if(st.cur>=N){g.score+=50;toast($('toast'),'한 가닥 완성! +50','good',900);st.helix=st.helix.concat(st.tmpl).slice(-24);setTimeout(newStrand,250);}}
+  else{g.combo=0;st.shake=1;g.miss++;toast($('toast'),`${st.tmpl[st.cur]}의 짝은 ${need}!`,'bad',900);}
+  $('gScore').textContent=g.score;$('gCombo').textContent=g.combo;update();}
+document.querySelectorAll('.pad button').forEach(b=>b.onclick=()=>press(b.dataset.b));
+document.addEventListener('keydown',e=>{const k=e.key.toUpperCase();if(['A','T','G','C'].includes(k)&&!e.metaKey&&!e.ctrlKey){if(document.activeElement&&document.activeElement.tagName==='INPUT')return;press(k);}});
+$('gStart').onclick=()=>{st.game={on:true,left:30,score:0,combo:0,pairs:0,miss:0};newStrand();$('gStart').disabled=true;$('gTag').textContent='진행 중';$('gScore').textContent=0;$('gCombo').textContent=0;
+  $('gTask').innerHTML='빈칸(?)에 들어갈 짝 염기를 누르세요! <small>A–T, G–C</small>';};
+function endGame(){const g=st.game;g.on=false;const b=best('dna',g.score);const acc=g.pairs/Math.max(1,g.pairs+g.miss)*100;
+  $('gTag').textContent='끝';$('gTask').innerHTML=`염기쌍 ${g.pairs}개 · 정확도 ${acc.toFixed(0)}% · ${g.score}점 <span class="stars">${stars(g.pairs>=40?3:g.pairs>=25?2:g.pairs>=12?1:0)}</span><small>최고 기록 ${b}점</small>`;
+  $('gStart').disabled=false;$('gStart').textContent='↺ 다시 하기';if(g.pairs>=25)for(let i=0;i<4;i++)burst(200+i*200,140,i%2?tok.gold:tok.accent,30);}
+$('spin').addEventListener('input',e=>{st.spin=+e.target.value;$('spinOut').textContent=st.spin<.3?'느림':st.spin<1.3?'보통':'빠름';});
+function update(){const seq=st.helix,c={A:0,T:0,G:0,C:0};seq.forEach(b=>{c[b]++;c[PAIR[b]]++;});
+  $('v1').textContent=`${c.A} · ${c.T} · ${c.G} · ${c.C}`;const hb=seq.reduce((s,b)=>s+HB[b],0);$('v2').textContent=`${hb}개`;
+  $('v3').textContent=`4${Lab.sup(seq.length)} ≈ ${Lab.sci(Math.pow(4,seq.length),1)}`;$('d3').textContent=`염기쌍 ${seq.length}개 길이`;
+  $('vPairs').textContent=st.total;$('stName').textContent=st.game&&st.game.on?'복제 중':'이중나선';$('chip').dataset.s=st.game&&st.game.on?'gold':'';
+  $('fsInfo').textContent=`A ${c.A} T ${c.T} G ${c.G} C ${c.C} · 수소 결합 ${hb}개 · 점수 ${st.game?st.game.score:0}`;}
+let fr=0;loop(dt=>{st.t++;fr++;st.ph+=0.012*st.spin*Lab.MOTION;if(st.shake>0)st.shake=Math.max(0,st.shake-0.05);
+  if(st.game&&st.game.on){st.game.left-=dt;$('gTime').textContent=Math.max(0,st.game.left).toFixed(1);if(st.game.left<=0)endGame();}
+  draw();if(fr%10===0)update();});
+update();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

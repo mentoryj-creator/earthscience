@@ -1,0 +1,459 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>화성 궤도선 단위 미션</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.opts button.right{background:var(--good);border-color:var(--good);color:#fff}
+.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+.log{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.log li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:3px 0}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅰ. 과학의 기초 · 기본량과 측정 표준</span></nav>
+  <header>
+    <h1>화성 궤도선 단위 미션</h1>
+    <p>1998년 발사된 화성 기후 궤도선(MCO)은 두 기관이 서로 다른 단위를 써서 화성 대기에 너무 깊이 들어가 부서졌습니다. 여러분이 항법 담당자가 되어 추진기 기록을 국제단위계(SI)로 바꿔 입력하고, 궤도선을 안전하게 화성 궤도에 올려 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="mission" id="mission">
+      <span class="tag" id="gTag">기록 1 / 6</span>
+      <div class="task" id="gTask">–</div>
+      <div class="opts" id="opts" role="group" aria-label="입력할 값"></div>
+    </div>
+    <div class="controls">
+      <div class="slider">
+        <div class="slider-top"><label for="factor">항법 프로그램이 쓴 환산 계수 (자유 탐구)</label><output id="fOut">× 4.45</output></div>
+        <input id="factor" type="range" min="0.2" max="6" step="0.01" value="4.45" disabled>
+        <div class="ticks"><span>×0.2</span><span>×1 (단위 무시)</span><span>×4.45 (올바름)</span><span>×6</span></div>
+      </div>
+      <div class="presets">
+        <button type="button" id="pFire" class="go" disabled>🔥 궤도 진입 점화</button>
+        <button type="button" id="pFree" aria-pressed="false">자유 탐구</button>
+        <button type="button" id="pRestart">↺ 새 미션</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap" style="background:#060b14"><canvas id="sim" width="1000" height="600" role="img" aria-label="화성에 접근하는 궤도선의 경로"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#5cc27f"></i>계획 경로 (고도 226 km)</span>
+      <span class="key"><i style="background:#6fd0ea"></i>항법 프로그램이 예측한 경로</span>
+      <span class="key"><i style="background:#ef6b6b"></i>실제 경로</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">화성 대기의 두께와 고도 차이는 눈에 보이도록 크게 과장했습니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stateName">항법 데이터 입력 중</span></span>
+        <div class="big"><div class="k">실제 최저 고도 (근화점)</div><div class="v" id="vAlt">226 km</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">계획한 최저 고도</span><span class="v">226 km</span><span class="d">안전 한계 약 80 km</span></div>
+        <div class="m"><span class="k">항법 프로그램 예측 고도</span><span class="v" id="vPred">226 km</span><span class="d" id="dPred">입력된 값으로 계산</span></div>
+        <div class="m"><span class="k">입력 누락된 충격량 합</span><span class="v" id="vErr">0 N·s</span><span class="d">실제 − 입력값</span></div>
+        <div class="m"><span class="k">단위 환산</span><span class="v">1 lbf = 4.45 N</span><span class="d">파운드힘 → 뉴턴</span></div>
+      </div>
+      <h2 style="margin-top:16px">입력 기록</h2>
+      <ul class="log" id="log"><li><span>아직 기록 없음</span></li></ul>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>측정 표준이 필요한 까닭</h2>
+      <ol class="chain">
+        <li>추진기 제작 기관은 자세 제어 추진기가 낸 충격량을 야드파운드법 단위(lbf·s)로 보고했다.</li>
+        <li>항법 기관의 프로그램은 그 숫자를 국제단위계 단위(N·s)로 여기고 그대로 계산했다.</li>
+        <li>실제 힘이 예측보다 약 4.45배 컸던 셈이어서, 작은 오차가 10개월 동안 쌓여 궤도가 화성 쪽으로 틀어졌다.</li>
+        <li>궤도선은 계획(약 226 km)보다 훨씬 낮은 약 57 km 고도로 들어가 대기와의 마찰을 견디지 못했다.</li>
+      </ol>
+      <div class="impact"><b>정리</b>변하지 않는 하나의 기준으로 측정하고, 정해진 단위를 일관되게 쓰는 것을 측정 표준이라고 한다. 국제단위계(SI)를 함께 썼다면 막을 수 있었던 사고였다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>자유 탐구에서 환산 계수를 ×1로 두면 실제 최저 고도는 얼마가 되나요? 실제 MCO 사고와 비교해 보세요.</li>
+      <li>숫자만 같고 단위가 다르면 왜 큰 문제가 생길까요? ‘토끼가 5의 속력으로 뛴다’는 표현과 연결해 설명해 보세요.</li>
+      <li>일상생활(요리, 의료, 스포츠 기록)에서 단위를 잘못 쓰면 생길 수 있는 사고를 하나 찾아 이야기해 보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">고도 변화는 입력되지 않은 충격량의 합에 비례한다고 가정한 교육용 단순 모델입니다. 계획 고도 226 km와 실제 고도 약 57 km는 교과서 자료를 따랐으며, 1 lbf(파운드힘) = 4.448 N입니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,rr,toast,stars,burst,drawFx,loop,best,rand,shuffle}=Lab,tok=Lab.tok;
+const W=1000,H=600,MX=660,MY=300,MR=120,LBF=4.448,PLAN=226,REAL=57,SAFE=80;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,Object.assign({halo:'rgba(6,11,20,.8)',color:'#dbe8f0'},o));
+const N=6;
+let G;
+function newMission(){
+  const X=Array.from({length:N},()=>+rand(1.2,3.6).toFixed(2));
+  const sum=X.reduce((a,b)=>a+b,0);
+  G={X,used:Array(N).fill(null),i:0,K:(PLAN-REAL)/(sum*(LBF-1)),phase:'input',free:false,factor:LBF,anim:-1,result:null,score:0,correct:0};
+  $('pFire').disabled=true;$('factor').disabled=true;$('pFree').setAttribute('aria-pressed',false);
+  askCard();renderLog();update();
+}
+const fmt=v=>v.toFixed(2);
+function askCard(){
+  const x=G.X[G.i];
+  $('gTag').textContent=`기록 ${G.i+1} / ${N}`;
+  $('gTask').innerHTML=`추진기 기록: 자세 제어 분사 충격량 <b>${fmt(x)} lbf·s</b><small>항법 프로그램에는 N·s로 입력해야 합니다. 어떤 값을 입력할까요?</small>`;
+  const opts=shuffle([{v:x*LBF,ok:true},{v:x,ok:false},{v:x/LBF,ok:false},{v:x*0.4536,ok:false}]);
+  $('opts').innerHTML='';
+  opts.forEach(o=>{const b=document.createElement('button');b.type='button';b.textContent=`${fmt(o.v)} N·s`;b.onclick=()=>choose(o,b);$('opts').appendChild(b);});
+}
+function choose(o,b){
+  if(G.phase!=='input')return;
+  G.used[G.i]=o.v;[...$('opts').children].forEach(x=>x.disabled=true);b.classList.add(o.ok?'right':'wrong');
+  if(o.ok){G.correct++;toast($('toast'),'정확한 환산! 1 lbf = 4.45 N','good');}
+  else toast($('toast'),`앗! 실제 충격량은 ${fmt(G.X[G.i]*LBF)} N·s 였어요`,'bad',2200);
+  G.i++;renderLog();update();
+  setTimeout(()=>{if(G.i<N)askCard();else{G.phase='ready';$('gTag').textContent='준비 완료';$('gTask').innerHTML=`데이터 입력 끝! 정답 ${G.correct}/${N}개<small>‘궤도 진입 점화’를 눌러 결과를 확인하세요.</small>`;$('opts').innerHTML='';$('pFire').disabled=false;}},700);
+}
+function renderLog(){
+  const L=[];for(let k=0;k<G.i;k++){const t=G.X[k]*LBF,u=G.used[k];L.push(`<li><span>#${k+1} ${fmt(G.X[k])} lbf·s</span><span class="${Math.abs(t-u)<1e-6?'ok':'no'}">입력 ${fmt(u)} N·s ${Math.abs(t-u)<1e-6?'✓':'✗'}</span></li>`);}
+  $('log').innerHTML=L.join('')||'<li><span>아직 기록 없음</span></li>';
+}
+/* 고도 계산 */
+function altitudes(){
+  let miss=0;
+  if(G.free){const sum=G.X.reduce((a,b)=>a+b,0);miss=sum*LBF-sum*G.factor;}
+  else for(let k=0;k<N;k++){const u=G.used[k];if(u!=null)miss+=G.X[k]*LBF-u;}
+  return {actual:PLAN-G.K*miss,pred:PLAN,miss};
+}
+/* 경로 */
+const rAlt=h=>MR+Math.max(h,-150)*0.45;
+function path(h){const rp=rAlt(h),e=1.7,p=rp*(1+e),th0=Math.PI;const pts=[];
+  for(let th=th0-2.15;th<=th0+2.15;th+=0.01){const r=p/(1+e*Math.cos(th-th0));if(r>640)continue;pts.push({x:MX+r*Math.cos(th),y:MY-r*Math.sin(th)});}return pts;}
+function strokePts(pts,col,dash,w=2){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));ctx.stroke();ctx.setLineDash([]);}
+const stars0=Array.from({length:140},(_,i)=>({x:(i*733.7)%W,y:(i*311.9)%H,r:(i%5)/4+.4}));
+function drawMars(){
+  ctx.fillStyle='#ffffff';stars0.forEach(s=>{ctx.globalAlpha=.25+s.r*.3;ctx.fillRect(s.x,s.y,s.r,s.r);});ctx.globalAlpha=1;
+  // 대기 (위험 고도)
+  const ga=ctx.createRadialGradient(MX,MY,MR,MX,MY,rAlt(150));ga.addColorStop(0,'rgba(239,124,80,.55)');ga.addColorStop(.53,'rgba(239,124,80,.18)');ga.addColorStop(1,'rgba(239,124,80,0)');
+  ctx.fillStyle=ga;ctx.beginPath();ctx.arc(MX,MY,rAlt(150),0,7);ctx.fill();
+  ctx.strokeStyle='rgba(239,107,107,.8)';ctx.setLineDash([4,5]);ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(MX,MY,rAlt(SAFE),0,7);ctx.stroke();ctx.setLineDash([]);
+  const g=ctx.createRadialGradient(MX-50,MY-50,20,MX,MY,MR);g.addColorStop(0,'#e0875a');g.addColorStop(1,'#8a3a1e');ctx.fillStyle=g;ctx.beginPath();ctx.arc(MX,MY,MR,0,7);ctx.fill();
+  ctx.fillStyle='rgba(90,30,15,.35)';[[-40,-30,40,18],[30,40,55,20],[50,-60,30,14],[-70,60,35,12]].forEach(([dx,dy,a,b])=>{ctx.beginPath();ctx.ellipse(MX+dx,MY+dy,a,b,.3,0,7);ctx.fill();});
+  ctx.fillStyle='rgba(255,255,255,.75)';ctx.beginPath();ctx.ellipse(MX,MY-MR+10,40,10,0,0,7);ctx.fill();
+  label('화성',MX+30,MY+20,{size:22,weight:700});
+  label('대기 위험 고도 80 km',MX,MY+rAlt(SAFE)+14,{size:12,color:'#ef9a8a'});
+}
+function craft(x,y,ang,fire){
+  ctx.save();ctx.translate(x,y);ctx.rotate(ang);
+  if(fire){for(let i=0;i<6;i++){ctx.fillStyle=`rgba(255,${120+i*20},40,${.5-i*.07})`;ctx.beginPath();ctx.arc(-10-i*5,(Math.random()-.5)*6,7-i,0,7);ctx.fill();}}
+  ctx.fillStyle='#cfd8e0';ctx.fillRect(-8,-6,16,12);ctx.fillStyle='#d9a400';ctx.fillRect(-3,-18,6,12);ctx.fillRect(-3,6,6,12);ctx.fillStyle='#2a64c9';ctx.fillRect(-4,-32,8,14);ctx.fillRect(-4,18,8,14);
+  ctx.restore();
+}
+let t=0;
+function draw(){
+  S.begin();ctx.fillStyle='#060b14';ctx.fillRect(0,0,W,H);drawMars();
+  const A=altitudes();
+  const plan=path(PLAN),act=path(A.actual);
+  strokePts(plan,'#5cc27f',[8,6],2);
+  label('계획: 226 km',plan[Math.floor(plan.length*0.5)].x-70,plan[Math.floor(plan.length*0.5)].y,{size:13,color:'#5cc27f'});
+  if(G.phase!=='input'||G.free){strokePts(path(A.pred),'#6fd0ea',[2,5],2);}
+  if(G.anim>=0){
+    const k=Math.min(G.anim,act.length-1);strokePts(act.slice(0,k+1),'#ef6b6b',[],2.5);
+    const q=act[k],q2=act[Math.min(k+1,act.length-1)],ang=Math.atan2(q2.y-q.y,q2.x-q.x);
+    const alt=(Math.hypot(q.x-MX,q.y-MY)-MR)/0.45;
+    const burning=alt<SAFE+20&&A.actual<SAFE;
+    if(burning){for(let i=0;i<3;i++)burst(q.x,q.y,i%2?'#ffb347':'#ff6a3d',2,1.5);}
+    if(G.orbit){const a=(rAlt(A.actual)+MR+260)/2,c=a-rAlt(A.actual),b=Math.sqrt(a*a-c*c),cx=MX+c;
+      ctx.strokeStyle='rgba(92,194,127,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(cx,MY,a,b,0,0,7);ctx.stroke();
+      const th=Math.PI+G.ot;craft(cx+a*Math.cos(th),MY-b*Math.sin(th),-th+Math.PI/2+Math.PI,false);label('화성 궤도 진입!',cx,MY-b-16,{size:15,color:'#9fe0b4'});}
+    else if(!(G.result==='fail'&&G.anim>=G.failAt))craft(q.x,q.y,ang,burning);
+  }else{
+    const q=plan[8];craft(q.x,q.y,0.6,false);
+  }
+  // 근화점 표시
+  const rp=rAlt(A.actual);
+  if(G.anim>=0||G.free){ctx.fillStyle=A.actual<SAFE?'#ef6b6b':'#5cc27f';ctx.beginPath();ctx.arc(MX-rp,MY,5,0,7);ctx.fill();label(`실제 최저 고도 ${Math.round(A.actual)} km`,MX-rp-12,MY+(A.actual<PLAN-30?28:-22),{size:14,align:'right',color:A.actual<SAFE?'#ef9a8a':'#9fe0b4'});}
+  label('지구에서 10개월 비행 →',110,70,{size:13,color:'#93a6b4'});
+  drawFx(ctx);
+}
+function update(){
+  const A=altitudes();
+  const show=G.anim>=0||G.free;
+  $('vAlt').textContent=show?`${Math.round(A.actual)} km`:'점화 후 공개';$('vAlt').className='v '+(show?(A.actual<SAFE?'no':'ok'):'');
+  $('vPred').textContent=`${PLAN} km`;$('dPred').textContent='입력된 값만 믿고 계산한 결과';
+  $('vErr').textContent=`${A.miss.toFixed(1)} N·s`;
+  $('fOut').textContent=`× ${G.factor.toFixed(2)}`;
+  const st=G.result==='ok'?'궤도 진입 성공':G.result==='fail'?'궤도선 손실':G.free?'자유 탐구':G.phase==='ready'?'점화 준비 완료':'항법 데이터 입력 중';
+  $('stateName').textContent=st;$('chip').dataset.s=G.result==='ok'?'':G.result==='fail'?'bad':'gold';
+  $('fsInfo').textContent=`${st} · 실제 최저 고도 ${show?Math.round(A.actual)+' km':'?'} · 누락 충격량 ${A.miss.toFixed(1)} N·s`;
+}
+$('pFire').onclick=()=>{G.orbit=false;
+  const A=altitudes();G.phase='fly';G.anim=0;$('pFire').disabled=true;
+  const act=path(A.actual);G.result=A.actual<SAFE?'fail':'ok';
+  // 실패 지점: 위험 고도 안으로 들어간 뒤 조금 지나서
+  G.failAt=act.findIndex(q=>Math.hypot(q.x-MX,q.y-MY)<rAlt(SAFE)+4);if(G.failAt<0)G.failAt=act.length;G.failAt+=25;
+  let mi=0;act.forEach((q,i)=>{if(q.x<act[mi].x)mi=i;});G.periIdx=mi;G.orbit=false;
+};
+function finishFlight(){
+  const A=altitudes();G.phase='done';
+  if(G.free){update();return;}
+  const sN=G.result==='ok'?(G.correct===N?3:2):(G.correct>=N-2?1:0),pts=G.correct*15+(G.result==='ok'?10:0);
+  const b=best('mco',pts);
+  $('gTag').textContent=G.result==='ok'?'성공':'실패';
+  $('gTask').innerHTML=G.result==='ok'?`궤도 진입 성공! 최저 고도 ${Math.round(A.actual)} km · ${pts}점 <span class="stars">${stars(sN)}</span><small>모든 기록을 국제단위계로 맞춰 입력했어요. 최고 기록 ${b}점</small>`
+    :`궤도선이 대기와의 마찰로 부서졌어요. 최저 고도 ${Math.round(A.actual)} km · ${pts}점 <span class="stars">${stars(sN)}</span><small>잘못 환산한 값이 쌓여 궤도가 화성 쪽으로 틀어졌어요. ‘새 미션’으로 다시 도전!</small>`;
+  toast($('toast'),G.result==='ok'?'궤도 진입 성공!':'통신 두절… 궤도선 손실',G.result==='ok'?'good':'bad',2600);
+  if(G.result==='ok')for(let i=0;i<4;i++)burst(300+i*120,160,i%2?'#e3b341':'#5cc27f',30);
+  update();
+}
+$('pFree').onclick=()=>{G.orbit=false;G.free=!G.free;$('pFree').setAttribute('aria-pressed',G.free);$('factor').disabled=!G.free;G.anim=-1;G.result=null;
+  if(G.free){G.phase='free';$('gTag').textContent='자유 탐구';$('gTask').innerHTML='항법 프로그램이 lbf·s 숫자에 곱한 환산 계수를 바꿔 보세요.<small>×1은 실제 MCO처럼 단위를 무시한 경우, ×4.45가 올바른 환산입니다. 점화 버튼으로 비행을 볼 수 있어요.</small>';$('opts').innerHTML='';$('pFire').disabled=false;}
+  else newMission();update();};
+$('factor').addEventListener('input',e=>{G.factor=+e.target.value;G.anim=-1;G.orbit=false;G.result=null;$('pFire').disabled=false;update();});
+$('pRestart').onclick=newMission;
+newMission();
+loop(()=>{t++;if(G.anim>=0&&G.phase==='fly'){G.anim+=Lab.reduce?6:2;const A=altitudes(),L=path(A.actual).length;
+  if(G.result==='fail'&&G.anim>=G.failAt){G.anim=G.failAt;finishFlight();}
+  else if(G.result==='ok'&&G.anim>=G.periIdx){G.anim=G.periIdx;G.orbit=true;G.ot=0;finishFlight();}
+  else if(G.anim>=L-1){G.anim=L-1;finishFlight();}}
+  if(G.orbit)G.ot+=0.012*Lab.MOTION;
+  draw();if(t%6===0)update();});
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

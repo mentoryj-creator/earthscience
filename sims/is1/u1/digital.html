@@ -1,0 +1,454 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>디지털 변환 실험실</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.mlist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mlist li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;background:var(--strip)}
+.mlist li b{font-family:var(--f-mono);min-width:1.4em}
+.mlist li.done{background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.mlist li.cur{outline:2px solid var(--gold)}
+.mlist li span{flex:1;min-width:0}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅰ. 과학의 기초 · 정보의 디지털 변환과 현대 문명</span></nav>
+  <header>
+    <h1>디지털 변환 실험실</h1>
+    <p>센서가 연속적인 아날로그 신호를 일정한 간격으로 측정(표본화)하고 정해진 단계의 값으로 나타내면(양자화) 디지털 신호가 됩니다. 측정 간격과 비트 수를 바꾸며 정보가 얼마나 보존되는지, 잡음 속에서 아날로그와 디지털 전송이 어떻게 다른지 비교해 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="mission" id="mission">
+      <span class="tag" id="gTag">미션 1 / 4</span>
+      <div class="task" id="gTask">–</div>
+      <div class="score"><span class="stars" id="gStars"></span></div>
+      <button type="button" id="gSkip">다음 미션 →</button>
+    </div>
+    <div class="controls">
+      <div class="grp"><span class="k">신호</span>
+        <div class="seg" role="group" aria-label="신호 종류">
+          <button type="button" data-sig="voice" aria-pressed="true">소리</button>
+          <button type="button" data-sig="temp" aria-pressed="false">온도</button>
+          <button type="button" data-sig="quake" aria-pressed="false">지진파</button>
+        </div>
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="ns">측정 횟수 (표본화)</label><output id="nsOut">16회</output></div>
+        <input id="ns" type="range" min="4" max="80" step="1" value="16">
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="bits">비트 수 (양자화 단계)</label><output id="bitsOut">3비트 · 8단계</output></div>
+        <input id="bits" type="range" min="1" max="8" step="1" value="3">
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="noise">전송 잡음</label><output id="noiseOut">보통</output></div>
+        <input id="noise" type="range" min="0" max="0.6" step="0.01" value="0.18">
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="relay">중계소 수</label><output id="relayOut">3곳</output></div>
+        <input id="relay" type="range" min="1" max="10" step="1" value="3">
+      </div>
+      <button type="button" id="pResend">↻ 다시 전송</button>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="620" role="img" aria-label="아날로그 신호, 표본화와 양자화, 전송 결과 그래프"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:var(--muted)"></i>아날로그 신호(원래 값)</span>
+      <span class="key"><i style="background:var(--accent)"></i>디지털 값(점)과 점을 이어 복원한 신호</span>
+      <span class="key"><i style="background:var(--warm)"></i>아날로그로 전송 후</span>
+      <div class="fsinfo" id="fsInfo"></div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="qName">변환 품질</span></span>
+        <div class="big"><div class="k">원래 신호와의 일치도</div><div class="v" id="vQ">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">데이터 양</span><span class="v" id="vBits">–</span><span class="d" id="dBits"></span></div>
+        <div class="m"><span class="k">양자화 단계 간격</span><span class="v" id="vStep">–</span><span class="d">작을수록 세밀하게 표현</span></div>
+        <div class="m"><span class="k">아날로그 전송 후 일치도</span><span class="v" id="vA">–</span><span class="d" id="dA">잡음이 중계소마다 쌓임</span></div>
+        <div class="m"><span class="k">디지털 전송 후 일치도</span><span class="v" id="vD">–</span><span class="d" id="dD"></span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="미션">
+      <h2>미션 목록</h2>
+      <ul class="mlist" id="mlist"></ul>
+      <div class="impact" style="margin-top:12px"><b>디지털 신호의 장점</b>0과 1처럼 두 상태만 구별하면 되므로, 잡음이 조금 섞여도 중계소에서 깨끗한 신호로 다시 만들 수 있다. 그래서 저장·재생·전송이 편리하고 멀리까지 보낼 수 있다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>측정 횟수를 4회로 줄이면 소리 신호의 모양은 어떻게 되나요? 정보가 일부 사라지는 까닭을 설명해 보세요.</li>
+      <li>비트 수를 1씩 늘리면 양자화 단계 수와 데이터 양은 각각 어떻게 변하나요?</li>
+      <li>중계소를 10곳으로 늘렸을 때 아날로그 전송과 디지털 전송의 결과를 비교하고, 그 차이를 설명해 보세요.</li>
+      <li>스마트폰이 음성을 디지털로 바꿔 전송하는 장점과, 변환 과정에서 생길 수 있는 단점을 한 가지씩 말해 보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">일치도는 원래 신호의 변화 중 복원한 신호가 재현한 비율(1 − 오차 제곱합 / 신호 제곱합)입니다. 복원은 디지털 값(점)을 직선으로 이어 만들었습니다. 디지털 전송은 각 비트를 ±1 전압 펄스로 보내고, 중계소마다 0과 1을 다시 판정해 깨끗한 신호로 복원한다고 가정했습니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,rr,toast,stars,burst,drawFx,loop,best}=Lab,tok=Lab.tok;
+const W=1000,H=620;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const SIG={
+  voice:{n:'소리',f:t=>0.55*Math.sin(2*Math.PI*3*t)+0.28*Math.sin(2*Math.PI*7*t+1)+0.14*Math.sin(2*Math.PI*13*t+2)},
+  temp:{n:'온도',f:t=>0.7*Math.sin(2*Math.PI*t-0.6)+0.2*Math.sin(2*Math.PI*2*t+.5)},
+  quake:{n:'지진파',f:t=>0.95*Math.exp(-Math.pow((t-0.38)/0.16,2))*Math.sin(2*Math.PI*14*t)+0.08*Math.sin(2*Math.PI*3*t)}
+};
+const st={sig:'voice',ns:16,bits:3,noise:0.18,relay:3,seed:7,mission:0,done:[false,false,false,false],t:0};
+const MISS=[
+  {txt:'소리 신호를 일치도 90% 이상으로 변환하되, 데이터는 80비트 이하로!',sig:'voice',chk:r=>r.q>=90&&r.bits<=80,hint:'측정 횟수와 비트 수를 균형 있게 골라 보세요.'},
+  {txt:'지진파를 일치도 95% 이상으로 변환하기 (데이터 260비트 이하)',sig:'quake',chk:r=>r.q>=95&&r.bits<=260,hint:'빠르게 진동하는 신호는 촘촘히 측정해야 해요.'},
+  {txt:'중계소 8곳 이상, 잡음 ‘강함’ 이상에서 디지털 전송 일치도 85% 이상 지키기',sig:null,chk:r=>st.relay>=8&&st.noise>=0.3&&r.qd>=85,hint:'먼저 변환 일치도를 높여 두세요. 잡음이 커도 0과 1만 구별하면 되지만, 너무 크면 비트 오류가 생겨요.'},
+  {txt:'같은 조건(중계소 8곳 이상, 잡음 강함 이상)에서 아날로그 일치도가 디지털보다 20%p 이상 낮은 것을 확인하기',sig:null,chk:r=>st.relay>=8&&st.noise>=0.3&&r.qd-r.qa>=20,hint:'잡음이 중계소마다 쌓이는 아날로그 신호를 관찰해 보세요.'}
+];
+// 난수
+function rng(seed){let a=seed>>>0;return ()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){const u=Math.max(1e-9,r()),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const FINE=400;
+function compute(){
+  const f=SIG[st.sig].f,ns=st.ns,b=st.bits,L=Math.pow(2,b);
+  const q=v=>Math.round((clamp(v,-1,1)+1)/2*(L-1))/(L-1)*2-1;
+  const code=v=>Math.round((clamp(v,-1,1)+1)/2*(L-1));
+  const samples=[];for(let i=0;i<ns;i++){const t=(i+.5)/ns,v=f(t);samples.push({t,v,qv:q(v),c:code(v)});}
+  const interp=(arr,t)=>{const u=t*ns-.5,i0=clamp(Math.floor(u),0,ns-1),i1=clamp(i0+1,0,ns-1),fr=clamp(u-i0,0,1);return arr[i0]*(1-fr)+arr[i1]*fr;};
+  const qs=samples.map(s=>s.qv);
+  let es=0,ss=0;const sig=[],dig=[];
+  for(let k=0;k<=FINE;k++){const t=k/FINE,v=f(t),d=interp(qs,t);sig.push(v);dig.push(d);es+=(v-d)**2;ss+=v*v;}
+  const quality=e=>clamp(100*(1-e/ss),0,100);
+  // 아날로그 전송: 중계소마다 잡음 누적(+ 증폭)
+  const r=rng(st.seed);const ana=[];let ea=0;
+  const noiseLines=[];for(let j=0;j<st.relay;j++)noiseLines.push(Array.from({length:FINE+1},()=>gauss(r)*st.noise*0.55));
+  // 잡음은 부드럽게(대역 제한)
+  for(let k=0;k<=FINE;k++){let n=0;for(let j=0;j<st.relay;j++){const a=noiseLines[j];n+=(a[Math.max(0,k-1)]+a[k]+a[Math.min(FINE,k+1)])/3;}ana.push(sig[k]+n);ea+=n*n;}
+  // 디지털 전송: 각 비트를 ±1로 보내고 중계소마다 다시 판정
+  const r2=rng(st.seed*31+5);let flips=0;const rx=samples.map(s=>{let c=s.c,out=0;for(let bi=0;bi<b;bi++){let bit=(c>>bi)&1;for(let j=0;j<st.relay;j++){const vlt=(bit?1:-1)+gauss(r2)*st.noise;const nb=vlt>0?1:0;if(nb!==bit){flips++;bit=nb;}}out|=bit<<bi;}return out/(L-1)*2-1;});
+  let ed=0;const digRx=[];for(let k=0;k<=FINE;k++){const t=k/FINE,d=interp(rx,t);digRx.push(d);ed+=(sig[k]-d)**2;}
+  // 펄스 예시 (첫 샘플의 비트)
+  const r3=rng(st.seed*7+1);const pulses=[];samples.slice(0,4).forEach(s=>{for(let bi=b-1;bi>=0;bi--)pulses.push((s.c>>bi)&1);});
+  const noisyP=pulses.map(bt=>Array.from({length:12},()=>(bt?1:-1)+gauss(r3)*st.noise*Math.sqrt(1)));
+  return {samples,sig,dig,ana,digRx,q:quality(es),qa:quality(ea),qd:quality(ed),bits:ns*b,L,flips,totalBits:ns*b*st.relay,pulses,noisyP};
+}
+let R=compute();
+/* 그리기 */
+function plot(x0,y0,w,h,arr,col,lw,dash){ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash||[]);ctx.beginPath();arr.forEach((v,k)=>{const x=x0+k/FINE*w,y=y0+h/2-clamp(v,-1.6,1.6)*h/2*0.85;k?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);}
+function frame(x0,y0,w,h,title,sub){ctx.fillStyle=tok.surface;rr(ctx,x0,y0,w,h,10);ctx.fill();ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.stroke();
+  ctx.strokeStyle=Lab.rgba(tok.muted,.35);ctx.beginPath();ctx.moveTo(x0+10,y0+h/2);ctx.lineTo(x0+w-10,y0+h/2);ctx.stroke();
+  label(title,x0+12,y0+16,{size:13,align:'left'});if(sub)label(sub,x0+w-12,y0+16,{size:12,align:'right',color:tok.muted,weight:500,mono:true});}
+function draw(){
+  S.begin();ctx.fillStyle=tok.bg;ctx.fillRect(0,0,W,H);
+  // 1) 변환
+  const X0=20,Y0=12,PW=960,PH=300;
+  frame(X0,Y0,PW,PH,`① 센서가 ${SIG[st.sig].n} 신호를 디지털로 변환`,`${st.ns}회 측정 × ${st.bits}비트 = ${R.bits}비트`);
+  const px0=X0+50,pw=PW-70,py0=Y0+30,ph=PH-50;
+  // 양자화 눈금
+  const showLv=R.L<=64;
+  if(showLv){ctx.strokeStyle=Lab.rgba(tok.accent,.13);ctx.lineWidth=1;for(let i=0;i<R.L;i++){const v=i/(R.L-1)*2-1,y=py0+ph/2-v*ph/2*0.85;ctx.beginPath();ctx.moveTo(px0,y);ctx.lineTo(px0+pw,y);ctx.stroke();}
+    if(R.L<=16)for(let i=0;i<R.L;i++){const v=i/(R.L-1)*2-1,y=py0+ph/2-v*ph/2*0.85;label(i.toString(2).padStart(st.bits,'0'),px0-6,y,{size:10,align:'right',color:tok.accent,hw:0,mono:true,weight:500});}}
+  // 오차 영역
+  ctx.fillStyle=Lab.rgba(tok.warm,.16);ctx.beginPath();R.sig.forEach((v,k)=>{const x=px0+k/FINE*pw,y=py0+ph/2-v*ph/2*0.85;k?ctx.lineTo(x,y):ctx.moveTo(x,y);});for(let k=FINE;k>=0;k--){const x=px0+k/FINE*pw,y=py0+ph/2-R.dig[k]*ph/2*0.85;ctx.lineTo(x,y);}ctx.closePath();ctx.fill();
+  plot(px0,py0,pw,ph,R.sig,tok.muted,2.2);
+  plot(px0,py0,pw,ph,R.dig,tok.accent,2.4);
+  R.samples.forEach(s=>{const x=px0+s.t*pw,y=py0+ph/2-s.qv*ph/2*0.85,ya=py0+ph/2-s.v*ph/2*0.85;ctx.strokeStyle=Lab.rgba(tok.accent,.35);ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(x,py0+ph/2);ctx.lineTo(x,ya);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=tok.accent;ctx.beginPath();ctx.arc(x,y,3.6,0,7);ctx.fill();});
+  label('주황 영역 = 변환하며 잃은 정보',px0+pw-8,py0+ph-6,{size:12,align:'right',color:tok.warm,weight:500});
+  // 2) 전송
+  const Y1=330,BH=268;
+  frame(X0,Y1,PW,BH,'② 멀리 보내기: 송신 → 중계소 → 수신',`잡음 ${st.noise.toFixed(2)} · 중계소 ${st.relay}곳`);
+  // 중계 체인
+  const cy=Y1+46,cx0=X0+90,cx1=X0+PW-90;
+  ctx.strokeStyle=tok.line;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx0,cy);ctx.lineTo(cx1,cy);ctx.stroke();
+  const nodes=st.relay+2;for(let i=0;i<nodes;i++){const x=cx0+(cx1-cx0)*i/(nodes-1);ctx.fillStyle=i===0||i===nodes-1?tok.accent:tok.surface;ctx.strokeStyle=tok.accent;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,cy,i===0||i===nodes-1?10:7,0,7);ctx.fill();ctx.stroke();}
+  label('송신',cx0,cy+22,{size:12});label('수신',cx1,cy+22,{size:12});
+  // 이동하는 펄스
+  const ph2=(st.t*0.006*Lab.MOTION)%1;ctx.fillStyle=tok.gold;ctx.beginPath();ctx.arc(cx0+(cx1-cx0)*ph2,cy,4,0,7);ctx.fill();
+  // 수신 결과 두 패널
+  const bx=X0+14,by=Y1+80,bw=(PW-42)/2,bh=BH-94;
+  ctx.fillStyle=Lab.rgba(tok.warm,.06);rr(ctx,bx,by,bw,bh,8);ctx.fill();
+  label(`아날로그로 전송 · 일치도 ${R.qa.toFixed(0)}%`,bx+10,by+14,{size:13,align:'left',color:tok.warm});
+  plot(bx+8,by+24,bw-16,bh-30,R.sig,Lab.rgba(tok.muted,.6),1.5,[4,4]);plot(bx+8,by+24,bw-16,bh-30,R.ana,tok.warm,1.8);
+  const dx=bx+bw+14;ctx.fillStyle=Lab.rgba(tok.accent,.06);rr(ctx,dx,by,bw,bh,8);ctx.fill();
+  label(`디지털로 전송 · 일치도 ${R.qd.toFixed(0)}% · 비트 오류 ${R.flips}개`,dx+10,by+14,{size:13,align:'left',color:tok.accent});
+  plot(dx+8,by+24,bw-16,bh-30,R.sig,Lab.rgba(tok.muted,.6),1.5,[4,4]);plot(dx+8,by+24,bw-16,bh-30,R.digRx,tok.accent,2);
+  // 펄스 미니(첫 비트들)
+  const mx=dx+bw-170,my=by+bh-34,mw=160,mh=22;ctx.fillStyle=tok.surface;rr(ctx,mx-6,my-16,mw+12,mh+30,6);ctx.fill();
+  label('잡음 섞인 펄스 → 다시 판정',mx+mw/2,my-7,{size:10,color:tok.muted,hw:0,weight:500});
+  const n=Math.min(R.pulses.length,16),pw2=mw/n;
+  ctx.strokeStyle=Lab.rgba(tok.warm,.8);ctx.lineWidth=1;ctx.beginPath();for(let i=0;i<n;i++)R.noisyP[i].forEach((v,k)=>{const x=mx+i*pw2+k/12*pw2,y=my+mh/2-clamp(v,-2,2)*mh/4;(i===0&&k===0)?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();
+  ctx.strokeStyle=tok.accent;ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<n;i++){const y=my+mh/2-(R.pulses[i]?1:-1)*mh/4;i?ctx.lineTo(mx+i*pw2,y):ctx.moveTo(mx,y);ctx.lineTo(mx+(i+1)*pw2,y);}ctx.stroke();
+  drawFx(ctx);
+}
+/* 텍스트·미션 */
+const qcls=q=>q>=90?'ok':q>=70?'':'no';
+function update(){
+  R=compute();
+  $('nsOut').textContent=`${st.ns}회`;$('bitsOut').textContent=`${st.bits}비트 · ${R.L}단계`;
+  $('noiseOut').textContent=st.noise<0.1?'약함':st.noise<0.3?'보통':st.noise<0.45?'강함':'매우 강함';$('relayOut').textContent=`${st.relay}곳`;
+  $('vQ').textContent=`${R.q.toFixed(1)}%`;$('vQ').className='v '+qcls(R.q);
+  $('qName').textContent=R.q>=95?'아주 충실한 변환':R.q>=85?'쓸 만한 변환':R.q>=70?'정보 손실 큼':'원래 모양을 잃음';$('chip').dataset.s=R.q>=85?'':R.q>=70?'gold':'bad';
+  $('vBits').textContent=`${R.bits}비트`;$('dBits').textContent=`= ${st.ns}회 × ${st.bits}비트`;
+  $('vStep').textContent=`${(2/(R.L-1)).toFixed(3)}`;
+  $('vA').textContent=`${R.qa.toFixed(1)}%`;$('vA').className='v '+qcls(R.qa);
+  $('vD').textContent=`${R.qd.toFixed(1)}%`;$('vD').className='v '+qcls(R.qd);$('dD').textContent=`비트 오류 ${R.flips}개 / 판정 ${R.totalBits}번`;
+  $('fsInfo').textContent=`변환 일치도 ${R.q.toFixed(0)}% · ${R.bits}비트 · 아날로그 전송 ${R.qa.toFixed(0)}% · 디지털 전송 ${R.qd.toFixed(0)}%`;
+  checkMission();renderMissions();
+}
+function renderMissions(){$('mlist').innerHTML=MISS.map((m,i)=>`<li class="${st.done[i]?'done':''} ${i===st.mission?'cur':''}"><b>${st.done[i]?'✓':i+1}</b><span>${m.txt}</span></li>`).join('');
+  const m=MISS[st.mission];
+  if(st.mission<MISS.length){$('gTag').textContent=`미션 ${st.mission+1} / ${MISS.length}`;$('gTask').innerHTML=`${m.txt}<small>${m.hint}</small>`;}
+  $('gStars').innerHTML=stars(st.done.filter(Boolean).length,4);}
+function checkMission(){if(st.mission>=MISS.length)return;const m=MISS[st.mission];if(m.sig&&st.sig!==m.sig)return;
+  if(m.chk(R)){st.done[st.mission]=true;burst(500,160,tok.gold,40);toast($('toast'),`미션 ${st.mission+1} 성공!`,'good');
+    st.mission=st.done.findIndex(d=>!d);if(st.mission<0){st.mission=MISS.length;$('gTag').textContent='완료';$('gTask').innerHTML='모든 미션 완료! 디지털 변환 전문가 인정 🎉<small>자유롭게 값을 바꾸며 더 탐구해 보세요.</small>';}
+    else setSig(MISS[st.mission].sig||st.sig);}}
+function setSig(s){st.sig=s;document.querySelectorAll('[data-sig]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sig===s));}
+document.querySelectorAll('[data-sig]').forEach(b=>b.onclick=()=>{setSig(b.dataset.sig);update();});
+[['ns','ns',parseInt],['bits','bits',parseInt],['noise','noise',parseFloat],['relay','relay',parseInt]].forEach(([id,k,fn])=>$(id).addEventListener('input',e=>{st[k]=fn(e.target.value);update();}));
+$('pResend').onclick=()=>{st.seed=(st.seed*9301+49297)%233280;update();};
+$('gSkip').onclick=()=>{if(st.mission>=MISS.length)return;let i=(st.mission+1)%MISS.length,c=0;while(st.done[i]&&c<4){i=(i+1)%MISS.length;c++;}st.mission=i;if(MISS[i].sig)setSig(MISS[i].sig);update();};
+setSig(MISS[0].sig);update();
+loop(()=>{st.t++;draw();});
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>

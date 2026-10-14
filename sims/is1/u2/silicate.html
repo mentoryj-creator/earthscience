@@ -1,0 +1,418 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="claude:viewport-fit-sides" content="cover"><title>규산염 광물 연구소</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><style>/* 통합과학1 시뮬레이션 실험실 — 공통 스타일 (엘니뇨·라니냐 단면 실험실 계열) */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b9860b;
+  --good:#2f8a4f; --bad:#c23b3b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --ink:#13212c;
+  --scr:#0d1a24; --scr-fg:#dbe8f0; --scr-line:#27404f;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b341;
+  --good:#5cc27f; --bad:#ef6b6b;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --ink:#e2ebf1;
+  --scr:#081118; --scr-fg:#dbe8f0; --scr-line:#22394a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]:not([hidden=until-found i]){display:none!important}
+.m .v.txt{font-family:var(--f-body);font-size:.95rem;line-height:1.4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.topnav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none;font-weight:600}
+.topnav a:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 240px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;touch-action:manipulation}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+select{font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:6px 10px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;padding:3px;border-radius:12px;background:var(--strip)}
+.seg button{border:0;border-radius:9px;padding:6px 12px;background:transparent}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--accent);box-shadow:0 0 0 1.5px var(--accent) inset}
+.grp{display:grid;gap:4px;min-width:0}
+.grp>.k{font-size:.8rem;font-weight:600;color:var(--muted)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+.canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none;max-width:100%}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .note{flex:1 1 260px;min-width:0}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=bad] i{background:var(--bad)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600;overflow-wrap:anywhere}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--good)} .no{color:var(--bad)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch;margin:0}
+
+/* 게임 요소 */
+.mission{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--gold) 9%,var(--surface))}
+.mission .tag{font-family:var(--f-mono);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.mission .task{flex:1 1 280px;min-width:0;font-weight:600}
+.mission .task small{display:block;font-weight:500;color:var(--muted);font-size:.82rem}
+.score{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.score .lbl{font-family:var(--f-body);font-size:.75rem;color:var(--muted);font-weight:500;margin-right:4px}
+.stars{letter-spacing:2px;color:var(--gold);font-size:1.05rem}
+.stars .off{color:var(--line)}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  background:var(--surface);color:var(--fg);border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:700;font-size:.92rem;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 24px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast[data-k=good]{border-color:var(--good);color:var(--good)}
+.toast[data-k=bad]{border-color:var(--bad);color:var(--bad)}
+.toast[data-k=gold]{border-color:var(--gold);color:var(--gold)}
+.feed{font-size:.88rem;min-height:1.5em}
+
+/* 전체화면 */
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:auto}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style><script>/* 통합과학1 시뮬레이션 실험실 — 공통 도구 */
+window.Lab=(function(){
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  let reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  const MOTION=reduce?0.3:1;
+  const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+  const tok={};
+  const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','good','bad','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','ink','scr','scr-fg','scr-line'];
+  const themeCbs=[];
+  function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());themeCbs.forEach(f=>{try{f()}catch(e){}});}
+  readTok();
+  try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+  try{new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});}catch(e){}
+  const isDark=()=>{const c=tok.bg||'';const m=c.match(/^#(..)(..)(..)/);if(!m)return false;return (parseInt(m[1],16)+parseInt(m[2],16)+parseInt(m[3],16))<300;};
+
+  /* 캔버스 + 전체화면 */
+  function stage(o){
+    const cvs=o.canvas,W=o.W,H=o.H,st=o.stage,fsBtn=o.fsBtn;
+    const ctx=cvs.getContext('2d');
+    cvs.style.aspectRatio=W+'/'+H;
+    const isFs=()=>st&&(document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs'));
+    function resize(){
+      const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+      if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+      else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+      cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+      if(o.onResize)o.onResize();
+    }
+    function syncFs(){const on=isFs();if(fsBtn){fsBtn.setAttribute('aria-pressed',on);fsBtn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+    async function toggleFs(){
+      if(isFs()){
+        if(st.classList.contains('fs'))st.classList.remove('fs');
+        else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+        syncFs();return;
+      }
+      const req=st.requestFullscreen||st.webkitRequestFullscreen;
+      try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+      syncFs();
+    }
+    if(fsBtn)fsBtn.addEventListener('click',toggleFs);
+    document.addEventListener('fullscreenchange',syncFs);document.addEventListener('webkitfullscreenchange',syncFs);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st&&st.classList.contains('fs')){st.classList.remove('fs');syncFs();}});
+    window.addEventListener('resize',resize);resize();
+    try{new ResizeObserver(()=>{if(!isFs()){const w=cvs.getBoundingClientRect().width;const dpr=Math.min(2,window.devicePixelRatio||1);if(Math.abs(Math.round(w*dpr)-cvs.width)>2)resize();}}).observe(cvs.parentElement);}catch(e){}
+    return {
+      ctx,W,H,cvs,
+      begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+      pt(e){const r=cvs.getBoundingClientRect();const p=e.touches?e.touches[0]||e.changedTouches[0]:e;return {x:(p.clientX-r.left)/r.width*W,y:(p.clientY-r.top)/r.height*H};}
+    };
+  }
+
+  /* 텍스트 */
+  function label(ctx,t,x,y,o={}){
+    const size=o.size||14,align=o.align||'center';
+    ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+    if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+    ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+  }
+  function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function arrow(ctx,x1,y1,x2,y2,sz=8){const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-sz*Math.cos(a-0.45),y2-sz*Math.sin(a-0.45));ctx.lineTo(x2-sz*Math.cos(a+0.45),y2-sz*Math.sin(a+0.45));ctx.closePath();ctx.fill();}
+  const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const sup=n=>String(n).replace('−','-').split('').map(c=>SUP[c]||c).join('');
+  const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+  function sci(v,d=1){if(v===0)return '0';const e=Math.floor(Math.log10(Math.abs(v)));const m=v/Math.pow(10,e);if(e>=-2&&e<=3)return (+v.toFixed(Math.max(0,d-e))).toLocaleString('ko-KR');return `${m.toFixed(d)}×10${sup(e)}`;}
+
+  /* 토스트 */
+  const tTimers=new WeakMap();
+  function toast(el,msg,kind='',ms=1800){if(!el)return;el.textContent=msg;el.dataset.k=kind;el.classList.add('show');clearTimeout(tTimers.get(el));tTimers.set(el,setTimeout(()=>el.classList.remove('show'),ms));}
+  const stars=(n,max=3)=>Array.from({length:max},(_,i)=>i<n?'★':'<span class="off">★</span>').join('');
+
+  /* 효과 */
+  const fx=[];
+  function burst(x,y,color,n=24,spd=4){if(reduce)n=Math.min(n,8);for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(0.4+Math.random());fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,life:1,c:color||tok.gold,r:2+Math.random()*3});}}
+  function drawFx(ctx){for(let i=fx.length-1;i>=0;i--){const p=fx[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life-=0.022;if(p.life<=0){fx.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();}ctx.globalAlpha=1;}
+
+  /* 루프 */
+  function loop(fn){let last=performance.now();function f(t){const dt=Math.min(0.05,(t-last)/1000);last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+
+  /* 기록 (브라우저 저장, 실패해도 무시) */
+  function best(key,val,higher=true){let b=null;try{const s=localStorage.getItem('tsci1:'+key);if(s!==null)b=+s;}catch(e){}
+    if(val!==undefined&&(b===null||(higher?val>b:val<b))){b=val;try{localStorage.setItem('tsci1:'+key,String(val));}catch(e){}}return b;}
+
+  const rand=(a,b)=>a+Math.random()*(b-a);
+  const randi=(a,b)=>Math.floor(rand(a,b+1));
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function onTheme(f){themeCbs.push(f);}
+  function rgba(hex,a){const m=(hex||'#000').replace('#','');const n=m.length===3?m.split('').map(c=>c+c).join(''):m;const v=parseInt(n.slice(0,6),16);return `rgba(${v>>16&255},${v>>8&255},${v&255},${a})`;}
+
+  return {$,clamp,lerp,reduce,MOTION,FONT,MONO,tok,readTok,isDark,stage,label,rr,arrow,sup,sg,sci,toast,stars,burst,drawFx,loop,best,rand,randi,pick,shuffle,onTheme,rgba};
+})();
+</script></head><body>
+<style>
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button.right{background:var(--good);border-color:var(--good);color:#fff}
+.opts button.wrong{background:var(--bad);border-color:var(--bad);color:#fff}
+</style>
+<div class="wrap">
+  <nav class="topnav"><a href="../../../course.html?c=is1" target="_top">← 통합과학1</a><span class="eyebrow">Ⅱ. 물질과 규칙성 · 지각과 생명체를 이루는 결합의 규칙성</span></nav>
+  <header>
+    <h1>규산염 광물 연구소</h1>
+    <p>규소 1개와 산소 4개가 공유 결합한 규산염 사면체는 산소를 서로 나누는 방식에 따라 독립형, 단사슬, 복사슬, 판상, 망상 구조를 이룹니다. 구조를 조립해 보며 규소와 산소의 개수비를 확인하고, 망치로 광물을 깨뜨려 깨지는 모양으로 구조를 알아맞혀 보세요.</p>
+  </header>
+
+  <section class="stage" id="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="grp"><span class="k">결합 구조</span><div class="seg" role="group" aria-label="구조" id="seg"></div></div>
+      <div class="presets"><button type="button" id="pBuild">▶ 조립하기</button><button type="button" id="pHit" class="warm">🔨 망치로 깨기</button><button type="button" id="pGame" class="go">💎 광물 감정 게임</button></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="mission" id="mission" hidden>
+      <span class="tag" id="gTag">감정 1 / 5</span>
+      <div class="task" id="gTask">–</div>
+      <div class="opts" id="opts" role="group" aria-label="구조 고르기"></div>
+      <button type="button" id="gNext" hidden>다음 광물 →</button>
+      <div class="score"><span><span class="lbl">점수</span><span id="gScore">0</span></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="560" role="img" aria-label="광물 결정과 규산염 사면체 구조"></canvas><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+    <div class="legend">
+      <span class="key"><i style="background:#d9534f;border-radius:50%"></i>산소</span>
+      <span class="key"><i style="background:#e3b341;border-radius:50%"></i>이웃 사면체와 공유한 산소</span>
+      <span class="key"><i style="background:#5f6b75;border-radius:50%"></i>규소 (꼭대기 산소 아래)</span>
+      <span class="key"><i style="background:#46a758;border-radius:50%"></i>철·마그네슘 이온</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">사면체를 위에서 내려다본 모습입니다. 삼각형의 세 꼭짓점은 바닥 산소, 가운데는 꼭대기 산소입니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip"><i></i><span id="stName">–</span></span>
+        <div class="big"><div class="k">규소 : 산소</div><div class="v" id="vR">–</div></div>
+      </div>
+      <div class="metrics">
+        <div class="m"><span class="k">사면체 하나가 공유하는 산소</span><span class="v" id="v1">–</span><span class="d" id="d1"></span></div>
+        <div class="m"><span class="k">대표 광물</span><span class="v txt" id="v2">–</span><span class="d" id="d2"></span></div>
+        <div class="m"><span class="k">깨지는 모양</span><span class="v txt" id="v3">–</span><span class="d" id="d3"></span></div>
+        <div class="m"><span class="k">화면 속 개수 (규소 · 산소)</span><span class="v" id="v4">–</span><span class="d">가장자리 때문에 비율과 조금 다를 수 있음</span></div>
+      </div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>같은 단위체, 다른 광물</h2>
+      <ol class="chain">
+        <li>원자가 전자가 4개인 규소는 산소 4개와 공유 결합해 규산염 사면체(SiO₄)를 만든다.</li>
+        <li>사면체끼리 산소를 공유하는 수가 많아질수록 규소에 대한 산소의 비율이 줄어든다(1 : 4 → 1 : 2).</li>
+        <li>결합 방식에 따라 결정의 모양과 깨지는 방향이 달라진다.</li>
+      </ol>
+      <div class="impact"><b>정리</b>단위체인 규산염 사면체는 같지만 서로 연결되는 방식이 달라 석영, 장석, 운모, 휘석, 각섬석, 감람석 등 다양한 규산염 광물이 만들어진다.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>독립형 구조에서 망상 구조로 갈수록 규소에 대한 산소의 비율은 어떻게 변하나요? 그 까닭은?</li>
+      <li>흑운모가 얇은 판 모양으로 떨어져 나가는 까닭을 결합 구조로 설명해 보세요.</li>
+      <li>감람석이 풍화에 약하고 잘 깨지는 까닭은 무엇일까요?</li>
+      <li>규산염 사면체 구조와 생명체의 탄소 화합물은 단위체가 결합해 다양한 물질을 만든다는 점에서 어떻게 비슷한가요?</li>
+    </ol>
+  </section>
+  <p class="foot">사면체 배열은 결합 방식을 보여 주기 위한 평면 모식도입니다. 실제 휘석·각섬석의 쪼개짐 각도(약 87°·93°, 약 56°·124°)는 결정 속 사슬의 배열에서 생깁니다.</p>
+</div>
+
+<script>
+(function(){
+const {$,clamp,lerp,rr,toast,stars,burst,drawFx,loop,best,shuffle,rand}=Lab,tok=Lab.tok;
+const W=1000,H=560;
+const S=Lab.stage({canvas:$('sim'),W,H,stage:$('stage'),fsBtn:$('fsBtn')}),ctx=S.ctx;
+const label=(t,x,y,o)=>Lab.label(ctx,t,x,y,o);
+const T={
+  iso:{n:'독립형',m:'감람석',r:'1 : 4',sh:'0개',cl:'불규칙하게 깨짐',cld:'결합이 약한 이온 쪽에서 쉽게 깨지고 풍화에 약함',col:'#7fae5a'},
+  sc:{n:'단사슬',m:'휘석',r:'1 : 3',sh:'2개',cl:'두 방향으로 쪼개짐 (약 90°)',cld:'사슬과 나란한 두 방향',col:'#4a5a3a'},
+  dc:{n:'복사슬',m:'각섬석',r:'4 : 11',sh:'2개 또는 3개',cl:'두 방향으로 쪼개짐 (약 60°·120°)',cld:'기둥 모양 결정',col:'#2f3b30'},
+  sheet:{n:'판상',m:'흑운모',r:'2 : 5',sh:'3개',cl:'한 방향으로 얇게 쪼개짐',cld:'판과 판 사이가 약해 얇게 벗겨짐',col:'#3a2a1c'},
+  net:{n:'망상',m:'석영',r:'1 : 2',sh:'4개',cl:'조개껍데기 모양으로 깨짐',cld:'모든 방향으로 단단히 연결되어 쪼개짐 없음',col:'#e8e2f0'}
+};
+const KEYS=Object.keys(T);
+const st={k:'iso',build:1,t:0,crack:null,game:null};
+/* ---------- 사면체 배열 ---------- */
+const SIDE=46,HT=SIDE*Math.sqrt(3)/2;
+function tri(cx,cy,down){ // 바닥 산소 세 점
+  return down?[[cx-SIDE/2,cy-HT/3],[cx+SIDE/2,cy-HT/3],[cx,cy+2*HT/3]]:[[cx-SIDE/2,cy+HT/3],[cx+SIDE/2,cy+HT/3],[cx,cy-2*HT/3]];}
+function chain(x0,y0,n,out){for(let i=0;i<n;i++){const ux=x0+2*SIDE*i;out.push({c:[ux,y0],v:tri(ux,y0,false)});if(i<n-1||true){const dx=ux+SIDE,dy=y0+2*HT/3;out.push({c:[dx,dy],v:tri(dx,dy,true)});}}}
+function layout(k){
+  const out=[];const X0=500,Y0=70;
+  if(k==='iso'){for(let r=0;r<5;r++)for(let c=0;c<6;c++){const cx=X0+c*82+(r%2)*41,cy=Y0+20+r*92;out.push({c:[cx,cy],v:tri(cx,cy,(r+c)%2===0)});}}
+  else if(k==='sc'){for(let r=0;r<4;r++)chain(X0,Y0+20+r*115,5,out);}
+  else if(k==='dc'){for(let r=0;r<2;r++){const y=Y0+30+r*230;chain(X0,y,5,out);chain(X0+SIDE,y+2*HT,5,out);}}
+  else{for(let j=0;j<6;j++)chain(X0+(j%2?SIDE:0)-(j%2?2*SIDE:0)*0,Y0+j*2*HT,5,out);}
+  return out;
+}
+let LAY={};KEYS.forEach(k=>LAY[k]=layout(k));
+function keyOf(p){return Math.round(p[0]/2)+','+Math.round(p[1]/2);}
+function counts(k){const L=LAY[k].slice(0,Math.ceil(LAY[k].length*st.build));const m=new Map();L.forEach(t=>t.v.forEach(p=>{const q=keyOf(p);m.set(q,(m.get(q)||0)+1);}));
+  const basal=m.size,api=k==='net'?L.length/2:L.length;return {si:L.length,o:Math.round(basal+api),m,L};}
+/* ---------- 결정 그림과 깨짐 ---------- */
+const CX=210,CY=300;
+function crystalPoly(k){if(k==='iso')return [[-70,-40],[0,-90],[75,-35],[70,45],[0,90],[-75,40]];
+  if(k==='sc')return [[-60,-110],[60,-110],[75,-90],[75,110],[-60,110],[-75,90],[-75,-90]];
+  if(k==='dc')return [[-35,-130],[35,-130],[70,-100],[70,120],[35,140],[-35,140],[-70,110],[-70,-110]];
+  if(k==='sheet')return [[-90,-30],[90,-30],[100,0],[90,30],[-90,30],[-100,0]];
+  return [[0,-140],[45,-95],[50,90],[25,120],[-25,120],[-50,90],[-45,-95]];}
+function makeCrack(k){const P=[];
+  if(k==='iso'){for(let i=0;i<10;i++){const a=i/10*Math.PI*2,r=rand(30,70);P.push({poly:Array.from({length:Lab.randi(3,5)},(_,j)=>[Math.cos(a+j*.6)*rand(10,30),Math.sin(a+j*.6)*rand(10,30)]),x:Math.cos(a)*r*.5,y:Math.sin(a)*r*.5,vx:Math.cos(a)*rand(1,3),vy:Math.sin(a)*rand(1,3),rot:0,vr:rand(-.08,.08)});}}
+  if(k==='sc'){for(let i=0;i<3;i++)for(let j=0;j<4;j++)P.push({poly:[[-24,-26],[24,-26],[24,26],[-24,26]],x:-50+i*50,y:-80+j*54,vx:(i-1)*1.4,vy:(j-1.5)*1.1,rot:0,vr:0});}
+  if(k==='dc'){for(let i=0;i<3;i++)for(let j=0;j<4;j++)P.push({poly:[[-30,-26],[18,-26],[30,26],[-18,26]],x:-50+i*48,y:-90+j*58,vx:(i-1)*1.4,vy:(j-1.5)*1.1,rot:0,vr:0});}
+  if(k==='sheet'){for(let j=0;j<7;j++)P.push({poly:[[-95,-4],[95,-4],[95,4],[-95,4]],x:0,y:-26+j*9,vx:rand(-2,2)*(j%2?1:-1),vy:(j-3)*.5,rot:0,vr:rand(-.01,.01)});}
+  if(k==='net'){for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const pts=[];for(let s=0;s<=10;s++){const t=s/10;pts.push([Math.cos(a+t*1.0)*lerp(10,60,Math.sin(t*Math.PI)),Math.sin(a+t*1.0)*lerp(10,60,Math.sin(t*Math.PI))]);}P.push({poly:pts,x:0,y:0,vx:Math.cos(a+.5)*2,vy:Math.sin(a+.5)*2,rot:0,vr:rand(-.04,.04),shell:true});}}
+  return {k,P,t:0};}
+function drawCrystal(k,hidden){
+  const col=hidden?'#9aa5b1':T[k].col;
+  ctx.fillStyle=Lab.isDark()?'#25313b':'#e3e9ee';rr(ctx,20,20,410,520,14);ctx.fill();
+  if(st.crack&&st.crack.k===k){st.crack.P.forEach(p=>{ctx.save();ctx.translate(CX+p.x,CY+p.y);ctx.rotate(p.rot);ctx.fillStyle=col;ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.2;ctx.beginPath();p.poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();
+      if(p.shell){ctx.strokeStyle='rgba(255,255,255,.6)';for(let r=12;r<50;r+=10){ctx.beginPath();ctx.arc(0,0,r,0.2,1.2);ctx.stroke();}}
+      ctx.fillStyle='rgba(255,255,255,.25)';ctx.beginPath();p.poly.slice(0,2).forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.lineTo(0,0);ctx.fill();ctx.restore();});}
+  else{const P=crystalPoly(k);ctx.fillStyle=col;ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;ctx.beginPath();P.forEach(([x,y],i)=>i?ctx.lineTo(CX+x,CY+y):ctx.moveTo(CX+x,CY+y));ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.22)';ctx.beginPath();ctx.moveTo(CX+P[0][0],CY+P[0][1]);ctx.lineTo(CX+P[1][0],CY+P[1][1]);ctx.lineTo(CX,CY);ctx.closePath();ctx.fill();
+    if(k==='sheet'){ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1;for(let j=-3;j<=3;j++){ctx.beginPath();ctx.moveTo(CX-95,CY+j*8);ctx.lineTo(CX+95,CY+j*8);ctx.stroke();}}}
+  label(hidden?'미지의 광물':`${T[k].m} (${T[k].n})`,CX,500,{size:16,weight:700});
+  // 망치
+  if(st.hammer>0){const a=-0.9+(1-st.hammer)*1.2;ctx.save();ctx.translate(CX+150,CY-150);ctx.rotate(a);ctx.fillStyle='#8a5a2b';ctx.fillRect(-6,0,12,120);ctx.fillStyle='#5f6b75';rr(ctx,-30,-10,60,26,4);ctx.fill();ctx.restore();}
+}
+function drawStructure(k,hidden){
+  ctx.fillStyle=Lab.isDark()?'#0f1820':'#f6f9fb';rr(ctx,450,20,530,520,14);ctx.fill();
+  if(hidden){label('구조는 감정 후 공개',715,280,{size:18,color:tok.muted});return;}
+  const C=counts(k);
+  ctx.save();rr(ctx,450,20,530,520,14);ctx.clip();
+  if(k==='net'){ctx.globalAlpha=.25;C.L.forEach(t=>{ctx.fillStyle='rgba(90,140,220,.5)';ctx.beginPath();t.v.forEach(([x,y],i)=>i?ctx.lineTo(x+14,y+16):ctx.moveTo(x+14,y+16));ctx.closePath();ctx.fill();});ctx.globalAlpha=1;}
+  if(k==='iso'){C.L.forEach((t,i)=>{if(i%2===0){ctx.fillStyle='#46a758';ctx.beginPath();ctx.arc(t.c[0]+41,t.c[1]+14,7,0,7);ctx.fill();}});}
+  C.L.forEach(t=>{ctx.fillStyle='rgba(90,140,220,.28)';ctx.strokeStyle='rgba(60,100,170,.7)';ctx.lineWidth=1.5;ctx.beginPath();t.v.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(60,100,170,.45)';ctx.lineWidth=1;t.v.forEach(([x,y])=>{ctx.beginPath();ctx.moveTo(t.c[0],t.c[1]);ctx.lineTo(x,y);ctx.stroke();});});
+  C.L.forEach(t=>t.v.forEach(p=>{const sh=C.m.get(keyOf(p))>1;ctx.fillStyle=sh?'#e3b341':'#d9534f';ctx.beginPath();ctx.arc(p[0],p[1],sh?7.5:6.5,0,7);ctx.fill();}));
+  C.L.forEach(t=>{ctx.fillStyle=k==='net'?'#e3b341':'#e8807d';ctx.beginPath();ctx.arc(t.c[0],t.c[1],6.5,0,7);ctx.fill();ctx.fillStyle='#5f6b75';ctx.beginPath();ctx.arc(t.c[0]+4,t.c[1]+4,3,0,7);ctx.fill();});
+  ctx.restore();
+  label(`${T[k].n} 구조 · 규소 : 산소 = ${T[k].r}`,715,525,{size:14,weight:700});
+  if(k==='net')label('꼭대기 산소도 아래층 사면체와 공유 (흐린 층)',715,40,{size:12,color:tok.muted});
+}
+function draw(){S.begin();ctx.fillStyle=tok['sky-bot'];ctx.fillRect(0,0,W,H);
+  const g=st.game,hidden=g&&!g.answered;const k=g?g.k:st.k;drawCrystal(k,hidden);drawStructure(k,hidden);drawFx(ctx);}
+/* ---------- 텍스트 ---------- */
+function update(){const k=st.game?st.game.k:st.k,hid=st.game&&!st.game.answered,t=T[k],C=counts(k);
+  $('stName').textContent=hid?'감정 중':`${t.n} 구조`;$('vR').textContent=hid?'?':t.r;
+  $('v1').textContent=hid?'?':t.sh;$('d1').textContent=hid?'':k==='iso'?'철·마그네슘 이온과 결합':k==='net'?'모든 산소를 공유':'';
+  $('v2').textContent=hid?'?':t.m;$('d2').textContent='';$('v3').textContent=hid?'깨 보세요!':t.cl;$('d3').textContent=hid?'':t.cld;
+  $('v4').textContent=hid?'?':`${C.si} · ${C.o}`;$('fsInfo').textContent=hid?'미지의 광물 감정 중':`${t.m} · ${t.n} · Si:O = ${t.r}`;}
+function renderSeg(){$('seg').innerHTML=KEYS.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===st.k&&!st.game}">${T[k].n}</button>`).join('');$('seg').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(st.game&&!st.game.answered)return;endGame();st.k=b.dataset.k;st.crack=null;st.build=1;renderSeg();update();});}
+$('pBuild').onclick=()=>{if(st.game&&!st.game.answered)return;st.build=0;st.crack=null;};
+$('pHit').onclick=()=>{const k=st.game?st.game.k:st.k;if(st.crack&&st.crack.k===k){st.crack=null;return;}st.hammer=1;setTimeout(()=>{st.crack=makeCrack(k);burst(CX,CY,'#cfd8e0',20,3);if(st.game&&!st.game.answered){st.game.hits++;}},260);};
+/* ---------- 게임 ---------- */
+function startGame(){st.game={order:shuffle(KEYS),i:0,score:0,answered:false,hits:0,ok:0};$('mission').hidden=false;$('pGame').textContent='↺ 다시 시작';next();}
+function endGame(){st.game=null;$('mission').hidden=true;$('pGame').textContent='💎 광물 감정 게임';}
+function next(){const g=st.game;if(g.i>=5){const b=best('silicate',g.score);$('gTag').textContent='결과';$('gTask').innerHTML=`감정 ${g.ok}/5 정답 · ${g.score}점 <span class="stars">${stars(g.ok>=5?3:g.ok>=4?2:g.ok>=2?1:0)}</span><small>최고 기록 ${b}점</small>`;$('opts').innerHTML='';$('gNext').hidden=true;g.answered=true;return;}
+  g.k=g.order[g.i];g.answered=false;g.hits=0;st.crack=null;$('gTag').textContent=`감정 ${g.i+1} / 5`;
+  $('gTask').innerHTML='🔨 망치로 깨 보고, 깨지는 모양으로 이 광물의 결합 구조를 맞혀 보세요.<small>깨 보지 않고 맞히면 보너스!</small>';
+  $('opts').innerHTML='';KEYS.forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=T[k].n;b.onclick=()=>answer(k,b);$('opts').appendChild(b);});$('gNext').hidden=true;renderSeg();update();}
+function answer(k,b){const g=st.game;if(g.answered)return;g.answered=true;const ok=k===g.k;[...$('opts').children].forEach((x,i)=>{x.disabled=true;if(KEYS[i]===g.k)x.classList.add('right');});if(!ok)b.classList.add('wrong');
+  const pts=ok?(g.hits===0?150:100):0;g.score+=pts;if(ok)g.ok++;$('gScore').textContent=g.score;
+  $('gTask').innerHTML=`${ok?'정답!':'아쉬워요.'} 이 광물은 <b>${T[g.k].m}</b> (${T[g.k].n} 구조) <small>${T[g.k].cl} · 규소 : 산소 = ${T[g.k].r}</small>`;
+  toast($('toast'),ok?`정확한 감정! +${pts}`:'구조가 달라요',ok?'good':'bad');if(ok)burst(CX,CY,tok.gold,30);
+  g.i++;$('gNext').hidden=false;$('gNext').textContent=g.i>=5?'결과 보기 →':'다음 광물 →';update();}
+$('gNext').onclick=next;$('pGame').onclick=startGame;
+let fr=0;
+loop(()=>{st.t++;fr++;
+  if(st.build<1)st.build=Math.min(1,st.build+0.01*Lab.MOTION*(Lab.reduce?4:1));
+  if(st.hammer>0)st.hammer=Math.max(0,st.hammer-0.06);
+  if(st.crack){st.crack.t++;st.crack.P.forEach(p=>{if(st.crack.t<40){p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.vx*=.93;p.vy*=.93;}});}
+  draw();if(fr%6===0)update();});
+renderSeg();update();
+})();
+</script>
+<script>
+(function () {
+  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  const check = () => {
+    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
+    if (!document.documentElement.classList.contains('fs')) post();
+  };
+  addEventListener('load', check); addEventListener('resize', check); check();
+})();
+</script></body></html>
