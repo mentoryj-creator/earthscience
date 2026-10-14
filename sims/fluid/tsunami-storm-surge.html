@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>해일 경보 센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u2" target="_top">← 지구시스템과학 2단원 목록</a>
+    <div class="eyebrow">Ⅱ-03 해일 · 쓰나미(지진 해일) · 폭풍 해일</div>
+    <h1>해일 경보 센터</h1>
+    <p>동해 건너편에서 해저 지진이 나면 쓰나미는 몇 분 뒤 우리 해안에 닿을까요? 천해파인 쓰나미의 전파를 지켜보고, 태풍이 만드는 폭풍 해일이 언제 가장 위험한지도 실험합니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls" style="padding-block:10px">
+      <div class="seg" role="group" aria-label="모드">
+        <button id="mA" type="button" aria-pressed="true">① 쓰나미 전파</button>
+        <button id="mB" type="button" aria-pressed="false">② 폭풍 해일</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="controls" id="ctlA">
+      <div class="presets">
+        <button class="warm" id="quake" type="button">💥 지진 발생 (지도를 눌러 위치 선택)</button>
+        <button id="fast" type="button" aria-pressed="false">⏩ 3배속</button>
+      </div>
+      <div class="toggles"><label for="city">단면을 볼 도시</label><select id="city"></select></div>
+    </div>
+    <div class="controls" id="ctlB" hidden>
+      <div class="slider"><div class="slider-top"><label for="pc">태풍 중심 기압</label><output id="pcOut">950 hPa</output></div><input id="pc" type="range" min="900" max="1005" value="950"></div>
+      <div class="slider"><div class="slider-top"><label for="wv">해안 쪽으로 부는 바람</label><output id="wvOut">30 m/s</output></div><input id="wv" type="range" min="0" max="50" value="30"></div>
+      <div class="seg" role="group" aria-label="조석"><button id="tL" type="button" aria-pressed="false">간조</button><button id="tM" type="button" aria-pressed="false">평균</button><button id="tH" type="button" aria-pressed="true">만조</button></div>
+      <div class="seg" role="group" aria-label="지형"><button id="gO" type="button" aria-pressed="false">열린 해안</button><button id="gB" type="button" aria-pressed="true">좁아지는 만</button></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="640" role="img" aria-label="동해 쓰나미 전파 지도와 해안 단면, 또는 폭풍 해일 단면"></canvas></div>
+    <div class="legend" id="leg">
+      <div class="bar"><div class="grad" style="background:linear-gradient(90deg,#9fd0ec,#2c7fa8,#103a5c)"></div><div class="scale"><span>얕음</span><span>수심</span><span>3500 m</span></div></div>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note" id="note">동해와 주변 해안선은 모식도이며 수심 분포도 단순화했습니다. 숫자는 그 위치에 쓰나미가 도달하는 시간(분)입니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="warm"><i></i><span id="stateName">대기 중</span></span>
+        <div class="big"><div class="k" id="bigK">지진 발생 후</div><div class="v" id="bigV">0분</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exT">쓰나미 (지진 해일)</h2>
+      <ol class="chain" id="exC"></ol>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🚨 미션: 쓰나미 경보관</h2><div class="score"><span>라운드 <b id="round">–</b>/3</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">지진이 나면 거리와 경로의 평균 수심이 알려집니다. 천해파의 속도 √(gh)로 도달 시간을 계산해 입력하세요. 실제 도달보다 늦게 예측하면 경보가 늦어 감점이 큽니다!</p>
+    <div class="row"><button id="gStart" type="button" class="primary">🎲 지진 감지</button><b id="gQ"></b></div>
+    <div class="row" style="margin-top:8px"><label for="ans">예상 도달 시간</label><input id="ans" type="number" step="1" min="1" placeholder="분"><span>분 뒤</span><button id="gSend" type="button" class="warm">📢 경보 발령</button></div>
+    <div class="feedback" id="fb">‘지진 감지’를 누르면 시작합니다.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>깊은 바다에서 발생한 쓰나미가 천해파의 성질을 띠는 까닭은 무엇인가요?</li>
+      <li>쓰나미가 해안에 가까워지면 속도와 파고는 어떻게 변하나요? 단면 그림에서 확인해 보세요.</li>
+      <li>폭풍 해일은 만조 때와 간조 때 중 언제 더 위험할까요? 만과 같은 지형에서는 왜 더 강해질까요?</li>
+      <li>중심 기압이 960 hPa인 태풍이 오면 기압 효과만으로 해수면이 얼마나 올라갈까요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 쓰나미 도달 시간은 격자 위에서 각 칸의 속도 √(gh)로 가장 빨리 도착하는 경로를 계산했습니다. 파고 변화는 수심의 1/4제곱에 반비례한다고 근사했습니다(그린의 법칙). 폭풍 해일은 기압 1 hPa당 약 1 cm, 바람에 의한 해수 쌓임, 조석, 만의 효과를 더한 값입니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=640,g=9.8;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;let mode='A';
+/* ===== 동해 모식 지도 ===== */
+const NX=180,NY=150,CK=5; // 5 km 칸, 900 x 750 km
+const MX=20,MY=20,PX=640/NX*1.0; // 지도 표시 크기
+const mpx=x=>MX+x*PX,mpy=y=>MY+y*PX;
+function koreaX(y){ // 한국 동해안 경도 (칸)
+  if(y<10)return 34;if(y<120)return 30+ y*0.05+3*Math.sin(y*0.15);return 36+(y-120)*0.9;}
+function japanX(y){ // 일본 서해안
+  if(y<30)return 150-y*0.4;const t=(y-30);return 138-t*0.42+ (y>95&&y<110?-14*Math.sin((y-95)/15*Math.PI):0);}
+const land=new Uint8Array(NX*NY),depth=new Float32Array(NX*NY);
+(function(){
+  for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){const k=j*NX+i;
+    if(i<koreaX(j)||i>japanX(j)||(j>140&&i<120)||(j>130&&i>110&&i<130&&j>134))land[k]=1;}
+  // 연안 거리 (BFS)
+  const dist=new Float32Array(NX*NY).fill(1e9);const q=[];for(let k=0;k<NX*NY;k++)if(land[k]){dist[k]=0;q.push(k);}
+  for(let h=0;h<q.length;h++){const k=q[h];const i=k%NX,j=(k/NX)|0;for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=NX||jj>=NY)continue;const kk=jj*NX+ii;if(dist[kk]>dist[k]+1){dist[kk]=dist[k]+1;q.push(kk);}}}
+  for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){const k=j*NX+i;if(land[k])continue;const d=dist[k]*CK;
+    let z=d<25?20+d*6:Math.min(3400,170+(d-25)*28);
+    // 야마토 해령(가운데 얕은 곳)
+    z-=1800*Math.exp(-Math.pow((i-95)/16,2)-Math.pow((j-70)/12,2));
+    // 울릉 분지 남서쪽
+    depth[k]=Math.max(15,z);}
+})();
+const CITIES=[['속초',20],['강릉',40],['동해',55],['울진',80],['포항',110],['부산',134]].map(([n,y])=>{const yy=y;let x=Math.ceil(n==='부산'?koreaX(yy)+2:koreaX(yy))+1;while(land[yy*NX+x])x++;return {n,i:x,j:yy};});
+const EPI={i:118,j:40};
+let arr=null,T={t:0,run:false,speed:1},CONT=null,LABS=null;
+function compute(ei,ej){ // 다익스트라
+  CONT=null;
+  arr=new Float32Array(NX*NY).fill(1e9);arr[ej*NX+ei]=0;
+  const nb=[[1,0,1],[-1,0,1],[0,1,1],[0,-1,1],[1,1,1.414],[1,-1,1.414],[-1,1,1.414],[-1,-1,1.414]];
+  // 버킷 큐
+  const heap=[[0,ej*NX+ei]];
+  const push=(t,k)=>{heap.push([t,k]);let c=heap.length-1;while(c>0){const p=(c-1)>>1;if(heap[p][0]<=heap[c][0])break;[heap[p],heap[c]]=[heap[c],heap[p]];c=p;}};
+  const pop=()=>{const top=heap[0];const last=heap.pop();if(heap.length){heap[0]=last;let c=0;for(;;){const l=2*c+1,r=l+1;let m=c;if(l<heap.length&&heap[l][0]<heap[m][0])m=l;if(r<heap.length&&heap[r][0]<heap[m][0])m=r;if(m===c)break;[heap[m],heap[c]]=[heap[c],heap[m]];c=m;}}return top;};
+  while(heap.length){const [t,k]=pop();if(t>arr[k])continue;const i=k%NX,j=(k/NX)|0;const v1=Math.sqrt(g*depth[k]);
+    for(const [di,dj,w] of nb){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=NX||jj>=NY)continue;const kk=jj*NX+ii;if(land[kk])continue;const v2=Math.sqrt(g*depth[kk]);const dt=w*CK*1000/((v1+v2)/2);if(t+dt<arr[kk]){arr[kk]=t+dt;push(t+dt,kk);}}}
+}
+// 수심 바탕 이미지
+const off=document.createElement('canvas');off.width=NX;off.height=NY;
+(function(){const o=off.getContext('2d');const img=o.createImageData(NX,NY);const C=Lab.colorRamp([[0,[170,215,238]],[400,[100,175,215]],[1500,[44,127,168]],[3500,[16,58,92]]]);
+  for(let k=0;k<NX*NY;k++){let c=land[k]?[150,135,100]:C(depth[k]);img.data[k*4]=c[0];img.data[k*4+1]=c[1];img.data[k*4+2]=c[2];img.data[k*4+3]=255;}o.putImageData(img,0,0);})();
+function cityArr(c){let m=1e9;for(let dj=-3;dj<=3;dj++)for(let di=-1;di<=4;di++){const ii=c.i+di,jj=c.j+dj;if(ii<0||jj<0||ii>=NX||jj>=NY)continue;m=Math.min(m,arr[jj*NX+ii]);}return m;}
+function lineProfile(a,b){const n=120,pts=[];for(let s=0;s<=n;s++){const i=lerp(a.i,b.i,s/n),j=lerp(a.j,b.j,s/n);const k=Math.round(j)*NX+Math.round(i);pts.push({i,j,d:land[k]?0:depth[k],t:arr?arr[k]:0});}return pts;}
+function drawA(dt){
+  if(T.run){T.t+=dt*180*T.speed*MOTION;}  // 1초 = 3분
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(off,MX,MY,NX*PX,NY*PX);
+  // 도달 시간 등시선
+  if(arr){
+    const img=ctx;const step=2;
+    for(let j=0;j<NY;j+=1)for(let i=0;i<NX;i+=1){const k=j*NX+i;if(land[k])continue;const a=arr[k];
+      if(T.t>0&&a<=T.t){const age=T.t-a;ctx.fillStyle=age<150?'rgba(255,110,70,.95)':'rgba(255,170,120,.16)';ctx.fillRect(mpx(i),mpy(j),PX+0.5,PX+0.5);}}
+    if(!CONT){CONT=[];LABS=[];for(let m=30;m<=180;m+=30){for(let j=0;j<NY-1;j++)for(let i=0;i<NX-1;i++){const k=j*NX+i;if(land[k]||land[k+1]||land[k+NX])continue;const a=arr[k]/60-m,b=arr[k+1]/60-m,c=arr[k+NX]/60-m;if(a*b<0||a*c<0)CONT.push([i,j]);}
+      let best=null;for(let j=10;j<NY-10;j+=3)for(let i=40;i<150;i+=3){const k=j*NX+i;if(land[k])continue;if(Math.abs(arr[k]/60-m)<1.5&&(!best||Math.abs(j-75)<Math.abs(best[1]-75)))best=[i,j];}if(best)LABS.push([m,best]);}}
+    for(const [m,b] of LABS)darkLabel(ctx,m+'분',mpx(b[0]),mpy(b[1]),{size:10.5,weight:500});
+  }
+  // 도시
+  CITIES.forEach(c=>{const x=mpx(c.i),y=mpy(c.j);const hit=arr&&T.t>=cityArr(c);ctx.fillStyle=hit?'#e5533b':tok.fg;ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fill();label(ctx,c.n,x-9,y,{size:12,align:'right'});});
+  darkLabel(ctx,'한반도',mpx(14),mpy(80),{size:14});darkLabel(ctx,'일본',mpx(165),mpy(100),{size:14});darkLabel(ctx,'동해',mpx(85),mpy(30),{size:14,color:'#d8eefc'});
+  // 진앙
+  ctx.fillStyle='#ffd25a';ctx.beginPath();for(let a=0;a<10;a++){const r=a%2?5:12,an=a*Math.PI/5-Math.PI/2;ctx.lineTo(mpx(EPI.i)+Math.cos(an)*r,mpy(EPI.j)+Math.sin(an)*r);}ctx.closePath();ctx.fill();ctx.strokeStyle='#7a4a00';ctx.stroke();
+  label(ctx,'진앙',mpx(EPI.i)+14,mpy(EPI.j)-10,{size:12,align:'left'});
+  // 축척
+  ctx.strokeStyle=tok.fg;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mpx(10),mpy(NY-5));ctx.lineTo(mpx(10+40),mpy(NY-5));ctx.stroke();label(ctx,'200 km',mpx(30),mpy(NY-5)-10,{size:11});
+  // 단면
+  const city=CITIES[+$('city').value];drawProfile(city);
+}
+function drawProfile(city){
+  const x0=690,x1=985,y0=40,y1=600;
+  ctx.fillStyle=tok.bg;ctx.beginPath();ctx.roundRect(x0-10,y0-30,x1-x0+20,y1-y0+40,12);ctx.fill();
+  label(ctx,`진앙 → ${city.n} 단면`,x0,y0-12,{size:13,align:'left',hw:0});
+  ctx.strokeStyle=tok.warm;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(mpx(EPI.i),mpy(EPI.j));ctx.lineTo(mpx(city.i),mpy(city.j));ctx.stroke();ctx.setLineDash([]);
+  const pr=lineProfile(EPI,city);const L=Math.hypot(city.i-EPI.i,city.j-EPI.j)*CK;
+  // 세로 단면: 위쪽 = 진앙, 아래 = 도시 (좁은 패널이라 세로로)
+  const sx=x0+60,sw=x1-sx-10;const Y=s=>y0+20+s*(y1-y0-60);const Z=d=>sx+d/3500*sw;
+  ctx.fillStyle='#2c7fa8';ctx.beginPath();ctx.moveTo(sx,Y(0));pr.forEach((p,s)=>ctx.lineTo(Z(p.d),Y(s/(pr.length-1))));ctx.lineTo(sx,Y(1));ctx.closePath();ctx.fill();
+  ctx.fillStyle=tok.land;ctx.beginPath();ctx.moveTo(x1,Y(0));pr.forEach((p,s)=>ctx.lineTo(Z(p.d),Y(s/(pr.length-1))));ctx.lineTo(x1,Y(1));ctx.closePath();ctx.fill();
+  label(ctx,'수심 →',x1-4,y1-12,{size:10.5,align:'right',hw:0,color:tok.muted});
+  [0,1000,2000,3000].forEach(d=>label(ctx,d+'',Z(d),y0+8,{size:9.5,hw:0,color:tok.muted,mono:true}));
+  // 파 위치
+  if(arr&&T.t>0){let s0=-1;for(let s=0;s<pr.length;s++){if(pr[s].t<=T.t)s0=s;}
+    if(s0>=0){const p=pr[s0];const amp=0.5*Math.pow(3000/Math.max(p.d,10),0.25);const y=Y(s0/(pr.length-1));const wl=clamp(Math.sqrt(g*Math.max(p.d,10))*0.9,4,40);
+      ctx.fillStyle='rgba(255,90,60,.85)';ctx.beginPath();ctx.moveTo(sx,y-wl);ctx.quadraticCurveTo(sx-amp*22,y,sx,y+wl);ctx.closePath();ctx.fill();
+      label(ctx,`파고 약 ${amp.toFixed(1)} m`,sx-4,y-wl-10,{size:11,align:'left',color:tok.warm});
+      label(ctx,`속도 ${(Math.sqrt(g*Math.max(p.d,10))*3.6).toFixed(0)} km/h`,sx-4,y+wl+12,{size:11,align:'left',color:tok.warm});}}
+  label(ctx,'진앙',sx-8,Y(0),{size:11,align:'right'});label(ctx,city.n,sx-8,Y(1),{size:11,align:'right'});
+  label(ctx,`거리 ${L.toFixed(0)} km`,sx-8,(Y(0)+Y(1))/2,{size:11,align:'right',color:tok.muted});
+}
+/* ===== 폭풍 해일 ===== */
+const B={pc:950,wv:30,tide:2,bay:true,t:0};
+function surge(){const baro=(1013-B.pc)*0.01;const wind=0.0012*B.wv*B.wv*(B.bay?1.9:1);const tide=[-1.8,0,1.8][B.tide];return {baro,wind,tide,total:baro+wind+tide};}
+function drawB(dt){
+  B.t+=dt*MOTION;
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  const sky=ctx.createLinearGradient(0,0,0,300);sky.addColorStop(0,'#5f7486');sky.addColorStop(1,"#a9b9c6");ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  const s=surge();const Z0=470,M=40; // 1 m = 40 px
+  const sea=Z0-s.total*M;
+  // 비
+  ctx.strokeStyle='rgba(220,230,240,.5)';for(let i=0;i<70;i++){const x=(i*53+B.t*300)%W,y=(i*37+B.t*500)%360;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-6,y+14);ctx.stroke();}
+  // 육지·방파제
+  const coastX=700,wall=Z0-4.2*M;
+  ctx.fillStyle=tok.land;ctx.beginPath();ctx.moveTo(coastX,Z0+40);ctx.lineTo(coastX,wall);ctx.lineTo(coastX+20,wall);ctx.lineTo(coastX+20,Z0-1.5*M);ctx.lineTo(W,Z0-1.5*M);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.lineTo(0,Z0+120);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#8e959b';ctx.fillRect(coastX,wall,20,Z0-wall+40);
+  // 마을
+  for(let i=0;i<4;i++){const x=coastX+60+i*65,y=Z0-1.5*M;ctx.fillStyle='#e8e2d4';ctx.fillRect(x,y-34,42,34);ctx.fillStyle='#c9512a';ctx.beginPath();ctx.moveTo(x-4,y-34);ctx.lineTo(x+21,y-52);ctx.lineTo(x+46,y-34);ctx.fill();}
+  // 바다
+  const over=sea<wall;
+  ctx.fillStyle='rgba(44,127,168,.92)';ctx.beginPath();ctx.moveTo(0,H);for(let x=0;x<=coastX;x+=6)ctx.lineTo(x,sea+Math.sin(x*0.04-B.t*3)*8+Math.sin(x*0.11+B.t*5)*4);ctx.lineTo(coastX,H);ctx.closePath();ctx.fill();
+  if(over){ctx.fillStyle='rgba(44,127,168,.75)';ctx.fillRect(coastX+20,sea,W-coastX-20,Z0-1.5*M-sea+2);}
+  // 기준선
+  const lineAt=(z,t,c)=>{const y=Z0-z*M;ctx.strokeStyle=c;ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(coastX-6,y);ctx.stroke();ctx.setLineDash([]);label(ctx,t,coastX-12,y-10,{size:12,align:'right',color:c});};
+  lineAt(0,'평균 해수면',tok.fg);lineAt(4.2,'방파제 높이 4.2 m','#5a6470');
+  // 해수면 구성 막대
+  const bx=80,by=Z0;let y=by;const parts=[['조석',s.tide,'#7aa7d6'],['기압 효과',s.baro,'#e5a33b'],['바람·지형 효과',s.wind,'#e5533b']];
+  for(const [n,v,c] of parts){const h=v*M;ctx.fillStyle=c;ctx.fillRect(bx,y-Math.max(h,0),34,Math.abs(h));if(Math.abs(v)>0.05)label(ctx,`${n} ${v>=0?'+':''}${v.toFixed(2)} m`,bx+42,y-h/2,{size:11.5,align:'left'});y-=h;}
+  // 태풍 표시
+  darkLabel(ctx,`태풍 ${B.pc} hPa → 해안 쪽 바람 ${B.wv} m/s`,330,40,{size:15});
+  for(let i=0;i<4;i++){const x=200+((i*130+B.t*160)%480);Lab.arrow(ctx,x,80+i*18,x+30+B.wv,80+i*18,{color:'#e6eef5',w:2.5,head:9});}
+  darkLabel(ctx,over?'⚠ 해수가 방파제를 넘음: 침수!':'방파제 안쪽 안전',coastX+150,110,{size:17,color:over?'#ffd0c0':'#e8fff0'});
+  label(ctx,B.bay?'좁아지는 만: 해수가 모여 더 높아짐':'열린 해안',coastX-10,Z0+70,{size:12,align:'right',color:'#fff',halo:'rgba(0,0,0,.4)'});
+}
+/* 텍스트 */
+const EXA=['해저 지진이나 해저 화산 활동으로 해저 지각에 충격이 가해지면 해수면 높이가 변한다.','쓰나미는 파장이 수백 km 이상이고 대양의 수심은 수 km에 불과해 처음부터 끝까지 천해파의 성질을 띤다.','그래서 속도는 √(gh)로 깊은 바다에서 빠르고(수심 3000 m에서 약 600 km/h), 얕아질수록 느려진다.','깊은 바다에서는 파고가 수 cm~1 m로 낮지만, 얕은 해안에 오면 수 m~수십 m로 높아져 큰 피해를 준다.'];
+const EXB=['강한 저기압이나 태풍이 해안으로 오면 낮은 중심 기압 때문에 해수면이 올라간다(1 hPa 낮아질 때 약 1 cm).','강한 바람이 바닷물을 해안으로 밀어 쌓는다.','만조 때 겹치거나, 수심이 급히 얕아지는 곳·만처럼 폐쇄된 해역에서는 더 강해진다.','폭풍 해일도 파장이 길어 천해파의 성질을 띤다.'];
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+let lastM='';
+function text(){
+  if(mode!==lastM){lastM=mode;$('exT').textContent=mode==='A'?'쓰나미 (지진 해일)':'폭풍 해일';$('exC').innerHTML=(mode==='A'?EXA:EXB).map(x=>`<li>${x}</li>`).join('');}
+  if(mode==='A'){
+    $('bigK').textContent='지진 발생 후';$('bigV').textContent=Math.floor(T.t/60)+'분';
+    $('stateName').textContent=!arr?'대기 중':T.t<1?'지진 발생':'쓰나미 전파 중';
+    $('metrics').innerHTML=arr?CITIES.map(c=>{const a=cityArr(c)/60;return metric(c.n+' 도달',a.toFixed(0)+'분 뒤',T.t/60>=a?'⚠ 도달':'');}).join(''):metric('안내','지도를 누르거나 지진 발생 버튼','');
+    $('fsInfo').textContent=`지진 후 ${Math.floor(T.t/60)}분`;
+  }else{const s=surge();
+    $('pcOut').textContent=B.pc+' hPa';$('wvOut').textContent=B.wv+' m/s';
+    $('bigK').textContent='해수면 상승';$('bigV').textContent=s.total.toFixed(2)+' m';
+    const over=s.total>4.2;$('stateName').textContent=over?'침수 위험':'안전';$('chip').dataset.s=over?'warm':'cool';
+    $('metrics').innerHTML=metric('기압 효과',`+${s.baro.toFixed(2)} m`,`(1013 − ${B.pc}) hPa × 1 cm`)+metric('바람·지형 효과',`+${s.wind.toFixed(2)} m`,B.bay?'만에서 약 2배로 커짐':'')+metric('조석',`${s.tide>=0?'+':''}${s.tide.toFixed(1)} m`,['간조','평균','만조'][B.tide])+metric('방파제까지 여유',(4.2-s.total).toFixed(2)+' m',over?'넘침!':'');
+    $('fsInfo').textContent=`${B.pc} hPa · 바람 ${B.wv} m/s · ${['간조','평균','만조'][B.tide]} → 해수면 +${s.total.toFixed(2)} m`;}
+}
+/* 조작 */
+function setMode(m){mode=m;$('mA').setAttribute('aria-pressed',m==='A');$('mB').setAttribute('aria-pressed',m==='B');$('ctlA').hidden=m!=='A';$('ctlB').hidden=m!=='B';$('leg').querySelector('.bar').hidden=m!=='A';
+  $('note').textContent=m==='A'?'동해와 주변 해안선은 모식도이며 수심 분포도 단순화했습니다. 숫자는 그 위치에 쓰나미가 도달하는 시간(분)입니다.':'해수면 높이 변화는 보기 쉽게 과장했습니다. 왼쪽 막대는 해수면 상승의 구성입니다.';}
+$('mA').onclick=()=>setMode('A');$('mB').onclick=()=>setMode('B');
+$('city').innerHTML=CITIES.map((c,i)=>`<option value="${i}"${c.n==='포항'?' selected':''}>${c.n}</option>`).join('');
+function quake(i,j){EPI.i=i;EPI.j=j;compute(i,j);T.t=0;T.run=true;}
+$('quake').onclick=()=>quake(EPI.i,EPI.j);
+$('fast').onclick=()=>{T.speed=T.speed===1?3:1;$('fast').setAttribute('aria-pressed',T.speed===3);};
+$('sim').addEventListener('pointerdown',e=>{if(mode!=='A'||G.on)return;const q=S.pt(e);const i=Math.round((q.x-MX)/PX),j=Math.round((q.y-MY)/PX);if(i<0||j<0||i>=NX||j>=NY||land[j*NX+i])return;quake(i,j);});
+$('pc').addEventListener('input',()=>B.pc=+$('pc').value);$('wv').addEventListener('input',()=>B.wv=+$('wv').value);
+const setTide=k=>{B.tide=k;['tL','tM','tH'].forEach((id,i)=>$(id).setAttribute('aria-pressed',i===k));};['tL','tM','tH'].forEach((id,i)=>$(id).onclick=()=>setTide(i));
+const setBay=b=>{B.bay=b;$('gO').setAttribute('aria-pressed',!b);$('gB').setAttribute('aria-pressed',b);};$('gO').onclick=()=>setBay(false);$('gB').onclick=()=>setBay(true);
+/* 게임 */
+const G={on:false,round:0,pts:0};
+const SPOTS=[{i:150,j:12,n:'홋카이도 남서 해역'},{i:128,j:55,n:'아키타 앞바다'},{i:118,j:95,n:'노토반도 북쪽'},{i:110,j:118,n:'시마네 앞바다'},{i:138,j:30,n:'오쿠시리섬 부근'}];
+$('gStart').onclick=()=>{
+  if(G.round>=3){G.round=0;G.pts=0;$('pts').textContent=0;}
+  setMode('A');G.on=true;G.round++;$('round').textContent=G.round;
+  const sp=Object.assign({},SPOTS[Math.floor(Math.random()*SPOTS.length)]);while(land[sp.j*NX+sp.i]&&sp.i>60)sp.i-=2;sp.i-=4;const ci=Math.floor(Math.random()*5);G.city=CITIES[ci];$('city').value=ci;
+  EPI.i=sp.i;EPI.j=sp.j;compute(sp.i,sp.j);T.t=0;T.run=false;
+  const pr=lineProfile(EPI,G.city).filter(p=>p.d>0);const L=Math.hypot(G.city.i-EPI.i,G.city.j-EPI.j)*CK;const hm=pr.reduce((a,p)=>a+p.d,0)/pr.length;
+  G.L=L;G.h=Math.round(hm/50)*50;G.formula=L*1000/Math.sqrt(g*G.h)/60;G.real=cityArr(G.city)/60;
+  $('gQ').textContent=`${sp.n}에서 규모 7.5 지진! ${G.city.n}까지 거리 ${L.toFixed(0)} km, 경로 평균 수심 약 ${G.h} m`;
+  $('fb').textContent='계산: 시간 = 거리 ÷ √(9.8 × 평균 수심). 단위를 m와 초로 맞춘 뒤 분으로 바꾸세요.';$('fb').className='feedback';$('ans').value='';
+};
+$('gSend').onclick=()=>{
+  if(!G.on){$('fb').textContent='먼저 지진을 감지하세요.';return;}
+  const a=parseFloat($('ans').value);if(!isFinite(a)){$('fb').textContent='분 단위로 입력하세요.';return;}
+  T.run=true;T.t=0;
+  const errF=Math.abs(a-G.formula)/G.formula;let p=errF<0.1?25:errF<0.25?15:errF<0.5?5:0;
+  const late=a>G.real;if(late)p=Math.max(0,p-10);
+  G.pts+=p;$('pts').textContent=G.pts;
+  $('fb').textContent=`공식 값 ${G.formula.toFixed(0)}분, 실제 시뮬레이션 도달 ${G.real.toFixed(0)}분. 내 예측 ${a}분 → +${p}점.`+(late?' ⚠ 실제보다 늦은 예측이라 경보가 늦었어요(−10점). 해안 가까이 얕은 곳에서 더 느려지는 점도 생각해야 해요.':' 경보가 제때 나갔습니다!')+(G.round>=3?` 최종 ${G.pts}/75점`:'');
+  $('fb').className='feedback '+(p>=15?'good':p===0?'bad':'');
+  if(G.round>=3){const n=G.pts>=65?3:G.pts>=40?2:G.pts>=15?1:0;$('stBest').textContent=Lab.stars(Lab.best('tsunami',n));}
+  G.on=false;
+};
+$('stBest').textContent=Lab.stars(Lab.best('tsunami',0));
+compute(EPI.i,EPI.j);T.t=60*60;T.run=false;
+let fr=0;Lab.loop(dt=>{fr++;S.begin();mode==='A'?drawA(dt):drawB(dt);if(fr%6===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

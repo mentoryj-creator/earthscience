@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>모호면 탐사대</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u1" target="_top">← 지구시스템과학 1단원 목록</a>
+    <div class="eyebrow">05 지구 내부 구조 · 주시 곡선 · 모호로비치치 불연속면</div>
+    <h1>모호면 탐사대</h1>
+    <p>지각만 지나온 직접파와 맨틀을 빠르게 달려온 굴절파의 주시 곡선이 꺾이는 곳을 찾으면 지각의 두께를 구할 수 있습니다. 2019년 포항 지진 자료로 한반도 지각의 두께도 계산해 봅니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls" style="padding-block:10px">
+      <div class="seg" role="group" aria-label="모드">
+        <button id="m1" type="button" aria-pressed="true">원리 탐구</button>
+        <button id="m2" type="button" aria-pressed="false">포항 지진 자료 (2019)</button>
+        <button id="m3" type="button" aria-pressed="false">🎯 미션: 미지의 지각</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="controls" id="ctl1">
+      <div class="slider"><div class="slider-top"><label for="d">지각의 두께 d</label><output id="dOut">35 km</output></div><input id="d" type="range" min="5" max="70" value="35"></div>
+      <div class="slider"><div class="slider-top"><label for="v1">지각의 P파 속도 V₁</label><output id="v1Out">6.0 km/s</output></div><input id="v1" type="range" min="50" max="72" value="60"></div>
+      <div class="slider"><div class="slider-top"><label for="v2">맨틀의 P파 속도 V₂</label><output id="v2Out">8.0 km/s</output></div><input id="v2" type="range" min="74" max="90" value="80"></div>
+      <div class="presets"><button id="shoot" type="button" class="warm">💥 지진 발생</button></div>
+    </div>
+    <div class="controls" id="ctl2" hidden>
+      <div class="slider"><div class="slider-top"><label for="split">직접파와 굴절파를 나누는 위치</label><output id="splitOut"></output></div><input id="split" type="range" min="2" max="12" value="8"></div>
+      <div class="toggles"><label><input type="checkbox" id="manual">직선을 손으로 긋기 (끝점을 끌어 옮김)</label></div>
+      <div class="presets" id="gameBtns" hidden><button id="gNew" type="button">🎲 새 지역</button><span class="score">남은 지진계 <b id="left">10</b></span></div>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="660" role="img" aria-label="지각과 맨틀 단면의 지진파 경로와 주시 곡선"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#2a64c9"></i>직접파 (지각만 통과)</span>
+      <span><i class="sw" style="background:#c9512a"></i>굴절파 (모호면을 따라 맨틀 통과)</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note" id="note">단면은 깊이를 크게 과장했습니다. 주시 곡선의 기울기는 속도의 역수입니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="계산">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">원리 탐구</span></span>
+        <div class="big"><div class="k">구한 지각의 두께</div><div class="v" id="bigD">–</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+      <div class="impact" style="margin-top:12px"><b>지각 두께 공식</b>교차점까지의 진앙 거리 l에서 두 파가 동시에 도착하므로 l/V₁ = l/V₂ + 2d·cosθ/V₁ (sinθ = V₁/V₂) → <b>d = (l/2) × √((V₂ − V₁) / (V₂ + V₁))</b></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle">주시 곡선이 꺾이는 까닭</h2>
+      <ol class="chain">
+        <li>가까운 곳에서는 지각만 지나 온 직접파가 먼저 도착한다(주시 곡선 A).</li>
+        <li>지각을 지나 모호면에서 굴절한 파는 밀도가 더 큰 맨틀을 더 빠르게 달린 뒤 다시 지표로 올라온다(주시 곡선 B).</li>
+        <li>어느 거리(교차점 X)부터는 돌아가더라도 빠른 길을 달린 굴절파가 먼저 도착해서 주시 곡선이 꺾인다.</li>
+        <li>교차점까지의 거리가 멀수록 지각이 두껍다. 모호로비치치는 발칸반도 지진에서 이 꺾임을 발견했다.</li>
+      </ol>
+      <div class="impact" id="game" hidden><b>미션</b>단면 위 지표를 눌러 지진계를 설치하면 첫 도착 시각이 그래프에 찍힙니다(최대 10개). 나누는 위치를 맞춘 뒤 아래에 답을 입력하세요.
+        <div class="row" style="margin-top:8px"><label for="ans">지각의 두께</label><input id="ans" type="number" step="0.5" placeholder="km"><span>km</span><button id="check" type="button" class="primary">확인</button></div>
+        <div class="feedback" id="fb">지진계를 설치해 보세요.</div>
+        <div class="score" style="margin-top:6px"><span>이번 판 <b id="stNow">☆☆☆</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>지각의 두께를 두껍게 하면 교차점 X는 어떻게 움직이나요?</li>
+      <li>진앙 거리가 어느 거리 이상이 되면 직접파보다 굴절파가 먼저 도착하는 까닭은 무엇일까요?</li>
+      <li>포항 지진 자료로 구한 한반도 지각의 두께를 최근 연구값(약 26–34 km, 평균 약 30 km)과 비교해 보세요.</li>
+      <li>직선을 긋는 방법(어떤 점을 고르는지)에 따라 결과가 조금씩 달라집니다. 더 정확하게 구하려면 어떻게 해야 할까요?</li>
+    </ol>
+  </section>
+  <p class="foot">포항 지진 자료: 2019년 2월 10일 12시 53분 39.255초, 포항시 부근(36.17°N, 129.84°E) 규모 4.1 지진의 관측소별 진앙 거리와 P파 도달 시간(출처: 한국지질자원연구원, 2021, 교과서 탐구 활동 자료). 교과서 예시 답안은 기울기 0.148과 0.123, 교차점 153 km로 약 23 km를 얻습니다. 원리 탐구에서는 진원을 지표에 둔 단순 모델을 썼습니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=660;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const POHANG=[[40.7,7.545],[45.0,8.445],[62.8,10.675],[72.7,12.315],[96.0,15.875],[107.2,17.515],[121.7,19.685],[134.1,21.315],[154.5,24.325],[171.8,26.715],[197.6,29.685],[225.3,33.525],[235.7,35.345],[267.6,38.715]];
+const M={mode:1,d:35,v1:6,v2:8,t:-1,pts:[],hidden:null,lines:null,manualLines:null};
+// 좌표
+const SX0=60,SX1=950,SY=70,ZK=2.6,XMAX=300; // 단면: 1 km 깊이 = 2.6 px
+const sx=x=>SX0+x/XMAX*(SX1-SX0);
+const GX0=90,GX1=940,GY0=330,GY1=620,TMAXG=50;
+const gx=x=>GX0+x/XMAX*(GX1-GX0),gy=t=>GY1-t/TMAXG*(GY1-GY0);
+const ginv=(px,py)=>({x:(px-GX0)/(GX1-GX0)*XMAX,t:(GY1-py)/(GY1-GY0)*TMAXG});
+function cur(){return M.mode===3?M.hidden:{d:M.d,v1:M.v1,v2:M.v2};}
+function times(p,x){const th=Math.asin(p.v1/p.v2);const xc=2*p.d*Math.tan(th);const td=x/p.v1;const th2=x>=xc?x/p.v2+2*p.d*Math.cos(th)/p.v1:Infinity;return {td,th:th2,xc,th0:th};}
+function crossover(p){return 2*p.d*Math.sqrt((p.v2+p.v1)/(p.v2-p.v1));}
+/* 직선 맞추기 */
+function fit(pts){const n=pts.length;let sx_=0,sy_=0,sxx=0,sxy=0;for(const [x,y] of pts){sx_+=x;sy_+=y;sxx+=x*x;sxy+=x*y;}const a=(n*sxy-sx_*sy_)/(n*sxx-sx_*sx_);return {a,b:(sy_-a*sx_)/n};}
+function computeLines(){
+  const P=M.mode===2?POHANG:M.pts.slice().sort((a,b)=>a[0]-b[0]);
+  if(M.manualLines&&$('manual').checked){const L=M.manualLines;const f=([p,q])=>{const a=(q.t-p.t)/(q.x-p.x);return {a,b:p.t-a*p.x};};M.lines=[f(L[0]),f(L[1])];return;}
+  const k=+$('split').value;
+  if(P.length<4||k<2||P.length-k<2){M.lines=null;return;}
+  M.lines=[fit(P.slice(0,k)),fit(P.slice(k))];
+  M.manualLines=[[{x:0,t:M.lines[0].b},{x:200,t:M.lines[0].a*200+M.lines[0].b}],[{x:100,t:M.lines[1].a*100+M.lines[1].b},{x:300,t:M.lines[1].a*300+M.lines[1].b}]];
+}
+function result(){if(!M.lines)return null;const [A,B]=M.lines;if(A.a<=B.a)return null;const l=(B.b-A.b)/(A.a-B.a);const V1=1/A.a,V2=1/B.a;const d=l/2*Math.sqrt((V2-V1)/(V2+V1));return {l,V1,V2,d,a1:A.a,a2:B.a};}
+/* 그리기 */
+function draw(dt){
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  const p=cur();const showTruth=M.mode===1||(M.mode===3&&M.revealed);
+  // 단면
+  const dd=M.mode===2?30:(p?p.d:35);const moho=SY+dd*ZK;
+  ctx.fillStyle=tok['sky-bot'];ctx.fillRect(SX0,SY-40,SX1-SX0,40);
+  ctx.fillStyle='#b99a72';ctx.fillRect(SX0,SY,SX1-SX0,(M.mode===3&&!showTruth)?240-SY+30:moho-SY);
+  if(M.mode!==3||showTruth){ctx.fillStyle='#8e5a3c';ctx.fillRect(SX0,moho,SX1-SX0,270-moho);
+    ctx.strokeStyle='#5a3424';ctx.lineWidth=2;ctx.setLineDash([8,5]);ctx.beginPath();ctx.moveTo(SX0,moho);ctx.lineTo(SX1,moho);ctx.stroke();ctx.setLineDash([]);
+    darkLabel(ctx,'모호면',SX1-8,moho-10,{size:12,align:'right'});darkLabel(ctx,M.mode===2?'맨틀':`맨틀 V₂ = ${p.v2.toFixed(1)} km/s`,SX1-8,Math.min(moho+22,262),{size:12,align:'right'});
+    darkLabel(ctx,M.mode===2?'지각 (두께 = ? 주시 곡선으로 구해 보세요)':`지각 V₁ = ${p.v1.toFixed(1)} km/s · d = ${p.d} km`,SX1-8,SY+14,{size:12,align:'right'});}
+  else darkLabel(ctx,'지각 아래는 보이지 않습니다',SX1-8,SY+14,{size:12,align:'right'});
+  // 진원
+  ctx.fillStyle='#e5533b';ctx.beginPath();ctx.arc(sx(0),SY,7,0,7);ctx.fill();darkLabel(ctx,'진원·진앙',sx(0)+10,SY-16,{size:11,align:'left'});
+  // 경로·파 (원리 모드)
+  if(M.mode===1){
+    const T=times(p,0);const th=T.th0;const xc=T.xc;
+    // 굴절파 경로 몇 개
+    [xc+40,crossover(p),260].forEach((x,i)=>{if(x>XMAX)return;const a=p.d*Math.tan(th);ctx.strokeStyle='rgba(201,81,42,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx(0),SY);ctx.lineTo(sx(a),moho);ctx.lineTo(sx(x-a),moho);ctx.lineTo(sx(x),SY);ctx.stroke();});
+    ctx.strokeStyle='rgba(42,100,201,.85)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx(0),SY+2);ctx.lineTo(sx(XMAX),SY+2);ctx.stroke();
+    label(ctx,`θ = ${(th*180/Math.PI).toFixed(0)}°`,sx(p.d*Math.tan(th))+8,moho-14,{size:11,align:'left',color:'#7a2c12',hw:2});
+    // 진행 중인 파
+    if(M.t>=0){M.t+=dt*12*MOTION;
+      const xd=p.v1*M.t;if(xd<XMAX){ctx.fillStyle='#2a64c9';ctx.beginPath();ctx.arc(sx(xd),SY,6,0,7);ctx.fill();}
+      // 굴절파 머리: 모호면을 따라 이동
+      const a=p.d*Math.tan(th),tdown=p.d/Math.cos(th)/p.v1;
+      if(M.t<tdown){const f=M.t/tdown;ctx.fillStyle='#c9512a';ctx.beginPath();ctx.arc(sx(a*f),SY+(moho-SY)*f,6,0,7);ctx.fill();}
+      else{const xm=a+(M.t-tdown)*p.v2;if(xm<XMAX){ctx.fillStyle='#c9512a';ctx.beginPath();ctx.arc(sx(xm),moho,6,0,7);ctx.fill();
+      }}
+      if(M.t>XMAX/p.v1+2)M.t=-1;
+    }
+  }
+  // 지진계
+  const stations=M.mode===2?POHANG.map(q=>q[0]):M.mode===3?M.pts.map(q=>q[0]):[25,50,75,100,125,150,175,200,225,250,275,300];
+  for(const x of stations){ctx.fillStyle=tok.fg;ctx.beginPath();ctx.moveTo(sx(x),SY-2);ctx.lineTo(sx(x)-5,SY-12);ctx.lineTo(sx(x)+5,SY-12);ctx.closePath();ctx.fill();}
+  for(let x=0;x<=300;x+=50)label(ctx,x+'',sx(x),SY-30,{size:10,hw:0,color:tok.muted,mono:true});
+  label(ctx,'진앙 거리 (km)',SX0,SY-50,{size:10,align:'left',hw:0,color:tok.muted});
+  if(M.mode===3&&!M.revealed)label(ctx,'↑ 지표를 눌러 지진계 설치',SX1,SY-30,{size:12,align:'right',color:tok.gold});
+  // ===== 주시 곡선 =====
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;
+  for(let x=0;x<=XMAX;x+=50){ctx.beginPath();ctx.moveTo(gx(x),GY0);ctx.lineTo(gx(x),GY1);ctx.stroke();label(ctx,x+'',gx(x),GY1+12,{size:10.5,hw:0,color:tok.muted,mono:true});}
+  for(let t=0;t<=TMAXG;t+=10){ctx.beginPath();ctx.moveTo(GX0,gy(t));ctx.lineTo(GX1,gy(t));ctx.stroke();label(ctx,t+'',GX0-8,gy(t),{size:10.5,align:'right',hw:0,color:tok.muted,mono:true});}
+  label(ctx,'P파 도달 시간 (초)',GX0,GY0-12,{size:12,align:'left',hw:0});label(ctx,'진앙 거리 (km)',GX1,GY1+28,{size:11,align:'right',hw:0,color:tok.muted});
+  if(showTruth&&M.mode!==2){const T=times(p,0);
+    ctx.strokeStyle='#2a64c9';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(gx(0),gy(0));ctx.lineTo(gx(XMAX),gy(XMAX/p.v1));ctx.stroke();
+    ctx.strokeStyle='#c9512a';ctx.beginPath();ctx.moveTo(gx(T.xc),gy(times(p,T.xc).th));ctx.lineTo(gx(XMAX),gy(times(p,XMAX).th));ctx.stroke();
+    const X=crossover(p);if(X<=XMAX){ctx.fillStyle=tok.fg;ctx.beginPath();ctx.arc(gx(X),gy(X/p.v1),5,0,7);ctx.fill();ctx.setLineDash([4,4]);ctx.strokeStyle=tok.fg;ctx.beginPath();ctx.moveTo(gx(X),gy(X/p.v1));ctx.lineTo(gx(X),GY1);ctx.stroke();ctx.setLineDash([]);label(ctx,`교차점 X (l = ${X.toFixed(0)} km)`,gx(X)+8,gy(X/p.v1)+16,{size:12,align:'left'});}
+    label(ctx,'A 직접파',gx(60),gy(60/p.v1)-12,{size:12,color:'#2a64c9'});label(ctx,'B 굴절파',gx(270),gy(times(p,270).th)+16,{size:12,color:'#c9512a'});
+    // 첫 도착 점
+    if(M.mode===1)for(const x of stations){const tt=times(p,x);const f=Math.min(tt.td,tt.th);ctx.fillStyle=tt.th<tt.td?'#c9512a':'#2a64c9';ctx.beginPath();ctx.arc(gx(x),gy(f),4,0,7);ctx.fill();}
+  }
+  // 자료 점과 맞춘 직선
+  if(M.mode>=2){
+    const P=M.mode===2?POHANG:M.pts.slice().sort((a,b)=>a[0]-b[0]);const k=+$('split').value;
+    P.forEach((q,i)=>{ctx.fillStyle=(i<k&&!$('manual').checked)?'#2a64c9':$('manual').checked?tok.fg:'#c9512a';ctx.beginPath();ctx.arc(gx(q[0]),gy(q[1]),5,0,7);ctx.fill();});
+    computeLines();
+    if(M.lines){const cols=['#2a64c9','#c9512a'];M.lines.forEach((L,i)=>{ctx.strokeStyle=cols[i];ctx.lineWidth=2;ctx.setLineDash([7,4]);ctx.beginPath();ctx.moveTo(gx(0),gy(L.b));ctx.lineTo(gx(XMAX),gy(L.a*XMAX+L.b));ctx.stroke();ctx.setLineDash([]);});
+      const r=result();if(r&&r.l>0&&r.l<XMAX){ctx.fillStyle=tok.fg;ctx.beginPath();ctx.arc(gx(r.l),gy(M.lines[0].a*r.l+M.lines[0].b),6,0,7);ctx.fill();label(ctx,`교차점 l ≈ ${r.l.toFixed(0)} km`,gx(r.l)+10,gy(M.lines[0].a*r.l+M.lines[0].b)+16,{size:12,align:'left'});}
+      label(ctx,`기울기 ${M.lines[0].a.toFixed(3)} → V₁ ≈ ${(1/M.lines[0].a).toFixed(2)} km/s`,gx(10),gy(46),{size:12,align:'left',color:'#2a64c9'});
+      label(ctx,`기울기 ${M.lines[1].a.toFixed(3)} → V₂ ≈ ${(1/M.lines[1].a).toFixed(2)} km/s`,gx(10),gy(42),{size:12,align:'left',color:'#c9512a'});}
+    if($('manual').checked&&M.manualLines){for(const L of M.manualLines)for(const h of L){ctx.strokeStyle=tok.gold;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(gx(h.x),gy(h.t),8,0,7);ctx.stroke();}}
+  }
+}
+/* 끌기 (손으로 긋기) */
+let dragH=null;
+$('sim').addEventListener('pointerdown',e=>{
+  const q=S.pt(e);
+  if(M.mode===3&&!M.revealed&&q.y<SY+20&&q.y>SY-50&&q.x>=SX0&&q.x<=SX1){ // 지진계 설치
+    if(M.pts.length>=10){$('fb').textContent='지진계를 모두 썼습니다.';return;}
+    const x=clamp((q.x-SX0)/(SX1-SX0)*XMAX,5,XMAX);const tt=times(M.hidden,x);const t=Math.min(tt.td,tt.th)+(Math.random()-.5)*0.25;
+    M.pts.push([Math.round(x*10)/10,t]);$('left').textContent=10-M.pts.length;$('split').max=Math.max(2,M.pts.length-2);syncSplit();return;}
+  if(M.mode>=2&&$('manual').checked&&M.manualLines){for(const L of M.manualLines)for(const h of L){if(Math.hypot(gx(h.x)-q.x,gy(h.t)-q.y)<14){dragH=h;$('sim').setPointerCapture(e.pointerId);return;}}}
+});
+$('sim').addEventListener('pointermove',e=>{if(!dragH)return;const q=S.pt(e);const g=ginv(q.x,q.y);dragH.x=clamp(g.x,0,XMAX);dragH.t=clamp(g.t,0,TMAXG);});
+$('sim').addEventListener('pointerup',()=>dragH=null);
+/* 텍스트 */
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  if(M.mode===1){const p=cur(),X=crossover(p);
+    $('stateName').textContent='원리 탐구';$('bigD').textContent=p.d+' km';
+    $('metrics').innerHTML=metric('임계각 θ',(Math.asin(p.v1/p.v2)*180/Math.PI).toFixed(1)+'°','sin θ = V₁/V₂')+metric('교차점까지 거리 l',X.toFixed(0)+' km','두께가 두꺼울수록 멀어짐')+metric('공식으로 다시 구한 d',(X/2*Math.sqrt((p.v2-p.v1)/(p.v2+p.v1))).toFixed(1)+' km','= (l/2)√((V₂−V₁)/(V₂+V₁))')+metric('직접파 기울기',(1/p.v1).toFixed(3)+' s/km','= 1/V₁');
+    $('fsInfo').textContent=`d ${p.d} km · V₁ ${p.v1.toFixed(1)} · V₂ ${p.v2.toFixed(1)} · 교차점 ${X.toFixed(0)} km`;return;}
+  const r=result();
+  $('stateName').textContent=M.mode===2?'포항 지진 자료 분석':'미지의 지각 탐사';
+  $('bigD').textContent=r&&r.d>0?r.d.toFixed(1)+' km':'–';
+  $('metrics').innerHTML=r?metric('직접파 속도 V₁',r.V1.toFixed(2)+' km/s','기울기 '+r.a1.toFixed(3)+'의 역수')+metric('굴절파 속도 V₂',r.V2.toFixed(2)+' km/s','기울기 '+r.a2.toFixed(3)+'의 역수')+metric('교차점 거리 l',r.l.toFixed(1)+' km','두 직선이 만나는 곳')+metric('지각의 두께 d',r.d.toFixed(1)+' km',M.mode===2?'교과서 예시 답안 약 23 km':'')
+    :metric('자료','점이 부족합니다','직접파·굴절파 쪽에 각각 2개 이상');
+  $('fsInfo').textContent=r?`V₁ ${r.V1.toFixed(2)} · V₂ ${r.V2.toFixed(2)} · l ${r.l.toFixed(0)} km · d ${r.d.toFixed(1)} km`:'';
+}
+function syncSplit(){const n=M.mode===2?POHANG.length:M.pts.length;$('splitOut').textContent=`앞쪽 ${$('split').value}개 = 직접파 · 나머지 ${Math.max(0,n-+$('split').value)}개 = 굴절파`;M.manualLines=null;}
+$('split').addEventListener('input',syncSplit);
+$('manual').onchange=()=>{};
+/* 모드 */
+function setMode(m){M.mode=m;['m1','m2','m3'].forEach((id,i)=>$(id).setAttribute('aria-pressed',i+1===m));
+  $('ctl1').hidden=m!==1;$('ctl2').hidden=m===1;$('gameBtns').hidden=m!==3;$('game').hidden=m!==3;$('manual').checked=false;M.manualLines=null;
+  if(m===2){$('split').max=12;$('split').value=8;}
+  if(m===3)newGame();
+  syncSplit();}
+function newGame(){M.hidden={d:Math.round(15+Math.random()*40),v1:Math.round((5.8+Math.random()*0.9)*10)/10,v2:Math.round((7.8+Math.random()*0.5)*10)/10};M.pts=[];M.revealed=false;$('left').textContent=10;$('split').max=2;$('split').value=2;$('fb').textContent='지표를 눌러 지진계를 설치하세요. 교차점 앞뒤에 골고루 놓아야 해요.';$('fb').className='feedback';$('ans').value='';$('stNow').textContent=Lab.stars(0);syncSplit();}
+$('m1').onclick=()=>setMode(1);$('m2').onclick=()=>setMode(2);$('m3').onclick=()=>setMode(3);$('gNew').onclick=newGame;
+$('check').onclick=()=>{const a=parseFloat($('ans').value);if(!isFinite(a)){$('fb').textContent='두께를 입력하세요.';return;}
+  const h=M.hidden,err=Math.abs(a-h.d)/h.d;const st=err<0.08?3:err<0.18?2:err<0.35?1:0;M.revealed=true;
+  $('stNow').textContent=Lab.stars(st);$('stBest').textContent=Lab.stars(Lab.best('moho',st));
+  $('fb').textContent=`정답 ${h.d} km (V₁ ${h.v1}, V₂ ${h.v2} km/s). 오차 ${(err*100).toFixed(0)}% ${Lab.stars(st)}. 단면이 공개되었습니다.`;$('fb').className='feedback '+(st>=2?'good':st===0?'bad':'');};
+$('stBest').textContent=Lab.stars(Lab.best('moho',0));
+['d','v1','v2'].forEach(id=>{const el=$(id);const f=()=>{const v=+el.value;if(id==='d'){M.d=v;$('dOut').textContent=v+' km';}else{M[id]=v/10;$(id+'Out').textContent=(v/10).toFixed(1)+' km/s';}};el.addEventListener('input',f);f();});
+$('shoot').onclick=()=>{M.t=0;};
+setMode(1);M.t=0;
+let fr=0;
+Lab.loop(dt=>{fr++;S.begin();draw(dt);if(fr%6===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

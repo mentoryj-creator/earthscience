@@ -123,7 +123,8 @@ window.SITE = /*DATA-START*/{
         "판 구조론과 지각 변동",
         "광물과 암석",
         "지구의 역사",
-        "한반도의 지질"
+        "한반도의 지질",
+        "지구 내부 구조"
       ]
     },
     {
@@ -134,7 +135,9 @@ window.SITE = /*DATA-START*/{
         "대기와 날씨",
         "해수의 성질과 순환",
         "대기-해양 상호작용",
-        "기후 변화"
+        "기후 변화",
+        "해파·해일·조석",
+        "대기의 운동과 순환"
       ]
     },
     {
@@ -3131,6 +3134,614 @@ window.SITE = /*DATA-START*/{
       "howto": "카드를 하나 누른 뒤, 알맞은 상자(증거·한계·해결)를 누릅니다.\n모두 분류하면 **다시 하기**로 반복할 수 있습니다.",
       "concept": "빅뱅 우주론의 증거: **우주 배경 복사**, **수소 : 헬륨 질량비 ≈ 3 : 1**.\n빅뱅 우주론의 한계: **평탄성 문제**, **지평선 문제**.\n이 한계는 **급팽창 우주론**이 해결했으며, 이후 Ia형 초신성 관측으로 **가속 팽창 우주론**이 등장했습니다.",
       "inquiry": "빅뱅 우주론의 두 가지 증거를 설명해 보자.\n급팽창 우주론은 지평선 문제를 어떻게 해결했을까?"
+    },
+    {
+      "id": "solar-system-formation",
+      "title": "태양계 형성 실험실",
+      "desc": "성운이 수축해 원반이 되고 미행성체가 모여 행성이 되기까지",
+      "file": "sims/solid/solar-system-formation.html",
+      "topic": "solid",
+      "sub": "지구시스템",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "early-earth",
+      "title": "원시 지구 진화 실험실",
+      "desc": "마그마 바다에서 핵·맨틀 분리, 원시 지각과 원시 바다까지",
+      "file": "sims/solid/early-earth.html",
+      "topic": "solid",
+      "sub": "지구시스템",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "snowball-earth",
+      "title": "얼음덩어리 지구 실험실",
+      "desc": "탄소 순환과 얼음 반사율로 지구가 얼었다 녹는 과정",
+      "file": "sims/solid/snowball-earth.html",
+      "topic": "solid",
+      "sub": "지구시스템",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "oxygen-banded-iron",
+      "title": "호상철광층과 산소 실험실",
+      "desc": "남세균의 산소가 호상철광층과 오존층을 만들기까지",
+      "file": "sims/solid/oxygen-banded-iron.html",
+      "topic": "solid",
+      "sub": "지구시스템",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "wegener-puzzle",
+      "title": "베게너의 대륙 퍼즐",
+      "desc": "해안선·화석·빙하 흔적으로 곤드와나 대륙 맞추기",
+      "file": "sims/solid/wegener-puzzle.html",
+      "topic": "solid",
+      "sub": "판 구조론과 지각 변동",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "echo-sounding",
+      "title": "음향 측심 탐사선",
+      "desc": "음파 왕복 시간으로 보이지 않는 해저 지형 그리기",
+      "file": "sims/solid/echo-sounding.html",
+      "topic": "solid",
+      "sub": "판 구조론과 지각 변동",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "seafloor-spreading",
+      "title": "해양저 확장 실험실",
+      "desc": "해령 양쪽의 대칭 지자기 줄무늬와 확장 속도",
+      "file": "sims/solid/seafloor-spreading.html",
+      "topic": "solid",
+      "sub": "판 구조론과 지각 변동",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "plate-driving-forces",
+      "title": "판을 움직이는 힘 실험실",
+      "desc": "해령에서 미는 힘과 섭입하는 판이 당기는 힘 비교",
+      "file": "sims/solid/plate-driving-forces.html",
+      "topic": "solid",
+      "sub": "판 구조론과 지각 변동",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "hotspot-hawaii",
+      "title": "열점과 하와이 열도",
+      "desc": "고정된 열점 위를 지나는 판과 하와이 열도",
+      "file": "sims/solid/hotspot-hawaii.html",
+      "topic": "solid",
+      "sub": "판 구조론과 지각 변동",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "mantle-plume",
+      "title": "맨틀 플룸 관측소",
+      "desc": "뜨거운 플룸·차가운 플룸과 지진파 단면 영상",
+      "file": "sims/solid/mantle-plume.html",
+      "topic": "solid",
+      "sub": "판 구조론과 지각 변동",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "magma-volcano-types",
+      "title": "마그마와 화산 공방",
+      "desc": "SiO₂ 함량에 따라 달라지는 마그마와 화산체",
+      "file": "sims/solid/magma-volcano-types.html",
+      "topic": "solid",
+      "sub": "광물과 암석",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "igneous-texture",
+      "title": "화성암 조직 실험실",
+      "desc": "식는 깊이와 속도에 따른 화성암의 결정 크기",
+      "file": "sims/solid/igneous-texture.html",
+      "topic": "solid",
+      "sub": "광물과 암석",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "epicenter-ps-time",
+      "title": "진앙 추적 본부",
+      "desc": "세 관측소의 PS시로 진앙 찾기",
+      "file": "sims/solid/epicenter-ps-time.html",
+      "topic": "solid",
+      "sub": "지구 내부 구조",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "moho-travel-time",
+      "title": "모호면 탐사대",
+      "desc": "주시 곡선이 꺾이는 곳으로 지각 두께 구하기",
+      "file": "sims/solid/moho-travel-time.html",
+      "topic": "solid",
+      "sub": "지구 내부 구조",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "seismic-shadow-zone",
+      "title": "지구 속 지진파 추적기",
+      "desc": "지진파 경로와 암영대로 외핵이 액체임을 알아내기",
+      "file": "sims/solid/seismic-shadow-zone.html",
+      "topic": "solid",
+      "sub": "지구 내부 구조",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u1"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "ekman-spiral",
+      "title": "에크만 나선 실험실",
+      "desc": "바람에 끌린 해수가 오른쪽으로 꺾이는 에크만 나선과 수송",
+      "file": "sims/fluid/ekman-spiral.html",
+      "topic": "fluid",
+      "sub": "해수의 성질과 순환",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u2"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "geostrophic-current",
+      "title": "지형류 실험실",
+      "desc": "수압 경도력과 전향력이 평형을 이루는 지형류",
+      "file": "sims/fluid/geostrophic-current.html",
+      "topic": "fluid",
+      "sub": "해수의 성질과 순환",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u2"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "ocean-waves",
+      "title": "해파 실험 수조",
+      "desc": "풍랑·너울·쇄파, 심해파와 천해파의 물 입자 운동",
+      "file": "sims/fluid/ocean-waves.html",
+      "topic": "fluid",
+      "sub": "해파·해일·조석",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u2"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "tsunami-storm-surge",
+      "title": "해일 경보 센터",
+      "desc": "쓰나미의 전파와 폭풍 해일이 위험한 때",
+      "file": "sims/fluid/tsunami-storm-surge.html",
+      "topic": "fluid",
+      "sub": "해파·해일·조석",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u2"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "tide-observatory",
+      "title": "조석 관측소",
+      "desc": "기조력, 조석 주기, 사리와 조금",
+      "file": "sims/fluid/tide-observatory.html",
+      "topic": "fluid",
+      "sub": "해파·해일·조석",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u2"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "tidal-power-plant",
+      "title": "조력 발전소 운영실",
+      "desc": "시화호처럼 수위 차로 전기 만들기",
+      "file": "sims/fluid/tidal-power-plant.html",
+      "topic": "fluid",
+      "sub": "해파·해일·조석",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u2"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "selective-absorption",
+      "title": "대기의 선택적 흡수 실험실",
+      "desc": "대기 기체의 선택적 흡수와 온실 효과",
+      "file": "sims/fluid/selective-absorption.html",
+      "topic": "fluid",
+      "sub": "기후 변화",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "habitable-planet-design",
+      "title": "생명 가능 행성 설계실",
+      "desc": "중심별·궤도·대기·자기장으로 생명 가능 행성 설계",
+      "file": "sims/astro/habitable-planet-design.html",
+      "topic": "astro",
+      "sub": "외계 행성계",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "earth-heat-budget",
+      "title": "지구 열수지 실험실",
+      "desc": "태양 복사 100이 우주·대기·지표를 오가는 지구 열수지",
+      "file": "sims/fluid/earth-heat-budget.html",
+      "topic": "fluid",
+      "sub": "기후 변화",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "adiabatic-foehn",
+      "title": "단열 변화와 푄 실험실",
+      "desc": "산을 넘는 공기의 단열 변화와 푄",
+      "file": "sims/fluid/adiabatic-foehn.html",
+      "topic": "fluid",
+      "sub": "대기와 날씨",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "atmospheric-stability",
+      "title": "대기 안정도 실험실",
+      "desc": "단열선도에 기온 감률을 그려 대기 안정도 판단하기",
+      "file": "sims/fluid/atmospheric-stability.html",
+      "topic": "fluid",
+      "sub": "대기와 날씨",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "precipitation-process",
+      "title": "강수 과정 실험실",
+      "desc": "병합 과정과 빙정 과정, 인공 강우",
+      "file": "sims/fluid/precipitation-process.html",
+      "topic": "fluid",
+      "sub": "대기와 날씨",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "coriolis-force",
+      "title": "전향력 실험실",
+      "desc": "회전 원판과 푸코 진자로 보는 전향력",
+      "file": "sims/fluid/coriolis-force.html",
+      "topic": "fluid",
+      "sub": "대기의 운동과 순환",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "thermal-circulation",
+      "title": "공기 기둥과 해륙풍",
+      "desc": "공기 기둥이 데워지며 생기는 열적 순환과 해륙풍",
+      "file": "sims/fluid/thermal-circulation.html",
+      "topic": "fluid",
+      "sub": "대기의 운동과 순환",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "wind-force-balance",
+      "title": "바람 실험실",
+      "desc": "힘의 균형으로 정해지는 지균풍·경도풍·지상풍",
+      "file": "sims/fluid/wind-force-balance.html",
+      "topic": "fluid",
+      "sub": "대기의 운동과 순환",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "general-circulation",
+      "title": "대기 대순환 실험실",
+      "desc": "단일 세포 순환과 3세포 순환, 위도별 바람과 기압대",
+      "file": "sims/fluid/general-circulation.html",
+      "topic": "fluid",
+      "sub": "대기의 운동과 순환",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
+    },
+    {
+      "id": "westerly-waves-jet",
+      "title": "편서풍 파동과 제트류",
+      "desc": "편서풍 파동, 제트류와 지상 기압 배치",
+      "file": "sims/fluid/westerly-waves-jet.html",
+      "topic": "fluid",
+      "sub": "대기의 운동과 순환",
+      "links": [
+        {
+          "course": "ess",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "",
+      "concept": "",
+      "inquiry": ""
     }
   ]
 }/*DATA-END*/;

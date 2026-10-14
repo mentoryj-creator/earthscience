@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>대기 안정도 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u3" target="_top">← 지구시스템과학 3단원 목록</a>
+    <div class="eyebrow">Ⅲ-03 단열 변화와 대기 안정도 · 단열선도와 대기 안정도</div>
+    <h1>대기 안정도 실험실</h1>
+    <p>단열선도 위에 높이에 따른 기온(기온 감률)을 직접 그리고, 공기 덩어리를 밀어 올려 봅니다. 공기 덩어리는 제자리로 돌아올까요, 계속 올라갈까요? 굴뚝 연기와 구름의 모양도 함께 바뀝니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="slider"><div class="slider-top"><label for="dd">공기 덩어리의 기온 − 이슬점</label><output id="ddOut">4 ℃</output></div><input id="dd" type="range" min="0" max="10" step="0.5" value="4"></div>
+      <div class="slider"><div class="slider-top"><label for="zs">공기 덩어리 출발 높이</label><output id="zsOut">0 m</output></div><input id="zs" type="range" min="0" max="900" step="100" value="0"></div>
+      <div class="presets" style="align-self:end"><button id="bUp" type="button" class="primary">⬆ 100 m 밀어 올리기</button><button id="bDn" type="button">⬇ 밀어 내리기</button><button id="bForce" type="button">⛰ 강제 상승(산·전선)</button></div>
+    </div>
+    <div class="controls" style="padding-block:10px">
+      <div class="presets"><button id="pA" type="button">표 A 지역</button><button id="pB" type="button">표 B 지역</button><button id="pS" type="button">절대 안정</button><button id="pC" type="button">조건부 불안정</button><button id="pU" type="button">절대 불안정</button><button id="pI" type="button">맑은 날 새벽(역전층)</button></div>
+      <div class="toggles"><label><input type="checkbox" id="tSmoke" checked>굴뚝 연기</label></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="580" role="img" aria-label="높이에 따른 기온을 그린 단열선도와 굴뚝 연기, 공기 덩어리, 구름"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#222"></i>주변 기온(드래그해서 수정)</span>
+      <span><i class="sw" style="background:#e5533b"></i>공기 덩어리 기온</span>
+      <span><i class="sw" style="background:#f0a04b"></i>건조 단열선</span>
+      <span><i class="sw" style="background:#3f9fd0"></i>습윤 단열선</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">검은 점을 좌우로 끌어 기온을 바꿀 수 있습니다. 왼쪽 띠의 색: 빨강 절대 불안정, 주황 조건부 불안정, 파랑 절대 안정.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">–</span></span>
+        <div class="big"><div class="k">출발 고도의 기온 감률</div><div class="v" id="bigT">–</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>기온 감률(Γ)과 단열 감률 비교</h2>
+      <ol class="chain">
+        <li>Γ &lt; 습윤 단열 감률(5 ℃/km): 공기 덩어리가 포화든 불포화든 밀어 올리면 주변보다 차가워져 되돌아온다 → 절대 안정.</li>
+        <li>Γ &gt; 건조 단열 감률(10 ℃/km): 밀어 올린 공기 덩어리가 항상 주변보다 따뜻해 계속 상승한다 → 절대 불안정.</li>
+        <li>5 &lt; Γ &lt; 10: 불포화 공기에는 안정, 포화 공기에는 불안정 → 조건부 불안정.</li>
+        <li>안정한 대기에서 강제 상승하면 상승 응결 고도 부근에 얇게 퍼진 층운형 구름, 불안정한 대기에서는 연직으로 두껍게 발달한 적운형 구름이 생긴다.</li>
+        <li>높이 올라갈수록 기온이 높아지는 기온 역전층은 매우 안정해 연기와 오염 물질이 위로 퍼지지 못한다.</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🔎 미션: 안정도 판정관</h2><div class="score"><span>관측 <b id="qn">–</b>/4</span><span>맞힌 수 <b id="pts">0</b>/12</span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">새 관측 자료가 단열선도에 그려집니다(왼쪽 색 띠는 가려짐). 세 구간의 대기 안정도를 판정하세요. 단열선(주황·하늘색 선)과 기울기를 비교하는 것이 요령입니다.</p>
+    <div class="row"><button id="gStart" type="button" class="primary">📈 관측 자료 받기</button>
+      <label>0–300 m <select id="g1"><option value="">선택</option><option>절대 안정</option><option>조건부 불안정</option><option>절대 불안정</option></select></label>
+      <label>300–700 m <select id="g2"><option value="">선택</option><option>절대 안정</option><option>조건부 불안정</option><option>절대 불안정</option></select></label>
+      <label>700–1000 m <select id="g3"><option value="">선택</option><option>절대 안정</option><option>조건부 불안정</option><option>절대 불안정</option></select></label>
+      <button id="gCheck" type="button">✅ 판정</button></div>
+    <div class="feedback" id="fb">‘관측 자료 받기’를 누르세요.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>표 A 지역에서 지표의 공기 덩어리를 300 m까지 올리면, 불포화일 때와 포화일 때 각각 몇 ℃가 되나요? 이 공기 덩어리는 어떻게 움직일까요?</li>
+      <li>표 B 지역의 높이 300 m에 굴뚝이 있다면 연기는 어느 쪽으로 퍼져 나갈까요?</li>
+      <li>맑은 날 새벽에 지표 부근에 기온 역전층이 생기면 대기 오염이 심해지는 까닭은 무엇인가요?</li>
+      <li>조건부 불안정한 대기에서 공기 덩어리를 강제로 계속 들어 올리면 어떤 구름이 생길까요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 건조 단열 감률 10 ℃/km, 습윤 단열 감률 5 ℃/km로 고정하고, 공기 덩어리가 받는 부력은 주변과의 기온 차에 비례한다고 보아 움직임을 계산했습니다. 탐구 활동의 표처럼 0–1000 m 구간을 다루기 때문에 기온 감률이 실제 대기보다 크게 나타나는 자료도 있습니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=580;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const N=11,DZ=100,ZT=1000;
+const PRE={
+  A:[12,10,8,6,9,11,13,15,14.5,14,13.5],
+  B:[15,16,17,18,16,14,12,10,8,6,4],
+  S:Array.from({length:N},(_,i)=>20-0.3*i),
+  C:Array.from({length:N},(_,i)=>20-0.7*i),
+  U:Array.from({length:N},(_,i)=>24-1.4*i),
+  I:[6,7,8,9,9,8.4,7.8,7.2,6.6,6,5.4]};
+const P={T:PRE.A.slice(),dd:4,zs:0,smoke:true};
+const Te=z=>{z=clamp(z,0,ZT);const i=Math.min(N-2,Math.floor(z/DZ));const u=(z-i*DZ)/DZ;return lerp(P.T[i],P.T[i+1],u);};
+const gam=i=>(P.T[i]-P.T[i+1])*10; // ℃/km
+const gamAt=z=>gam(Math.min(N-2,Math.max(0,Math.floor(clamp(z,0,ZT-1)/DZ))));
+const klass=g=>g>10?'절대 불안정':g>5?'조건부 불안정':'절대 안정';
+const kcol=g=>g>10?'#e5533b':g>5?'#f0a04b':'#3f7fd0';
+/* 공기 덩어리 */
+const B={z:0,w:0,active:false,forced:false,zmax:0,zmin:0,start:0,cloud:null,msg:''};
+function parcelT(z){const z0=B.start,T0=Te(z0),lcl=z0+125*P.dd;
+  if(z>=z0){if(z<=lcl)return T0-0.01*(z-z0);return T0-0.01*(lcl-z0)-0.005*(z-lcl);}
+  return T0+(P.dd===0?0.005:0.01)*(z0-z);}
+function lcl(){return B.start+125*P.dd;}
+function launch(dz){B.start=P.zs;B.z=clamp(P.zs+dz,0,ZT);B.w=0;B.active=true;B.forced=false;B.zmax=B.z;B.zmin=B.z;B.cloud=null;B.t=0;}
+function force(){B.start=P.zs;B.z=P.zs;B.w=0;B.active=true;B.forced=true;B.zmax=B.z;B.zmin=B.z;B.cloud=null;B.t=0;}
+function stepParcel(dt){
+  if(!B.active)return;const sim=dt*90;const n=Math.ceil(sim/2);const h=sim/n;
+  for(let k=0;k<n;k++){
+    if(B.forced){B.z+=h*6;if(B.z>=ZT){B.z=ZT;B.forced=false;B.active=false;decideCloud();}}
+    else{const a=9.8*(parcelT(B.z)-Te(B.z))/(Te(B.z)+273.15);B.w+=a*h;B.w*=Math.exp(-0.004*h);B.z+=B.w*h;
+      if(B.z>=ZT){B.z=ZT;B.w=0;B.active=false;}if(B.z<=0){B.z=0;B.w=0;B.active=false;}}
+    B.zmax=Math.max(B.zmax,B.z);B.zmin=Math.min(B.zmin,B.z);
+  }
+  B.t+=dt;
+  if(!B.forced&&B.active&&B.t>14){B.active=false;}
+  if(!B.forced&&B.z>lcl()+80&&!B.cloud)B.cloud={type:'적운형',top:B.zmax,base:lcl()};
+  if(B.cloud&&B.cloud.type==='적운형')B.cloud.top=Math.max(B.cloud.top,B.zmax);
+}
+function decideCloud(){const L=lcl();if(L>=ZT){B.cloud=null;return;}
+  let top=L,found=false;for(let z=L+10;z<=ZT;z+=10){if(parcelT(z)>Te(z)){top=z;found=true;}else if(found)break;}
+  B.cloud=top-L>150?{type:'적운형',base:L,top}:{type:'층운형',base:L,top:L+60};}
+/* 연기 */
+const smoke=[];
+function stepSmoke(dt){
+  if(!P.smoke){smoke.length=0;return;}
+  for(let k=0;k<3;k++)smoke.push({x:0,z:300,a:0});
+  for(let i=smoke.length-1;i>=0;i--){const p=smoke[i];p.x+=dt*(28+Math.random()*6);p.a+=dt;
+    const g=gamAt(p.z);const K=g>10?700:g>5?40:g>0?12:2;const bias=g>10?25:0;
+    p.z+=Math.sqrt(2*K*dt)*(Math.random()*2-1)*1.7+bias*dt;p.z=clamp(p.z,2,ZT);
+    if(p.x>380)smoke.splice(i,1);}
+}
+/* 좌표 */
+const GX0=70,GX1=520,GY0=36,GY1=520,TMIN=-5,TMAX=30;
+const gx=T=>GX0+(T-TMIN)/(TMAX-TMIN)*(GX1-GX0),gy=z=>GY1-z/ZT*(GY1-GY0);
+const tx=T=>(gx(T));
+const SX0=580,SX1=990;
+let t=0;
+function draw(dt){
+  t+=dt*MOTION;
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  // 단열선
+  ctx.save();ctx.beginPath();ctx.rect(GX0,GY0,GX1-GX0,GY1-GY0);ctx.clip();
+  for(let T=-5;T<=45;T+=2.5){ctx.strokeStyle='rgba(240,160,75,.45)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(gx(T),gy(0));ctx.lineTo(gx(T-10),gy(1000));ctx.stroke();}
+  for(let T=-5;T<=40;T+=2.5){ctx.strokeStyle='rgba(63,159,208,.45)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(gx(T),gy(0));ctx.lineTo(gx(T-5),gy(1000));ctx.stroke();ctx.setLineDash([]);}
+  ctx.restore();
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.strokeRect(GX0,GY0,GX1-GX0,GY1-GY0);
+  for(let T=-5;T<=30;T+=5)label(ctx,T+'',gx(T),GY1+13,{size:10.5,mono:true,hw:0,color:tok.muted});
+  for(let z=0;z<=1000;z+=100)label(ctx,z+'',GX0-26,gy(z),{size:10.5,mono:true,hw:0,align:'right',color:tok.muted});
+  label(ctx,'기온 (℃)',(GX0+GX1)/2,GY1+32,{size:11,hw:0,color:tok.muted});label(ctx,'높이 (m)',8,GY0-18,{size:11,align:'left',hw:0,color:tok.muted});
+  // 구간 색 띠
+  for(let i=0;i<N-1;i++){const g=gam(i);ctx.fillStyle=G.hideBands?'rgba(150,150,150,.35)':kcol(g);ctx.fillRect(GX0-18,gy((i+1)*DZ),10,gy(i*DZ)-gy((i+1)*DZ)-1);}
+  // 구름 높이 / LCL
+  const L=B.active||B.cloud?lcl():P.zs+125*P.dd;
+  if(L<ZT){ctx.strokeStyle='#9aa6b2';ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(GX0,gy(L));ctx.lineTo(SX1,gy(L));ctx.stroke();ctx.setLineDash([]);label(ctx,'상승 응결 고도',GX1-6,gy(L)-9,{size:10.5,align:'right',color:tok.muted,hw:3});}
+  // 주변 기온
+  ctx.strokeStyle=tok.fg;ctx.lineWidth=2.5;ctx.beginPath();P.T.forEach((T,i)=>{const x=gx(T),y=gy(i*DZ);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+  P.T.forEach((T,i)=>{ctx.fillStyle=drag===i?'#e5533b':tok.fg;ctx.beginPath();ctx.arc(gx(T),gy(i*DZ),drag===i?7:5,0,7);ctx.fill();});
+  // 공기 덩어리 경로
+  if(B.active||B.zmax!==B.zmin||B.cloud){const a=Math.min(B.zmin,B.start),b=Math.max(B.zmax,B.start);ctx.strokeStyle='#e5533b';ctx.lineWidth=2.2;ctx.beginPath();for(let z=a;z<=b;z+=5){const x=gx(parcelT(z));z===a?ctx.moveTo(x,gy(z)):ctx.lineTo(x,gy(z));}ctx.stroke();
+    const x=gx(parcelT(B.z)),y=gy(B.z);ctx.fillStyle='#e5533b';ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();
+    const d=parcelT(B.z)-Te(B.z);label(ctx,`${parcelT(B.z).toFixed(1)}℃ (${d>=0?'+':''}${d.toFixed(1)})`,x+10,y-12,{size:11,align:'left',color:'#e5533b'});}
+  // 출발 높이
+  ctx.fillStyle='#e5533b';ctx.beginPath();ctx.moveTo(GX1+2,gy(P.zs));ctx.lineTo(GX1+12,gy(P.zs)-6);ctx.lineTo(GX1+12,gy(P.zs)+6);ctx.fill();
+  // 오른쪽 장면
+  const g=ctx.createLinearGradient(0,GY0,0,GY1);g.addColorStop(0,tok['sky-top']);g.addColorStop(1,tok['sky-bot']);ctx.fillStyle=g;ctx.fillRect(SX0,GY0,SX1-SX0,GY1-GY0);
+  // 역전층 표시
+  for(let i=0;i<N-1;i++)if(gam(i)<0&&!G.hideBands){ctx.fillStyle='rgba(229,83,59,.08)';ctx.fillRect(SX0,gy((i+1)*DZ),SX1-SX0,gy(i*DZ)-gy((i+1)*DZ));}
+  ctx.fillStyle=tok.land;ctx.fillRect(SX0,GY1,SX1-SX0,16);
+  // 굴뚝
+  const cx=SX0+40;ctx.fillStyle='#8a8f99';ctx.fillRect(cx-7,gy(300),14,GY1-gy(300));ctx.fillStyle='#c0392b';ctx.fillRect(cx-7,gy(300),14,6);
+  if(P.smoke){smoke.forEach(p=>{const a=clamp(0.55-p.x/700,0.05,0.5);ctx.fillStyle=Lab.isDark()?`rgba(205,205,215,${a})`:`rgba(110,110,120,${a})`;ctx.beginPath();ctx.arc(cx+p.x,gy(p.z),3+p.x/60,0,7);ctx.fill();});}
+  // 구름
+  if(B.cloud){const c=B.cloud;ctx.fillStyle=tok.cloud;ctx.strokeStyle=tok['cloud-edge'];ctx.lineWidth=1;
+    if(c.type==='적운형'){const x0=SX0+250;const ct=Math.min(c.top,ZT-90);for(let z=c.base+20;z<=ct;z+=45){const w=30+Math.sin(z*0.05)*6+(z-c.base)*0.02;ctx.beginPath();ctx.arc(x0-w*0.4,gy(z),w*0.7,0,7);ctx.arc(x0+w*0.4,gy(z)-6,w*0.75,0,7);ctx.fill();}
+      ctx.fillRect(x0-50,gy(c.base)-4,100,6);label(ctx,'적운형 구름',x0+70,gy(c.base)-16,{size:12,align:'left'});}
+    else{for(let x=SX0+90;x<SX1-10;x+=26){ctx.beginPath();ctx.ellipse(x,gy(c.base+30),24,10,0,0,7);ctx.fill();}label(ctx,'층운형 구름',SX0+250,gy(c.base+30)-24,{size:12});}}
+  // 공기 덩어리 (장면)
+  const bx=SX0+250,by=gy(B.active||B.cloud||B.zmax!==B.zmin?B.z:P.zs);
+  ctx.fillStyle='rgba(255,255,255,.7)';ctx.strokeStyle='#e5533b';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(bx,by,13,0,7);ctx.fill();ctx.stroke();
+  if(B.active&&!B.forced){const up=B.w>0;Lab.arrow(ctx,bx+22,by,bx+22,by+(up?-22:22),{color:'#e5533b',w:2,head:7});}
+  if(B.forced){Lab.arrow(ctx,bx-26,by+20,bx-26,by-14,{color:tok.muted,w:3,head:8});label(ctx,'강제 상승',bx-32,by+30,{size:10.5,align:'right',color:tok.muted});}
+  label(ctx,'굴뚝 300 m',cx+10,GY1-10,{size:10.5,align:'left',color:tok.muted});
+}
+/* 텍스트 */
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  $('ddOut').textContent=P.dd+' ℃';$('zsOut').textContent=P.zs+' m';
+  const g=gamAt(P.zs+1);$('bigT').textContent=g.toFixed(0)+' ℃/km';
+  let st='공기 덩어리를 밀어 올려 보세요';
+  if(B.forced)st='강제로 들어 올리는 중';
+  else if(B.zmax!==B.zmin||B.active){const d=B.z-B.start;if(B.z>=ZT-1)st='계속 상승 → 불안정';else if(B.z<=1&&B.start>0)st='계속 하강 → 불안정';else if(Math.abs(d)<60&&!B.active)st='제자리로 돌아옴 → 안정';else st=B.active?(B.w>0?'상승 중':'하강 중'):(Math.abs(d)<60?'제자리 부근 → 안정':'다른 높이에서 멈춤');}
+  $('stateName').textContent=st;$('chip').dataset.s=/불안정|상승 중/.test(st)?'warm':'cool';
+  const seg=(a,b)=>{const g=(Te(a)-Te(b))/(b-a)*1000;return `${g.toFixed(0)} ℃/km`;};
+  $('metrics').innerHTML=metric('출발 고도의 대기 안정도',G.hideBands?'?':klass(g),'건조 10 · 습윤 5 ℃/km와 비교')+metric('상승 응결 고도',(P.zs+125*P.dd)>=ZT?'1000 m 이상':Math.round(P.zs+125*P.dd)+' m','125 × (T − Td) + 출발 높이')+
+    metric('구간별 기온 감률',G.hideBands?'?':`${seg(0,300)} · ${seg(300,700)} · ${seg(700,1000)}`,'0–300 · 300–700 · 700–1000 m')+metric('구름',B.cloud?B.cloud.type:'없음',B.cloud?`밑면 ${Math.round(B.cloud.base)} m`:'강제 상승을 눌러 보세요');
+  $('fsInfo').textContent=`출발 ${P.zs} m · Γ ${g.toFixed(0)} ℃/km · ${st}`;
+}
+/* 조작 */
+let drag=-1;
+const cv=$('sim');
+cv.addEventListener('pointerdown',e=>{const q=S.pt(e);let best=-1,bd=18;P.T.forEach((T,i)=>{const d=Math.hypot(q.x-gx(T),q.y-gy(i*DZ));if(d<bd){bd=d;best=i;}});if(best>=0){if(G.lock){$('fb').textContent='판정 중에는 자료를 바꿀 수 없어요.';return;}drag=best;cv.setPointerCapture(e.pointerId);e.preventDefault();}});
+cv.addEventListener('pointermove',e=>{if(drag<0)return;const q=S.pt(e);P.T[drag]=Math.round(clamp(TMIN+(q.x-GX0)/(GX1-GX0)*(TMAX-TMIN),TMIN,TMAX)*2)/2;B.cloud=null;});
+const end=()=>{drag=-1;};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+$('dd').addEventListener('input',()=>{P.dd=+$('dd').value;B.cloud=null;});
+$('zs').addEventListener('input',()=>{P.zs=+$('zs').value;B.active=false;B.z=P.zs;B.zmax=B.zmin=P.zs;B.start=P.zs;B.cloud=null;});
+$('bUp').onclick=()=>launch(100);$('bDn').onclick=()=>launch(-100);$('bForce').onclick=()=>{P.zs=0;$('zs').value=0;force();};
+$('tSmoke').onchange=e=>P.smoke=e.target.checked;
+const preset=k=>{if(G.lock)return;P.T=PRE[k].map(v=>+v.toFixed(1));B.active=false;B.cloud=null;B.zmax=B.zmin=B.z=B.start=P.zs;smoke.length=0;};
+['A','B','S','C','U','I'].forEach(k=>$('p'+k).onclick=()=>preset(k));
+/* 게임 */
+const G={q:0,ok:0,lock:false,hideBands:false,ans:null};
+const pickG=()=>[2,3.5,7,8.5,13,15,-4][Math.floor(Math.random()*7)];
+$('gStart').onclick=()=>{
+  if(G.q>=4){G.q=0;G.ok=0;$('pts').textContent=0;}
+  const gs=[pickG(),pickG(),pickG()];const T0=18+Math.round(Math.random()*8);const T=[T0];
+  for(let i=1;i<N;i++){const z=i*DZ;const gi=z<=300?gs[0]:z<=700?gs[1]:gs[2];T.push(+(T[i-1]-gi/10).toFixed(2));}
+  const lo=Math.min(...T);if(lo<TMIN+1){const s=TMIN+1-lo;for(let i=0;i<N;i++)T[i]+=s;}
+  const hi=Math.max(...T);if(hi>TMAX-1){const s=hi-(TMAX-1);for(let i=0;i<N;i++)T[i]-=s;}
+  P.T=T.map(v=>Math.round(v*10)/10);B.active=false;B.cloud=null;smoke.length=0;
+  G.ans=gs.map(klass);G.q++;G.lock=true;G.hideBands=true;$('qn').textContent=G.q;['g1','g2','g3'].forEach(id=>$(id).value='');
+  $('fb').textContent='세 구간의 기울기를 단열선과 비교해 판정하세요. (역전층도 절대 안정에 포함)';$('fb').className='feedback';
+};
+$('gCheck').onclick=()=>{
+  if(!G.lock){$('fb').textContent='먼저 ‘관측 자료 받기’를 누르세요.';return;}
+  const v=['g1','g2','g3'].map(id=>$(id).value);if(v.some(x=>!x)){$('fb').textContent='세 구간 모두 골라 주세요.';return;}
+  const r=v.map((x,i)=>x===G.ans[i]);const n=r.filter(Boolean).length;G.ok+=n;$('pts').textContent=G.ok;
+  G.lock=false;G.hideBands=false;
+  $('fb').textContent=`${n}/3 정답. 정답: ${G.ans.join(' / ')}`+(G.q>=4?` · 최종 ${G.ok}/12`:'');$('fb').className='feedback '+(n===3?'good':'bad');
+  if(G.q>=4){const s=G.ok>=12?3:G.ok>=10?2:G.ok>=7?1:0;$('stBest').textContent=Lab.stars(Lab.best('stab',s));}
+};
+$('stBest').textContent=Lab.stars(Lab.best('stab',0));
+let fr=0;Lab.loop(dt=>{fr++;stepParcel(dt);stepSmoke(dt);S.begin();draw(dt);if(fr%6===0)text();});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

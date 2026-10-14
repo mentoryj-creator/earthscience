@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>진앙 추적 본부</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<style>
+.stations{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
+.st{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;gap:4px}
+.st b{font-size:.9rem}
+.st .row{gap:6px}
+.st input{width:6.5em}
+#wave{display:block;width:100%;height:auto;aspect-ratio:1000/260;border-radius:10px;background:var(--bg)}
+</style>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u1" target="_top">← 지구시스템과학 1단원 목록</a>
+    <div class="eyebrow">05 지구 내부 구조 · 지진파 · PS시와 진원 거리</div>
+    <h1>진앙 추적 본부</h1>
+    <p>지진이 나면 P파, S파, L파가 차례로 관측소에 도착합니다. 세 관측소의 PS시로 진원까지의 거리를 계산하고 원을 그려 진앙을 찾아내세요.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="모드">
+        <button id="mFree" type="button" aria-pressed="true">관찰: 지도를 눌러 지진 일으키기</button>
+        <button id="mGame" type="button" aria-pressed="false">🎯 미션: 진앙 찾기</button>
+      </div>
+      <div class="presets"><button id="replay" type="button">↺ 다시 재생</button><button id="slow" type="button" aria-pressed="false">🐢 느리게</button></div>
+      <div class="toggles"><label><input type="checkbox" id="tFront" checked>파면 보기</label></div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="지도 위 지진파 전파와 세 관측소의 지진 기록"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#2a64c9"></i>P파 (8 km/s)</span>
+      <span><i class="sw" style="background:#c9512a"></i>S파 (4 km/s)</span>
+      <span><i class="sw" style="background:#3f7f55"></i>L파 (3 km/s)</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">진원이 얕다고 보고 진원 거리와 진앙 거리를 같게 다룹니다. 지진 기록 위에 마우스를 올리면 시각을 읽을 수 있습니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel game" aria-label="계산">
+      <div class="gh"><h2>🧮 진원 거리 계산</h2><div class="score"><span>오차 <b id="err">–</b></span><span>이번 판 <b id="stNow">☆☆☆</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+      <p class="mission" style="margin:0">d = (V<sub>P</sub> × V<sub>S</sub>) ÷ (V<sub>P</sub> − V<sub>S</sub>) × PS시 = (8 × 4) ÷ (8 − 4) × PS시 = <b>8 × PS시</b> (km)</p>
+      <div class="stations" id="stations"></div>
+      <div class="row" style="margin-top:10px"><button id="draw" type="button">⭕ 원 그리기</button><span class="mission">원 세 개가 만나는 곳을 지도에서 누르면 진앙으로 표시됩니다.</span></div>
+      <div class="feedback" id="fb">미션 모드를 누르면 어딘가에서 지진이 일어납니다.</div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>지진파와 PS시</h2>
+      <ol class="chain">
+        <li>P파는 진행 방향과 나란하게 진동하는 종파로, 가장 빨라 먼저 도착하고 고체·액체·기체를 모두 통과한다.</li>
+        <li>S파는 진행 방향에 수직으로 진동하는 횡파로, P파보다 느리고 고체만 통과한다.</li>
+        <li>L파(표면파)는 지표를 따라 가장 늦게 오지만 진폭이 커서 피해가 크다.</li>
+        <li>P파가 도착한 뒤 S파가 도착하기까지의 시간 차(PS시)는 진원 거리가 멀수록 크다. 진앙을 알려면 최소 세 곳의 관측소가 필요하다.</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel" aria-label="P파와 S파">
+    <h2>P파와 S파의 진동 비교</h2>
+    <div class="row" style="margin-bottom:8px">
+      <div class="seg" role="group" aria-label="매질"><button id="solid" type="button" aria-pressed="true">고체 매질</button><button id="liquid" type="button" aria-pressed="false">액체 매질</button></div>
+      <span class="mission" id="medNote">고체에서는 P파와 S파가 모두 전달됩니다.</span>
+    </div>
+    <canvas id="wave" width="1000" height="260" role="img" aria-label="P파와 S파의 매질 입자 진동"></canvas>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>어느 관측소에 P파가 08시 42분 00초, S파가 10초 뒤에 도착했습니다. 진원까지의 거리는? (V<sub>P</sub> = 8 km/s, V<sub>S</sub> = 4 km/s)</li>
+      <li>관측소가 두 곳뿐이라면 진앙을 하나로 정할 수 없는 까닭은 무엇일까요?</li>
+      <li>진앙에서 먼 관측소일수록 지진 기록은 어떻게 달라지나요? (PS시, 진폭)</li>
+      <li>S파가 액체를 통과하지 못하는 성질은 지구 내부를 연구할 때 어떻게 쓰일까요?</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 지각의 P파·S파 속도를 교과서 예제와 같이 8 km/s, 4 km/s로, L파를 3 km/s로 두었습니다(실제 지각에서는 P파 약 6 km/s, S파 약 3.5 km/s). 지도는 가상의 300 km × 300 km 지역입니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=600;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const VP=8,VS=4,VL=3,MX=20,MY=20,MS=560,KM=MS/300,TMAX=110;
+const Q={mode:'free',eq:{x:150,y:150},t:0,speed:1,stations:[],circles:[],guess:null,done:false,hover:null};
+const NAMES=['관측소 A','관측소 B','관측소 C'];
+function setStations(r){
+  Q.stations=[{x:40+r()*60,y:40+r()*60},{x:200+r()*70,y:60+r()*60},{x:110+r()*80,y:220+r()*55}].map((p,i)=>({...p,n:NAMES[i]}));
+}
+function newQuake(x,y){Q.eq={x,y};Q.t=0;Q.circles=[];Q.guess=null;Q.done=false;
+  Q.noise=Q.stations.map(()=>Array.from({length:600},()=>Math.random()-.5));buildInputs();}
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function trace(i,t){ // 관측소 i의 시각 t 진동
+  const s=Q.stations[i],d=dist(s,Q.eq);const tp=d/VP,ts=d/VS,tl=d/VL,amp=1/(0.4+d/80);
+  let y=Q.noise[i][Math.floor(t*5)%600]*0.04;
+  if(t>tp){const a=t-tp;y+=amp*0.5*Math.exp(-a/6)*Math.sin(a*18)+amp*0.08*Math.sin(a*11);}
+  if(t>ts){const a=t-ts;y+=amp*0.9*Math.exp(-a/8)*Math.sin(a*9+1);}
+  if(t>tl){const a=t-tl;y+=amp*1.5*Math.exp(-a/10)*Math.sin(a*3.2)*Math.min(1,a/2);}
+  return y;
+}
+const TX0=600,TX1=980,TH=170,TY=[30,220,410];
+const tx=t=>TX0+t/TMAX*(TX1-TX0);
+function draw(){
+  ctx.fillStyle=tok.surface;ctx.fillRect(0,0,W,H);
+  // 지도
+  ctx.fillStyle=Lab.isDark()?'#1d2a22':'#e7efe1';ctx.fillRect(MX,MY,MS,MS);
+  ctx.strokeStyle=tok.line;ctx.lineWidth=1;
+  for(let k=0;k<=300;k+=50){const p=MX+k*KM;ctx.beginPath();ctx.moveTo(p,MY);ctx.lineTo(p,MY+MS);ctx.stroke();ctx.beginPath();ctx.moveTo(MX,MY+k*KM);ctx.lineTo(MX+MS,MY+k*KM);ctx.stroke();}
+  label(ctx,'격자 1칸 = 50 km',MX+6,MY+MS-10,{size:11,align:'left',color:tok.muted});
+  // 파면
+  const E={x:MX+Q.eq.x*KM,y:MY+Q.eq.y*KM};
+  const showEq=Q.mode==='free'||Q.done;
+  ctx.save();ctx.beginPath();ctx.rect(MX,MY,MS,MS);ctx.clip();
+  if(show.front&&(Q.mode==='free'||Q.done)){
+    [[VP,'#2a64c9'],[VS,'#c9512a'],[VL,'#3f7f55']].forEach(([v,c])=>{const r=v*Q.t*KM;if(r>0){ctx.strokeStyle=c;ctx.lineWidth=2.5;ctx.globalAlpha=0.8;ctx.beginPath();ctx.arc(E.x,E.y,r,0,7);ctx.stroke();ctx.globalAlpha=1;}});
+  }
+  // 학생이 그린 원
+  for(const c of Q.circles){if(!c)continue;const s=Q.stations[c.i];ctx.strokeStyle=['#7a3fd0','#0a8a6a','#d0306a'][c.i];ctx.lineWidth=2;ctx.setLineDash([7,5]);ctx.beginPath();ctx.arc(MX+s.x*KM,MY+s.y*KM,c.r*KM,0,7);ctx.stroke();ctx.setLineDash([]);}
+  ctx.restore();
+  // 진앙
+  if(showEq){ctx.fillStyle='#e5533b';star(E.x,E.y,11);label(ctx,'진앙',E.x,E.y-18,{size:12,color:'#e5533b'});}
+  if(Q.guess){const g={x:MX+Q.guess.x*KM,y:MY+Q.guess.y*KM};ctx.strokeStyle='#ffd25a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(g.x-9,g.y-9);ctx.lineTo(g.x+9,g.y+9);ctx.moveTo(g.x+9,g.y-9);ctx.lineTo(g.x-9,g.y+9);ctx.stroke();label(ctx,'내 추정',g.x,g.y+20,{size:12,color:tok.gold});}
+  // 관측소
+  Q.stations.forEach((s,i)=>{const x=MX+s.x*KM,y=MY+s.y*KM;ctx.fillStyle=tok.fg;ctx.beginPath();ctx.moveTo(x,y-10);ctx.lineTo(x-8,y+6);ctx.lineTo(x+8,y+6);ctx.closePath();ctx.fill();label(ctx,s.n,x,y+18,{size:12});});
+  // 지진 기록
+  Q.stations.forEach((s,i)=>{
+    const y0=TY[i],ym=y0+TH/2;
+    ctx.fillStyle=tok.bg;ctx.fillRect(TX0-10,y0,TX1-TX0+20,TH);
+    label(ctx,s.n+' 지진 기록',TX0,y0+12,{size:12,align:'left',hw:0});
+    ctx.strokeStyle=tok.line;ctx.lineWidth=1;ctx.beginPath();for(let t=0;t<=TMAX;t+=10){ctx.moveTo(tx(t),y0+22);ctx.lineTo(tx(t),y0+TH-16);}ctx.stroke();
+    for(let t=0;t<=TMAX;t+=20)label(ctx,t+'',tx(t),y0+TH-7,{size:9.5,hw:0,color:tok.muted,mono:true});
+    ctx.strokeStyle=tok.fg;ctx.lineWidth=1.2;ctx.beginPath();
+    const tend=Math.min(Q.t,TMAX);for(let t=0;t<=tend;t+=0.12){const y=ym-clamp(trace(i,t),-1.6,1.6)*30;t?ctx.lineTo(tx(t),y):ctx.moveTo(tx(t),y);}ctx.stroke();
+    if(Q.mode==='free'||Q.done){const d=dist(s,Q.eq);[[d/VP,'P','#2a64c9'],[d/VS,'S','#c9512a'],[d/VL,'L','#3f7f55']].forEach(([t,n,c])=>{if(t<=Q.t&&t<=TMAX){ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(tx(t),y0+22);ctx.lineTo(tx(t),y0+TH-18);ctx.stroke();label(ctx,n,tx(t)+6,y0+28,{size:11,align:'left',color:c,hw:2});}});
+      const tp=d/VP,ts=d/VS;if(ts<=Q.t&&ts<=TMAX){Lab.arrow(ctx,tx(tp),y0+TH-26,tx(ts),y0+TH-26,{color:tok.accent,w:1.5,head:6});label(ctx,`PS시 ${(ts-tp).toFixed(1)}초`,(tx(tp)+tx(ts))/2,y0+TH-36,{size:11,color:tok.accent});}}
+  });
+  label(ctx,'시간 (초) — 지진 발생 시각 = 0',TX1,TY[2]+TH+12,{size:10.5,align:'right',hw:0,color:tok.muted});
+  // 커서
+  if(Q.hover){const h=Q.hover;ctx.strokeStyle=tok.gold;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(h.x,TY[0]+20);ctx.lineTo(h.x,TY[2]+TH-14);ctx.stroke();const t=(h.x-TX0)/(TX1-TX0)*TMAX;label(ctx,t.toFixed(1)+' 초',h.x,TY[0]+20,{size:12,color:tok.gold,mono:true});}
+}
+function star(x,y,r){ctx.beginPath();for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,rr=i%2?r*0.45:r;ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);}ctx.closePath();ctx.fill();}
+const show={front:true};$('tFront').onchange=e=>show.front=e.target.checked;
+/* 입력 */
+function buildInputs(){
+  $('stations').innerHTML=Q.stations.map((s,i)=>`<div class="st"><b>${s.n}</b><div class="row"><label for="ps${i}">PS시</label><input id="ps${i}" type="number" step="0.1" min="0" placeholder="초"><span>초</span></div><div class="row"><label for="d${i}">진원 거리</label><input id="d${i}" type="number" step="1" min="0" placeholder="km"><span>km</span></div></div>`).join('');
+  Q.stations.forEach((s,i)=>{$('ps'+i).addEventListener('input',()=>{});});
+}
+$('draw').onclick=()=>{Q.circles=Q.stations.map((s,i)=>{const r=parseFloat($('d'+i).value);return isFinite(r)&&r>0?{i,r}:null;});
+  const n=Q.circles.filter(Boolean).length;$('fb').textContent=n<3?`원 ${n}개를 그렸습니다. 진앙을 정하려면 세 관측소 모두 거리가 필요해요.`:'세 원이 만나는(가장 가까이 모이는) 곳을 지도에서 누르세요.';$('fb').className='feedback';};
+$('sim').addEventListener('pointerdown',e=>{
+  const q=S.pt(e);
+  if(q.x<MX||q.x>MX+MS||q.y<MY||q.y>MY+MS)return;
+  const km={x:(q.x-MX)/KM,y:(q.y-MY)/KM};
+  if(Q.mode==='free'){newQuake(km.x,km.y);return;}
+  if(Q.done)return;
+  if(Q.t<dist(farthest(),Q.eq)/VL){$('fb').textContent='지진 기록이 끝날 때까지 기다렸다가 판단하세요.';return;}
+  Q.guess=km;Q.done=true;const err=dist(km,Q.eq);
+  const used=Q.circles.filter(Boolean).length;
+  const st=err<12?3:err<25?2:err<50?1:0;
+  $('err').textContent=err.toFixed(0)+' km';$('stNow').textContent=Lab.stars(st);$('stBest').textContent=Lab.stars(Lab.best('epi',st));
+  const ans=Q.stations.map((s,i)=>{const d=dist(s,Q.eq);return `${s.n} PS시 ${(d/VS-d/VP).toFixed(1)}초 → ${d.toFixed(0)} km`;}).join(' · ');
+  $('fb').textContent=`진앙과 ${err.toFixed(0)} km 차이 ${Lab.stars(st)}. 정답: ${ans}.`+(used<3?' (원을 그리지 않고 추정했네요!)':'');
+  $('fb').className='feedback '+(st>=2?'good':st===0?'bad':'');
+});
+function farthest(){return Q.stations.reduce((a,b)=>dist(a,Q.eq)>dist(b,Q.eq)?a:b);}
+$('sim').addEventListener('pointermove',e=>{const q=S.pt(e);Q.hover=(q.x>=TX0&&q.x<=TX1&&q.y>=TY[0]&&q.y<=TY[2]+TH)?q:null;});
+$('sim').addEventListener('pointerleave',()=>Q.hover=null);
+function setMode(m){Q.mode=m;$('mFree').setAttribute('aria-pressed',m==='free');$('mGame').setAttribute('aria-pressed',m==='game');
+  if(m==='game'){const r=Lab.rng(Math.floor(Math.random()*1e9));setStations(r);newQuake(30+r()*240,30+r()*240);$('fb').textContent='지진 발생! 각 관측소의 PS시를 읽어 진원 거리를 계산하고 원을 그리세요. (기록 위에 마우스를 올리면 시각이 보여요)';$('fb').className='feedback';$('err').textContent='–';$('stNow').textContent=Lab.stars(0);}
+  else{setStations(Lab.rng(4));newQuake(160,140);$('fb').textContent='미션 모드를 누르면 어딘가에서 지진이 일어납니다.';}}
+$('mFree').onclick=()=>setMode('free');$('mGame').onclick=()=>setMode('game');
+$('replay').onclick=()=>{Q.t=0;};
+$('slow').onclick=()=>{Q.speed=Q.speed===1?0.4:1;$('slow').setAttribute('aria-pressed',Q.speed<1);};
+$('stBest').textContent=Lab.stars(Lab.best('epi',0));
+setMode('free');
+
+/* P파·S파 진동 */
+const wc=$('wave'),wx=wc.getContext('2d');let liquid=false,wt=0;
+function wresize(){const dpr=Math.min(2,devicePixelRatio||1);const w=wc.getBoundingClientRect().width||1000;wc.width=Math.round(w*dpr);wc.height=Math.round(wc.width*0.26);}
+window.addEventListener('resize',wresize);wresize();
+$('solid').onclick=()=>{liquid=false;$('solid').setAttribute('aria-pressed',true);$('liquid').setAttribute('aria-pressed',false);$('medNote').textContent='고체에서는 P파와 S파가 모두 전달됩니다.';};
+$('liquid').onclick=()=>{liquid=true;$('solid').setAttribute('aria-pressed',false);$('liquid').setAttribute('aria-pressed',true);$('medNote').textContent='액체는 모양을 바꾸려는 힘에 버티지 못해(강성률 0) S파가 전달되지 않습니다. P파는 통과합니다.';};
+function wdraw(dt){
+  wt+=dt*MOTION;wx.setTransform(wc.width/1000,0,0,wc.height/260,0,0);
+  wx.fillStyle=tok.bg;wx.fillRect(0,0,1000,260);
+  const rows=[['P파 (종파)',70,'#2a64c9','p'],['S파 (횡파)',190,'#c9512a','s']];
+  for(const [n,y,c,k] of rows){
+    label(wx,n,16,y-44,{size:13,align:'left',hw:0,color:c});
+    for(let i=0;i<34;i++)for(let j=0;j<3;j++){
+      const x0=130+i*25,y0=y-22+j*22;const ph=(x0-130)/90-wt*3;
+      let dx=0,dy=0;
+      if(k==='p')dx=9*Math.sin(ph*Math.PI*2/1)*(Math.sin((x0-130)/860*Math.PI));
+      else if(!liquid)dy=9*Math.sin(ph*Math.PI*2/1)*(Math.sin((x0-130)/860*Math.PI));
+      wx.fillStyle=liquid?'#5aa0d8':'#7d6a58';wx.beginPath();wx.arc(x0+dx,y0+dy,4.5,0,7);wx.fill();}
+    Lab.arrow(wx,130,y+44,330,y+44,{color:tok.muted,w:1.5,head:7});label(wx,'진행 방향',340,y+44,{size:11,align:'left',hw:0,color:tok.muted});
+    if(k==='p')label(wx,'진동 ↔ 진행 방향과 나란함',990,y-44,{size:11.5,align:'right',hw:0,color:tok.muted});
+    else label(wx,liquid?'액체: S파가 전달되지 않음':'진동 ↕ 진행 방향과 수직',990,y-44,{size:11.5,align:'right',hw:0,color:liquid?tok.warm:tok.muted});
+  }
+}
+let fr=0;
+Lab.loop(dt=>{fr++;Q.t+=dt*10*Q.speed*MOTION;if(Q.t>TMAX+5&&Q.mode==='free')Q.t=TMAX+5;S.begin();draw();wdraw(dt);
+  if(fr%10===0)$('fsInfo').textContent=`경과 ${Math.min(Q.t,TMAX).toFixed(0)}초 · 진원 거리 = 8 × PS시`;});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

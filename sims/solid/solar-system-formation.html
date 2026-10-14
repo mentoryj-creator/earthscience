@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>태양계 형성 실험실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<style>
+.mode{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.mode .hint{font-size:.85rem;color:var(--muted)}
+.steps{display:flex;flex-wrap:wrap;gap:6px}
+.steps span{font-size:.8rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.steps span.on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.steps span.past{color:var(--fg);border-color:var(--accent)}
+</style>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u1" target="_top">← 지구시스템과학 1단원 목록</a>
+    <div class="eyebrow">01 지구의 탄생 · 성운설 · 응축 → 집적 → 분화</div>
+    <h1>태양계 형성 실험실</h1>
+    <p>성운이 수축하면서 빨라지고 납작해지는 과정을 보고, 원반 속 미행성체를 충돌·집적시켜 나만의 태양계를 만들어 봅니다.</p>
+  </header>
+
+  <section class="stage" aria-label="시뮬레이션">
+    <div class="mode">
+      <div class="seg" role="group" aria-label="단계 선택">
+        <button id="mA" type="button" aria-pressed="true">① 성운의 수축과 회전</button>
+        <button id="mB" type="button" aria-pressed="false">② 원반 속 행성 만들기</button>
+      </div>
+      <div class="steps" id="steps"><span>1 성운 수축·회전</span><span>2 원시 태양</span><span>3 미행성체</span><span>4 원시 행성</span><span>5 태양계 천체</span></div>
+    </div>
+    <div class="controls" id="ctlA">
+      <div class="slider">
+        <div class="slider-top"><label for="sA">수축 정도</label><output id="sAOut">0%</output></div>
+        <input id="sA" type="range" min="0" max="100" step="1" value="0">
+        <div class="ticks"><span>0% 거대한 성운</span><span>100% 원시 태양 + 원반</span></div>
+      </div>
+      <div class="presets">
+        <button class="warm" id="nova" type="button">💥 초신성 충격파</button>
+        <button id="resetA" type="button">처음으로</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="controls" id="ctlB" hidden>
+      <div class="slider">
+        <div class="slider-top"><label for="lum">원시 태양 밝기</label><output id="lumOut">1.0배 · 눈선 3.0 AU</output></div>
+        <input id="lum" type="range" min="40" max="250" step="5" value="100">
+        <div class="ticks"><span>0.4배</span><span>1배</span><span>2.5배</span></div>
+      </div>
+      <div class="slider">
+        <div class="slider-top"><label for="dm">원반의 고체 물질 양</label><output id="dmOut">1.0배</output></div>
+        <input id="dm" type="range" min="40" max="250" step="5" value="100">
+        <div class="ticks"><span>적음</span><span>보통</span><span>많음</span></div>
+      </div>
+      <div class="presets">
+        <button class="primary" id="run" type="button">▶ 시작</button>
+        <button id="resetB" type="button">새 원반</button>
+        <button id="fast" type="button" aria-pressed="false">⏩ 3배속</button>
+      </div>
+      <button id="fsBtn2" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="600" role="img" aria-label="태양계 성운과 원시 행성 원반 그림"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#b98a5e"></i>암석·금속</span>
+      <span><i class="sw" style="background:#9fd3f0"></i>얼음</span>
+      <span><i class="sw" style="background:#e3b77a"></i>수소·헬륨 기체</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note" id="legNote">점 하나하나는 성운을 이루는 기체와 티끌 덩어리입니다. 크기와 거리는 실제 비율과 다릅니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="측정값">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">태양계 성운</span></span>
+        <div class="big"><div class="k" id="bigK">회전 속도 (처음 대비)</div><div class="v" id="bigV">×1.0</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2 id="exTitle"></h2>
+      <ol class="chain" id="exChain"></ol>
+      <div class="impact"><b>생각해 보기</b><span id="exQ"></span></div>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🪐 미션: 나만의 태양계 만들기</h2><div class="score"><span>이번 판 <b id="stNow">☆☆☆</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">② 단계에서 태양 밝기와 원반 물질 양을 정한 뒤 시작하세요. 1억 년이 지나면 결과를 평가합니다. 성운 가스는 약 1000만 년 안에 사라지므로, 그 전에 핵이 충분히 커져야 목성형 행성이 됩니다.</p>
+    <div class="cards" id="goals">
+      <span class="card" id="g1">★ 지구형 행성 2개 이상</span>
+      <span class="card" id="g2">★ 목성형 행성 1개 이상</span>
+      <span class="card" id="g3">★ 0.7–1.4 AU에 지구만 한 행성(0.5–2 지구 질량)</span>
+    </div>
+    <div class="feedback" id="fb">아직 시작하지 않았습니다.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>성운이 수축할수록 회전이 빨라지고 납작한 원반이 되는 까닭은 무엇일까요? (피겨 선수가 팔을 오므리는 장면과 비교해 보세요.)</li>
+      <li>태양 밝기를 높이면 눈선은 어디로 옮겨 가고, 목성형 행성이 생기는 위치는 어떻게 바뀌나요?</li>
+      <li>태양 가까이에는 작고 밀도가 큰 행성이, 멀리에는 크고 밀도가 작은 행성이 생기는 까닭을 ‘응축되는 물질’로 설명해 보세요.</li>
+      <li>행성으로 자라지 못한 미행성체는 무엇이 되었을까요? 시뮬레이션이 끝난 뒤 남은 작은 천체를 찾아보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 단순 모델입니다. 실제 성운의 수축은 수십만~수백만 년, 행성 형성은 수천만~1억 년 정도 걸린 것으로 추정합니다. 눈선(얼음이 응축하는 경계)은 원반 온도가 약 150 K인 곳으로, 현재 태양계에서는 화성과 목성 사이(약 3 AU)로 봅니다. 충돌·집적 규칙과 기체 흡수 조건(핵 질량 약 4 지구 질량)은 수업 시간 안에 결과가 나오도록 단순화했습니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,stars,best,MOTION}=Lab;
+const W=1000,H=600,cvs=$('sim');
+let mode='A';
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:cvs,W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+// 두 번째 전체화면 버튼은 첫 번째로 위임
+$('fsBtn2').onclick=()=>$('fsBtn').click();
+
+/* =============== ① 성운 수축 =============== */
+const R=Lab.rng(7);
+const cloud=[];
+for(let i=0;i<900;i++){
+  // 구 안에 고르게
+  let x,y,z;do{x=R()*2-1;y=R()*2-1;z=R()*2-1;}while(x*x+y*y+z*z>1);
+  const u=Math.hypot(x,y),phi=Math.atan2(y,x);
+  cloud.push({u,phi,z,k:R(),dust:R()<.35});
+}
+const A={s:0,target:0,auto:false,nova:-1,spin:0,t:0};
+function stA(s){
+  const Rr=1-0.84*s, w=1/(Rr*Rr), T=Math.pow(10,1+6.25*Math.pow(s,1.25)), h=1-0.9*Math.pow(s,.8);
+  return {Rr,w,T,h,fusion:T>=1e7};
+}
+function drawA(dt){
+  const m=stA(A.s);
+  A.spin+=m.w*0.18*dt*MOTION;
+  ctx.fillStyle=tok.space;ctx.fillRect(0,0,W,H);
+  // 배경 별
+  starfield();
+  const cx=400,cy=300,Rpx=215*m.Rr;
+  // 충격파
+  if(A.nova>=0){
+    A.nova+=dt;const rr=A.nova*420;
+    ctx.save();ctx.strokeStyle='rgba(255,170,90,'+clamp(1-A.nova/1.6,0,1)+')';ctx.lineWidth=10;
+    ctx.beginPath();ctx.arc(-60,-40,rr,0,7);ctx.stroke();ctx.restore();
+    if(A.nova>1.6)A.nova=-1;
+  }
+  // 원반 아래 그림자 타원
+  ctx.save();ctx.globalAlpha=.7*A.s;ctx.fillStyle='rgba(227,183,122,.25)';
+  ctx.beginPath();ctx.ellipse(cx,cy,Rpx*1.02,Rpx*(0.28*(1-m.h)+0.02)+Rpx*0.2*m.h,0,0,7);ctx.fill();ctx.restore();
+  // 입자
+  const pts=[];
+  for(const p of cloud){
+    const fall=A.s*A.s*0.55*(1-p.k*0.6);   // 일부는 중심으로 낙하
+    const u=p.u*(1-fall*(1-p.u));
+    const ph=p.phi+A.spin*Math.pow(Math.max(u,.15),-0.5)*0.6;
+    const x=cx+Rpx*u*Math.cos(ph);
+    const depth=Math.sin(ph);
+    const y=cy+Rpx*(p.z*m.h*Math.sqrt(Math.max(0,1-u*u))*0.95+u*depth*0.26);
+    pts.push([depth,x,y,p.dust,u]);
+  }
+  pts.sort((a,b)=>a[0]-b[0]);
+  for(const [d,x,y,dust,u] of pts){
+    const a=0.35+0.45*(d+1)/2;
+    ctx.fillStyle=dust?`rgba(205,150,100,${a})`:`rgba(150,190,255,${a*0.8})`;
+    ctx.fillRect(x-1.2,y-1.2,2.4,2.4);
+  }
+  // 원시 태양
+  const core=6+34*Math.pow(A.s,1.3);
+  const heat=clamp(Math.log10(m.T)/7,0,1);
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,core*(m.fusion?3.2:2));
+  const c1=m.fusion?'255,244,200':`255,${Math.round(120+100*heat)},${Math.round(60+60*heat)}`;
+  g.addColorStop(0,`rgba(${c1},1)`);g.addColorStop(.35,`rgba(${c1},${0.55+0.3*heat})`);g.addColorStop(1,`rgba(${c1},0)`);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,core*(m.fusion?3.2:2),0,7);ctx.fill();
+  if(m.fusion){ctx.save();ctx.strokeStyle='rgba(255,240,180,.55)';ctx.lineWidth=2;for(let i=0;i<12;i++){const an=i*Math.PI/6+A.t*.3;ctx.beginPath();ctx.moveTo(cx+Math.cos(an)*core*1.4,cy+Math.sin(an)*core*1.4);ctx.lineTo(cx+Math.cos(an)*core*2.3,cy+Math.sin(an)*core*2.3);ctx.stroke();}ctx.restore();}
+  // 회전 화살표
+  const rr=Rpx*1.08+14;
+  ctx.save();ctx.strokeStyle='rgba(120,210,240,.8)';ctx.lineWidth=2.4;ctx.beginPath();
+  ctx.ellipse(cx,cy,rr,rr*0.3,0,Math.PI*0.15,Math.PI*0.85);ctx.stroke();
+  const ax=cx+rr*Math.cos(Math.PI*0.85),ay=cy+rr*0.3*Math.sin(Math.PI*0.85);
+  Lab.arrow(ctx,ax+12,ay-2,ax,ay,{color:'rgba(120,210,240,.9)',head:11});ctx.restore();
+  darkLabel(ctx,'회전 방향',cx-rr*0.2,cy+rr*0.3+18,{size:12});
+  // 축척 막대
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(cx-Rpx,cy-Rpx-20);ctx.lineTo(cx+Rpx,cy-Rpx-20);ctx.stroke();ctx.setLineDash([]);
+  darkLabel(ctx,`성운 지름 ${(m.Rr*100).toFixed(0)}% (처음 = 100%)`,cx,cy-Rpx-34,{size:12,weight:500});
+  // 오른쪽 계기
+  gauge(840,90,'중심 온도',m.T>=1e6?(m.T/1e6).toFixed(m.T<1e7?1:0)+'백만 K':Math.round(m.T).toLocaleString()+' K',heat);
+  gauge(840,200,'회전 속도',`×${m.w.toFixed(1)}`,clamp(Math.log(m.w)/Math.log(36),0,1));
+  gauge(840,310,'두께 / 지름',`${(m.h*100).toFixed(0)}%`,1-m.h);
+  darkLabel(ctx,m.fusion?'수소 핵융합 시작! → 스스로 빛나는 태양':A.s>0.45?'원시 태양: 수축하며 뜨거워지는 중':'중력 수축 시작',cx,568,{size:16});
+  return m;
+}
+function gauge(x,y,k,v,f){
+  ctx.save();ctx.fillStyle='rgba(255,255,255,.06)';ctx.strokeStyle='rgba(255,255,255,.18)';
+  ctx.beginPath();ctx.roundRect(x-110,y-36,220,80,10);ctx.fill();ctx.stroke();
+  darkLabel(ctx,k,x-96,y-16,{size:12,align:'left',weight:500});
+  darkLabel(ctx,v,x-96,y+10,{size:19,align:'left'});
+  ctx.fillStyle='rgba(255,255,255,.15)';ctx.fillRect(x-96,y+28,192,5);
+  ctx.fillStyle='#ffb35c';ctx.fillRect(x-96,y+28,192*clamp(f,0,1),5);ctx.restore();
+}
+const SF=[];{const r=Lab.rng(3);for(let i=0;i<160;i++)SF.push([r()*W,r()*H,r()*1.3+.2,r()]);}
+function starfield(){for(const [x,y,s,a] of SF){ctx.fillStyle=`rgba(255,255,255,${.25+.5*a})`;ctx.fillRect(x,y,s,s);}}
+
+/* =============== ② 원반 =============== */
+const ME=1, MSUN=333000;
+const B={bodies:[],t:0,gas:1,running:false,done:false,speed:1,flashes:[],L:1,dm:1,seed:1};
+const AMIN=0.3,AMAX=32;
+const frost=L=>3.0*Math.sqrt(L);
+const DX=290,DY=300,DR=272;
+const rpx=a=>DR*Math.sqrt(a/AMAX);
+function newDisk(){
+  const r=Lab.rng(B.seed=(B.seed*48271)%2147483647||5);
+  B.bodies=[];B.t=0;B.gas=1;B.done=false;B.flashes=[];
+  const fl=frost(B.L);
+  for(let i=0;i<620;i++){
+    // pdf ∝ a^-0.5 → a = (u*(√amax-√amin)+√amin)^2
+    const sq=Math.sqrt(AMIN)+r()*(Math.sqrt(AMAX)-Math.sqrt(AMIN));
+    const a=sq*sq;
+    const ice=a>fl;
+    const m0=0.03*B.dm*(ice?3:1)*(0.6+0.8*r());
+    B.bodies.push({a,th:r()*Math.PI*2,e:0.01+0.04*r(),w:r()*7,mr:ice?m0*0.4:m0,mi:ice?m0*0.6:0,mg:0,id:i});
+  }
+  setRun(false);judge(false);
+}
+const mass=b=>b.mr+b.mi+b.mg;
+const hill=b=>b.a*Math.cbrt(mass(b)/(3*MSUN));
+function density(b){const v=b.mr/5.2+b.mi/1.6+b.mg/0.9;return mass(b)/v;}
+function bodyColor(b){
+  const M=mass(b),fr=b.mr/M,fi=b.mi/M,fg=b.mg/M;
+  const c=[185*fr+159*fi+227*fg,138*fr+211*fi+183*fg,94*fr+240*fi+122*fg];
+  return `rgb(${c.map(Math.round).join(',')})`;
+}
+function bodyPx(b){const v=b.mr/5.2+b.mi/1.6+b.mg/0.9;return 1.1+2.3*Math.cbrt(v*3);}
+function stepB(dt){
+  const yrs=dt*B.speed;            // 화면 1초 ≈ 160만 년 × 배속
+  B.t+=yrs*1.6*(B.t<12?0.3:1);       // 백만 년 (가스가 있는 초기는 천천히 보여 줌)
+  B.gas=Math.max(0,1-B.t/10);       // 약 1000만 년 동안 성운 가스 소멸
+  const fl=frost(B.L);
+  for(const b of B.bodies){b.th+=1.15/Math.pow(b.a,1.5)*dt*MOTION*Math.min(B.speed,1.6);}
+  // 충돌·집적: a 순서로 이웃 검사
+  const arr=B.bodies.slice().sort((p,q)=>p.a-q.a);
+  const dead=new Set();
+  const K=7*(1+1.6*B.t/100);
+  for(let i=0;i<arr.length;i++){
+    const p=arr[i];if(dead.has(p.id))continue;
+    for(let j=i+1;j<arr.length;j++){
+      const q=arr[j];if(dead.has(q.id))continue;
+      const reach=Math.min(K*(hill(p)+hill(q)),0.14*p.a)+0.07*p.a*(p.e+q.e);
+      if(q.a-p.a>reach)break;
+      const rate=0.75/Math.pow(p.a,0.85)*yrs*(1+8*(p.e+q.e));
+      if(Math.random()<rate){
+        const [big,sm]=mass(p)>=mass(q)?[p,q]:[q,p];
+        const M=mass(big)+mass(sm);
+        big.a=(big.a*mass(big)+sm.a*mass(sm))/M;
+        big.mr+=sm.mr;big.mi+=sm.mi;big.mg+=sm.mg;big.e=Math.max(0.004,(big.e*0.8+sm.e*0.2)*0.85);
+        dead.add(sm.id);
+        if(B.flashes.length<40)B.flashes.push({a:big.a,th:big.th,t:0,big:M>0.5});
+        if(sm===p)break;
+      }
+    }
+  }
+  if(dead.size)B.bodies=B.bodies.filter(b=>!dead.has(b.id));
+  // 기체 흡수
+  for(const b of B.bodies){
+    const core=b.mr+b.mi;
+    if(B.gas>0&&core>=4&&b.a>fl*0.8){
+      const grow=(core+b.mg)*0.55*B.gas*yrs*(b.mg<280?1:0);
+      b.mg=Math.min(320,b.mg+grow);
+    }
+  }
+  // 큰 행성이 주변 이심률을 키움
+  for(const b of B.bodies){if(mass(b)<0.3){b.e=Math.min(0.12,b.e+yrs*0.0006);}}
+  if(B.t>=100){B.t=100;B.done=true;setRun(false);judge(true);}
+}
+function classify(b){
+  const M=mass(b),fl=frost(B.L);
+  if(b.mg>15)return 'gas';
+  if(M>4&&b.mi>b.mr*0.5)return 'ice';
+  if(M>=0.3&&b.a<fl&&b.mi<b.mr*0.3)return 'rock';
+  return 'small';
+}
+const KIND={gas:'목성형 (거대 기체)',ice:'목성형 (얼음 거대)',rock:'지구형',small:'소천체'};
+function drawB(dt){
+  if(B.running)stepB(dt);
+  ctx.fillStyle=tok.space;ctx.fillRect(0,0,W,H);starfield();
+  const fl=frost(B.L);
+  // 기체 원반
+  const g=ctx.createRadialGradient(DX,DY,10,DX,DY,DR);
+  g.addColorStop(0,`rgba(255,200,130,${0.35*B.gas})`);g.addColorStop(.5,`rgba(227,183,122,${0.18*B.gas})`);g.addColorStop(1,'rgba(227,183,122,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(DX,DY,DR,0,7);ctx.fill();
+  // 거리 고리
+  ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;
+  [1,5,10,20,30].forEach(a=>{ctx.beginPath();ctx.arc(DX,DY,rpx(a),0,7);ctx.stroke();darkLabel(ctx,a+' AU',DX+rpx(a)*0.707+4,DY+rpx(a)*0.707+6,{size:10,weight:500,align:'left',hw:3});});
+  // 눈선
+  ctx.save();ctx.strokeStyle='rgba(160,215,245,.85)';ctx.setLineDash([6,6]);ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(DX,DY,rpx(fl),0,7);ctx.stroke();ctx.restore();
+  darkLabel(ctx,'눈선 '+fl.toFixed(1)+' AU',DX,DY-rpx(fl)-9,{size:12,color:'#bfe6fb'});
+  // 큰 천체 궤도
+  for(const b of B.bodies){if(mass(b)>0.8){ctx.strokeStyle='rgba(255,255,255,.09)';ctx.beginPath();ctx.arc(DX,DY,rpx(b.a),0,7);ctx.stroke();}}
+  // 천체
+  for(const b of B.bodies){
+    const r=b.a*(1+b.e*Math.cos(b.th-b.w));
+    const x=DX+rpx(r)*Math.cos(b.th),y=DY+rpx(r)*Math.sin(b.th);
+    const s=bodyPx(b);
+    if(b.mg>1){ctx.fillStyle='rgba(227,183,122,.25)';ctx.beginPath();ctx.arc(x,y,s*1.7,0,7);ctx.fill();}
+    ctx.fillStyle=bodyColor(b);ctx.beginPath();ctx.arc(x,y,s,0,7);ctx.fill();
+  }
+  // 충돌 섬광
+  for(const f of B.flashes){f.t+=dt;const r=f.a,x=DX+rpx(r)*Math.cos(f.th),y=DY+rpx(r)*Math.sin(f.th);
+    ctx.strokeStyle=`rgba(255,230,160,${clamp(1-f.t/0.6,0,1)})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,4+f.t*(f.big?30:14),0,7);ctx.stroke();}
+  B.flashes=B.flashes.filter(f=>f.t<0.6);
+  // 태양
+  const sg=ctx.createRadialGradient(DX,DY,0,DX,DY,22*Math.sqrt(B.L));
+  sg.addColorStop(0,'rgba(255,248,215,1)');sg.addColorStop(.4,'rgba(255,214,120,.9)');sg.addColorStop(1,'rgba(255,170,60,0)');
+  ctx.fillStyle=sg;ctx.beginPath();ctx.arc(DX,DY,22*Math.sqrt(B.L),0,7);ctx.fill();
+  darkLabel(ctx,'공전 방향 ↻ 모두 같은 방향',DX,DY+DR+16,{size:12,weight:500});
+  // 오른쪽: 줄 세우기
+  drawLineup(fl);
+}
+function drawLineup(fl){
+  const x0=600,x1=975,yA=450;
+  const lx=a=>x0+(x1-x0)*Math.sqrt(a/AMAX);
+  ctx.save();ctx.fillStyle='rgba(255,255,255,.05)';ctx.beginPath();ctx.roundRect(585,30,402,540,12);ctx.fill();ctx.restore();
+  darkLabel(ctx,'지금 가장 큰 천체 8개',x0,58,{size:14,align:'left'});
+  darkLabel(ctx,`${(B.t).toFixed(0)}백만 년 · 성운 가스 ${(B.gas*100).toFixed(0)}%`,x1,58,{size:12,align:'right',weight:500,mono:true});
+  // 축
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x0,yA+80);ctx.lineTo(x1,yA+80);ctx.stroke();
+  [0.5,1,3,10,30].forEach(a=>{const x=lx(a);ctx.beginPath();ctx.moveTo(x,yA+80);ctx.lineTo(x,yA+86);ctx.stroke();darkLabel(ctx,a+'',x,yA+96,{size:10,weight:500,hw:0});});
+  darkLabel(ctx,'태양으로부터 거리 (AU)',(x0+x1)/2,yA+112,{size:11,weight:500,hw:0});
+  ctx.save();ctx.strokeStyle='rgba(160,215,245,.7)';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(lx(fl),80);ctx.lineTo(lx(fl),yA+80);ctx.stroke();ctx.restore();
+  darkLabel(ctx,'← 암석·금속만 응축',lx(fl)-6,92,{size:11,align:'right',weight:500,color:'#e8c49c'});
+  darkLabel(ctx,'얼음도 응축 →',lx(fl)+6,92,{size:11,align:'left',weight:500,color:'#bfe6fb'});
+  const top=B.bodies.slice().sort((p,q)=>mass(q)-mass(p)).slice(0,8).sort((p,q)=>p.a-q.a);
+  // 막대: 질량 로그 높이
+  const ly=m=>yA+60-(Math.log10(Math.max(m,0.01))+2)/(Math.log10(400)+2)*300;
+  [0.1,1,10,100].forEach(m=>{ctx.strokeStyle='rgba(255,255,255,.08)';ctx.beginPath();ctx.moveTo(x0,ly(m));ctx.lineTo(x1,ly(m));ctx.stroke();darkLabel(ctx,m+' M⊕',x0+2,ly(m)-7,{size:9.5,align:'left',weight:500,hw:0,color:'rgba(255,255,255,.55)'});});
+  let lastX=-99,row=0;
+  for(const b of top){
+    const x=lx(b.a),y=ly(mass(b)),s=Math.min(26,bodyPx(b)*1.6);
+    ctx.strokeStyle='rgba(255,255,255,.18)';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,yA+80);ctx.stroke();
+    if(b.mg>1){ctx.fillStyle='rgba(227,183,122,.25)';ctx.beginPath();ctx.arc(x,y,s*1.5,0,7);ctx.fill();}
+    ctx.fillStyle=bodyColor(b);ctx.beginPath();ctx.arc(x,y,s,0,7);ctx.fill();
+    row=(x-lastX<34)?(row+1)%2:0;lastX=x;
+    darkLabel(ctx,`${mass(b)<10?mass(b).toFixed(2):mass(b).toFixed(0)}`,x,y-s-8-row*12,{size:10.5,mono:true});
+    darkLabel(ctx,`ρ${density(b).toFixed(1)}`,x,yA+68-row*11,{size:9.5,weight:500,mono:true,color:'rgba(255,255,255,.7)'});
+  }
+  darkLabel(ctx,'숫자: 질량(지구=1) · ρ: 평균 밀도(g/cm³)',x0,yA+130,{size:10.5,align:'left',weight:500,hw:0,color:'rgba(255,255,255,.7)'});
+}
+
+/* =============== 판정 =============== */
+function judge(final){
+  const kinds=B.bodies.map(b=>[classify(b),b]);
+  const rocks=kinds.filter(k=>k[0]==='rock').map(k=>k[1]);
+  const giants=kinds.filter(k=>k[0]==='gas'||k[0]==='ice').map(k=>k[1]);
+  const earth=rocks.some(b=>b.a>=0.7&&b.a<=1.4&&mass(b)>=0.5&&mass(b)<=2);
+  const ok=[rocks.length>=2,giants.length>=1,earth];
+  ['g1','g2','g3'].forEach((id,i)=>{$(id).classList.toggle('done',ok[i]);});
+  if(!final){$('stNow').textContent=Lab.stars(0);$('fb').className='feedback';$('fb').textContent=B.t>0?'진행 중… 목표 카드가 초록색이 되면 달성한 것입니다.':'아직 시작하지 않았습니다.';return;}
+  const n=ok.filter(Boolean).length;
+  $('stNow').textContent=Lab.stars(n);$('stBest').textContent=Lab.stars(best('solar',n));
+  const small=kinds.filter(k=>k[0]==='small').length;
+  let msg=`1억 년 완료! 지구형 ${rocks.length}개, 목성형 ${giants.length}개, 행성이 되지 못한 소천체 ${small}개(소행성·혜성·왜소 행성 후보). `;
+  if(!ok[1])msg+='목성형이 없다면: 눈선 바깥의 고체 물질을 늘리거나(원반 물질↑) 태양 밝기를 낮춰 눈선을 안쪽으로 옮겨 보세요. ';
+  if(!ok[0])msg+='지구형이 부족하다면: 원반 물질을 조금 늘려 보세요. ';
+  if(n===3)msg+='완벽합니다! 우리 태양계와 닮은 구조가 만들어졌어요.';
+  $('fb').textContent=msg;$('fb').className='feedback '+(n===3?'good':n===0?'bad':'');
+}
+$('stBest').textContent=Lab.stars(best('solar',0));
+
+/* =============== 텍스트 =============== */
+const EXA=[
+ {t:'1 태양계 성운의 수축과 회전',c:['약 50억 년 전, 근처 초신성 폭발의 충격파가 성운을 압축했다.','성운이 자체 중력으로 수축하면서 한 방향으로 회전하기 시작했다.','반지름이 작아질수록 회전이 빨라지고(각운동량 보존), 회전축 방향으로는 쉽게 모이지만 적도 방향은 원심 효과로 덜 모여 납작한 원반이 된다.'],q:'태양계 행성들의 공전 방향이 모두 같은 까닭은 무엇일까?'},
+ {t:'2 원시 태양의 형성',c:['원반 중심부로 기체와 티끌이 계속 모여 원시 태양이 자란다.','원시 태양이 수축하면서 중력 에너지가 열로 바뀌어 중심 온도와 압력이 올라간다.','중심 온도가 약 1000만 K에 이르면 수소 핵융합이 시작되어 스스로 빛나는 태양이 된다.'],q:'원시 태양은 핵융합 전에도 뜨거웠다. 그 열은 어디에서 왔을까?'}
+];
+const EXB=[
+ {t:'3 미행성체의 형성',c:['원반의 기체가 식으면서 티끌이 응축되고, 서로 충돌·집적해 수 km 크기의 미행성체가 된다.','태양 가까운 곳은 뜨거워 규산염·철·니켈 같은 암석·금속 물질만 고체가 된다.','눈선 바깥은 차가워서 얼음까지 고체가 되므로 고체 물질이 훨씬 많다.'],q:'눈선 바깥쪽에서 고체 물질이 더 많은 까닭은?'},
+ {t:'4 원시 행성의 형성',c:['미행성체가 충돌과 집적을 거듭하며 주변 물질을 끌어모은다.','자체 중력으로 구형을 유지할 만큼 자라면 원시 행성이 된다.','눈선 바깥에서 핵이 빨리 커지면 성운 가스(수소·헬륨)를 끌어당겨 거대한 행성이 된다.'],q:'성운 가스가 사라진 뒤에 핵이 커지면 어떻게 될까?'},
+ {t:'5 태양계 천체의 형성',c:['태양 가까이에는 크기가 작고 밀도가 큰 지구형 행성이 남는다.','먼 곳에는 크기가 크고 밀도가 작은 목성형 행성이 생긴다.','행성이 되지 못한 미행성체는 왜소 행성, 소행성, 혜성 등으로 남는다.'],q:'모든 미행성체가 행성이 되었을까? 남은 작은 점들을 찾아보자.'}
+];
+function setEx(e){$('exTitle').textContent=e.t;$('exChain').innerHTML=e.c.map(x=>`<li>${x}</li>`).join('');$('exQ').textContent=e.q;}
+function setSteps(k){[...$('steps').children].forEach((el,i)=>{el.className=i===k?'on':i<k?'past':'';});}
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+let lastKey='';
+function textA(m){
+  $('sAOut').textContent=Math.round(A.s*100)+'%';
+  const k=A.s<0.5?0:1;setSteps(k);
+  if(lastKey!=='A'+k){lastKey='A'+k;setEx(EXA[k]);}
+  $('stateName').textContent=m.fusion?'태양 탄생':A.s<0.5?'태양계 성운':'원시 태양';
+  $('chip').dataset.s=m.fusion?'gold':A.s<0.5?'cool':'warm';
+  $('bigK').textContent='회전 속도 (처음 대비)';$('bigV').textContent='×'+m.w.toFixed(1);
+  $('metrics').innerHTML=metric('성운 반지름','<small>처음의</small>'+(m.Rr*100).toFixed(0)+'%','반지름이 줄면 회전 속도는 반지름²에 반비례')+
+    metric('중심 온도',m.T>=1e6?(m.T/1e6).toFixed(1)+' 백만 K':Math.round(m.T).toLocaleString()+' K',m.fusion?'핵융합 조건(약 1000만 K) 도달':'핵융합까지 '+Math.max(0,(1e7-m.T)/1e6).toFixed(1)+' 백만 K')+
+    metric('원반 두께 / 지름',(m.h*100).toFixed(0)+'%',m.h<0.3?'납작한 원반':'아직 둥근 구름')+
+    metric('상태',m.fusion?'주계열 시작':A.s<0.5?'중력 수축':'원시 태양 성장',m.fusion?'바깥 원반에서 미행성체 형성 → ② 단계로':'');
+  $('fsInfo').textContent=`수축 ${Math.round(A.s*100)}% · 회전 ×${m.w.toFixed(1)} · 중심 ${(m.T/1e6).toFixed(1)}백만 K`;
+}
+function textB(){
+  const fl=frost(B.L);
+  const k=B.t<3?2:B.t<60?3:4;setSteps(k);
+  if(lastKey!=='B'+k){lastKey='B'+k;setEx(EXB[k-2]);}
+  const big=B.bodies.slice().sort((p,q)=>mass(q)-mass(p));
+  const inner=big.find(b=>b.a<fl),outer=big.find(b=>b.a>=fl);
+  const giants=B.bodies.filter(b=>b.mg>15).length;
+  $('stateName').textContent=B.done?'태양계 완성':B.t<3?'미행성체 형성':'원시 행성 성장';
+  $('chip').dataset.s=B.done?'gold':'warm';
+  $('bigK').textContent='경과 시간';$('bigV').textContent=B.t.toFixed(0)+' 백만 년';
+  $('metrics').innerHTML=metric('남은 천체 수',B.bodies.length+'개','처음 620개의 미행성체')+
+    metric('성운 가스',(B.gas*100).toFixed(0)+'%',B.gas>0?'아직 기체를 끌어당길 수 있음':'가스 소멸: 더 이상 목성형 성장 불가')+
+    metric('눈선 안쪽 최대 천체',inner?mass(inner).toFixed(2)+' M⊕':'–',inner?`${inner.a.toFixed(2)} AU · 밀도 ${density(inner).toFixed(1)} g/cm³`:'')+
+    metric('눈선 바깥 최대 천체',outer?(mass(outer)<10?mass(outer).toFixed(2):mass(outer).toFixed(0))+' M⊕':'–',outer?`${outer.a.toFixed(1)} AU · 밀도 ${density(outer).toFixed(1)} g/cm³`:'')+
+    metric('기체 거대 행성',giants+'개','핵 ≥ 4 M⊕ + 성운 가스 필요')+
+    metric('눈선 위치',fl.toFixed(1)+' AU','원반 온도 약 150 K인 곳');
+  $('fsInfo').textContent=`${B.t.toFixed(0)}백만 년 · 천체 ${B.bodies.length}개 · 가스 ${(B.gas*100).toFixed(0)}% · 눈선 ${fl.toFixed(1)} AU`;
+  if(B.running&&Math.floor(B.t)%5===0)judge(false);
+}
+
+/* =============== 조작 =============== */
+function setMode(m){
+  mode=m;$('mA').setAttribute('aria-pressed',m==='A');$('mB').setAttribute('aria-pressed',m==='B');
+  $('ctlA').hidden=m!=='A';$('ctlB').hidden=m!=='B';lastKey='';
+  $('legNote').textContent=m==='A'?'점 하나하나는 성운을 이루는 기체(푸른 점)와 티끌(갈색 점) 덩어리입니다. 크기는 실제 비율과 다릅니다.':'왼쪽은 위에서 본 원반(거리는 제곱근 눈금), 오른쪽은 가장 큰 천체들의 질량·밀도입니다. 큰 천체일수록 크게 그렸습니다.';
+}
+$('mA').onclick=()=>setMode('A');$('mB').onclick=()=>setMode('B');
+$('sA').addEventListener('input',()=>{A.auto=false;A.target=$('sA').value/100;});
+$('nova').onclick=()=>{A.s=0;A.target=0;A.nova=0;A.auto=true;$('sA').value=0;};
+$('resetA').onclick=()=>{A.auto=false;A.s=0;A.target=0;$('sA').value=0;};
+function setRun(on){B.running=on;$('run').textContent=on?'❚❚ 멈춤':(B.done?'▶ 다시 시작':'▶ 시작');}
+$('run').onclick=()=>{if(B.done){newDisk();}setRun(!B.running);};
+$('resetB').onclick=()=>newDisk();
+$('fast').onclick=()=>{B.speed=B.speed===1?3:1;$('fast').setAttribute('aria-pressed',B.speed===3);};
+$('lum').addEventListener('input',()=>{B.L=$('lum').value/100;$('lumOut').textContent=`${B.L.toFixed(1)}배 · 눈선 ${frost(B.L).toFixed(1)} AU`;if(B.t===0)newDisk();});
+$('dm').addEventListener('input',()=>{B.dm=$('dm').value/100;$('dmOut').textContent=B.dm.toFixed(1)+'배';if(B.t===0)newDisk();});
+newDisk();
+
+let fr=0;
+Lab.loop(dt=>{
+  fr++;S.begin();
+  if(mode==='A'){
+    A.t+=dt;
+    if(A.auto){A.target=Math.min(1,A.target+dt*0.075);$('sA').value=Math.round(A.target*100);if(A.target>=1)A.auto=false;}
+    A.s+=(A.target-A.s)*Math.min(1,dt*4);
+    const m=drawA(dt);if(fr%4===0)textA(m);
+  }else{drawB(dt);if(fr%4===0)textB();}
+});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>

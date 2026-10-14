@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>베게너의 대륙 퍼즐</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
+  --accent:#0a6a8a; --accent-soft:#dcedf3;
+  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
+  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
+  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
+  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
+  --accent:#53b9d8; --accent-soft:#16303c;
+  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
+  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
+  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
+  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
+.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
+button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toggles input{accent-color:var(--accent);width:16px;height:16px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;padding:5px 12px;font-size:.85rem}
+input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
+select{font-family:var(--f-body);width:auto}
+
+.canvas-wrap{position:relative;background:var(--sky-bot)}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
+.legend .grad{height:10px;border-radius:3px}
+.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
+.legend .note{flex:1 1 260px;min-width:0}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
+.panel h3{font-size:.95rem;margin:12px 0 6px}
+
+.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
+.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
+.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
+.big{text-align:right}
+.big .k{font-size:.78rem;color:var(--muted)}
+.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
+.m{display:grid;gap:2px;min-width:0}
+.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
+.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
+.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
+.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+
+.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
+.chain li{position:relative;padding:6px 0 6px 26px}
+.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
+.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+
+/* 게임 */
+.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
+.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+.game .gh h2{margin:0}
+.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
+.score b{color:var(--gold)}
+.mission{font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
+.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
+.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
+.stars{color:var(--gold);letter-spacing:2px}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.card.sel{border-color:var(--accent);background:var(--accent-soft)}
+.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
+.card.wrong{border-color:var(--warm);color:var(--warm)}
+
+.fsbtn{margin-left:auto}
+.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
+.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
+.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
+body.lock{overflow:hidden}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../course.html?c=ess#u1" target="_top">← 지구시스템과학 1단원 목록</a>
+    <div class="eyebrow">03 판 구조론의 정립 과정 · 대륙 이동설 · 약 3억 년 전 곤드와나</div>
+    <h1>베게너의 대륙 퍼즐</h1>
+    <p>남아메리카, 인도, 남극, 오스트레일리아를 끌어다 아프리카 주변에 맞춰 보세요. 해안선 모양, 화석, 빙하 흔적, 산맥이 하나로 이어지면 성공입니다.</p>
+  </header>
+
+  <section class="stage" aria-label="퍼즐">
+    <div class="controls">
+      <div class="toggles" aria-label="증거 보기">
+        <label><input type="checkbox" id="eFos" checked>고생물 화석</label>
+        <label><input type="checkbox" id="eIce" checked>빙하 흔적</label>
+        <label><input type="checkbox" id="eMt" checked>산맥·지층</label>
+        <label><input type="checkbox" id="eGhost">정답 윤곽 (힌트)</label>
+      </div>
+      <div class="presets">
+        <button id="rotL" type="button">⟲ 왼쪽 회전</button>
+        <button id="rotR" type="button">⟳ 오른쪽 회전</button>
+        <button id="shuffle" type="button">🔀 다시 흩기</button>
+        <button id="solve" type="button" class="primary">▶ 원래대로 모으기</button>
+      </div>
+      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
+    </div>
+    <div class="canvas-wrap"><canvas id="sim" width="1000" height="620" role="img" aria-label="대륙 조각을 맞추는 퍼즐"></canvas></div>
+    <div class="legend">
+      <span><i class="sw" style="background:#5aa7a0"></i>메소사우루스</span>
+      <span><i class="sw" style="background:#7bb661"></i>글로소프테리스</span>
+      <span><i class="sw" style="background:#d9a441"></i>리스트로사우루스</span>
+      <span><i class="sw" style="background:#c0705a"></i>키노그나투스</span>
+      <span>↗ 빙하 이동 방향</span>
+      <div class="fsinfo" id="fsInfo"></div>
+      <div class="note">조각을 끌어 옮기고, 선택한 조각은 회전 버튼·마우스 휠·Q/E 키로 돌립니다. 아프리카는 고정되어 있습니다.</div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="기록">
+      <div class="status">
+        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">흩어진 대륙</span></span>
+        <div class="big"><div class="k">맞춘 조각</div><div class="v" id="bigN">0 / 4</div></div>
+      </div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+    <section class="panel" aria-label="설명">
+      <h2>베게너가 제시한 대륙 이동의 증거</h2>
+      <ol class="chain">
+        <li><b>해안선 모양의 유사성</b>: 남아메리카 동해안과 아프리카 서해안의 모양이 비슷하다.</li>
+        <li><b>지질 구조의 연속성</b>: 바다를 사이에 둔 대륙의 산맥과 지층이 이어진다.</li>
+        <li><b>고생물 화석의 분포</b>: 바다를 건널 수 없는 생물(메소사우루스, 글로소프테리스 등)의 화석이 멀리 떨어진 여러 대륙에서 발견된다.</li>
+        <li><b>빙하의 흔적</b>: 고생대 말 빙하 퇴적층과 빙하가 긁은 자국이 남극 쪽 한곳에서 흩어져 나간 모양이다.</li>
+      </ol>
+      <div class="impact"><b>그런데 왜 받아들여지지 않았을까?</b>베게너는 대륙을 움직이는 원동력을 제대로 설명하지 못했다. 원동력의 답은 맨틀 대류설, 해양저 확장설을 거쳐 판 구조론에서 찾게 된다.</div>
+    </section>
+  </div>
+
+  <section class="panel game" aria-label="미션">
+    <div class="gh"><h2>🧩 미션: 곤드와나 복원</h2><div class="score"><span>시간 <b id="time">0.0</b>초</span><span>움직임 <b id="moves">0</b></span><span>이번 판 <b id="stNow">☆☆☆</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
+    <p class="mission">네 조각을 모두 맞추면 끝납니다. 힌트 윤곽을 켜지 않고, 90초 안에, 적은 움직임으로 맞출수록 별이 많습니다.</p>
+    <div class="feedback" id="fb">조각을 끌어 아프리카 주변에 붙여 보세요. 제자리 근처에 오면 자석처럼 붙습니다.</div>
+  </section>
+
+  <section class="panel">
+    <h2>수업용 질문</h2>
+    <ol class="qs">
+      <li>메소사우루스는 민물에 살던 작은 파충류입니다. 남아메리카와 아프리카 양쪽에서 화석이 나오는 것은 무엇을 뜻할까요?</li>
+      <li>빙하가 긁고 지나간 자국의 방향을 모아 보면, 고생대 말 빙하의 중심은 어디였을까요?</li>
+      <li>지금 인도는 북반구 열대에 있는데 고생대 말 빙하 퇴적층이 있습니다. 어떻게 설명할 수 있을까요?</li>
+      <li>베게너의 대륙 이동설이 당시 받아들여지지 않은 까닭과, 이후 어떤 증거로 인정받게 되었는지 정리해 보세요.</li>
+    </ol>
+  </section>
+  <p class="foot">교육용 모식도입니다. 대륙 모양과 맞춘 배치, 화석 분포 범위는 교과서 그림(베게너가 제시한 대륙 이동의 증거)을 바탕으로 단순화했습니다.</p>
+</div>
+<script>const Lab=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOTION=reduce?0.3:1;
+const tok={};
+const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','cool','calm','gold','sky-top','sky-bot','land','land-edge','air','wind','cloud','cloud-edge','rain','halo','sea','strip','space'];
+const hooks=[];
+function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
+readTok();
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
+new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
+const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
+function label(ctx,t,x,y,o={}){
+  const size=o.size||14,align=o.align||'center';
+  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
+  ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
+}
+const darkLabel=(ctx,t,x,y,o={})=>label(ctx,t,x,y,Object.assign({color:'#ffffff',halo:'rgba(8,20,32,.65)'},o));
+function arrow(ctx,x0,y0,x1,y1,o={}){
+  const a=Math.atan2(y1-y0,x1-x0),h=o.head||9;
+  ctx.save();ctx.strokeStyle=o.color||tok.fg;ctx.fillStyle=o.color||tok.fg;ctx.lineWidth=o.w||2;ctx.lineCap='round';
+  if(o.dash)ctx.setLineDash(o.dash);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1-Math.cos(a)*h*.6,y1-Math.sin(a)*h*.6);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 캔버스 + 전체화면 */
+function stage(opt){
+  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
+  cvs.style.aspectRatio=W+'/'+H;
+  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
+  function resize(){
+    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
+    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
+    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
+    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
+    if(opt.onResize)opt.onResize();
+  }
+  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
+  async function toggle(){
+    if(isFs()){
+      if(st.classList.contains('fs'))st.classList.remove('fs');
+      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+      sync();return;
+    }
+    const req=st.requestFullscreen||st.webkitRequestFullscreen;
+    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
+    sync();
+  }
+  if(btn)btn.onclick=toggle;
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
+  window.addEventListener('resize',resize);resize();
+  const ctx=cvs.getContext('2d');
+  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
+    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
+}
+function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
+function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
+const $=id=>document.getElementById(id);
+const sg=(v,d=1)=>(v>=0?'+':'−')+Math.abs(v).toFixed(d);
+function stars(n,max=3){return '★'.repeat(n)+'☆'.repeat(Math.max(0,max-n));}
+function best(key,val){try{const k='lab-best-'+key;const o=+localStorage.getItem(k)||0;if(val>o){localStorage.setItem(k,val);return val;}return o;}catch(e){return val;}}
+function colorRamp(stops){return T=>{if(T<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){const [t1,c1]=stops[i];if(T<=t1){const [t0,c0]=stops[i-1];const f=(T-t0)/(t1-t0);return [c0[0]+(c1[0]-c0[0])*f,c0[1]+(c1[1]-c0[1])*f,c0[2]+(c1[2]-c0[2])*f];}}return stops[stops.length-1][1];};}
+const rgb=c=>`rgb(${c.map(Math.round).join(',')})`;
+return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,label,darkLabel,arrow,stage,rng,loop,$,sg,stars,best,colorRamp,rgb};
+})();
+</script>
+<script>
+(function(){
+const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
+const W=1000,H=620;
+const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const ctx=S.ctx;
+const OX=230,OY=60;  // 곤드와나 틀의 위치
+const PIECES=[
+ {n:'아프리카',fixed:true,col:'#c9a66b',poly:[[250,40],[300,30],[350,50],[390,60],[410,100],[430,130],[415,170],[400,200],[390,250],[370,300],[345,340],[320,360],[300,340],[290,300],[280,260],[265,222],[240,190],[205,180],[180,160],[175,120],[195,80],[220,55]]},
+ {n:'남아메리카',col:'#b9c46a',poly:[[115,125],[150,112],[168,130],[172,163],[200,184],[236,196],[259,226],[273,262],[281,300],[270,330],[245,365],[222,410],[208,440],[200,410],[185,370],[160,320],[135,260],[115,200],[108,160]]},
+ {n:'남극',col:'#d7e3ea',poly:[[290,372],[340,366],[385,380],[430,388],[470,402],[492,440],[472,482],[420,502],[350,507],[290,492],[255,462],[252,420],[265,392]]},
+ {n:'인도',col:'#d79a6a',poly:[[408,214],[440,205],[470,225],[476,262],[456,298],[426,330],[402,340],[383,316],[393,272],[400,240]]},
+ {n:'오스트레일리아',col:'#e0b45a',poly:[[478,300],[512,288],[546,308],[562,348],[546,388],[506,398],[482,382],[472,344]]},
+];
+// 각 조각의 기준점(무게중심)
+for(const p of PIECES){let x=0,y=0;for(const [a,b] of p.poly){x+=a;y+=b;}p.cx=x/p.poly.length;p.cy=y/p.poly.length;p.x=p.cx;p.y=p.cy;p.r=0;p.snap=!!p.fixed;}
+const EV={
+ fos:[['메소사우루스','#5aa7a0',[270,292,44,26]],['키노그나투스','#c0705a',[228,232,52,24]],['리스트로사우루스','#d9a441',[395,300,64,52]],['글로소프테리스','#7bb661',[365,385,175,80]]],
+ mt:[[150,340],[230,322],[300,300],[355,288]],
+ iceC:[330,418],
+};
+function shuffle(){
+  const spots=[[130,330,-35],[820,500,40],[840,150,-50],[870,330,25]];
+  PIECES.filter(p=>!p.fixed).forEach((p,i)=>{const s=spots[i];p.x=s[0]-OX;p.y=s[1]-OY;p.r=s[2]*Math.PI/180;p.snap=false;});
+  G.t=0;G.moves=0;G.done=false;G.ghostUsed=false;G.anim=null;$('fb').textContent='조각을 끌어 아프리카 주변에 붙여 보세요. 제자리 근처에 오면 자석처럼 붙습니다.';$('fb').className='feedback';
+}
+const G={t:0,moves:0,done:false,sel:null,drag:null,ghostUsed:false,anim:null};
+function tf(p,pt){ // 조각 좌표 → 화면
+  const dx=pt[0]-p.cx,dy=pt[1]-p.cy,c=Math.cos(p.r),s=Math.sin(p.r);
+  return [OX+p.x+dx*c-dy*s,OY+p.y+dx*s+dy*c];
+}
+function inv(p,x,y){const dx=x-OX-p.x,dy=y-OY-p.y,c=Math.cos(-p.r),s=Math.sin(-p.r);return [p.cx+dx*c-dy*s,p.cy+dx*s+dy*c];}
+function inside(poly,x,y){let o=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))o=!o;}return o;}
+function pathPiece(p){ctx.beginPath();p.poly.forEach((pt,i)=>{const [x,y]=tf(p,pt);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();}
+function draw(){
+  // 바다
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,Lab.isDark()?'#0f2a3d':'#7fb3d1');g.addColorStop(1,Lab.isDark()?'#0b2232':'#5e9cc0');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // 정답 윤곽
+  if(show.ghost){ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1.5;for(const p of PIECES){ctx.beginPath();p.poly.forEach((pt,i)=>i?ctx.lineTo(OX+pt[0],OY+pt[1]):ctx.moveTo(OX+pt[0],OY+pt[1]));ctx.closePath();ctx.stroke();}ctx.setLineDash([]);}
+  // 조각 (선택된 것 맨 위)
+  const order=PIECES.slice().sort((a,b)=>(a===G.sel)-(b===G.sel));
+  for(const p of order){
+    ctx.save();pathPiece(p);ctx.fillStyle=p.col;ctx.fill();
+    ctx.lineWidth=p===G.sel?3:1.5;ctx.strokeStyle=p===G.sel?'#ffd25a':p.snap?'rgba(40,60,40,.8)':'rgba(40,40,40,.6)';ctx.stroke();
+    ctx.clip();
+    // 증거 레이어 (조각 좌표계에서 그리기)
+    const c=Math.cos(p.r),s=Math.sin(p.r);
+    ctx.setTransform(1,0,0,1,0,0);S.begin();
+    const m=new DOMMatrix().translate(OX+p.x,OY+p.y).rotate(p.r*180/Math.PI).translate(-p.cx,-p.cy);
+    const base=ctx.getTransform();ctx.setTransform(base.multiply(m));
+    if(show.fos){for(const [n,col,[x,y,rx,ry]] of EV.fos){ctx.fillStyle=col+'b0';ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,7);ctx.fill();}}
+    if(show.ice){ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.arc(EV.iceC[0],EV.iceC[1],95,0,7);ctx.fill();
+      for(let a=0;a<12;a++){const an=a/12*Math.PI*2;const x1=EV.iceC[0]+Math.cos(an)*40,y1=EV.iceC[1]+Math.sin(an)*40,x2=EV.iceC[0]+Math.cos(an)*110,y2=EV.iceC[1]+Math.sin(an)*110;Lab.arrow(ctx,x1,y1,x2,y2,{color:'#1d3557',w:2,head:8});}}
+    if(show.mt){ctx.strokeStyle='#6b3e26';ctx.lineWidth=4;ctx.beginPath();EV.mt.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
+      ctx.lineWidth=1.5;for(let i=0;i<EV.mt.length-1;i++){const [a,b]=EV.mt[i],[c2,d]=EV.mt[i+1];for(let t=0.1;t<1;t+=0.2){const x=lerp(a,c2,t),y=lerp(b,d,t);ctx.beginPath();ctx.moveTo(x-4,y+4);ctx.lineTo(x,y-5);ctx.lineTo(x+4,y+4);ctx.stroke();}}}
+    ctx.restore();
+    // 이름
+    const [lx,ly]=tf(p,[p.cx,p.cy]);
+    label(ctx,p.n+(p.snap&&!p.fixed?' ✓':''),lx,ly,{size:14,color:'#1d2a36',halo:'rgba(255,255,255,.75)'});
+  }
+  if(G.done){darkLabel(ctx,'곤드와나 완성! 화석·빙하·산맥이 하나로 이어집니다',W/2,30,{size:18,color:'#fff4c2'});}
+  else darkLabel(ctx,'아프리카 주변에 조각을 맞추세요',W/2,26,{size:14});
+}
+const show={fos:true,ice:true,mt:true,ghost:false};
+['eFos','eIce','eMt','eGhost'].forEach(id=>$(id).onchange=e=>{const k={eFos:'fos',eIce:'ice',eMt:'mt',eGhost:'ghost'}[id];show[k]=e.target.checked;if(k==='ghost'&&e.target.checked&&!G.done)G.ghostUsed=true;});
+/* 끌기 */
+$('sim').addEventListener('pointerdown',e=>{
+  if(G.anim)return;
+  const q=S.pt(e);const order=PIECES.slice().sort((a,b)=>(b===G.sel)-(a===G.sel));
+  for(const p of order){if(p.fixed)continue;const [x,y]=inv(p,q.x,q.y);if(inside(p.poly,x,y)){G.sel=p;G.drag={dx:q.x-p.x,dy:q.y-p.y};p.snap=false;$('sim').setPointerCapture(e.pointerId);return;}}
+  G.sel=null;
+});
+$('sim').addEventListener('pointermove',e=>{if(!G.drag||!G.sel)return;const q=S.pt(e);G.sel.x=q.x-G.drag.dx;G.sel.y=q.y-G.drag.dy;});
+$('sim').addEventListener('pointerup',()=>{if(G.drag&&G.sel){G.moves++;trySnap(G.sel);}G.drag=null;});
+$('sim').addEventListener('wheel',e=>{if(!G.sel)return;e.preventDefault();rot(e.deltaY>0?5:-5);},{passive:false});
+function rot(d){if(!G.sel||G.sel.fixed)return;G.sel.r+=d*Math.PI/180;G.sel.snap=false;G.moves++;trySnap(G.sel);}
+$('rotL').onclick=()=>rot(-10);$('rotR').onclick=()=>rot(10);
+document.addEventListener('keydown',e=>{if(e.key==='q'||e.key==='Q')rot(-5);if(e.key==='e'||e.key==='E')rot(5);});
+function angDiff(a){a=((a%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI;return Math.abs(a);}
+function trySnap(p){
+  const d=Math.hypot(p.x-p.cx,p.y-p.cy),a=angDiff(p.r);
+  if(d<26&&a<14*Math.PI/180){p.x=p.cx;p.y=p.cy;p.r=0;p.snap=true;$('fb').textContent=`${p.n} 딱 맞았습니다! `+hint(p);$('fb').className='feedback good';check();}
+  else if(d<70){$('fb').textContent=a>14*Math.PI/180?`${p.n}: 위치는 가까운데 방향을 더 돌려 보세요.`:`${p.n}: 거의 다 왔어요!`;$('fb').className='feedback';}
+}
+function hint(p){return {남아메리카:'해안선이 꼭 맞고, 메소사우루스 화석과 산맥이 아프리카로 이어집니다.',남극:'빙하 흔적의 중심이 남극 쪽에 모입니다.',인도:'리스트로사우루스와 글로소프테리스 화석이 이어집니다.',오스트레일리아:'글로소프테리스 화석 분포와 빙하 흔적이 이어집니다.'}[p.n]||'';}
+function check(){
+  const n=PIECES.filter(p=>p.snap&&!p.fixed).length;
+  if(n===4&&!G.done){G.done=true;
+    const st=(G.ghostUsed?0:1)+(G.t<=90?1:0)+(G.moves<=24?1:0);
+    $('stNow').textContent=Lab.stars(st);$('stBest').textContent=Lab.stars(Lab.best('wegener',st));
+    $('fb').textContent=`완성! ${G.t.toFixed(1)}초, ${G.moves}번 움직임${G.ghostUsed?', 힌트 사용':''} → ${Lab.stars(st)}. 화석 분포와 빙하 흔적이 끊김 없이 이어지는 것을 확인하세요.`;$('fb').className='feedback good';}
+}
+$('stBest').textContent=Lab.stars(Lab.best('wegener',0));
+$('shuffle').onclick=shuffle;
+$('solve').onclick=()=>{G.anim={t:0,from:PIECES.map(p=>[p.x,p.y,p.r])};G.ghostUsed=true;};
+const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
+function text(){
+  const n=PIECES.filter(p=>p.snap&&!p.fixed).length;
+  $('bigN').textContent=n+' / 4';$('stateName').textContent=G.done?'곤드와나 (초대륙 판게아의 남쪽)':n?'맞추는 중':'흩어진 대륙';$('chip').dataset.s=G.done?'gold':'cool';
+  const ok=k=>PIECES.find(p=>p.n===k).snap;
+  $('metrics').innerHTML=metric('해안선 맞춤',ok('남아메리카')?'남아메리카–아프리카 ✓':'아직','두 대륙의 해안선')+
+    metric('메소사우루스 화석',ok('남아메리카')?'이어짐 ✓':'끊김','남아메리카 · 아프리카')+
+    metric('글로소프테리스 화석',['남아메리카','남극','인도','오스트레일리아'].filter(ok).length+'/4 대륙 연결','남반구 다섯 대륙')+
+    metric('빙하 흔적',(['남아메리카','남극','인도','오스트레일리아'].filter(ok).length===4)?'한 중심에서 퍼짐 ✓':'방향이 제각각','고생대 말 빙하 퇴적층');
+  $('time').textContent=G.t.toFixed(1);$('moves').textContent=G.moves;
+  $('fsInfo').textContent=`맞춘 조각 ${n}/4 · ${G.t.toFixed(0)}초 · 움직임 ${G.moves}`;
+}
+shuffle();
+let fr=0;
+Lab.loop(dt=>{
+  fr++;if(!G.done&&!G.anim)G.t+=dt;
+  if(G.anim){G.anim.t+=dt*0.5;const k=Math.min(1,G.anim.t),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    PIECES.forEach((p,i)=>{if(p.fixed)return;const [x,y,r]=G.anim.from[i];p.x=lerp(x,p.cx,e);p.y=lerp(y,p.cy,e);p.r=lerp(r,0,e);});
+    if(k>=1){PIECES.forEach(p=>p.snap=true);G.anim=null;G.done=true;$('fb').textContent='약 3억 년 전, 남반구 대륙들은 이렇게 하나로 붙어 있었습니다(곤드와나). ‘다시 흩기’로 직접 맞춰 보세요.';$('fb').className='feedback';}}
+  S.begin();draw();if(fr%6===0)text();
+});
+})();
+</script>
+
+
+<script>
+// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+(function () {
+  var inFrame = window.self !== window.top;
+  if (inFrame) document.documentElement.classList.add('in-frame');
+  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
+  document.head.appendChild(st);
+  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
+  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+})();
+</script>
+</body></html>
