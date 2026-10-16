@@ -42,7 +42,7 @@ if (!sim) {
 
   const ready = sim.status === 'ready' && sim.file;
   page.innerHTML = `
-    <div class="breadcrumb"><a href="${url.home()}">홈</a> › <a href="${url.topic(sim.topic)}">${esc(t.name || '')}</a> › ${esc(sim.sub || '')}</div>
+    <div class="breadcrumb"><a href="${url.home()}">홈</a>${t.name ? ` › <a href="${url.topic(sim.topic)}">${esc(t.name)}</a>` : ''}${sim.sub ? ' › ' + esc(sim.sub) : ''}</div>
     <div class="sim-head">
       <div>
         <h1 class="page-title">${esc(sim.title)}</h1>

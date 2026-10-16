@@ -48,7 +48,7 @@
     const chips = opts.noChips ? '' : '<div class="chips">' + (sim.links || [])
       .map(l => course(l.course)).filter(Boolean)
       .map(c => `<span class="chip">${esc(c.name)}</span>`).join('') + '</div>';
-    const inner = `<span class="tag">${esc(t.name || '')}${sim.sub ? ' · ' + esc(sim.sub) : ''}</span>
+    const inner = `<span class="tag">${[t.name, sim.sub].filter(Boolean).map(esc).join(' · ')}</span>
       <h3>${esc(sim.title)}</h3><p>${esc(sim.desc)}</p>${chips}`;
     const style = `style="--c:${t.color || 'var(--accent)'}"`;
     return sim.status === 'ready'
