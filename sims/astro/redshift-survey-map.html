@@ -95,18 +95,28 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simL .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #simL .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #simL .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #simL .sim-col { flex: 0 0 760px; min-height: 0; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -114,22 +124,24 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simL">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>분광 탐사로 우주의 3차원 지도 그리기</div>
             <div class="ppt-subtitle">하늘 사진(2D)에서는 보이지 않던 구조가 적색 이동(거리)을 더하면 드러납니다.</div>
             <div class="sim-wrap">
-                <div class="sim-col" style="width:760px">
-                    <div class="sim-stage"><canvas id="cL1" width="760" height="290"></canvas></div>
+                <div class="sim-col">
+                    <div class="sim-stage"><canvas id="cL1" width="760" height="420" style="cursor:pointer"></canvas></div>
                     <div class="sim-box blue" style="padding:14px 22px">
                         <div class="sim-btns"><button class="sim-btn on" id="bL1">▶ 분광 탐사 시작</button><button class="sim-btn" id="bL2">↺ 처음부터</button><button class="sim-btn orange" id="bL3">한 번에 모두 측정</button></div>
                         <div style="margin-top:10px">스펙트럼을 얻은 은하: <span class="sim-big" id="oL" style="font-size:34px">0</span> 개</div>
                     </div>
+                    <div class="sim-box" id="oL2" style="font-size:25px;padding:12px 22px"></div>
                     <div class="sim-box key" style="font-size:24px;padding:12px 22px">
                         <b>위</b>: 하늘에 찍힌 위치(적경·적위)만 아는 사진 → 고르게 퍼진 것처럼 보여요.<br>
                         <b>오른쪽</b>: 적색 이동으로 거리를 더한 파이도 → <b>필라멘트·거대 공동</b>이 보여요!
                     </div>
                 </div>
-                <div class="sim-stage"><canvas id="cL2" width="970" height="610"></canvas></div>
+                <div class="sim-stage"><canvas id="cL2" width="1010" height="900"></canvas></div>
             </div>
         </div>
 </div>
@@ -202,17 +214,34 @@
             const d = Math.hypot(x, y), th = Math.atan2(x, y) * 180 / Math.PI;
             if (d > 0.06 && d < 0.97 && Math.abs(th) < MAXA) gal.push({ th: th, d: d, dec: (r() - .5) * 6, m: false, mt: 0 });
         }
-        let scan = 0, run = false, count = 0;
+        let scan = 0, run = false, count = 0, sel = null;
+        const W1 = c1.width, H1 = c1.height, W2 = c2.width, H2 = c2.height;
+        const SX = th => 20 + (th + MAXA) / (2 * MAXA) * (W1 - 40), SY = dec => (H1 + 40) / 2 - dec / 3 * (H1 - 110) / 2;
+        // 은하까지의 거리: 파이도 반지름 1 = z 0.1, r = cz / H (H = 70)
+        const info = p => { const z = p.d * 0.1, mpc = z * 299792 / 70; return { z: z, mpc: mpc, ly: mpc * 326 / 10000 }; };
+        function showSel() {
+            const o = document.getElementById('oL2');
+            if (!sel) { o.innerHTML = '<b style="color:#1d4ed8">하늘 사진의 은하를 클릭</b>하면 스펙트럼을 찍어 거리를 알려 줘요.'; return; }
+            const q = info(sel);
+            o.innerHTML = '<b style="color:#1d4ed8">클릭한 은하</b> &nbsp;적색 이동 z = <b style="color:#dc2626">' + q.z.toFixed(3) + '</b><br>거리 r = cz / H ≈ <b style="color:#ea580c">' + Math.round(q.mpc) + ' Mpc</b> <span class="sim-note">(약 ' + q.ly.toFixed(1) + '억 광년)</span>';
+        }
+        c1.addEventListener('click', e => {
+            const pt = SIM.pos(e, c1); let best = null, bd = 16;
+            gal.forEach(p => { const d = Math.hypot(SX(p.th) - pt.x, SY(p.dec) - pt.y); if (d < bd) { bd = d; best = p; } });
+            if (!best) return;
+            sel = best; if (!sel.m) { sel.m = true; sel.mt = performance.now(); }
+            showSel();
+        });
+        showSel();
         const b1 = document.getElementById('bL1');
-        b1.onclick = () => { if (scan >= 1) { scan = 0; gal.forEach(p => p.m = false); } run = !run; b1.textContent = run ? '❚❚ 멈춤' : '▶ 분광 탐사 시작'; };
-        document.getElementById('bL2').onclick = () => { scan = 0; run = false; b1.textContent = '▶ 분광 탐사 시작'; gal.forEach(p => p.m = false); };
+        b1.onclick = () => { if (scan >= 1) { scan = 0; gal.forEach(p => p.m = false); sel = null; showSel(); } run = !run; b1.textContent = run ? '❚❚ 멈춤' : '▶ 분광 탐사 시작'; };
+        document.getElementById('bL2').onclick = () => { scan = 0; run = false; b1.textContent = '▶ 분광 탐사 시작'; gal.forEach(p => p.m = false); sel = null; showSel(); };
         document.getElementById('bL3').onclick = () => { scan = 1; run = false; b1.textContent = '▶ 분광 탐사 시작'; gal.forEach(p => { if (!p.m) { p.m = true; p.mt = 0; } }); };
         SIM.loop('simL', (t, dt) => {
             if (run) { scan = Math.min(1, scan + dt / 14); if (scan >= 1) { run = false; b1.textContent = '▶ 분광 탐사 시작'; } }
-            const sx = 20 + scan * 720;
+            const sx = 20 + scan * (W1 - 40);
             // 하늘 사진
-            g1.fillStyle = '#0f172a'; g1.fillRect(0, 0, 760, 290);
-            const SX = th => 20 + (th + MAXA) / (2 * MAXA) * 720, SY = dec => 160 - dec / 3 * 105;
+            g1.fillStyle = '#0f172a'; g1.fillRect(0, 0, W1, H1);
             count = 0;
             gal.forEach(p => {
                 const x = SX(p.th), y = SY(p.dec);
@@ -220,13 +249,17 @@
                 if (p.m) count++;
                 g1.fillStyle = p.m ? 'rgba(74,222,128,.85)' : 'rgba(226,232,240,.75)'; g1.fillRect(x - 1, y - 1, 2.2, 2.2);
             });
-            if (scan > 0 && scan < 1) { g1.fillStyle = 'rgba(250,204,21,.25)'; g1.fillRect(sx - 10, 50, 10, 220); g1.fillStyle = '#facc15'; g1.fillRect(sx - 1, 50, 3, 220); }
+            if (scan > 0 && scan < 1) { g1.fillStyle = 'rgba(250,204,21,.25)'; g1.fillRect(sx - 10, 50, 10, H1 - 70); g1.fillStyle = '#facc15'; g1.fillRect(sx - 1, 50, 3, H1 - 70); }
+            if (sel) { const x = SX(sel.th), y = SY(sel.dec), q = info(sel); g1.strokeStyle = '#facc15'; g1.lineWidth = 3; g1.beginPath(); g1.arc(x, y, 10, 0, 7); g1.stroke();
+                g1.font = SIM.font(20); g1.textAlign = x > W1 - 200 ? 'right' : 'left'; const lb = Math.round(q.mpc) + ' Mpc', lx = x + (x > W1 - 200 ? -16 : 16), ly = y < 80 ? y + 26 : y - 12;
+                const tw = g1.measureText(lb).width; g1.fillStyle = 'rgba(15,23,42,.85)'; g1.fillRect(g1.textAlign === 'right' ? lx - tw - 6 : lx - 6, ly - 22, tw + 12, 30); g1.fillStyle = '#facc15'; g1.fillText(lb, lx, ly); }
             g1.fillStyle = '#e2e8f0'; g1.font = SIM.font(22); g1.textAlign = 'left'; g1.fillText('하늘 사진 (2차원: 적경·적위)', 20, 32);
-            g1.fillStyle = '#94a3b8'; g1.font = SIM.font(18, false); g1.textAlign = 'right'; g1.fillText('← 적경 →', 740, 32);
+            g1.fillStyle = '#94a3b8'; g1.font = SIM.font(18, false); g1.textAlign = 'right'; g1.fillText('← 적경 →', W1 - 20, 32);
+            g1.fillStyle = '#cbd5e1'; g1.fillText('은하를 클릭하면 거리를 측정해요', W1 - 20, H1 - 14);
             document.getElementById('oL').textContent = count.toLocaleString();
             // 파이도
-            const OX = 485, OY = 588, RR = 555;
-            g2.fillStyle = '#0f172a'; g2.fillRect(0, 0, 970, 610);
+            const OX = W2 / 2, OY = H2 - 30, RR = 760;
+            g2.fillStyle = '#0f172a'; g2.fillRect(0, 0, W2, H2);
             g2.strokeStyle = 'rgba(148,163,184,.35)'; g2.lineWidth = 1.5;
             [.25, .5, .75, 1].forEach(k => { g2.beginPath(); g2.arc(OX, OY, RR * k, (-90 - MAXA) * Math.PI / 180, (-90 + MAXA) * Math.PI / 180); g2.stroke(); });
             [-MAXA, MAXA].forEach(a => { g2.beginPath(); g2.moveTo(OX, OY); g2.lineTo(OX + Math.sin(a * Math.PI / 180) * RR, OY - Math.cos(a * Math.PI / 180) * RR); g2.stroke(); });
@@ -237,6 +270,14 @@
                 const fresh = p.mt && t - p.mt < 600;
                 g2.fillStyle = fresh ? '#4ade80' : 'rgba(226,232,240,.85)'; g2.fillRect(x - 1.3, y - 1.3, fresh ? 4 : 2.6, fresh ? 4 : 2.6);
             });
+            if (sel) {
+                const a = sel.th * Math.PI / 180, x = OX + Math.sin(a) * sel.d * RR, y = OY - Math.cos(a) * sel.d * RR, q = info(sel);
+                g2.setLineDash([6, 6]); g2.strokeStyle = 'rgba(250,204,21,.7)'; g2.lineWidth = 2; g2.beginPath(); g2.moveTo(OX, OY); g2.lineTo(x, y); g2.stroke(); g2.setLineDash([]);
+                g2.strokeStyle = '#facc15'; g2.lineWidth = 3; g2.beginPath(); g2.arc(x, y, 11, 0, 7); g2.stroke();
+                g2.font = SIM.font(22); g2.textAlign = 'left'; const lb = 'z = ' + q.z.toFixed(3) + ' · ' + Math.round(q.mpc) + ' Mpc', tw = g2.measureText(lb).width;
+                const lx = Math.min(x + 16, W2 - tw - 16), ly = y - 16;
+                g2.fillStyle = 'rgba(15,23,42,.85)'; g2.fillRect(lx - 6, ly - 24, tw + 12, 32); g2.fillStyle = '#facc15'; g2.fillText(lb, lx, ly);
+            }
             g2.fillStyle = '#facc15'; g2.beginPath(); g2.arc(OX, OY, 7, 0, 7); g2.fill();
             g2.fillStyle = '#e2e8f0'; g2.font = SIM.font(22); g2.textAlign = 'center'; g2.fillText('관측자(지구)', OX, OY - 16);
             g2.textAlign = 'left'; g2.fillText('파이도 (적경 + 적색 이동)', 20, 34);
@@ -252,7 +293,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -262,8 +304,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

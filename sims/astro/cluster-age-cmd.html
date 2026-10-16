@@ -141,6 +141,8 @@
         .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
         .ans { color: #dc2626; font-weight: 800; }
         .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
         .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
     </style>
 <style id="standalone">
@@ -148,12 +150,19 @@
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #t18 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #t18 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #t18 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -161,16 +170,17 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="t18">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>성단의 나이에 따라 색등급도가 변해요</div>
             <div class="ppt-subtitle">나이를 늘리며 <span class="or">전향점</span>이 어디로 움직이는지 관찰해 봅시다.</div>
             <div class="sim-wrap">
-                <div class="sim-stage light"><canvas id="cR" width="1060" height="610"></canvas></div>
+                <div class="sim-stage light"><canvas id="cR" width="1160" height="900"></canvas></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
                         <h4>성단의 나이</h4>
                         <div class="sim-row"><input type="range" class="sim-range" id="rR" min="6" max="10.1" step="0.01" value="7"><span class="sim-val" id="vR" style="min-width:200px"></span></div>
-                        <div class="sim-btns"><button class="sim-btn on" id="bR1">▶ 시간 흐르기</button><button class="sim-btn" data-age="8">산개 성단 (1억 년)</button><button class="sim-btn orange" data-age="10.08">구상 성단 (120억 년)</button></div>
+                        <div class="sim-btns"><button class="sim-btn on" id="bR1">▶ 시간 흐르기</button><button class="sim-btn" data-age="8">산개 성단 (1억 년)</button><button class="sim-btn" data-age="8.7">5억 년</button><button class="sim-btn" data-age="9.3">20억 년</button><button class="sim-btn" data-age="9.7">50억 년</button><button class="sim-btn orange" data-age="10.08">구상 성단 (120억 년)</button></div>
                     </div>
                     <div class="sim-box" id="oR" style="font-size:27px"></div>
                     <div class="sim-box key" style="font-size:25px">시간이 지날수록 전향점이 <b>오른쪽 아래</b>로 내려가요. → 전향점의 위치로 성단의 <b>나이</b>를 비교!</div>
@@ -235,19 +245,35 @@
 
 /* ===================== 시뮬레이션 R: 성단의 나이와 전향점 ===================== */
 (function(){
-  const c=document.getElementById('cR'),g=c.getContext('2d'),W=1060,H=610;
-  const L=100,R=1020,T=30,B=530,X0=-0.45,X1=2.0,Y0=-8,Y1=14;
+  const c=document.getElementById('cR'),g=c.getContext('2d'),W=1160,H=900;
+  const L=110,R=1130,T=30,B=800,X0=-0.45,X1=2.0,Y0=-9,Y1=14;
   const X=v=>L+(v-X0)/(X1-X0)*(R-L),Y=v=>T+(v-Y0)/(Y1-Y0)*(B-T);
   const MS=[[0.3,1.50,11.5],[0.5,1.40,8.8],[0.8,0.85,6.0],[1.0,0.65,4.8],[1.5,0.35,2.6],[2.0,0.08,1.3],[3.0,-0.10,0.0],[5.0,-0.18,-1.3],[10,-0.26,-3.0],[20,-0.31,-4.3]];
   function ms(m){for(let i=0;i<MS.length-1;i++){const a=MS[i],b=MS[i+1];if(m<=b[0]){const f=(Math.log(m)-Math.log(a[0]))/(Math.log(b[0])-Math.log(a[0]));return[a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f];}}return[MS[MS.length-1][1],MS[MS.length-1][2]];}
   const life=m=>1e10*Math.pow(m,-2.5);
   const r=SIM.rng(18),stars=[];
   while(stars.length<1100){const m=0.3*Math.pow(1-r()*(1-Math.pow(20/0.3,-1.35)),-1/1.35);if(m<=20)stars.push({m:m,dx:SIM.gauss(r)*0.03,dy:SIM.gauss(r)*0.12,wd:r(),gb:r()});}
+  // 주계열 이후 경로(키프레임): u = (나이/수명 − 1), 0 → 주계열 끝, 1 → 거성 단계 끝
+  // ※ 수업용으로 거성 단계를 실제보다 길게(수명의 약 100%) 보여 줌
+  const POST=1.15;
+  function track(s){
+    if(s.k)return s.k;
+    const p=ms(s.m),m=s.m,e=[p[0]+s.dx-0.05,p[1]+s.dy-0.6];
+    const tip=Math.min(e[1]-1.5,-2.6-4*Math.log10(m))-0.5*s.gb;
+    if(m>8){s.k=[[0,e],[0.35,[0.2+s.dx,e[1]-0.7]],[1,[1.55+0.15*s.gb,e[1]-1.3]]];s.k.sn=true;return s.k;}
+    const sg=[Math.max(e[0]+0.15,m<2?0.85:0.5)+s.dx,e[1]-0.2];
+    const cl=m<2.2?[0.95+0.12*s.gb+s.dx,0.5+0.4*s.gb]:[0.55+0.2*s.gb,tip+1.6];
+    const agb=[1.6+0.15*s.gb,tip-0.6];
+    s.k=[[0,e],[0.15,sg],[0.5,[1.45+0.15*s.gb,tip]],[0.58,cl],[0.85,[cl[0]+0.05,cl[1]-0.2]],[1,agb],[1.07,[-0.35+0.1*s.wd,agb[1]+0.3]],[POST,[-0.1+s.wd*0.45,10.5+s.gb*2.8]]];
+    return s.k;
+  }
+  function along(k,u){for(let i=0;i<k.length-1;i++){const a=k[i],b=k[i+1];if(u<=b[0]){const f=(u-a[0])/(b[0]-a[0]);return[a[1][0]+(b[1][0]-a[1][0])*f,a[1][1]+(b[1][1]-a[1][1])*f];}}return k[k.length-1][1];}
   let lg=7,play=false;
   function fmtAge(a){if(a<1e8)return(a/1e4).toFixed(a<1e7?0:0).replace(/\B(?=(\d{3})+(?!\d))/g,',')+'만 년';return(a/1e8).toFixed(a<1e9?1:0)+'억 년';}
   function out(){
     const a=Math.pow(10,lg);document.getElementById('vR').textContent=fmtAge(a);document.getElementById('rR').value=lg;
     const mt=Math.pow(a/1e10,-1/2.5),p=ms(Math.min(20,mt));
+    document.querySelectorAll('#t18 [data-age]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.age-lg)<0.005));
     document.getElementById('oR').innerHTML='<h4>전향점</h4><div>주계열을 떠나기 시작한 별의 질량: <b class="or">약 '+(mt>20?'20 이상':mt.toFixed(mt<2?2:1))+'</b> 태양 질량</div><div>전향점 색지수: <b>'+(mt>20?'-':(p[0]>=0?'+':'')+p[0].toFixed(2))+'</b> &nbsp;|&nbsp; 절대 등급: <b>'+(mt>20?'-':p[1].toFixed(1))+'</b></div>';
   }
   document.getElementById('rR').oninput=e=>{lg=+e.target.value;play=false;bp.textContent='▶ 시간 흐르기';out();};
@@ -255,28 +281,29 @@
   document.querySelectorAll('#t18 [data-age]').forEach(b=>b.onclick=()=>{lg=+b.dataset.age;play=false;bp.textContent='▶ 시간 흐르기';out();});
   out();
   SIM.loop('t18',(t,dt)=>{
-    if(play){lg=Math.min(10.1,lg+dt*0.35);if(lg>=10.1){play=false;bp.textContent='▶ 시간 흐르기';}out();}
+    if(play){lg=Math.min(10.1,lg+dt*0.12);if(lg>=10.1){play=false;bp.textContent='▶ 시간 흐르기';}out();}
     const age=Math.pow(10,lg);
     g.clearRect(0,0,W,H);
     // 배경 온도 띠
     const gr=g.createLinearGradient(L,0,R,0);gr.addColorStop(0,'rgba(147,197,253,.18)');gr.addColorStop(.5,'rgba(254,240,138,.15)');gr.addColorStop(1,'rgba(252,165,165,.2)');g.fillStyle=gr;g.fillRect(L,T,R-L,B-T);
     g.strokeStyle='#e2e8f0';g.lineWidth=1.5;for(let v=0;v<=2;v+=0.5){g.beginPath();g.moveTo(X(v),T);g.lineTo(X(v),B);g.stroke();}for(let v=-8;v<=14;v+=2){g.beginPath();g.moveTo(L,Y(v));g.lineTo(R,Y(v));g.stroke();}
     g.strokeStyle='#334155';g.lineWidth=3;g.beginPath();g.moveTo(L,T);g.lineTo(L,B);g.lineTo(R,B);g.stroke();
-    g.fillStyle='#334155';g.font=SIM.font(19,false);g.textAlign='center';for(let v=0;v<=2;v+=0.5)g.fillText(v.toFixed(1),X(v),B+24);g.textAlign='right';for(let v=-8;v<=14;v+=4)g.fillText(v,L-10,Y(v)+6);
-    g.textAlign='center';g.font=SIM.font(22);g.fillText('색지수 (B−V)  →  표면 온도 낮음',(L+R)/2,B+58);
-    g.save();g.translate(32,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('절대 등급 (위로 갈수록 밝음)',0,0);g.restore();
+    g.fillStyle='#334155';g.font=SIM.font(21,false);g.textAlign='center';for(let v=0;v<=2;v+=0.5)g.fillText(v.toFixed(1),X(v),B+28);g.textAlign='right';for(let v=-8;v<=14;v+=2)g.fillText(v,L-12,Y(v)+7);
+    g.textAlign='center';g.font=SIM.font(25);g.fillText('색지수 (B−V)  →  표면 온도 낮음',(L+R)/2,B+68);
+    g.save();g.translate(34,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('절대 등급 (위로 갈수록 밝음)',0,0);g.restore();
     // 표준 주계열 (흐린 선)
-    g.strokeStyle='rgba(148,163,184,.6)';g.lineWidth=10;g.lineCap='round';g.beginPath();for(let m=0.3;m<=20;m*=1.05){const p=ms(m);m===0.3?g.moveTo(X(p[0]),Y(p[1])):g.lineTo(X(p[0]),Y(p[1]));}g.stroke();
-    let gone=0;
+    g.strokeStyle='rgba(148,163,184,.6)';g.lineWidth=12;g.lineCap='round';g.beginPath();for(let m=0.3;m<=20;m*=1.05){const p=ms(m);m===0.3?g.moveTo(X(p[0]),Y(p[1])):g.lineTo(X(p[0]),Y(p[1]));}g.stroke();
     stars.forEach(s=>{const tl=life(s.m),p=ms(s.m);let bv,mv,col;
       if(age<tl){const f=age/tl;bv=p[0]+s.dx-0.05*f;mv=p[1]+s.dy-0.6*f;col=SIM.bbRGB(Math.max(3000,Math.min(30000,7090/(bv+0.72))));}
-      else if(age<tl*1.3){const f=(age-tl)/(tl*0.3),gmv=-0.8-3.2*Math.log10(s.m)*1.6-0.8*s.gb;bv=p[0]+(1.35+0.2*s.gb-p[0])*Math.min(1,f*1.4)+s.dx;mv=p[1]+(gmv-p[1])*Math.pow(f,0.6)+s.dy;col=[251,146,60];}
-      else{if(s.m>8){gone++;return;}bv=-0.1+s.wd*0.45;mv=10.5+s.gb*2.8;col=[203,213,225];}
-      g.fillStyle='rgb('+col.join(',')+')';g.beginPath();g.arc(X(bv),Y(mv),3.4,0,7);g.fill();g.strokeStyle='rgba(30,41,59,.45)';g.lineWidth=0.8;g.stroke();});
+      else{const k=track(s),u=age/tl-1;
+        if(k.sn&&u>1)return; // 무거운 별: 초신성 폭발 후 사라짐
+        [bv,mv]=along(k,Math.min(u,POST));
+        col=u<1?[251,146,60]:u<POST?[148,163,184]:[203,213,225];}
+      g.fillStyle='rgb('+col.join(',')+')';g.beginPath();g.arc(X(bv),Y(mv),4,0,7);g.fill();g.strokeStyle='rgba(30,41,59,.45)';g.lineWidth=0.8;g.stroke();});
     const mt=Math.pow(age/1e10,-1/2.5);
     if(mt<20){const p=ms(mt);g.strokeStyle='#dc2626';g.lineWidth=4;g.beginPath();g.arc(X(p[0]),Y(p[1]),20,0,7);g.stroke();g.fillStyle='#dc2626';g.font=SIM.font(24);g.textAlign='left';g.fillText('전향점',X(p[0])+26,Y(p[1])-8);}
-    g.textAlign='left';g.font=SIM.font(20);g.fillStyle='#ea580c';g.fillText('● 거성',R-250,T+30);g.fillStyle='#64748b';g.fillText('● 백색 왜성',R-250,T+58);g.fillStyle='#2563eb';g.fillText('● 주계열성',R-250,T+86);
-    g.fillStyle='#475569';g.font=SIM.font(19,false);g.fillText('회색 띠 = 처음의 주계열',R-250,T+114);
+    const lx=L+24;g.textAlign='left';g.font=SIM.font(23);g.fillStyle='#ea580c';g.fillText('● 거성',lx,T+34);g.fillStyle='#64748b';g.fillText('● 백색 왜성',lx,T+66);g.fillStyle='#2563eb';g.fillText('● 주계열성',lx,T+98);
+    g.fillStyle='#475569';g.font=SIM.font(21,false);g.fillText('회색 띠 = 처음의 주계열',lx,T+130);
   });
 })();
 
@@ -289,7 +316,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -299,8 +327,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

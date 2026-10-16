@@ -83,10 +83,7 @@
         [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
         [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
         svg [data-step] { transform: none !important; }
-        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-        .slide.active .ppt-title { animation: rise .6s both; }
-        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
-        .slide.active .main { animation: rise .6s .2s both; }
+        .card.cur { border-color: #fb923c; background: #fff7ed; }
 
         /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
         .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
@@ -123,18 +120,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #s4 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #s4 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #s4 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -142,19 +148,20 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide active" id="s4">
             <div class="ppt-title">은하의 공간 분포, 어떻게 그릴까?</div>
             <div class="ppt-subtitle"><span class="or">방향</span>과 <span class="or">적색 이동(거리)</span>으로 은하 하나를 점 하나로 찍어요.</div>
             <div class="main">
-                <div class="col" style="align-items:center">
-                    <div class="sim-stage"><canvas id="c4"></canvas></div>
-                    <div class="sim-btns"><button class="sim-btn on" id="b4a">관측 데이터 쌓기</button><button class="sim-btn" id="b4r">↺ 처음부터</button></div>
+                <div class="col" style="align-items:center;flex:0 0 1152px">
+                    <div class="sim-stage"><canvas id="c4" style="cursor:crosshair"></canvas></div>
+                    <div class="sim-btns"><button class="sim-btn on" id="b4a">관측 데이터 쌓기</button><button class="sim-btn" id="b4n">▶ 다른 은하 측정</button><button class="sim-btn" id="b4r">↺ 처음부터</button></div>
                 </div>
                 <div class="col grow" style="justify-content:center">
-                    <div class="card soft" data-step="1"><span class="gnum s">①</span> 은하가 <b>보이는 방향</b>(각도)을 재요.</div>
-                    <div class="card soft" data-step="2"><span class="gnum s">②</span> 스펙트럼의 <b>적색 이동</b>으로 <b>거리</b>를 구해요.</div>
-                    <div class="card soft" data-step="3"><span class="gnum s">③</span> 방향과 거리가 정해지면 지도에 <b>점</b> 하나를 찍어요.</div>
-                    <div class="card key" data-step="4"><span class="look o">관찰 포인트</span>점이 많아지면 어떤 모양이 보일까? <b>버튼</b>을 눌러 보자.</div>
+                    <div class="card soft" id="k4a"><span class="gnum s">①</span> 은하가 <b>보이는 방향</b>(각도)을 재요.<div class="note" style="margin-top:4px">기준선(0°) = 관측자 정면 방향</div><div class="or" id="v4a"></div></div>
+                    <div class="card soft" id="k4b"><span class="gnum s">②</span> 스펙트럼의 <b>적색 이동</b>으로 <b>거리</b>를 구해요.<div class="or" id="v4b"></div></div>
+                    <div class="card soft" id="k4c"><span class="gnum s">③</span> 방향과 거리가 정해지면 지도에 <b>점</b> 하나를 찍어요.</div>
+                    <div class="card key"><span class="look o">관찰 포인트</span>지도를 <b>클릭</b>하면 그 은하를 측정해요. 점이 많아지면 어떤 모양이 보일까? <b>버튼</b>을 눌러 보자.</div>
                 </div>
             </div>
         </div>
@@ -201,29 +208,71 @@ function polarGalaxies(n,seed){
 
 /* ---------- 4. map building ---------- */
 (function(){
-  const c=$('#c4'),g=hd(c,640,410,1.3),OX=320,OY=392,R=368;
-  const gal=polarGalaxies(650,11);let st=0,shown=0,adding=false;
-  const A={th:-24,r:.64};
+  const c=$('#c4'),g=hd(c,640,410,1.8),OX=320,OY=392,R=368;
+  const gal=polarGalaxies(650,11);let shown=0,adding=false,tt=0,placed=[],done=false;
+  let A={th:-24,r:.64};
+  // 측정 과정 시간표(초): 대상 표시 → 방향(각도) 재기 → 거리(적색 이동) 재기 → 점 찍기
+  const T1=.8,T2=2.8,T3=4.4;
+  const ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+  const zOf=r=>r*0.1, mpcOf=r=>zOf(r)*299792/70;
+  const side=th=>th<0?'왼쪽':'오른쪽';
   function ax(th,r){return[OX+Math.sin(th*Math.PI/180)*r*R,OY-Math.cos(th*Math.PI/180)*r*R];}
+  function label(lines,x,y,col){g.font=F(18);const w=Math.max(...lines.map(s=>g.measureText(s).width))+16,h=lines.length*22+8;
+    x=Math.max(4,Math.min(640-w-4,x-w/2));y=Math.max(4,Math.min(410-h-4,y-h/2));
+    g.fillStyle='rgba(15,23,42,.85)';g.fillRect(x,y,w,h);g.fillStyle=col;g.textAlign='left';lines.forEach((s,i)=>g.fillText(s,x+8,y+22+i*22));}
+  let lastA='',lastB='',lastK='';
+  function cards(){
+    const k=tt<T1?'':tt<T2?'k4a':tt<T3?'k4b':'k4c';
+    if(k!==lastK){['k4a','k4b','k4c'].forEach(id=>$('#'+id).classList.toggle('cur',id===k));lastK=k;}
+    const a=tt<T1?'':'→ 기준선에서 '+side(A.th)+' '+Math.round(Math.abs(A.th)*ease((tt-T1)/(T2-T1)))+'°';
+    const b=tt<T2?'':'→ z = '+zOf(A.r).toFixed(3)+' → 거리 약 '+Math.round(mpcOf(A.r))+' Mpc';
+    if(a!==lastA){$('#v4a').textContent=a;lastA=a;} if(b!==lastB){$('#v4b').textContent=b;lastB=b;}
+  }
   function draw(){
     g.fillStyle=DARK;g.fillRect(0,0,640,410);
     g.strokeStyle=GRID;g.lineWidth=1.5;
     [.25,.5,.75,1].forEach(k=>{g.beginPath();g.arc(OX,OY,R*k,(-90-60)*Math.PI/180,(-90+60)*Math.PI/180);g.stroke();});
     [-60,60].forEach(a=>{const p=ax(a,1);g.beginPath();g.moveTo(OX,OY);g.lineTo(p[0],p[1]);g.stroke();});
-    g.fillStyle=TXT;g.font=F(17);g.fillText('멀수록 적색 이동 z 큼',OX+8,OY-R+22);
-    g.fillStyle='#facc15';g.beginPath();g.arc(OX,OY,8,0,7);g.fill();g.fillStyle='#e2e8f0';g.font=F(18);g.fillText('관측자(우리)',OX-50,OY+0-14);
+    // 기준선 (0°)
+    {const q=ax(0,1);g.strokeStyle='rgba(226,232,240,.8)';g.lineWidth=2;g.beginPath();g.moveTo(OX,OY);g.lineTo(q[0],q[1]);g.stroke();
+     g.fillStyle='#e2e8f0';g.font=F(16);g.textAlign='left';g.fillText('기준선 (0°)',q[0]+6,q[1]+16);}
+    g.fillStyle=TXT;g.font=F(15);g.textAlign='left';g.fillText('바깥쪽일수록 적색 이동 z가 커요(멀어요)',10,20);
+    if(shown>0){g.fillStyle=LIGHT;for(let i=0;i<shown;i++){const q=ax(Math.atan2(gal[i].x,gal[i].y)*180/Math.PI,Math.hypot(gal[i].x,gal[i].y));g.fillRect(q[0]-1.3,q[1]-1.3,2.6,2.6);}}
+    placed.forEach(p=>{const q=ax(p.th,p.r);g.fillStyle='#fde68a';g.beginPath();g.arc(q[0],q[1],3.5,0,7);g.fill();});
     const p=ax(A.th,A.r);
-    if(st<3){g.strokeStyle=ORANGE;g.lineWidth=3;g.setLineDash([5,5]);g.beginPath();g.arc(p[0],p[1],12,0,7);g.stroke();g.setLineDash([]);g.fillStyle=ORANGE;g.font=F(18);g.fillText('이 은하는 어디?',p[0]+18,p[1]+6);}
-    if(st>=1){g.strokeStyle=BLUE;g.lineWidth=3;g.setLineDash([8,6]);g.beginPath();g.moveTo(OX,OY);const q=ax(A.th,.98);g.lineTo(q[0],q[1]);g.stroke();g.setLineDash([]);
-      g.lineWidth=2.5;g.beginPath();g.arc(OX,OY,70,-Math.PI/2,(A.th-90)*Math.PI/180,true);g.stroke();g.fillStyle=BLUE;g.font=F(20);g.fillText('방향',OX-58,OY-78);}
-    if(st>=2){g.strokeStyle=ORANGE;g.lineWidth=7;g.beginPath();g.moveTo(OX,OY);g.lineTo(p[0],p[1]);g.stroke();g.fillStyle=ORANGE;g.font=F(20);g.fillText('거리 ∝ 적색 이동',(OX+p[0])/2+10,(OY+p[1])/2+30);}
-    if(st>=3){g.fillStyle='#fff';g.beginPath();g.arc(p[0],p[1],8,0,7);g.fill();g.strokeStyle=ORANGE;g.lineWidth=3;g.beginPath();g.arc(p[0],p[1],15,0,7);g.stroke();}
-    if(st>=4||shown>0){g.fillStyle=LIGHT;for(let i=0;i<shown;i++){const q=ax(Math.atan2(gal[i].x,gal[i].y)*180/Math.PI,Math.hypot(gal[i].x,gal[i].y));g.fillRect(q[0]-1.3,q[1]-1.3,2.6,2.6);}}
+    if(tt<T3){g.strokeStyle=ORANGE;g.lineWidth=3;g.setLineDash([5,5]);g.beginPath();g.arc(p[0],p[1],12,0,7);g.stroke();g.setLineDash([]);
+      if(tt<T1){g.fillStyle=ORANGE;g.font=F(18);g.textAlign=A.th>30?'right':'left';g.fillText('이 은하는 어디?',p[0]+(A.th>30?-18:18),p[1]+6);}}
+    // ① 방향: 주황 선이 기준선에서 은하 쪽으로 돌아가며 각도를 잼
+    if(tt>=T1){const cur=A.th*ease((tt-T1)/(T2-T1)),q=ax(cur,.98);
+      g.strokeStyle=ORANGE;g.lineWidth=3;g.setLineDash([8,6]);g.beginPath();g.moveTo(OX,OY);g.lineTo(q[0],q[1]);g.stroke();g.setLineDash([]);
+      g.lineWidth=3;g.beginPath();g.arc(OX,OY,60,-Math.PI/2,(cur-90)*Math.PI/180,cur<0);g.stroke();
+      // 각도 글자는 기준선 건너편(은하 반대쪽)에 두어 거리 글자와 겹치지 않게
+      label(['방향 '+side(A.th)+' '+Math.round(Math.abs(cur))+'°'],OX-(A.th<0?-1:1)*110,OY-62,'#fdba74');}
+    // ② 거리: 적색 이동에 비례하는 길이만큼 선이 뻗어 나감
+    if(tt>=T2){const f=ease((tt-T2)/(T3-T2)),e=ax(A.th,A.r*f),a=A.th*Math.PI/180,s=A.th<0?-1:1;
+      g.strokeStyle=ORANGE;g.lineWidth=7;g.beginPath();g.moveTo(OX,OY);g.lineTo(e[0],e[1]);g.stroke();
+      if(f>.4){const mid=ax(A.th,A.r*f*.6);label(['거리 ∝ 적색 이동','z = '+zOf(A.r).toFixed(3)],mid[0]+s*Math.cos(a)*85,mid[1]+s*Math.sin(a)*85,'#fdba74');}}
+    // ③ 점 찍기
+    if(tt>=T3){g.fillStyle='#fff';g.beginPath();g.arc(p[0],p[1],8,0,7);g.fill();g.strokeStyle=ORANGE;g.lineWidth=3;g.beginPath();g.arc(p[0],p[1],15,0,7);g.stroke();
+      if(!done){placed.push({th:A.th,r:A.r});done=true;}}
+    g.fillStyle='#facc15';g.beginPath();g.arc(OX,OY,8,0,7);g.fill();g.fillStyle='#e2e8f0';g.font=F(18);g.textAlign=A.th<0?'left':'right';g.fillText('관측자(우리)',OX+(A.th<0?14:-14),OY+4);
+    g.fillStyle=TXT;g.font=F(15);g.textAlign='right';g.fillText('지도를 클릭하면 그 은하를 측정해요',632,20);
+    cards();
   }
-  SIM.s4=loop('s4',()=>{if(adding){shown=Math.min(gal.length,shown+6);if(shown>=gal.length)adding=false;}draw();});
-  STEP.s4=(n)=>{st=n;if(n<4)shown=0;draw();};
-  $('#b4a').onclick=()=>{st=Math.max(st,4);adding=true;};
-  $('#b4r').onclick=()=>{shown=0;adding=false;st=0;const el=$('#s4');setShown(el,0,false);};
+  function measure(th,r){A={th:th,r:r};tt=0;done=false;}
+  c.addEventListener('click',ev=>{
+    const q=pos(ev,c),dx=q.x-OX,dy=OY-q.y;let th=Math.atan2(dx,dy)*180/Math.PI,r=Math.hypot(dx,dy)/R;
+    if(Math.abs(th)>60||r<.05||r>1)return;
+    if(shown>0){let best=-1,bd=12;for(let i=0;i<shown;i++){const p=ax(Math.atan2(gal[i].x,gal[i].y)*180/Math.PI,Math.hypot(gal[i].x,gal[i].y)),d=Math.hypot(p[0]-q.x,p[1]-q.y);if(d<bd){bd=d;best=i;}}
+      if(best>=0){th=Math.atan2(gal[best].x,gal[best].y)*180/Math.PI;r=Math.hypot(gal[best].x,gal[best].y);}}
+    measure(th,r);
+  });
+  SIM.s4=loop('s4',(t,dt)=>{tt+=Math.min(.25,dt);if(adding){shown=Math.min(gal.length,shown+6);if(shown>=gal.length)adding=false;}draw();});
+  $('#b4a').onclick=()=>{adding=true;};
+  $('#b4n').onclick=()=>{const q=gal[(Math.random()*gal.length)|0];measure(Math.atan2(q.x,q.y)*180/Math.PI,Math.hypot(q.x,q.y));};
+  $('#b4r').onclick=()=>{shown=0;adding=false;placed=[];measure(-24,.64);};
+  // 수업 자료에서 이 페이지가 열릴 때마다 측정 과정을 처음부터 다시 보여 줌
+  addEventListener('message',e=>{if(e.data&&e.data.type==='deck-show')measure(A.th,A.r);});
   draw();
 })();
 
@@ -238,7 +287,8 @@ window.STEP=STEP;const el=slides[0];if(SIM[el.id])SIM[el.id].start();
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -248,8 +298,27 @@ window.STEP=STEP;const el=slides[0];if(SIM[el.id])SIM[el.id].start();
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

@@ -15,133 +15,79 @@
         .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
         .slide.active { display: flex; }
 
-        /* 표지 (03~05단원과 동일) */
-        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
-        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
-
         .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
         .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
-        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
-        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
-
-        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
-        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
-        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
-        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
-        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
-        #fullscreen-btn:hover { background-color: #1e293b; }
-
-        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
-        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
-        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
-        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-        .grow { flex: 1; min-width: 0; }
-        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
-        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
-        .card.key { background: #fff7ed; border-color: #fdba74; }
-        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
-        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
-        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
-        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
-        .hl { color: #2563eb; font-weight: bold; }
         .or { color: #ea580c; font-weight: bold; }
         .ppt-subtitle .or { color: #ea580c; }
-        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
-        .look.o { background: #ea580c; }
-        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
-        figure { position: relative; }
-        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
-        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
-        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
-        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
-        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
-        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
-        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
-        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
-        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
-        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
-        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
-        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
-        .blank.on { color: #ea580c; border-bottom-style: solid; }
-        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
-        .barrow .bl { width: 340px; }
-        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
-        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
-        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
-        .qrow { display: flex; align-items: center; gap: 16px; }
-        .q { font-size: 32px; padding: 18px 28px; }
-        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
-        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
-        .q .why { margin-top: 6px; font-size: 26px; }
-        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
-        .sim-btn.tool { border-color: var(--c); color: var(--c); }
-        .sim-row span { font-size: 26px; }
-        .pulse { animation: pulse 1.4s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 
-        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
-        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
-        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
-        svg [data-step] { transform: none !important; }
-        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-        .slide.active .ppt-title { animation: rise .6s both; }
-        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
-        .slide.active .main { animation: rise .6s .2s both; }
-
-        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
+        /* ===== 시뮬레이션 공통 스타일 ===== */
         .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
-        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
+        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 16px; }
         .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
         .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
-        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
-        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .sim-stage canvas { display: block; }
-        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+        /* 왼쪽: 제목·기록·별 화면 / 오른쪽: 맨 위부터 패널 (두 열의 위·아래 끝이 맞음) */
+        .sim-left { flex: none; width: 1180px; display: flex; flex-direction: column; min-height: 0; }
+        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1; min-height: 0; }
+        .sim-stage canvas { display: block; width: 100%; height: 100%; }
+        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 12px 22px; font-size: 24px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
         .sim-box.key { background: #fff7ed; border-color: #fdba74; }
         .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
-        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
-        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
+        .sim-box.result { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
+        .sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 4px 0; }
+        .sim-slide, .sim-slide button { font-family: 'Gowun Dodum', sans-serif; }
         .sim-box p, .sim-box div { margin: 0; }
         .sim-box.key h4 { color: #c2410c; }
-        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
-        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
-        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
-        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
-        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
-        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+        .sim-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 23px; font-weight: bold; padding: 7px 16px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
         .sim-btn:hover { background: #e2e8f0; }
         .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
         .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
         .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
-        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
-        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
-        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+        .sim-btn.purple { border-color: #c4b5fd; color: #6d28d9; }
+        .sim-btn.purple.on { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+        .sim-btn.go { background: #16a34a; border-color: #16a34a; color: #fff; }
+        .sim-btn.go:hover { background: #15803d; }
         .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
-        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
+        .sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
         .sim-ok { color: #16a34a; font-weight: bold; }
+        .sim-bad { color: #dc2626; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
-        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .goal { margin-top: 6px; font-size: 21px; color: #92400e; background: #ffedd5; border-radius: 10px; padding: 4px 12px; display: inline-block; }
+        .gold { color: #f59e0b; letter-spacing: 4px; font-size: 44px; line-height: 1.1; }
 
-        /* ===== 3.01 / 3.02 추가 요소 ===== */
-        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
-        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
-        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
-        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
-        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
-        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
-        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
-        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
-        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
-        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
-        .flow { display: flex; flex-direction: column; gap: 14px; }
-        .flow .card { display: flex; align-items: center; gap: 20px; }
-        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
-        .ans { color: #dc2626; font-weight: 800; }
-        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
-        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+        /* 내 기록 줄 */
+        .rec-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+        .rchip { display: inline-flex; align-items: center; gap: 6px; font-size: 23px; font-weight: bold; color: #334155; background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 999px; padding: 5px 16px; }
+        .rchip b { color: #ea580c; }
+        .rchip.title { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+        .rnote { font-size: 20px; color: #64748b; }
+        #cP { cursor: pointer; }
+
+        /* 전체화면 버튼: 오른쪽 맨 위 흰 배경 (다른 3.01 시뮬레이션과 같은 크기) */
+        .fs-row { flex: none; display: flex; justify-content: flex-end; align-items: center; height: 66px; margin-bottom: 4px; }
+        .fs-btn { flex: none; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+
+        /* 실제 성단 카드 */
+        .card { display: flex; gap: 14px; background: linear-gradient(135deg,#0f172a,#1e293b); color: #e2e8f0; border-radius: 16px; padding: 12px 16px; border: 2px solid #facc15; }
+        .card .em { font-size: 52px; line-height: 1; }
+        .card .nm { font-size: 25px; font-weight: 800; color: #fde68a; }
+        .card .sb { font-size: 19px; color: #94a3b8; }
+        .card .tx { font-size: 20px; line-height: 1.45; margin-top: 4px; color: #cbd5e1; }
+        .card .new { display: inline-block; background: #facc15; color: #0f172a; font-size: 17px; font-weight: 800; border-radius: 6px; padding: 0 8px; margin-left: 6px; vertical-align: 3px; }
+
+        /* 성단 도감 (화면 위에 겹쳐 보임) */
+        .dex { word-break: keep-all; position: absolute; inset: 0; z-index: 10; background: rgba(2,6,23,0.94); display: none; flex-direction: column; padding: 26px 30px; color: #e2e8f0; }
+        .dex.open { display: flex; }
+        .dex-head { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+        .dex-head h3 { font-size: 34px; color: #fde68a; flex: 1; }
+        .dex-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; min-height: 0; }
+        .dex-grid .card { flex-direction: column; gap: 6px; overflow: hidden; }
+        .dex-grid .card.lock { border-color: #334155; background: #0b1220; color: #64748b; align-items: center; justify-content: center; text-align: center; }
+        .dex-grid .card.lock .em { filter: grayscale(1); opacity: .4; }
+        .dex-foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+        .dex .sim-btn { background: #1e293b; color: #e2e8f0; border-color: #475569; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
@@ -151,39 +97,68 @@
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
-  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
+  /* 1920×1080 (16:9) 고정 */
+  #presentation-wrapper > .slide { display: flex !important; height: 1080px !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
-  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
-  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
-  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
+  /* 전체화면 API를 쓸 수 없을 때(예: 일부 태블릿·iframe) 쓰는 대체 전체화면 */
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
 </style>
 </head>
 <body>
 <div id="presentation-wrapper">
 <div class="slide sim-slide active" id="t7">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>성단의 별을 골라내 봅시다</div>
-            <div class="ppt-subtitle">시간을 흐르게 하면, <span class="or">같은 방향으로 함께 움직이는 별들</span>이 보여요.</div>
             <div class="sim-wrap">
-                <div class="sim-stage"><canvas id="cP" width="1060" height="610" style="cursor:pointer"></canvas><div class="sim-hint">함께 움직이는 별을 클릭해 보세요</div></div>
+                <div class="sim-left">
+                    <div class="ppt-subtitle">시간을 흐르게 하면, <span class="or">같은 방향으로 함께 움직이는 별들</span>이 보여요.</div>
+                    <div class="rec-row">
+                        <span class="rchip title">🏅 <span id="rTitle"></span></span>
+                        <span class="rchip">★ 모은 별 <b id="rStars">0</b></span>
+                        <span class="rchip">🚀 최고 <b id="rBest">0</b>단계</span>
+                        <button class="sim-btn" id="bDex">🃏 성단 도감 <span id="rCards">0</span>/5</button>
+                        <span class="rnote" id="rNext"></span>
+                    </div>
+                    <div class="sim-stage">
+                        <canvas id="cP" width="1180" height="840"></canvas>
+                        <div class="sim-hint" id="hint">함께 움직이는 별 무리를 찾으면, 그 무리 근처를 클릭해 보세요</div>
+                        <div class="dex" id="dex">
+                            <div class="dex-head"><h3>🃏 성단 도감 — 실제 우주에서는?</h3><button class="sim-btn" id="bDexX">✕ 닫기</button></div>
+                            <div class="dex-grid" id="dexGrid"></div>
+                            <div class="dex-foot"><button class="sim-btn" id="bWipe">기록 모두 지우기</button></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="sim-panel">
+                    <div class="fs-row"><button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button></div>
                     <div class="sim-box blue">
                         <h4>관측하기</h4>
-                        <div class="sim-btns"><button class="sim-btn on" id="bP1">▶ 시간 흐르기</button><button class="sim-btn" id="bP2">이동 경로 보기</button></div>
-                        <div class="sim-btns" style="margin-top:10px"><button class="sim-btn orange" id="bP3">성단 별 정답 보기</button><button class="sim-btn" id="bP4">↺ 처음부터</button></div>
-                        <div style="margin-top:10px">경과 시간: <b id="oP1" class="or">0</b>년</div>
+                        <div class="sim-btns"><button class="sim-btn on" id="bP1">▶ 시간 흐르기</button><button class="sim-btn" id="bP2">이동 경로 보기</button><button class="sim-btn" id="bP4">↺ 처음부터</button></div>
+                        <div class="sim-btns" style="margin-top:8px"><button class="sim-btn purple" id="bBlink">📷 블링크 비교기</button><button class="sim-btn purple" id="bTele">🔭 망원경 모드</button></div>
+                        <div style="margin-top:6px">경과 시간: <b id="oP1" class="or">0</b>년 <span class="sim-note">(수만 년을 빠르게 보여 주는 모형)</span></div>
                     </div>
-                    <div class="sim-box" id="oP2" style="font-size:27px"></div>
-                    <div class="sim-note">※ 실제 별의 움직임은 매우 느려서, 수만 년 동안의 움직임을 빠르게 보여 주는 모형이에요.</div>
+                    <div class="sim-box result">
+                        <div id="oP2"></div>
+                        <div id="oCard"></div>
+                        <div class="sim-btns" style="margin-top:auto">
+                            <button class="sim-btn go" id="bNext" hidden>다음 단계 ▶</button>
+                            <button class="sim-btn" id="bNew">🎲 새 하늘</button>
+                            <button class="sim-btn orange" id="bP3">성단 정답 보기</button>
+                        </div>
+                    </div>
+                    <div class="sim-box key">
+                        <h4 id="oPt"></h4>
+                        <div id="oPd"></div>
+                        <div class="goal" id="oGoal"></div>
+                    </div>
                 </div>
             </div>
         </div>
 </div>
 <script>
-    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
+    /* ===== 시뮬레이션 공통 도구 ===== */
     window.SIM = {
         FONT: "'Gowun Dodum', sans-serif",
-        // 해당 슬라이드가 화면에 보일 때만 그리기
         loop(slideId, fn) {
             const el = document.getElementById(slideId);
             let last = performance.now();
@@ -197,86 +172,328 @@
         rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
         gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
         pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
-        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
-        // 파장(nm) → 화면 색
-        wl2rgb(w) {
-            let r = 0, g = 0, b = 0;
-            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
-            else if (w < 490) { g = (w - 440) / 50; b = 1; }
-            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
-            else if (w < 580) { r = (w - 510) / 70; g = 1; }
-            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
-            else if (w <= 780) { r = 1; }
-            let f = 1;
-            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
-            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
-        },
-        // 흑체 온도(K) → 대략적인 색
-        bbRGB(T) {
-            const t = T / 100; let r, g, b;
-            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
-            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
-            const c = v => Math.max(0, Math.min(255, Math.round(v)));
-            return [c(r), c(g), c(b)];
-        },
-        fmtExp(v, digits) {
-            if (!isFinite(v) || v <= 0) return '0';
-            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
-            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
-            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
-        }
+        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; }
     };
-    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
-    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
-    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT') a.blur(); });
-    </script>
+</script>
 <script>
-
-
 /* ===================== 시뮬레이션 P: 성단 구성원 찾기 ===================== */
 (function(){
-  const c=document.getElementById('cP'),g=c.getContext('2d'),W=1060,H=610;
-  let stars=[],t=0,play=false,trails=false,reveal=false,found=0;
+  const c=document.getElementById('cP'),g=c.getContext('2d'),stage=c.parentElement;
+  const $=id=>document.getElementById(id);
+  let W=c.width,H=c.height;
+
+  /* ---- 하늘의 종류 (단계가 오를수록 바뀜) ---- */
+  const TYPES={
+    basic:{name:'기본 성단',t3:6,
+      desc:'별들 사이에 성단 하나가 숨어 있어요. 시간을 흐르게 하고, 함께 움직이는 무리를 찾으면 그 근처를 클릭하세요.',
+      tip:'한 덩어리로 같은 쪽을 향해 움직이는 무리를 찾아보세요.'},
+    slow:{name:'느린 성단',t3:10,
+      desc:'이번 성단은 아주 천천히 움직여요. 주변 별들이 빠르게 지나가도, 다 함께 조금씩 움직이는 무리가 있어요.',
+      tip:'빠르게 지나가는 별에 속지 말고, 함께 천천히 움직이는 무리를 보세요.'},
+    two:{name:'성단이 두 개',t3:12,
+      desc:'하늘에 성단이 두 개 있어요. 두 성단은 서로 다른 방향으로 움직여요. 두 성단을 모두 찾아보세요.',
+      tip:'하나를 찾으면 멈춰요. 다시 ▶ 시간 흐르기를 눌러 나머지 하나도 찾아보세요.'},
+    wide:{name:'넓게 퍼진 성단',t3:10,
+      desc:'이 성단의 별들은 넓게 흩어져 있어서 처음에는 무리처럼 보이지 않아요. 위치보다 움직임에 집중해 보세요.',
+      tip:'이동 경로 보기나 블링크 비교기로, 같은 방향·같은 길이로 움직인 별을 찾아보세요.'},
+    decoy:{name:'헷갈리는 별들',t3:10,
+      desc:'성단과 겹쳐 보이지만 제각각 움직이는 별, 같은 방향이지만 속도가 다른 별이 섞여 있어요.',
+      tip:'같은 방향이라도 앞서가거나 뒤처지는 별은 성단 별이 아니에요. 조금 기다렸다 클릭해 보세요.'}
+  };
+  const ORDER=['basic','slow','two','wide','decoy'];
+
+  /* ---- 실제 성단 카드 ---- */
+  const CARDS={
+    basic:{em:'🐝',nm:'프레세페 성단 (M44)',sb:'게자리 · 약 600광년',
+      tx:'벌집 성단이라고도 해요. 맨눈으로는 뿌연 얼룩처럼 보이지만, 갈릴레이가 망원경으로 보고 수많은 별이 모인 무리라는 것을 처음 알아냈어요.'},
+    slow:{em:'🐢',nm:'M67 성단',sb:'게자리 · 약 2,700광년',
+      tx:'아주 멀리 있어서 하늘에서 거의 움직이지 않는 것처럼 보여요. 멀리 있는 성단일수록 하늘에서 느리게 움직여 보여요. 나이가 약 40억 년인 늙은 성단이에요.'},
+    two:{em:'🐂',nm:'히아데스와 플레이아데스',sb:'황소자리 · 약 150광년 / 약 440광년',
+      tx:'둘 다 황소자리에서 가까이 보이지만, 거리도 움직이는 방향도 다른 별개의 성단이에요. 가까워 보여도 함께 움직여야 한 성단이에요.'},
+    wide:{em:'🥄',nm:'큰곰자리 운동 성단',sb:'큰곰자리 · 약 80광년',
+      tx:'북두칠성의 별 7개 가운데 5개가 함께 움직이는 한 무리예요. 너무 가까워서 하늘에 넓게 퍼져 보이기 때문에, 움직임을 재어야 같은 무리임을 알 수 있어요.'},
+    decoy:{em:'🛰️',nm:'가이아 우주 망원경',sb:'유럽 우주국 · 2013년 발사',
+      tx:'10억 개가 넘는 별의 위치와 움직임을 정밀하게 재었어요. 같은 방향·같은 속도로 움직이는 별을 골라내, 몰랐던 성단을 수백 개 넘게 새로 찾아냈어요.'}
+  };
+
+  /* ---- 칭호와 기록 (이 브라우저에만 저장) ---- */
+  const TITLES=[[0,'견습 관측자'],[6,'별빛 탐색가'],[15,'성단 탐정'],[30,'성단 박사'],[50,'우주 지도 제작자']];
+  const titleOf=n=>{let t=TITLES[0][1];TITLES.forEach(([k,v])=>{if(n>=k)t=v;});return t;};
+  const KEY='clusterLab.v1';
+  let rec={stars:0,best:0,cards:[]};
+  try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o)rec=Object.assign(rec,o);}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(rec));}catch(e){}}
+  function renderRec(){
+    $('rTitle').textContent=titleOf(rec.stars);$('rStars').textContent=rec.stars;$('rBest').textContent=rec.best;
+    $('rCards').textContent=rec.cards.length;
+    const nx=TITLES.find(([k])=>k>rec.stars);
+    $('rNext').textContent=nx?'다음 칭호 「'+nx[1]+'」까지 ★ '+(nx[0]-rec.stars)+'개':'최고 칭호를 얻었어요!';
+    $('dexGrid').innerHTML=ORDER.map((k,i)=>{const cd=CARDS[k];
+      return rec.cards.includes(k)
+        ?'<div class="card"><div class="em">'+cd.em+'</div><div class="nm">'+cd.nm+'</div><div class="sb">'+cd.sb+'</div><div class="tx">'+cd.tx+'</div></div>'
+        :'<div class="card lock"><div class="em">❓</div><div class="nm" style="color:#64748b">아직 못 찾은 카드</div><div class="sb">'+(i+1)+'단계 「'+TYPES[k].name+'」를 깨면 열려요</div></div>';}).join('');
+  }
+
+  /* ---- 무작위 하늘 만들기 (좌표는 1060×610 기준, 화면 크기에 맞춰 늘림) ---- */
+  const cl2=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function makeSky(lvl,seed){
+    const r=SIM.rng(seed);
+    const type=lvl<=5?ORDER[lvl-1]:ORDER[Math.floor(r()*5)];
+    const hard=lvl>5?Math.min(1,(lvl-5)/5):0;
+    const sky={type,field:{n:Math.round(260+hard*60),smin:4,smax:20},clusters:[],decoys:[]};
+    const nC=Math.round(42-hard*14),dv=1.1+hard*0.8;
+    function moving(speed,sx,back){ // 화면 가운데를 지나가도록 반대쪽에서 출발
+      const a=r()*6.283,vx=Math.cos(a)*speed,vy=Math.sin(a)*speed;
+      return {a,vx,vy,sx,sy:sx*0.85,n:nC,dv,
+        cx:cl2(530-Math.cos(a)*back+(r()-.5)*120,150,910),cy:cl2(305-Math.sin(a)*back*0.6+(r()-.5)*80,130,480)};
+    }
+    if(type==='basic'){sky.clusters.push(Object.assign(moving(22+r()*8,65,220),{blue:lvl===1}));}
+    else if(type==='slow'){sky.field.smin=12;sky.field.smax=30;
+      const m=moving(6+r()*3,60,0);m.cx=300+r()*460;m.cy=180+r()*250;m.dv=0.5;sky.clusters.push(m);}
+    else if(type==='two'){
+      const A=moving(20+r()*6,50,200);let B;
+      for(let k=0;k<30;k++){B=moving(20+r()*6,52,200);
+        let da=Math.abs(A.a-B.a)%6.283;if(da>3.1416)da=6.283-da;
+        if(da>1.2&&Math.hypot(A.cx-B.cx,A.cy-B.cy)>260)break;}
+      A.n=B.n=Math.round(nC*0.7);sky.clusters.push(A,B);sky.field.n=Math.round(sky.field.n*0.9);}
+    else if(type==='wide'){const m=moving(20+r()*6,180,90);m.sy=135;m.n=Math.round(nC*0.95);sky.clusters.push(m);sky.field.n-=20;}
+    else{ // decoy
+      const m=moving(22+r()*6,55,180);m.n=Math.round(nC*0.85);sky.clusters.push(m);sky.field.n-=60;
+      sky.decoys.push({n:25,cx:m.cx,cy:m.cy,sx:60,sy:55,smin:4,smax:20});
+      sky.decoys.push({n:18,cx:m.cx,cy:m.cy,sx:110,sy:90,vx:m.vx,vy:m.vy});}
+    return sky;
+  }
+
+  let level=1,seed=1,sky=null,stars=[],t=0,play=false,trails=false,reveal=false,found=[],foundAt=[],miss=0,msg='',marks=[];
+  let blink=false,blinkUsed=false,blinkTold=false,phaseB=false,tele=false,mx=0,my=0,done=false,doneAt=0,got=0,parts=[];
+  const DT_B=6; // 블링크 비교기 두 사진의 시간 차 (모형 6초 = 12,000년)
+  const b1=$('bP1'),b2=$('bP2'),bP3=$('bP3'),bBlink=$('bBlink'),bTele=$('bTele');
+  const clampX=x=>cl2(x,15,W-15),clampY=y=>cl2(y,15,H-15);
+
+  function fieldCol(r){return r()<.25?'#fde68a':(r()<.3?'#fca5a5':'#e2e8f0');}
+  function gen(){
+    const r=SIM.rng(seed*7+3),kx=W/1060,ky=H/610;stars=[];
+    const f=sky.field,nf=Math.round(f.n*kx*ky);
+    for(let i=0;i<nf;i++){const a=r()*6.283,s=f.smin+r()*(f.smax-f.smin);
+      stars.push({x:r()*W,y:r()*H,vx:Math.cos(a)*s*kx,vy:Math.sin(a)*s*ky,m:r()*2.6+0.6,cl:-1,col:fieldCol(r)});}
+    sky.decoys.forEach(d=>{for(let i=0;i<d.n;i++){
+      const x=clampX((d.cx+SIM.gauss(r)*d.sx)*kx),y=clampY((d.cy+SIM.gauss(r)*d.sy)*ky);let vx,vy;
+      if(d.vx==null){const a=r()*6.283,s=d.smin+r()*(d.smax-d.smin);vx=Math.cos(a)*s;vy=Math.sin(a)*s;}
+      else{const k=r()<.5?0.4+r()*0.15:1.6+r()*0.3,ang=(r()-.5)*0.25,ca=Math.cos(ang),sa=Math.sin(ang);
+        vx=(d.vx*ca-d.vy*sa)*k;vy=(d.vx*sa+d.vy*ca)*k;}
+      stars.push({x,y,vx:vx*kx,vy:vy*ky,m:r()*2.6+0.6,cl:-1,col:fieldCol(r)});}});
+    sky.clusters.forEach((cl,ci)=>{for(let i=0;i<cl.n;i++){
+      stars.push({x:clampX((cl.cx+SIM.gauss(r)*cl.sx)*kx),y:clampY((cl.cy+SIM.gauss(r)*cl.sy)*ky),
+        vx:(cl.vx+SIM.gauss(r)*cl.dv)*kx,vy:(cl.vy+SIM.gauss(r)*cl.dv)*ky,m:r()*2.8+1,cl:ci,
+        col:cl.blue?(r()<.6?'#93c5fd':'#e0f2fe'):fieldCol(r)});}});
+    for(let i=stars.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[stars[i],stars[j]]=[stars[j],stars[i]];}
+    stars.forEach(s=>{s.x0=s.x;s.y0=s.y;s.gone=false;});
+  }
+
+  function setPlay(v){play=v;b1.textContent=play?'❚❚ 멈춤':'▶ 시간 흐르기';if(v&&blink)setBlink(false);}
+  function setBlink(v){blink=v;bBlink.classList.toggle('on',v);}
   function reset(){
-    const r=SIM.rng(31);stars=[];t=0;found=0;reveal=false;
-    for(let i=0;i<260;i++){const a=r()*6.283,s=4+r()*16;stars.push({x:r()*W,y:r()*H,vx:Math.cos(a)*s,vy:Math.sin(a)*s,m:r()*2.6+0.6,mem:false,hit:false,col:r()<.25?'#fde68a':(r()<.3?'#fca5a5':'#e2e8f0')});}
-    for(let i=0;i<45;i++){stars.push({x:470+SIM.gauss(r)*70,y:300+SIM.gauss(r)*60,vx:26+SIM.gauss(r)*1.2,vy:-14+SIM.gauss(r)*1.2,m:r()*2.8+1,mem:true,hit:false,col:r()<.6?'#93c5fd':'#e0f2fe'});}
-    stars.forEach(s=>{s.x0=s.x;s.y0=s.y;});out();
+    setPlay(false);setBlink(false);gen();t=0;reveal=false;miss=0;msg='';marks=[];parts=[];
+    blinkUsed=false;done=false;got=0;
+    found=sky.clusters.map(()=>false);foundAt=found.map(()=>0);
+    $('oPd').style.display=$('oGoal').style.display='';
+    bP3.classList.remove('on');bP3.hidden=false;$('bNext').hidden=true;$('bNew').textContent='🎲 새 하늘';$('oCard').innerHTML='';out();
   }
+  function newSky(lvl){
+    level=lvl;seed=Math.floor(Math.random()*1e9)+1;sky=makeSky(level,seed);
+    const tp=TYPES[sky.type];
+    $('oPt').textContent='도전 '+level+'단계 · '+tp.name+(level>5?' 🎲':'');
+    $('oPd').textContent=tp.desc+(level===1?' (힌트: 이번만 성단 별이 푸른색이에요.)':'');
+    $('oGoal').textContent='★★★ 목표: 한 번도 틀리지 않고 '+(tp.t3*2000).toLocaleString()+'년 안에 찾기';
+    reset();
+  }
+
   function out(){
-    document.getElementById('oP1').textContent=Math.round(t*2000).toLocaleString();
-    const tot=stars.filter(s=>s.mem).length,wrong=stars.filter(s=>s.hit&&!s.mem).length;
-    document.getElementById('oP2').innerHTML='<h4>찾은 성단 별</h4><div><span class="sim-big">'+found+'</span> / '+tot+' 개'+(wrong?' &nbsp;<span style="color:#dc2626">(잘못 고른 별 '+wrong+'개)</span>':'')+'</div>'+
-      '<div class="sim-note" style="margin-top:6px">'+(t<0.5?'먼저 <b>▶ 시간 흐르기</b>를 눌러 별들의 움직임을 관찰해 보세요.':'성단의 별은 <b>같은 방향·같은 속도</b>로 함께 움직여요.')+'</div>';
+    $('oP1').textContent=Math.round(t*2000).toLocaleString();
+    const tot=found.length,nf=found.filter(Boolean).length,
+          left=stars.some(s=>s.cl>=0&&!found[s.cl]&&!s.gone);
+    let h='<h4>찾은 성단</h4><div><span class="sim-big">'+nf+'</span> / '+tot+' 개'+
+      (miss?' &nbsp;<span class="sim-bad">(잘못 누른 횟수 '+miss+'번)</span>':'')+'</div>';
+    let m;
+    if(done) m=msg;
+    else if(msg) m=msg;
+    else if(t<1&&!blinkUsed) m='먼저 <b>▶ 시간 흐르기</b>나 <b>📷 블링크 비교기</b>로 별들의 움직임을 관찰해 보세요.';
+    else if(!left) m='성단이 화면 밖으로 사라졌어요. <b>↺ 처음부터</b>를 눌러 다시 관찰해 보세요.';
+    else m=TYPES[sky.type].tip;
+    if(done) h='<h4>성단 찾기 성공!</h4><div class="gold">'+'★'.repeat(got)+'<span style="color:#cbd5e1">'+'★'.repeat(3-got)+'</span></div>';
+    h+='<div style="margin-top:6px;font-size:23px">'+m+'</div>';
+    $('oP2').innerHTML=h;
   }
-  const b1=document.getElementById('bP1'),b2=document.getElementById('bP2');
-  b1.onclick=()=>{play=!play;b1.textContent=play?'❚❚ 멈춤':'▶ 시간 흐르기';};
+
+  /* ---- 성공 처리: 별점·기록·카드 ---- */
+  function finish(now){
+    done=true;doneAt=now;setPlay(false);setBlink(false);
+    const tp=TYPES[sky.type],obs=Math.max(t,blinkUsed?DT_B:0);
+    got=reveal?0:(miss===0&&obs<=tp.t3)?3:(miss<=2&&obs<=tp.t3*2)?2:1;
+    const before=titleOf(rec.stars);let isNew=false;
+    if(got>0){rec.stars+=got;rec.best=Math.max(rec.best,level);
+      if(!rec.cards.includes(sky.type)){rec.cards.push(sky.type);isNew=true;}save();}
+    const after=titleOf(rec.stars);
+    let m;
+    if(!got) m='<b>성단 정답 보기</b>를 쓰고 찾아서 이번에는 별을 받지 못했어요. 🎲 새 하늘에서 다시 도전해 보세요!';
+    else{
+      m='별 <b>'+got+'개</b>를 받았어요! <span class="sim-note">(잘못 누른 횟수 '+miss+'번 · 관찰 시간 '+Math.round(obs*2000).toLocaleString()+'년)</span>';
+      if(tele) m+='<br>🔭 <b>망원경 모드로 찾아낸 진짜 관측자!</b>';
+      if(after!==before) m+='<br>🎖️ <span class="sim-ok">새 칭호를 얻었어요: 「'+after+'」</span>';
+    }
+    msg=m;
+    if(got>0){const cd=CARDS[sky.type];
+      $('oCard').innerHTML='<div class="card"><div class="em">'+cd.em+'</div><div><div class="nm">실제 우주에서는? '+(isNew?'<span class="new">NEW 도감</span>':'')+'</div><div class="nm" style="font-size:22px;color:#fff">'+cd.nm+' <span class="sb">'+cd.sb+'</span></div><div class="tx">'+cd.tx+'</div></div></div>';}
+    // 성공 화면(별점·카드)이 들어갈 자리를 위해 도전 단계 설명은 접어 둠
+    $('oPd').style.display=$('oGoal').style.display='none';
+    $('bNext').hidden=false;bP3.hidden=true;$('bNew').textContent='🎲 같은 단계 새 하늘';
+    renderRec();out();
+  }
+
+  b1.onclick=()=>{if(done)return;setPlay(!play);if(play){msg='';out();}};
   b2.onclick=()=>{trails=!trails;b2.classList.toggle('on',trails);};
-  document.getElementById('bP3').onclick=()=>{reveal=!reveal;document.getElementById('bP3').classList.toggle('on',reveal);};
-  document.getElementById('bP4').onclick=()=>{play=false;b1.textContent='▶ 시간 흐르기';reset();};
-  c.addEventListener('click',e=>{const p=SIM.pos(e,c);let best=null,bd=18;stars.forEach(s=>{const d=Math.hypot(s.x-p.x,s.y-p.y);if(d<bd){bd=d;best=s;}});if(best&&!best.hit){best.hit=true;if(best.mem)found++;out();}});
-  reset();
-  SIM.loop('t7',(tm,dt)=>{
-    if(play){t+=dt;stars.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;if(s.x<-20){s.x+=W+40;s.x0+=W+40;}if(s.x>W+20){s.x-=W+40;s.x0-=W+40;}if(s.y<-20){s.y+=H+40;s.y0+=H+40;}if(s.y>H+20){s.y-=H+40;s.y0-=H+40;}});out();}
+  bP3.onclick=()=>{reveal=!reveal;bP3.classList.toggle('on',reveal);};
+  $('bP4').onclick=reset;
+  $('bNew').onclick=()=>newSky(level);
+  $('bNext').onclick=()=>newSky(level+1);
+  bBlink.onclick=()=>{
+    if(done)return;
+    setBlink(!blink);
+    if(blink){setPlay(false);blinkUsed=true;
+      msg=blinkTold?'':'📷 <b>블링크 비교기</b>: 시간 차이가 나는 두 사진을 번갈아 보여 줘요. 움직인 별은 깜빡이며 자리를 옮겨요. 1930년에 명왕성도 이 방법으로 발견했답니다!';
+      blinkTold=true;}
+    out();
+  };
+  bTele.onclick=()=>{tele=!tele;bTele.classList.toggle('on',tele);mx=W/2;my=H/2;};
+  $('bDex').onclick=()=>{renderRec();$('dex').classList.add('open');};
+  $('bDexX').onclick=()=>$('dex').classList.remove('open');
+  $('bWipe').onclick=()=>{if(confirm('모은 별, 칭호, 도감 기록을 모두 지울까요?')){rec={stars:0,best:0,cards:[]};save();renderRec();}};
+
+  /* ---- 지금 화면에 보이는 위치 (블링크 비교기의 사진 B는 12,000년 뒤 위치) ---- */
+  function P(s){
+    if(s.gone)return null;let x=s.x,y=s.y;
+    if(phaseB){x+=s.vx*DT_B;y+=s.vy*DT_B;if(x<-10||x>W+10||y<-10||y>H+10)return null;}
+    return [x,y];
+  }
+
+  /* ---- 클릭: 무리 근처를 누르면 그 성단 전체가 선택됨 ---- */
+  c.addEventListener('pointermove',e=>{const p=SIM.pos(e,c);mx=p.x;my=p.y;});
+  c.addEventListener('click',e=>{
+    if(done)return;
+    const p=SIM.pos(e,c);mx=p.x;my=p.y;
+    if(t<1&&!blinkUsed){msg='먼저 <b>▶ 시간 흐르기</b>나 <b>📷 블링크 비교기</b>로 별들이 어떻게 움직이는지 관찰해 보세요.';out();return;}
+    let best=null,bd=45;const cnt=found.map(()=>0);
+    stars.forEach(s=>{const q=P(s);if(!q)return;const d=Math.hypot(q[0]-p.x,q[1]-p.y);
+      if(d<bd){bd=d;best=s;} if(s.cl>=0&&d<75)cnt[s.cl]++;});
+    let hit=-1,hc=1;cnt.forEach((n,ci)=>{if(n>hc||(n===hc&&hit>=0&&found[hit]&&!found[ci])){hc=n;hit=ci;}});
+    if(hit<0&&best&&best.cl>=0)hit=best.cl;
+    const now=performance.now();
+    if(hit>=0){
+      if(found[hit]){msg='이미 찾은 성단이에요.';}
+      else{
+        found[hit]=true;foundAt[hit]=now;setPlay(false);burst(hit,40);
+        const rest=found.filter(v=>!v).length;
+        if(!rest){finish(now);burst(hit,80);return;}
+        msg='<span class="sim-ok">정답! 함께 움직이는 성단을 찾았어요.</span> 성단이 '+rest+'개 더 있어요. <b>▶ 시간 흐르기</b>를 눌러 계속 찾아보세요.';
+      }
+    }else{
+      miss++;marks.push({x:p.x,y:p.y,s:best,until:now+1300});
+      msg='<span class="sim-bad">아니에요.</span> 그 별들은 함께 움직이지 않아요. 다시 관찰해 보세요.';
+    }
+    out();
+  });
+
+  /* ---- 축하 불꽃 ---- */
+  function centroid(ci){const ms=stars.map(P).filter((q,i)=>q&&stars[i].cl===ci);if(!ms.length)return null;
+    return [ms.reduce((a,q)=>a+q[0],0)/ms.length,ms.reduce((a,q)=>a+q[1],0)/ms.length,ms];}
+  function burst(ci,n){const ce=centroid(ci);if(!ce)return;const cols=['#facc15','#4ade80','#38bdf8','#f472b6','#fb923c'];
+    for(let i=0;i<n;i++){const a=Math.random()*6.283,s=120+Math.random()*320;
+      parts.push({x:ce[0],y:ce[1],vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col:cols[i%5],r:2+Math.random()*3});}}
+
+  /* ---- 화면 크기에 맞춰 캔버스 해상도 맞추기 ---- */
+  function fitCanvas(){
+    const w=stage.clientWidth,h=stage.clientHeight;
+    if(w<100||h<100||(w===W&&h===H))return;
+    W=c.width=w;H=c.height=h;mx=W/2;my=H/2;if(sky)reset();
+  }
+  renderRec();
+  fitCanvas();newSky(1);
+  if(window.ResizeObserver)new ResizeObserver(fitCanvas).observe(stage);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitCanvas);
+
+  function ring(x,y,m,col,lw,pad){g.strokeStyle=col;g.lineWidth=lw;g.beginPath();g.arc(x,y,m+pad,0,7);g.stroke();}
+  function halo(txt,x,y,px,col,align){g.font=SIM.font(px);g.textAlign=align||'center';g.lineJoin='round';g.lineWidth=6;g.strokeStyle='rgba(2,6,23,.85)';g.strokeText(txt,x,y);g.fillStyle=col;g.fillText(txt,x,y);g.textAlign='left';}
+
+  SIM.loop('t7',(now,dt)=>{
+    if(play){
+      t+=dt;
+      stars.forEach(s=>{if(s.gone)return;s.x+=s.vx*dt;s.y+=s.vy*dt;
+        if(s.x<-10||s.x>W+10||s.y<-10||s.y>H+10)s.gone=true;}); // 화면 밖으로 나가면 사라짐
+      if(!stars.some(s=>s.cl>=0&&!found[s.cl]&&!s.gone))setPlay(false);
+      out();
+    }
+    phaseB=blink&&Math.floor(now/650)%2===1;
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    if(trails){stars.forEach(s=>{if(Math.hypot(s.x-s.x0,s.y-s.y0)>300)return;g.strokeStyle=(reveal&&s.mem)?'rgba(251,146,60,.6)':'rgba(148,163,184,.35)';g.lineWidth=1.5;g.beginPath();g.moveTo(s.x0,s.y0);g.lineTo(s.x,s.y);g.stroke();});}
-    stars.forEach(s=>{g.fillStyle=s.col;g.beginPath();g.arc(s.x,s.y,s.m,0,7);g.fill();
-      if(s.hit){g.strokeStyle=s.mem?'#4ade80':'#f87171';g.lineWidth=3;g.beginPath();g.arc(s.x,s.y,s.m+7,0,7);g.stroke();}
-      else if(reveal&&s.mem){g.strokeStyle='#fb923c';g.lineWidth=2;g.beginPath();g.arc(s.x,s.y,s.m+6,0,7);g.stroke();}});
-    g.fillStyle='#94a3b8';g.font=SIM.font(20,false);g.textAlign='right';g.fillText('초록 원 = 정답, 빨간 원 = 성단 별이 아님',W-16,H-16);g.textAlign='left';
+    if(trails&&!blink){stars.forEach(s=>{if(s.gone)return;
+      g.strokeStyle=(s.cl>=0&&(found[s.cl]||reveal))?(found[s.cl]?'rgba(74,222,128,.6)':'rgba(251,146,60,.6)'):'rgba(148,163,184,.35)';
+      g.lineWidth=1.5;g.beginPath();g.moveTo(s.x0,s.y0);g.lineTo(s.x,s.y);g.stroke();});}
+    stars.forEach(s=>{const q=P(s);if(!q)return;
+      g.fillStyle=s.col;g.beginPath();g.arc(q[0],q[1],s.m,0,7);g.fill();
+      if(s.cl>=0&&found[s.cl])ring(q[0],q[1],s.m,'#4ade80',2.5,6);
+      else if(reveal&&s.cl>=0)ring(q[0],q[1],s.m,'#fb923c',2,6);
+    });
+    // 찾은 성단 전체를 큰 동그라미로 표시
+    found.forEach((f,ci)=>{if(!f)return;const ce=centroid(ci);if(!ce)return;
+      const ds=ce[2].map(q=>Math.hypot(q[0]-ce[0],q[1]-ce[1])).sort((a,b)=>a-b);
+      const R=ds[Math.floor(ds.length*0.9)]+28,k=Math.min(1,(now-foundAt[ci])/500),e=1-Math.pow(1-k,3);
+      g.save();g.globalAlpha=0.9;g.strokeStyle='#4ade80';g.lineWidth=5;g.setLineDash([14,10]);
+      g.beginPath();g.arc(ce[0],ce[1],R*e,0,7);g.stroke();g.setLineDash([]);
+      g.fillStyle='rgba(74,222,128,.08)';g.fill();g.restore();
+      halo(found.length>1?'성단 '+(ci+1)+' 정답!':'정답!',ce[0],Math.max(34,ce[1]-R*e-12),30,'#4ade80');
+    });
+    // 망원경 모드: 둥근 시야 밖은 어둡게
+    if(tele){const R=Math.min(W,H)*0.2;
+      g.save();g.beginPath();g.rect(0,0,W,H);g.moveTo(mx+R,my);g.arc(mx,my,R,0,Math.PI*2,true);
+      g.fillStyle='rgba(2,6,23,0.97)';g.fill();
+      g.strokeStyle='#64748b';g.lineWidth=8;g.beginPath();g.arc(mx,my,R,0,7);g.stroke();
+      g.strokeStyle='rgba(148,163,184,.35)';g.lineWidth=1.5;g.beginPath();
+      g.moveTo(mx-R,my);g.lineTo(mx-12,my);g.moveTo(mx+12,my);g.lineTo(mx+R,my);
+      g.moveTo(mx,my-R);g.lineTo(mx,my-12);g.moveTo(mx,my+12);g.lineTo(mx,my+R);g.stroke();g.restore();}
+    // 블링크 비교기 표시
+    if(blink){halo(phaseB?'📷 사진 B · 12,000년 뒤':'📷 사진 A · 지금',W/2,48,30,phaseB?'#c4b5fd':'#e2e8f0');
+      g.strokeStyle=phaseB?'rgba(167,139,250,.7)':'rgba(226,232,240,.4)';g.lineWidth=6;g.strokeRect(3,3,W-6,H-6);}
+    // 잘못 누른 곳 표시
+    marks=marks.filter(m=>m.until>now);
+    marks.forEach(m=>{const a=Math.min(1,(m.until-now)/400);g.save();g.globalAlpha=a;
+      const q=m.s&&P(m.s);if(q)ring(q[0],q[1],m.s.m,'#f87171',3,7);
+      g.strokeStyle='#f87171';g.lineWidth=5;g.beginPath();
+      g.moveTo(m.x-14,m.y-14);g.lineTo(m.x+14,m.y+14);g.moveTo(m.x+14,m.y-14);g.lineTo(m.x-14,m.y+14);g.stroke();g.restore();});
+    // 축하 불꽃과 별점
+    parts=parts.filter(p=>p.life>0);
+    parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;p.vx*=0.985;p.life-=dt*0.7;
+      g.globalAlpha=Math.max(0,p.life);g.fillStyle=p.col;g.beginPath();g.arc(p.x,p.y,p.r,0,7);g.fill();});
+    g.globalAlpha=1;
+    if(done&&now-doneAt<3500){const k=Math.min(1,(now-doneAt)/350),a=Math.min(1,(3500-(now-doneAt))/500);
+      g.save();g.globalAlpha=a;g.translate(W/2,H/2);g.scale(0.6+0.4*k,0.6+0.4*k);
+      g.fillStyle='rgba(2,6,23,.75)';g.beginPath();g.roundRect(-300,-110,600,200,26);g.fill();
+      g.font=SIM.font(84);g.textAlign='center';
+      for(let i=0;i<3;i++){g.fillStyle=i<got?'#facc15':'#334155';g.fillText('★',(i-1)*100,10);}
+      g.font=SIM.font(34);g.fillStyle='#e2e8f0';g.fillText(got?'성단 찾기 성공!':'다음엔 정답 보기 없이!',0,70);
+      g.restore();}
+    g.fillStyle='#94a3b8';g.font=SIM.font(20,false);g.textAlign='right';
+    g.fillText('초록 동그라미 = 찾은 성단(정답)',W-16,H-16);g.textAlign='left';
   });
 })();
-
-
 </script>
 
 <script>
-/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+/* ---- 독립 실행용: 화면 크기에 맞춰 1920×1080 슬라이드를 축소/확대 ---- */
 (function(){
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -286,15 +503,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
-})();
-/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
-(function(){
-  var el = document.querySelector('#presentation-wrapper > .slide');
-  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
-  el._shown = n;
-  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 </script>
 </body>

@@ -95,18 +95,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simK .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #simK .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #simK .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -114,11 +123,12 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simK">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>팽창하는 우주에서 은하와 빛 관찰하기</div>
             <div class="ppt-subtitle">어느 은하에서 보아도 먼 은하일수록 더 빨리 멀어집니다.</div>
             <div class="sim-wrap">
-                <div class="sim-stage"><canvas id="cK" width="1060" height="610" style="cursor:pointer"></canvas><div class="sim-hint">은하를 클릭하면 그 은하가 ‘우리 은하’가 돼요</div></div>
+                <div class="sim-stage"><canvas id="cK" width="1160" height="900"style="cursor:pointer"></canvas><div class="sim-hint">은하를 클릭하면 그 은하가 ‘우리 은하’가 돼요</div></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
                         <h4>우주의 크기</h4>
@@ -194,21 +204,26 @@
     /* ===================== 시뮬레이션 K: 팽창하는 우주 ===================== */
     (function () {
         const c = document.getElementById('cK'), g = c.getContext('2d'), r = SIM.rng(12);
-        const W = 1060, H = 610, CX = 530, CY = 250, SP = 95, NC = 13, NR = 7;
+        const W = c.width, H = c.height, FH = 600, CX = W / 2, CY = FH / 2, SP = 95, NC = 13, NR = 7; // FH 아래는 빛의 파장 영역
         const gal = [];
         for (let j = 0; j < NR; j++) for (let i = 0; i < NC; i++) gal.push({ i: i, j: j, x: (i - (NC - 1) / 2) * SP + SIM.gauss(r) * 9, y: (j - (NR - 1) / 2) * SP + SIM.gauss(r) * 9, rot: r() * 3, col: r() < .5 ? [253, 230, 138] : [191, 219, 254] });
         let obs = gal.findIndex(p => p.i === 6 && p.j === 3), a = 1, play = false, ph = 0;
         const find = (i, j) => gal.findIndex(p => p.i === i && p.j === j);
         function AB() { const o = gal[obs]; let dir = o.i + 3 < NC ? 1 : -1; return [find(o.i + dir, o.j), find(o.i + 3 * dir, o.j)]; }
         const dist = (k) => Math.hypot(gal[k].x - gal[obs].x, gal[k].y - gal[obs].y) / SP * 100;
+        // 지금 도착한 빛이 출발할 때의 우주 크기: 먼 은하(B, 3칸)의 빛일수록 더 일찍 출발 (단순 모형)
+        const aEmit = n => 1 + (a - 1) * (1 - n / 4);
+        const light = n => { const ae = aEmit(n), lam = 450 * a / ae; return { ae: ae, lam: lam, z: a / ae - 1 }; };
+        const LA = () => light(1), LB = () => light(3);
         function out() {
             document.getElementById('vK').textContent = '× ' + a.toFixed(2);
             document.getElementById('rK').value = a;
             const [ka, kb] = AB(); let h = '';
             [['A', ka, '#2563eb'], ['B', kb, '#dc2626']].forEach(([n, k, col]) => { const d0 = dist(k); h += '<tr><td style="font-weight:bold;color:' + col + '">은하 ' + n + '</td><td>' + d0.toFixed(0) + ' Mpc</td><td>' + (d0 * a).toFixed(0) + ' Mpc</td><td style="font-weight:bold;color:' + col + '">+' + (d0 * (a - 1)).toFixed(0) + '</td></tr>'; });
             document.getElementById('tK').innerHTML = h;
-            const lam = 450 * a;
-            document.getElementById('oK').innerHTML = '<h4>빛의 파장도 함께 늘어나요</h4>출발할 때 <b style="color:#2563eb">450 nm</b> → 지금 <b style="color:' + (lam > 780 ? '#64748b' : '#dc2626') + '">' + lam.toFixed(0) + ' nm</b>' + (lam > 780 ? ' (적외선)' : '') + '<br>적색 이동 z = ' + (a - 1).toFixed(2) + ' <span class="sim-note">(= 우주가 커진 비율 − 1)</span>';
+            const row = (n, L, col) => '<b style="color:' + col + '">은하 ' + n + '</b>에서 온 빛: 450 → <b style="color:#dc2626">' + L.lam.toFixed(0) + ' nm</b> (z = ' + L.z.toFixed(2) + ')';
+            document.getElementById('oK').innerHTML = '<h4>빛의 파장도 함께 늘어나요</h4>' + row('A', LA(), '#2563eb') + '<br>' + row('B', LB(), '#dc2626') +
+                '<div class="sim-note" style="margin-top:6px">먼 B의 빛은 우주가 더 작을 때 출발해 더 오래 여행했으므로 더 많이 늘어나요.<br>1 + z = 지금 우주 크기 ÷ 빛이 출발할 때 우주 크기</div>';
         }
         const bp = document.getElementById('bK1');
         bp.onclick = () => { if (a >= 2) a = 1; play = !play; bp.textContent = play ? '❚❚ 멈춤' : '▶ 팽창 시작'; out(); };
@@ -226,11 +241,11 @@
             const o = gal[obs], [ka, kb] = AB();
             // 격자 (공간)
             g.strokeStyle = 'rgba(71,85,105,.35)'; g.lineWidth = 1;
-            for (let i = -8; i <= 8; i++) { const x = CX + (i * SP - o.x % SP) * a; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 470); g.stroke(); }
-            for (let j = -5; j <= 5; j++) { const y = CY + (j * SP - o.y % SP) * a; if (y > 470) continue; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+            for (let i = -8; i <= 8; i++) { const x = CX + (i * SP - o.x % SP) * a; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, FH); g.stroke(); }
+            for (let j = -5; j <= 5; j++) { const y = CY + (j * SP - o.y % SP) * a; if (y > FH) continue; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
             gal.forEach((q, k) => {
                 const dx = (q.x - o.x) * a, dy = (q.y - o.y) * a, x = CX + dx, y = CY + dy;
-                if (y < -20 || y > 470 || x < -20 || x > W + 20) return;
+                if (y < -20 || y > FH || x < -20 || x > W + 20) return;
                 // 후퇴 속도 화살표 (거리에 비례)
                 if (k !== obs) {
                     const L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, len = L * 0.16;
@@ -242,15 +257,26 @@
                 if (k === ka || k === kb) { const col = k === ka ? '#60a5fa' : '#f87171'; g.strokeStyle = col; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 17, 0, 7); g.stroke(); g.fillStyle = col; g.font = SIM.font(22); g.textAlign = 'center'; g.fillText(k === ka ? 'A' : 'B', x, y + 40); }
             });
             // 빛의 파장
-            g.fillStyle = '#020617'; g.fillRect(0, 470, W, 140);
-            const lam = 450 * a, rgb = lam > 780 ? [148, 163, 184] : SIM.wl2rgb(lam), wl = 46 * a; ph += dt * 120;
-            g.strokeStyle = 'rgba(96,165,250,.35)'; g.lineWidth = 2; g.beginPath();
-            for (let x = 250; x < 1030; x += 2) { const y = 515 + 18 * Math.sin((x - ph) / 46 * 6.283); x === 250 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
-            g.strokeStyle = 'rgb(' + rgb.join(',') + ')'; g.lineWidth = 4; g.beginPath();
-            for (let x = 250; x < 1030; x += 2) { const y = 570 + 18 * Math.sin((x - ph) / wl * 6.283); x === 250 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
-            g.textAlign = 'left'; g.font = SIM.font(21);
-            g.fillStyle = '#93c5fd'; g.fillText('출발할 때 빛 (450 nm)', 20, 522);
-            g.fillStyle = 'rgb(' + rgb.join(',') + ')'; g.fillText('지금 도착한 빛 (' + lam.toFixed(0) + ' nm)', 20, 577);
+            g.fillStyle = '#020617'; g.fillRect(0, FH, W, H - FH);
+            ph += dt * 120;
+            const X0 = 350, X1 = W - 30;
+            function wave(y, lam, color, lw) {
+                const wl = 46 * lam / 450; g.strokeStyle = color; g.lineWidth = lw; g.beginPath();
+                for (let x = X0; x < X1; x += 2) { const yy = y + 20 * Math.sin((x - ph) / wl * 6.283); x === X0 ? g.moveTo(x, yy) : g.lineTo(x, yy); } g.stroke();
+            }
+            const wcol = lam => lam > 780 ? 'rgb(148,163,184)' : 'rgb(' + SIM.wl2rgb(lam).join(',') + ')';
+            // 출발할 때 빛
+            wave(FH + 60, 450, 'rgba(96,165,250,.5)', 2);
+            g.textAlign = 'left'; g.font = SIM.font(22); g.fillStyle = '#93c5fd'; g.fillText('출발할 때 빛 (450 nm)', 20, FH + 68);
+            // 지금 도착한 빛: A, B 각각
+            [['A', LA(), '#60a5fa', FH + 160], ['B', LB(), '#f87171', FH + 255]].forEach(([n, L, col, y]) => {
+                g.strokeStyle = 'rgba(71,85,105,.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, y - 48); g.lineTo(W, y - 48); g.stroke();
+                wave(y, L.lam, wcol(L.lam), 4);
+                g.fillStyle = col; g.beginPath(); g.arc(34, y - 8, 17, 0, 7); g.fill();
+                g.fillStyle = '#0f172a'; g.font = SIM.font(22); g.textAlign = 'center'; g.fillText(n, 34, y);
+                g.textAlign = 'left'; g.fillStyle = col; g.fillText('은하 ' + n + '에서 지금 도착한 빛', 62, y - 2);
+                g.fillStyle = wcol(L.lam); g.font = SIM.font(20, false); g.fillText(L.lam.toFixed(0) + ' nm · 출발 때 우주 ×' + L.ae.toFixed(2), 62, y + 28);
+            });
             g.fillStyle = '#fca5a5'; g.font = SIM.font(20, false); g.textAlign = 'right'; g.fillText('빨간 화살표 = 멀어지는 속도 (거리에 비례)', W - 16, 30);
         });
     })();
@@ -264,7 +290,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -274,8 +301,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

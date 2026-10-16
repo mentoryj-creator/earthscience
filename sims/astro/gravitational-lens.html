@@ -138,18 +138,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simG .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #simG .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #simG .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -157,11 +166,12 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simG">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>중력 렌즈를 직접 만들어 봅시다</div>
             <div class="ppt-subtitle" style="background-color:#eff6ff; border-left-color:#3b82f6; color:#1d4ed8;">배경 은하를 움직이고, 렌즈의 질량을 바꿔 보세요.</div>
             <div class="sim-wrap">
-                <div class="sim-stage"><canvas id="cG" width="1060" height="610" style="cursor:grab"></canvas><div class="sim-hint">화면을 끌어서 배경 은하(점선 표시)를 옮겨 보세요</div></div>
+                <div class="sim-stage"><canvas id="cG" width="1160" height="900"style="cursor:grab"></canvas><div class="sim-hint">화면을 끌어서 배경 은하(점선 표시)를 옮겨 보세요</div></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
                         <h4>렌즈(은하단)의 질량</h4>
@@ -238,11 +248,11 @@
     /* ===================== 시뮬레이션 G: 중력 렌즈 ===================== */
     (function () {
         const c = document.getElementById('cG'), g = c.getContext('2d');
-        const W = 1060, H = 610, HW = 530, HH = 305, CX = 530, CY = 305;
+        const W = c.width, H = c.height, HW = W / 2, HH = H / 2, CX = W / 2, CY = H / 2;
         const off = document.createElement('canvas'); off.width = HW; off.height = HH; const og = off.getContext('2d'); const img = og.createImageData(HW, HH);
-        const bgStar = new Float32Array(HW * HH); { const r = SIM.rng(3); for (let i = 0; i < 260; i++) bgStar[(r() * HH | 0) * HW + (r() * HW | 0)] = 0.3 + r() * 0.7; }
-        let mass = 6, bx = 75, by = 30, showLens = true, auto = false, dirty = true, at = 0;
-        const thE = () => 48 * Math.sqrt(mass);
+        const bgStar = new Float32Array(HW * HH); { const r = SIM.rng(3); for (let i = 0; i < 420; i++) bgStar[(r() * HH | 0) * HW + (r() * HW | 0)] = 0.3 + r() * 0.7; }
+        let mass = 6, bx = 150, by = 60, showLens = true, auto = false, dirty = true, at = 0;
+        const thE = () => 96 * Math.sqrt(mass);
         const ca = Math.cos(0.5), sa = Math.sin(0.5);
         function render() {
             const tE2 = thE() * thE(), d = img.data;
@@ -250,9 +260,10 @@
                 const x = i * 2 - CX + 1, y = j * 2 - CY + 1, r2 = x * x + y * y + 1;
                 const sx = x - tE2 * x / r2 - bx, sy = y - tE2 * y / r2 - by;
                 const u = sx * ca + sy * sa, v = -sx * sa + sy * ca;
-                const q = u * u / 2300 + v * v / 660;
-                const I = Math.exp(-q), core = Math.exp(-(u * u + v * v) / 150);
-                const arm = Math.exp(-q * 0.35) * (0.5 + 0.5 * Math.sin(Math.atan2(v * 1.8, u) * 2 + Math.sqrt(u * u + v * v) * 0.11));
+                // 배경 은하 크기 2배 (실제 위치 타원과 같은 크기)
+                const q = u * u / 9200 + v * v / 2640;
+                const I = Math.exp(-q), core = Math.exp(-(u * u + v * v) / 600);
+                const arm = Math.exp(-q * 0.35) * (0.5 + 0.5 * Math.sin(Math.atan2(v * 1.8, u) * 2 + Math.sqrt(u * u + v * v) * 0.055));
                 const b = bgStar[j * HW + i], k = (j * HW + i) * 4;
                 d[k] = Math.min(255, 15 + 60 * I + 70 * arm * I + 230 * core + 255 * b);
                 d[k + 1] = Math.min(255, 23 + 120 * I + 110 * arm * I + 240 * core + 255 * b);
@@ -281,20 +292,20 @@
         c.addEventListener('pointerup', () => drag = false);
         out();
         SIM.loop('simG', (t, dt) => {
-            if (auto) { at += dt; bx = Math.sin(at * 0.45) * 230; by = 30 * Math.cos(at * 0.3); dirty = true; out(); }
+            if (auto) { at += dt; bx = Math.sin(at * 0.45) * 320; by = 60 * Math.cos(at * 0.3); dirty = true; out(); }
             if (dirty) { render(); dirty = false; }
             g.imageSmoothingEnabled = true; g.drawImage(off, 0, 0, W, H);
             // 아인슈타인 반지름
             g.setLineDash([6, 8]); g.strokeStyle = 'rgba(148,163,184,.45)'; g.lineWidth = 2; g.beginPath(); g.arc(CX, CY, thE(), 0, 7); g.stroke();
             // 실제 위치
-            g.strokeStyle = 'rgba(250,204,21,.9)'; g.lineWidth = 2.5; g.save(); g.translate(CX + bx, CY + by); g.rotate(0.5); g.beginPath(); g.ellipse(0, 0, 54, 29, 0, 0, 7); g.stroke(); g.restore(); g.setLineDash([]);
-            g.fillStyle = '#facc15'; g.font = SIM.font(19); g.textAlign = 'center'; g.fillText('실제 위치', CX + bx, CY + by - 44);
+            g.strokeStyle = 'rgba(250,204,21,.9)'; g.lineWidth = 2.5; g.save(); g.translate(CX + bx, CY + by); g.rotate(0.5); g.beginPath(); g.ellipse(0, 0, 108, 58, 0, 0, 7); g.stroke(); g.restore(); g.setLineDash([]);
+            g.fillStyle = '#facc15'; g.font = SIM.font(24); g.textAlign = 'center'; g.fillText('실제 위치', CX + bx, CY + by - 84);
             if (showLens) {
-                const gr = g.createRadialGradient(CX, CY, 0, CX, CY, 48); gr.addColorStop(0, 'rgba(255,247,237,1)'); gr.addColorStop(.35, 'rgba(251,146,60,.85)'); gr.addColorStop(1, 'rgba(251,146,60,0)');
-                g.fillStyle = gr; g.beginPath(); g.ellipse(CX, CY, 48, 36, 0, 0, 7); g.fill();
-                g.fillStyle = '#fdba74'; g.font = SIM.font(19); g.fillText('렌즈 (은하단)', CX, CY + 66);
+                const gr = g.createRadialGradient(CX, CY, 0, CX, CY, 96); gr.addColorStop(0, 'rgba(255,247,237,1)'); gr.addColorStop(.35, 'rgba(251,146,60,.85)'); gr.addColorStop(1, 'rgba(251,146,60,0)');
+                g.fillStyle = gr; g.beginPath(); g.ellipse(CX, CY, 96, 72, 0, 0, 7); g.fill();
+                g.fillStyle = '#fdba74'; g.font = SIM.font(24); g.fillText('렌즈 (은하단)', CX, CY + 110);
             }
-            g.textAlign = 'left'; g.fillStyle = '#94a3b8'; g.font = SIM.font(19, false); g.fillText('회색 점선 원 = 아인슈타인 반지름', 20, H - 20);
+            g.textAlign = 'left'; g.fillStyle = '#94a3b8'; g.font = SIM.font(22, false); g.fillText('회색 점선 원 = 아인슈타인 반지름', 20, H - 20);
         });
     })();
     
@@ -306,7 +317,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -316,8 +328,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

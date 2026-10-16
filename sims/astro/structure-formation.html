@@ -123,18 +123,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #s21 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #s21 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #s21 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -142,13 +151,15 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="s21">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>작은 밀도 차이가 거대 구조로</div>
             <div class="ppt-subtitle">밀도가 높은 곳은 <span class="or">더 높아지고</span>, 낮은 곳은 <span class="or">더 낮아져요.</span></div>
             <div class="main">
                 <div class="col" style="align-items:center">
                     <div class="sim-stage"><canvas id="c21"></canvas></div>
-                    <div class="sim-row" style="width:100%"><button class="sim-btn on" id="b21p">▶ 재생</button><span>과거</span><input type="range" class="sim-range" id="r21" min="0" max="1000" value="0"><span>현재</span></div>
+                    <div class="sim-row" style="width:100%"><button class="sim-btn on" id="b21p">▶ 재생</button><button class="sim-btn" id="b21x">↺ 처음으로</button><span>과거</span><input type="range" class="sim-range" id="r21" min="0" max="1000" value="0"><span>현재</span></div>
+                    <div class="sim-btns"><button class="sim-btn on" id="b21r">무작위 초기 우주</button><button class="sim-btn orange" id="b21s">내가 씨앗 찍기 (화면 클릭)</button><button class="sim-btn" id="b21c">씨앗 지우기</button></div>
                 </div>
                 <div class="col grow" style="font-size:27px">
                     <div class="card soft" style="font-size:27px"><span class="look o">관찰 포인트</span>처음엔 거의 <b>고른 분포</b>예요. 시간이 지날수록 <b>실 모양·덩어리</b>와 <b>빈 곳</b>이 뚜렷해져요.</div>
@@ -186,18 +197,35 @@ const slides=[$('#s21')];let cur=0;function upd(){}
 function setShown(el,n,fire){el._shown=n;$$('[data-step]',el).forEach(e=>e.classList.toggle('on',+e.dataset.step<=n));if(fire&&STEP[el.id])STEP[el.id](n);}
 /* ---------- 21. structure formation ---------- */
 (function(){
-  const c=$('#c21'),g=hd(c,520,440,1.25),r=rng(21);
+  const c=$('#c21'),g=hd(c,520,440,1.7),r=rng(21);
   const M=[];for(let i=0;i<46;i++){let kx=((r()*9)|0)-4,ky=((r()*9)|0)-4;if(!kx&&!ky)kx=1;const k2=kx*kx+ky*ky;M.push({kx:kx,ky:ky,A:(r()*.7+.3)/Math.pow(k2,.9),ph:r()*6.28});}
   const n=96,q=[];for(let i=0;i<n;i++)for(let j=0;j<n;j++)q.push([i/n,j/n]);
   const S=q.map(p=>{let sx=0,sy=0;M.forEach(m=>{const th=6.2832*(m.kx*p[0]+m.ky*p[1])+m.ph;const k2=m.kx*m.kx+m.ky*m.ky;const f=-m.A*Math.sin(th)/(6.2832*k2)*6.2832;sx+=f*m.kx;sy+=f*m.ky;});return [sx,sy];});
-  let t=0,play=false;
+  let t=0,play=false,mode='rand',seeds=[];
+  // 씨앗(밀도가 조금 높은 곳) 모드: 주변 물질이 씨앗 쪽으로 끌려옴 (씨앗까지의 거리보다 더 가지는 않게)
+  const SA=0.06,SS=0.0025,R2=0.04,wrap=d=>d-Math.round(d);
+  function seedDisp(p,D){let sx=0,sy=0;seeds.forEach(s=>{const dx=wrap(s[0]-p[0]),dy=wrap(s[1]-p[1]),d2=dx*dx+dy*dy,k=Math.min(.95,D*SA/(d2+SS)*Math.exp(-d2/R2));sx+=dx*k;sy+=dy*k;});return [sx,sy];}
   function draw(){
     g.fillStyle=DARK;g.fillRect(0,0,520,440);
     const D=t*0.62;
     g.fillStyle='rgba(226,232,240,.6)';
-    for(let i=0;i<q.length;i++){let x=q[i][0]+D*S[i][0],y=q[i][1]+D*S[i][1];x=((x%1)+1)%1;y=((y%1)+1)%1;g.fillRect(x*516+2,y*436+2,2,2);}
+    for(let i=0;i<q.length;i++){let x,y;
+      if(mode==='rand'){x=q[i][0]+D*S[i][0];y=q[i][1]+D*S[i][1];}
+      else{const s=seedDisp(q[i],D);x=q[i][0]+s[0];y=q[i][1]+s[1];}
+      x=((x%1)+1)%1;y=((y%1)+1)%1;g.fillRect(x*516+2,y*436+2,2,2);}
+    if(mode==='seed'){seeds.forEach(s=>{g.strokeStyle='rgba(250,204,21,'+(t<.1?.9:.35)+')';g.lineWidth=2;g.beginPath();g.arc(s[0]*516+2,s[1]*436+2,9,0,7);g.stroke();});
+      if(!seeds.length){g.fillStyle='rgba(15,23,42,.8)';g.fillRect(110,200,300,40);g.fillStyle='#fde68a';g.font=F(18);g.textAlign='center';g.fillText('화면을 클릭해 씨앗을 찍어 보세요',260,227);g.textAlign='left';}}
     g.fillStyle='rgba(15,23,42,.75)';g.fillRect(8,8,170,34);g.fillStyle='#facc15';g.font=F(18);g.fillText(t<0.05?'초기 우주':(t>0.95?'현재':'시간이 흐르는 중…'),18,32);
+    if(mode==='seed'&&seeds.length){g.fillStyle='rgba(15,23,42,.75)';g.fillRect(8,404,250,28);g.fillStyle='#fde68a';g.font=F(16);g.fillText('노란 원 = 내가 찍은 씨앗 '+seeds.length+'개',16,424);}
   }
+  function setMode(m){mode=m;$('#b21r').classList.toggle('on',m==='rand');$('#b21s').classList.toggle('on',m==='seed');t=0;play=false;$('#r21').value=0;$('#b21p').textContent='▶ 재생';}
+  $('#b21r').onclick=()=>setMode('rand');
+  $('#b21s').onclick=()=>setMode('seed');
+  $('#b21c').onclick=()=>{seeds=[];setMode('seed');};
+  $('#b21x').onclick=()=>{seeds=[];setMode('rand');$('#a21').textContent='';};
+  $('#b21r').classList.remove('orange');
+  c.style.cursor='crosshair';
+  c.addEventListener('click',ev=>{const p=pos(ev,c);if(mode!=='seed')setMode('seed');if(seeds.length>=12)seeds.shift();seeds.push([(p.x-2)/516,(p.y-2)/436]);t=0;$('#r21').value=0;});
   SIM.s21=loop('s21',(time,dt)=>{if(play){t=Math.min(1,t+dt/10);$('#r21').value=t*1000;if(t>=1){play=false;$('#b21p').textContent='▶ 재생';}}draw();});
   $('#r21').oninput=e=>{t=e.target.value/1000;play=false;$('#b21p').textContent='▶ 재생';};
   $('#b21p').onclick=()=>{if(t>=1)t=0;play=!play;$('#b21p').textContent=play?'❚❚ 멈춤':'▶ 재생';};
@@ -217,7 +245,8 @@ window.STEP=STEP;const el=slides[0];if(SIM[el.id])SIM[el.id].start();
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -227,8 +256,27 @@ window.STEP=STEP;const el=slides[0];if(SIM[el.id])SIM[el.id].start();
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

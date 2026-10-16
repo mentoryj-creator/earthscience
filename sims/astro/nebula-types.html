@@ -127,18 +127,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simD .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; align-self: center; }
+  #simD .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #simD .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -146,14 +155,17 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simD">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>성운의 종류는 무엇이 결정할까?</div>
-            <div class="ppt-subtitle">같은 성간 구름이라도 주변 별에 따라 전혀 다르게 보입니다.</div>
+            <div class="ppt-subtitle">같은 성간 구름이라도 <span style="color:#ea580c">구름의 밀도</span>와 주변 별에 따라 전혀 다르게 보입니다.</div>
             <div class="sim-wrap">
-                <div class="sim-stage"><canvas id="cD" width="1060" height="610"></canvas></div>
+                <div class="sim-stage"><canvas id="cD" width="1160" height="668"></canvas></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
-                        <h4>구름 주변의 별</h4>
+                        <h4>성간 구름</h4>
+                        <div class="sim-row"><span class="lbl">구름의 밀도<br><span style="font-size:20px;font-weight:normal;color:#64748b">(티끌의 양)</span></span><input type="range" class="sim-range" id="rDd" min="0" max="100" step="1" value="45"><span class="sim-val" id="vDd">보통</span></div>
+                        <h4 style="margin-top:12px">구름 주변의 별</h4>
                         <div class="sim-btns">
                             <button class="sim-btn on" data-star="0">밝은 별 없음</button>
                             <button class="sim-btn" data-star="1">구름 속에 밝은 별</button>
@@ -161,7 +173,7 @@
                         <div class="sim-row" id="rowD" style="margin-top:10px;opacity:.35"><span class="lbl">별의 표면 온도</span><input type="range" class="sim-range" id="rD" min="4000" max="40000" step="500" value="12000" disabled><span class="sim-val" id="vD">12000 K</span></div>
                     </div>
                     <div class="sim-box key" id="oD" style="min-height:260px"></div>
-                    <div class="sim-note">※ 실제 성운에서는 반사 성운과 방출 성운이 함께 보이는 경우도 많아요. 온도 경계는 대략적인 값입니다.</div>
+                    <div class="sim-note">※ 실제 성운에서는 반사 성운과 방출 성운이 함께 보이는 경우도 많아요. 온도·밀도 경계는 대략적인 값입니다.</div>
                 </div>
             </div>
         </div>
@@ -224,7 +236,11 @@
     (function () {
         const c = document.getElementById('cD'), g = c.getContext('2d'), r = SIM.rng(22);
         const W = 1060, H = 610, CX = 530, CY = 300, SX = 560, SY = 290;
-        let hasStar = false, Tst = 12000;
+        let hasStar = false, Tst = 12000, dens = 0.45;
+        // 구름이 짙을수록 별빛이 구름 밖으로 빠져나오지 못함 (0: 다 빠져나옴, 1: 거의 못 빠져나옴)
+        const DARK = 0.75, THIN = 0.2;
+        const block = () => Math.max(0, Math.min(1, (dens - 0.55) / (DARK + 0.1 - 0.55)));
+        const esc = () => 1 - 0.97 * block();
         const stars = []; for (let i = 0; i < 420; i++) stars.push({ x: r() * W, y: r() * H, s: r() * 2 + .5, a: .4 + r() * .6 });
         // 구름 모양 마스크
         const mask = document.createElement('canvas'); mask.width = W; mask.height = H; const mg = mask.getContext('2d');
@@ -248,43 +264,58 @@
             const row = document.getElementById('rowD'), rd = document.getElementById('rD');
             row.style.opacity = hasStar ? 1 : .35; rd.disabled = !hasStar;
             document.querySelectorAll('#simD [data-star]').forEach(b => b.classList.toggle('on', (+b.dataset.star === 1) === hasStar));
+            document.getElementById('vDd').textContent = dens < THIN ? '옅음' : dens < 0.55 ? '보통' : dens < DARK ? '짙음' : '매우 짙음';
+            document.getElementById('rDd').value = Math.round(dens * 100);
             let h;
-            if (!hasStar) h = '<h4>⚫ 암흑 성운</h4><div>구름을 비추는 밝은 별이 없어요. 짙은 티끌이 <b>뒤쪽 별빛을 가려(소광)</b> 별이 없는 검은 구멍처럼 보입니다.</div><div class="sim-note" style="margin-top:8px">예) 말머리성운</div>';
+            if (dens <= THIN && !hasStar) h = '<h4 style="color:#64748b">🌫 옅은 성간 구름</h4><div>티끌이 적어 <b>뒤쪽 별빛이 그대로 비쳐</b> 보여요. 구름이 거의 눈에 띄지 않아요.</div><div class="sim-note" style="margin-top:8px">→ 구름의 밀도를 높여 보세요.</div>';
+            else if (dens >= DARK && hasStar) h = '<h4>⚫ 암흑 성운 <span style="font-size:22px;color:#c2410c">(밝은 별이 있어도!)</span></h4><div>구름 속에 밝은 별이 있어도 티끌이 <b>너무 많으면</b> 별빛이 흡수·산란되어 <b>구름 밖으로 빠져나오지 못해요.</b> 뒤쪽 별빛도 가려져 검게 보입니다.</div><div class="sim-note" style="margin-top:8px">예) 보크 구상체 — 속에서 별이 태어나고 있어도 가시광선으로는 검게 보여요. (적외선으로는 속의 별이 보여요)</div>';
+            else if (!hasStar) h = '<h4>⚫ 암흑 성운</h4><div>구름을 비추는 밝은 별이 없어요. 짙은 티끌이 <b>뒤쪽 별빛을 가려(소광)</b> 별이 없는 검은 구멍처럼 보입니다.</div><div class="sim-note" style="margin-top:8px">예) 말머리성운</div>';
             else if (em() < .5) h = '<h4 style="color:#2563eb">🔵 반사 성운</h4><div>별의 온도가 아주 높지 않아 기체를 이온화하지 못해요. 티끌이 별빛 중 <b>파란빛을 더 잘 산란</b>시켜 푸르게 보입니다.</div><div class="sim-note" style="margin-top:8px">예) 플레이아데스 성단 주변 성운</div>';
             else h = '<h4 style="color:#dc2626">🔴 방출 성운 (HII 영역)</h4><div>뜨거운 O·B형 별의 <b>강한 자외선</b>이 수소를 이온화하고, 전자가 재결합하며 <b>붉은 Hα 빛</b>을 냅니다.</div><div class="sim-note" style="margin-top:8px">예) 오리온성운, 장미성운</div>';
             document.getElementById('oD').innerHTML = h;
         }
         document.querySelectorAll('#simD [data-star]').forEach(b => b.onclick = () => { hasStar = b.dataset.star === '1'; out(); });
         document.getElementById('rD').oninput = e => { Tst = +e.target.value; out(); };
+        document.getElementById('rDd').oninput = e => { dens = +e.target.value / 100; out(); };
         out();
         let parts = [];
+        const KS = c.width / W; // 16:9 화면용으로 키운 캔버스에 1060×610 기준 그림을 맞춤
         SIM.loop('simD', (t, dt) => {
+            g.setTransform(KS, 0, 0, KS, 0, 0);
             g.globalCompositeOperation = 'source-over';
             g.fillStyle = '#020617'; g.fillRect(0, 0, W, H);
             stars.forEach(s => { g.fillStyle = 'rgba(255,255,255,' + s.a + ')'; g.fillRect(s.x, s.y, s.s, s.s); });
-            const e = em();
-            // 어두운 티끌 (뒤쪽 별빛 차단)
-            g.drawImage(tinted('3,6,15', 0, 1), 0, 0); g.drawImage(tmp, 0, 0); g.drawImage(tmp, 0, 0);
+            const e = em(), es = esc(), amt = 0.25 + 0.75 * Math.min(1, dens / 0.4);
+            // 어두운 티끌 (뒤쪽 별빛 차단) — 구름이 짙을수록 더 검게
+            const da = (0.12 + 0.88 * Math.min(1, dens / 0.6)).toFixed(2);
+            g.drawImage(tinted('3,6,15', 0, da), 0, 0); g.drawImage(tmp, 0, 0); g.drawImage(tmp, 0, 0);
+            if (dens > 0.85) g.drawImage(tmp, 0, 0);
             if (hasStar) {
                 const lum = 0.55 + 0.45 * Math.min(1, Tst / 20000);
                 g.globalCompositeOperation = 'lighter';
-                if (e < 1) { g.drawImage(tinted('96,165,250', 330, (0.9 * lum * (1 - e * .7)).toFixed(2)), 0, 0); g.drawImage(tmp, 0, 0); }
-                if (e > 0) { const rad = 180 + 180 * e; g.drawImage(tinted('244,63,94', rad, (0.95 * e).toFixed(2)), 0, 0); g.drawImage(tmp, 0, 0); g.drawImage(tmp, 0, 0); }
+                // 구름 밖으로 빠져나온 빛만 보임 (es)
+                if (e < 1) { g.drawImage(tinted('96,165,250', 330, (0.9 * lum * (1 - e * .7) * es * amt).toFixed(3)), 0, 0); g.drawImage(tmp, 0, 0); }
+                if (e > 0) { const rad = 180 + 180 * e; g.drawImage(tinted('244,63,94', rad, (0.95 * e * es * amt).toFixed(3)), 0, 0); g.drawImage(tmp, 0, 0); g.drawImage(tmp, 0, 0); }
                 g.globalCompositeOperation = 'source-over';
-                // 별
-                const rgb = SIM.bbRGB(Tst), sg = g.createRadialGradient(SX, SY, 2, SX, SY, 46);
-                sg.addColorStop(0, '#fff'); sg.addColorStop(.35, 'rgba(' + rgb.join(',') + ',.9)'); sg.addColorStop(1, 'rgba(' + rgb.join(',') + ',0)');
+                // 별 (짙은 구름 속에서는 가려져 보이지 않음)
+                const rgb = SIM.bbRGB(Tst), sg = g.createRadialGradient(SX, SY, 2, SX, SY, 46), sa = Math.max(0.04, es);
+                sg.addColorStop(0, 'rgba(255,255,255,' + sa.toFixed(2) + ')'); sg.addColorStop(.35, 'rgba(' + rgb.join(',') + ',' + (.9 * sa).toFixed(2) + ')'); sg.addColorStop(1, 'rgba(' + rgb.join(',') + ',0)');
                 g.fillStyle = sg; g.beginPath(); g.arc(SX, SY, 46, 0, 7); g.fill();
-                // 빛 입자
+                // 빛 입자 (짙을수록 금방 흡수되어 사라짐)
                 if (Math.random() < .6) { const an = Math.random() * 6.28; parts.push({ x: SX, y: SY, vx: Math.cos(an) * 160, vy: Math.sin(an) * 160, life: 1, uv: Math.random() < e }); }
-                parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt * .7; g.fillStyle = p.uv ? 'rgba(196,181,253,' + p.life.toFixed(2) + ')' : 'rgba(191,219,254,' + p.life.toFixed(2) + ')'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); if (p.uv && p.life < .45 && !p.flash) { p.flash = 1; } if (p.flash) { g.fillStyle = 'rgba(248,113,113,' + (p.life * 1.6).toFixed(2) + ')'; g.beginPath(); g.arc(p.x, p.y, 7, 0, 7); g.fill(); } });
+                const decay = 0.7 + 5 * block();
+                parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt * decay; g.fillStyle = p.uv ? 'rgba(196,181,253,' + p.life.toFixed(2) + ')' : 'rgba(191,219,254,' + p.life.toFixed(2) + ')'; g.beginPath(); g.arc(p.x, p.y, 3, 0, 7); g.fill(); if (p.uv && p.life < .45 && !p.flash) { p.flash = 1; } if (p.flash) { g.fillStyle = 'rgba(248,113,113,' + (p.life * 1.6).toFixed(2) + ')'; g.beginPath(); g.arc(p.x, p.y, 7, 0, 7); g.fill(); } });
                 parts = parts.filter(p => p.life > 0);
             } else parts = [];
             g.globalCompositeOperation = 'source-over';
             g.fillStyle = 'rgba(15,23,42,.75)'; g.fillRect(0, H - 56, W, 56);
             g.fillStyle = '#fff'; g.font = SIM.font(26); g.textAlign = 'center';
-            g.fillText(!hasStar ? '암흑 성운: 뒤쪽 별빛이 가려져 검게 보임' : (e < .5 ? '반사 성운: 티끌이 별빛(파란빛)을 산란' : '방출 성운: 이온화된 수소가 붉은 빛을 방출'), W / 2, H - 19);
-            if (hasStar && e > 0 && e < 1) { g.font = SIM.font(20, false); g.fillStyle = '#e2e8f0'; g.textAlign = 'left'; g.fillText('보라색 점: 자외선 / 붉은 반짝임: 재결합하며 내는 Hα 빛', 20, 34); }
+            g.fillText(dens <= THIN && !hasStar ? '옅은 구름: 뒤쪽 별빛이 비쳐 보임'
+                : dens >= DARK && hasStar ? '암흑 성운: 별빛이 짙은 티끌에 막혀 빠져나오지 못함'
+                : !hasStar ? '암흑 성운: 뒤쪽 별빛이 가려져 검게 보임'
+                : (e < .5 ? '반사 성운: 티끌이 별빛(파란빛)을 산란' : '방출 성운: 이온화된 수소가 붉은 빛을 방출'), W / 2, H - 19);
+            if (dens >= DARK && hasStar) { g.font = SIM.font(20, false); g.fillStyle = '#fca5a5'; g.textAlign = 'left'; g.fillText('구름 속에 밝은 별이 있지만, 빛이 금방 흡수되어 사라져요', 20, 34); }
+            else if (hasStar && e > 0 && e < 1) { g.font = SIM.font(20, false); g.fillStyle = '#e2e8f0'; g.textAlign = 'left'; g.fillText('보라색 점: 자외선 / 붉은 반짝임: 재결합하며 내는 Hα 빛', 20, 34); }
         });
     })();
     
@@ -296,7 +327,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -306,8 +338,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

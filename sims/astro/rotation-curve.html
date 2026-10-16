@@ -138,18 +138,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simE .sim-col { min-height: 0; }
+  #simE .sim-stage { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  #simE .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -157,20 +166,22 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simE">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>질량 분포를 바꿔 회전 속도 곡선 맞추기</div>
             <div class="ppt-subtitle" style="background-color:#eff6ff; border-left-color:#3b82f6; color:#1d4ed8;">보이는 물질만으로 관측 자료(검은 점)를 설명할 수 있을까요?</div>
             <div class="sim-wrap">
-                <div class="sim-col" style="width:1030px">
-                    <div class="sim-stage light"><canvas id="cE1" width="1030" height="470"></canvas></div>
+                <div class="sim-col" style="flex:0 0 1100px">
+                    <div class="sim-stage light"><canvas id="cE1" width="1100" height="720"></canvas></div>
                     <div class="sim-box" id="oE" style="font-size:26px;padding:12px 24px"></div>
                 </div>
                 <div class="sim-col" style="flex:1">
-                    <div class="sim-stage"><canvas id="cE2" width="700" height="350"></canvas></div>
+                    <div class="sim-stage"><canvas id="cE2" width="700" height="600"></canvas></div>
                     <div class="sim-box blue" style="padding:12px 22px">
                         <div class="sim-row"><span class="lbl" style="width:170px">팽대부 질량</span><input type="range" class="sim-range" id="rE1" min="0.5" max="3" step="0.1" value="1.5"><span class="sim-val" id="vE1"></span></div>
                         <div class="sim-row"><span class="lbl" style="width:170px">원반 질량</span><input type="range" class="sim-range" id="rE2" min="1" max="10" step="0.5" value="5"><span class="sim-val" id="vE2"></span></div>
-                        <div class="sim-row"><span class="lbl" style="width:170px;color:#7c3aed">암흑 물질</span><input type="range" class="sim-range" id="rE3" min="0" max="260" step="5" value="0" style="accent-color:#7c3aed"><span class="sim-val" id="vE3" style="color:#7c3aed"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:170px;color:#7c3aed">암흑 물질 질량</span><input type="range" class="sim-range" id="rE3" min="0" max="30" step="0.2" value="0" style="accent-color:#7c3aed"><span class="sim-val" id="vE3" style="color:#7c3aed"></span></div>
+                        <div class="sim-note">단위: 태양 질량 (암흑 물질은 중심 25 kpc 안의 양)</div>
                         <div class="sim-btns" style="margin-top:6px"><button class="sim-btn" id="bE1">보이는 물질만</button><button class="sim-btn orange" id="bE2">헤일로를 넣어 관측과 맞추기</button></div>
                     </div>
                 </div>
@@ -236,17 +247,19 @@
         const G = 4.30091e-6; // kpc (km/s)^2 / 태양질량
         const c1 = document.getElementById('cE1'), g1 = c1.getContext('2d');
         const c2 = document.getElementById('cE2'), g2 = c2.getContext('2d');
-        let Mb = 1.5e10, Md = 5e10, Vh = 0, rMeas = 8.5;
-        const RB = 0.6, RD = 3.0, RC = 4.0;
+        let Mb = 1.5e10, Md = 5e10, Mh = 0, rMeas = 8.5;
+        const RB = 0.6, RD = 3.0, RC = 4.0, RH = 25; // 암흑 물질 질량 = 중심에서 RH(kpc) 안에 든 헤일로 질량
         const vb2 = (r, M) => G * M * r / Math.pow(r + RB, 2);
         const vd2 = (r, M) => G * M * (1 - (1 + r / RD) * Math.exp(-r / RD)) / r;
-        const vh2 = (r, V) => V * V * (1 - (RC / r) * Math.atan(r / RC));
-        const vtot = (r, mb, md, vh) => Math.sqrt(vb2(r, mb) + vd2(r, md) + vh2(r, vh));
-        const vObs = r => vtot(r, 1.5e10, 5.5e10, 215);
+        const hShape = r => 1 - (RC / r) * Math.atan(r / RC);
+        const vh2 = (r, M) => G * M / (RH * hShape(RH)) * hShape(r); // r = RH 에서 M(<RH) = RH·v²/G = M
+        const vtot = (r, mb, md, mh) => Math.sqrt(vb2(r, mb) + vd2(r, md) + vh2(r, mh));
+        const MH_FIT = 215 * 215 * RH * hShape(RH) / G; // 관측 자료에 맞는 헤일로 질량 (약 2.1×10¹¹)
+        const vObs = r => vtot(r, 1.5e10, 5.5e10, MH_FIT);
         const rr = SIM.rng(4), obs = [];
         for (let r = 1; r <= 24; r += 1.15) obs.push({ r: r, v: vObs(r) + SIM.gauss(rr) * 7, e: 8 + rr() * 6 });
         // 그래프
-        const W = 1030, H = 470, L = 90, R = 1000, T = 34, B = 400, XM = 25, YM = 300;
+        const W = c1.width, H = c1.height, L = 90, R = W - 30, T = 34, B = H - 70, XM = 25, YM = 300;
         const X = r => L + r / XM * (R - L), Y = v => B - v / YM * (B - T);
         function curve(f, color, w, dash) { g1.strokeStyle = color; g1.lineWidth = w; g1.setLineDash(dash || []); g1.beginPath(); for (let r = 0.1; r <= XM; r += 0.1) { const y = Y(f(r)); r < 0.15 ? g1.moveTo(X(r), y) : g1.lineTo(X(r), y); } g1.stroke(); g1.setLineDash([]); }
         function drawGraph() {
@@ -265,8 +278,8 @@
             // 구성 요소
             curve(r => Math.sqrt(vb2(r, Mb)), '#f59e0b', 3, [8, 6]);
             curve(r => Math.sqrt(vd2(r, Md)), '#10b981', 3, [8, 6]);
-            if (Vh > 0) curve(r => Math.sqrt(vh2(r, Vh)), '#7c3aed', 3, [8, 6]);
-            curve(r => vtot(r, Mb, Md, Vh), '#ef4444', 6);
+            if (Mh > 0) curve(r => Math.sqrt(vh2(r, Mh)), '#7c3aed', 3, [8, 6]);
+            curve(r => vtot(r, Mb, Md, Mh), '#ef4444', 6);
             // 관측
             obs.forEach(p => { g1.strokeStyle = '#1e293b'; g1.lineWidth = 2; g1.beginPath(); g1.moveTo(X(p.r), Y(p.v - p.e)); g1.lineTo(X(p.r), Y(p.v + p.e)); g1.stroke(); g1.fillStyle = '#1e293b'; g1.beginPath(); g1.arc(X(p.r), Y(p.v), 6, 0, 7); g1.fill(); });
             // 범례
@@ -285,9 +298,9 @@
         function upd() {
             document.getElementById('vE1').textContent = (Mb / 1e10).toFixed(1) + '×10¹⁰';
             document.getElementById('vE2').textContent = (Md / 1e10).toFixed(1) + '×10¹⁰';
-            document.getElementById('vE3').textContent = Vh === 0 ? '없음' : Vh + ' km/s';
-            ['rE1', 'rE2', 'rE3'].forEach((id, i) => document.getElementById(id).value = [Mb / 1e10, Md / 1e10, Vh][i]);
-            const v = vtot(rMeas, Mb, Md, Vh), Mtot = rMeas * v * v / G;
+            document.getElementById('vE3').textContent = Mh === 0 ? '없음' : (Mh / 1e10).toFixed(1) + '×10¹⁰';
+            ['rE1', 'rE2', 'rE3'].forEach((id, i) => document.getElementById(id).value = [Mb / 1e10, Md / 1e10, Mh / 1e10][i]);
+            const v = vtot(rMeas, Mb, Md, Mh), Mtot = rMeas * v * v / G;
             const vis2 = vb2(rMeas, Mb) + vd2(rMeas, Md), Mvis = rMeas * vis2 / G, dm = Math.max(0, 1 - Mvis / Mtot);
             const vo = vObs(rMeas), diff = v - vo;
             document.getElementById('oE').innerHTML =
@@ -298,9 +311,9 @@
         }
         document.getElementById('rE1').oninput = e => { Mb = e.target.value * 1e10; upd(); };
         document.getElementById('rE2').oninput = e => { Md = e.target.value * 1e10; upd(); };
-        document.getElementById('rE3').oninput = e => { Vh = +e.target.value; upd(); };
-        document.getElementById('bE1').onclick = () => { Vh = 0; upd(); };
-        document.getElementById('bE2').onclick = () => { Mb = 1.5e10; Md = 5.5e10; Vh = 215; upd(); };
+        document.getElementById('rE3').oninput = e => { Mh = e.target.value * 1e10; upd(); };
+        document.getElementById('bE1').onclick = () => { Mh = 0; upd(); };
+        document.getElementById('bE2').onclick = () => { Mb = 1.5e10; Md = 5.5e10; Mh = MH_FIT; upd(); };
         upd();
         // 위에서 본 은하 회전
         const sr = SIM.rng(9), stars = [];
@@ -309,24 +322,24 @@
         const radii = [3, 6, 9, 12, 15, 18, 21, 24];
         SIM.loop('simE', (t, dt) => {
             clock += dt; if (clock > 8) clock = 0;
-            const Wc = 700, Hc = 350, cx = 240, cy = 175, sc = 6.6;
+            const Wc = c2.width, Hc = c2.height, cx = 245, cy = Hc / 2, sc = 8.8;
             g2.fillStyle = '#0f172a'; g2.fillRect(0, 0, Wc, Hc);
-            if (Vh > 0) { const gr = g2.createRadialGradient(cx, cy, 10, cx, cy, 165); gr.addColorStop(0, 'rgba(124,58,237,' + (0.35 * Vh / 260).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(124,58,237,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, Wc, Hc); }
+            if (Mh > 0) { const gr = g2.createRadialGradient(cx, cy, 10, cx, cy, 25 * sc); gr.addColorStop(0, 'rgba(124,58,237,' + Math.min(0.35, 0.35 * Mh / 30e10).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(124,58,237,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, Wc, Hc); }
             const k = 0.006;
-            stars.forEach(s => { s.th += vtot(s.r, Mb, Md, Vh) / s.r * k * dt; const x = cx + Math.cos(s.th) * s.r * sc, y = cy + Math.sin(s.th) * s.r * sc * 0.92; g2.fillStyle = s.r < 2 ? 'rgba(254,240,138,.9)' : 'rgba(191,219,254,' + (0.35 + s.b * 0.5).toFixed(2) + ')'; g2.fillRect(x, y, 2, 2); });
+            stars.forEach(s => { s.th += vtot(s.r, Mb, Md, Mh) / s.r * k * dt; const x = cx + Math.cos(s.th) * s.r * sc, y = cy + Math.sin(s.th) * s.r * sc * 0.92; g2.fillStyle = s.r < 2 ? 'rgba(254,240,138,.9)' : 'rgba(191,219,254,' + (0.35 + s.b * 0.5).toFixed(2) + ')'; g2.fillRect(x, y, 2, 2); });
             const bg = g2.createRadialGradient(cx, cy, 0, cx, cy, 22); bg.addColorStop(0, '#fff'); bg.addColorStop(1, 'rgba(254,240,138,0)'); g2.fillStyle = bg; g2.beginPath(); g2.arc(cx, cy, 22, 0, 7); g2.fill();
             // 관측(빨강) vs 모형(흰색) 막대
             radii.forEach(r => {
-                const am = vtot(r, Mb, Md, Vh) / r * k * 5 * clock, ao = vObs(r) / r * k * 5 * clock;
+                const am = vtot(r, Mb, Md, Mh) / r * k * 5 * clock, ao = vObs(r) / r * k * 5 * clock;
                 g2.fillStyle = '#ef4444'; g2.beginPath(); g2.arc(cx + Math.cos(-ao) * r * sc, cy + Math.sin(-ao) * r * sc * .92, 6, 0, 7); g2.fill();
                 g2.strokeStyle = '#fff'; g2.lineWidth = 3; g2.beginPath(); g2.arc(cx + Math.cos(-am) * r * sc, cy + Math.sin(-am) * r * sc * .92, 6, 0, 7); g2.stroke();
             });
             g2.font = SIM.font(20); g2.textAlign = 'left';
-            g2.fillStyle = '#fca5a5'; g2.fillText('● 관측된 속도로 회전', 450, 40);
-            g2.fillStyle = '#fff'; g2.fillText('○ 모형 속도로 회전', 450, 72);
+            g2.fillStyle = '#fca5a5'; g2.fillText('● 관측된 속도로 회전', 478, 40);
+            g2.fillStyle = '#fff'; g2.fillText('○ 모형 속도로 회전', 478, 72);
             g2.fillStyle = '#94a3b8'; g2.font = SIM.font(18, false);
-            g2.fillText('같은 줄에서 출발해요.', 450, 112); g2.fillText('바깥쪽 흰 점이 뒤처지면', 450, 140); g2.fillText('→ 모형의 질량이 부족!', 450, 168);
-            if (Vh > 0) { g2.fillStyle = '#c4b5fd'; g2.fillText('보라색 = 암흑 물질 헤일로', 450, 310); }
+            g2.fillText('같은 줄에서 출발해요.', 478, 112); g2.fillText('바깥쪽 흰 점이 뒤처지면', 478, 140); g2.fillText('→ 모형의 질량이 부족!', 478, 168);
+            if (Mh > 0) { g2.fillStyle = '#c4b5fd'; g2.fillText('보라색 = 암흑 물질 헤일로', 478, Hc - 30); }
         });
     })();
 
@@ -339,7 +352,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -349,8 +363,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

@@ -141,6 +141,9 @@
         .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
         .ans { color: #dc2626; font-weight: 800; }
         .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+        .sim-bad { color: #dc2626; font-weight: bold; }
         .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
     </style>
 <style id="standalone">
@@ -148,12 +151,19 @@
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #u10 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #u10 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #u10 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -161,16 +171,17 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="u10">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>섀플리처럼 우리은하의 중심 찾기</div>
-            <div class="ppt-subtitle">구상 성단을 하나씩 관측해 지도에 찍고, <span class="or">분포의 중심</span>을 찾아봅시다.</div>
+            <div class="ppt-subtitle">구상 성단이 하나씩 관측돼요. 다 모이면 <span class="or">분포의 중심</span>을 직접 클릭해 찾아봅시다.</div>
             <div class="sim-wrap">
-                <div class="sim-stage"><canvas id="cU" width="1060" height="610"></canvas></div>
+                <div class="sim-stage"><canvas id="cU" width="1160" height="720"></canvas></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
                         <h4>관측하기</h4>
-                        <div class="sim-btns"><button class="sim-btn on" id="bU1">구상 성단 1개 관측</button><button class="sim-btn" id="bU2">20개 관측</button></div>
-                        <div class="sim-btns" style="margin-top:10px"><button class="sim-btn orange" id="bU3">분포의 중심 찾기</button><button class="sim-btn" id="bU4">우리은하 원반 보기</button><button class="sim-btn" id="bU5">↺</button></div>
+                        <div class="sim-btns"><button class="sim-btn" id="bU1">⏸ 멈춤</button><button class="sim-btn" id="bU5">↺ 다시 관측</button></div>
+                        <div class="sim-btns" style="margin-top:10px"><button class="sim-btn" id="bU4">우리은하 원반 보기</button><button class="sim-btn orange" id="bU3">정답 보기</button></div>
                     </div>
                     <div class="sim-box" id="oU" style="font-size:27px"></div>
                     <div class="sim-note">※ 거리는 세페이드 변광성으로 구했다고 가정해요. 가상의 구상 성단 분포 모형이에요.</div>
@@ -234,43 +245,94 @@
 
 /* ===================== 시뮬레이션 U: 구상 성단으로 은하 중심 찾기 ===================== */
 (function(){
-  const c=document.getElementById('cU'),g=c.getContext('2d'),W=1060,H=610;
+  const c=document.getElementById('cU'),g=c.getContext('2d'),W=1160,H=720;
   const r=SIM.rng(42),GC=[],CX=8.5;
   for(let i=0;i<150;i++){const d=Math.min(22,-Math.log(1-r()*0.97)*4.2),u=r()*2-1,a=r()*6.283,s=Math.sqrt(1-u*u);GC.push({x:CX+d*s*Math.cos(a),y:d*s*Math.sin(a),z:d*u});}
-  let n=0,showC=false,showD=false;
-  const S=12.5,TX=40,TY=60; // top view: x -12..28, y -20..20
-  const tv=(x,y)=>[TX+(x+12)*S,TY+(20-y)*S],sv=(x,z)=>[TX+520+(x+12)*S*0.95,TY+(20-z)*S];
-  function cen(){let a=0,b=0,d=0;for(let i=0;i<n;i++){a+=GC[i].x;b+=GC[i].y;d+=GC[i].z;}return[a/n,b/n,d/n];}
+  // 두 그림: 위에서 본 모습(x,y) · 옆에서 본 모습(x,z), 범위 x −12~28, 세로 −20~20 kpc
+  const S=13.2,TY=78,VW=40*S,VIEWS=[{k:'top',name:'위에서 본 모습',tx:36,b:'y'},{k:'side',name:'옆에서 본 모습',tx:36+VW+60,b:'z'}];
+  const P=(v,x,b)=>[v.tx+(x+12)*S,TY+(20-b)*S],inv=(v,p)=>[(p.x-v.tx)/S-12,20-(p.y-TY)/S];
+  const inView=(v,p)=>p.x>=v.tx&&p.x<=v.tx+VW&&p.y>=TY&&p.y<=TY+VW;
+  const STEP_MS=45,TOL=2.5; // 하나씩 찍히는 간격(ms) · 정답 인정 거리(kpc)
+  let n=0,clock=0,playing=true,showD=false,reveal=false,hover=null,marks=[],guess={},ok={},last='';
+  const shown=[]; // 각 성단이 찍힌 시각(애니메이션용)
+  function cen(){let a=0,b=0,d=0;for(let i=0;i<n;i++){a+=GC[i].x;b+=GC[i].y;d+=GC[i].z;}return{x:a/n,y:b/n,z:d/n};}
+  const done=()=>n>=GC.length;
+  const b1=document.getElementById('bU1'),b3=document.getElementById('bU3'),b4=document.getElementById('bU4');
   function out(){
-    let h='<h4>관측한 구상 성단: <span class="or">'+n+'</span>개</h4>';
-    if(showC&&n>0){const m=cen(),d=Math.hypot(m[0],m[1]);h+='<div>분포의 중심까지 거리: <span class="sim-big" style="font-size:36px">약 '+d.toFixed(1)+' kpc</span></div><div>태양은 은하 중심이 <b>아니에요!</b></div>';}
-    else h+='<div class="sim-note">'+(n<10?'구상 성단을 더 관측해 보세요.':'‘분포의 중심 찾기’를 눌러 보세요.')+'</div>';
+    let h='<h4>관측한 구상 성단: <span class="or">'+n+'</span> / '+GC.length+'개</h4>';
+    if(!done()) h+='<div class="sim-note">관측이 끝나면, 두 그림에서 구상 성단 <b>분포의 중심</b>을 직접 클릭해 찾아보세요.</div>';
+    else{
+      const st=v=>ok[v.k]?'<span class="sim-ok">✔ 찾았어요</span>':'<span style="color:#64748b">아직 못 찾았어요</span>';
+      h+='<div>👆 '+VIEWS[0].name+': '+st(VIEWS[0])+'</div><div>👆 '+VIEWS[1].name+': '+st(VIEWS[1])+'</div>';
+      if(ok.top&&ok.side||reveal){const m=cen();
+        h+='<div style="margin-top:8px">태양에서 분포의 중심까지: <span class="sim-big" style="font-size:36px">약 '+Math.hypot(m.x,m.y).toFixed(1)+' kpc</span></div>'+
+          '<div>구상 성단은 <b>은하 중심</b>을 둘러싸고 분포해요. → 태양은 은하 중심이 <b>아니에요!</b></div>';}
+      else if(last) h+='<div style="margin-top:8px">'+last+'</div>';
+      else h+='<div class="sim-note" style="margin-top:6px">구상 성단이 가장 많이 모여 있는 곳의 한가운데를 눌러 보세요.</div>';
+    }
     document.getElementById('oU').innerHTML=h;
   }
-  document.getElementById('bU1').onclick=()=>{n=Math.min(GC.length,n+1);out();};
-  document.getElementById('bU2').onclick=()=>{n=Math.min(GC.length,n+20);out();};
-  const b3=document.getElementById('bU3'),b4=document.getElementById('bU4');
-  b3.onclick=()=>{if(n===0)return;showC=!showC;b3.classList.toggle('on',showC);out();};
+  function restart(){n=0;clock=0;shown.length=0;playing=true;reveal=false;guess={};ok={};last='';marks=[];b1.textContent='⏸ 멈춤';b3.classList.remove('on');out();}
+  b1.onclick=()=>{if(done())return;playing=!playing;b1.textContent=playing?'⏸ 멈춤':'▶ 계속';};
+  document.getElementById('bU5').onclick=restart;
+  b3.onclick=()=>{if(!done()){n=GC.length;const t=performance.now();for(let i=0;i<n;i++)if(!shown[i])shown[i]=t-1000;}reveal=!reveal;b3.classList.toggle('on',reveal);out();};
   b4.onclick=()=>{showD=!showD;b4.classList.toggle('on',showD);};
-  document.getElementById('bU5').onclick=()=>{n=0;showC=false;showD=false;b3.classList.remove('on');b4.classList.remove('on');out();};
-  out();
-  SIM.loop('u10',(t)=>{
+  // 클릭: 분포의 중심 찾기 (그림마다 따로 판정)
+  c.addEventListener('pointermove',e=>{const p=SIM.pos(e,c);const v=VIEWS.find(v=>inView(v,p));hover=v?{v,p}:null;c.style.cursor=v&&done()&&!ok[v.k]?'crosshair':'default';});
+  c.addEventListener('pointerleave',()=>{hover=null;});
+  c.addEventListener('click',e=>{
+    const p=SIM.pos(e,c),v=VIEWS.find(v=>inView(v,p));if(!v)return;
+    if(!done()){last='';out();return;}
+    if(ok[v.k])return;
+    const q=inv(v,p),m=cen(),tx=m.x,tb=m[v.b],d=Math.hypot(q[0]-tx,q[1]-tb),now=performance.now();
+    if(d<=TOL){ok[v.k]=true;guess[v.k]={p,at:now};last=ok.top&&ok.side?'':'<span class="sim-ok">✔ 정답!</span> 이제 '+(v.k==='top'?VIEWS[1].name:VIEWS[0].name)+'에서도 찾아보세요.';}
+    else{marks.push({x:p.x,y:p.y,until:now+1500});
+      const dx=tx-q[0],db=tb-q[1],dir=Math.abs(dx)>Math.abs(db)?(dx>0?'오른쪽':'왼쪽'):(db>0?'위쪽':'아래쪽');
+      last='<span class="sim-bad">✘ 아직 아니에요.</span> ('+v.name+') 중심에서 약 <b>'+d.toFixed(1)+' kpc</b> 떨어져 있어요. 조금 더 <b>'+dir+'</b>을 눌러 보세요.';}
+    out();
+  });
+  restart();
+  // 수업 자료(3.02 우리은하의 규모와 구조.html) 안에서 이 슬라이드가 열릴 때마다 관측을 처음부터
+  addEventListener('message',e=>{if(e.data&&e.data.type==='deck-show')restart();});
+  SIM.loop('u10',(t,dt)=>{
+    if(playing&&!done()){clock+=dt*1000;while(!done()&&clock>=STEP_MS){clock-=STEP_MS;shown[n]=t;n++;}if(done()){b1.textContent='✔ 관측 완료';}out();}
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.textAlign='left';g.fillText('위에서 본 분포 (은하면)',TX,36);g.fillText('옆에서 본 분포',TX+530,36);
-    // 격자
-    [[tv,'y'],[sv,'z']].forEach(([f])=>{g.strokeStyle='rgba(148,163,184,.18)';g.lineWidth=1;for(let x=-10;x<=28;x+=10){const a=f(x,20),b=f(x,-20);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();}for(let y=-20;y<=20;y+=10){const a=f(-12,y),b=f(28,y);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();}
-      g.fillStyle='#64748b';g.font=SIM.font(15,false);g.textAlign='center';for(let x=-10;x<=28;x+=10){const a=f(x,-20);g.fillText(x+' kpc',a[0],a[1]+20);}});
-    if(showD){
-      const o=tv(CX,0),gr=g.createRadialGradient(o[0],o[1],5,o[0],o[1],15*S);gr.addColorStop(0,'rgba(254,240,138,.45)');gr.addColorStop(1,'rgba(96,165,250,0.04)');g.fillStyle=gr;g.beginPath();g.arc(o[0],o[1],15*S,0,7);g.fill();
-      g.strokeStyle='rgba(147,197,253,.5)';g.lineWidth=2;g.beginPath();g.arc(o[0],o[1],15*S,0,7);g.stroke();
-      const a=sv(CX-15,0),b=sv(CX+15,0),gr2=g.createLinearGradient(a[0],0,b[0],0);gr2.addColorStop(0,'rgba(147,197,253,.15)');gr2.addColorStop(.5,'rgba(254,240,138,.7)');gr2.addColorStop(1,'rgba(147,197,253,.15)');g.fillStyle=gr2;g.beginPath();g.ellipse((a[0]+b[0])/2,a[1],(b[0]-a[0])/2,7,0,0,7);g.fill();
-      const cb=sv(CX,0);g.fillStyle='rgba(254,240,138,.5)';g.beginPath();g.ellipse(cb[0],cb[1],28,18,0,0,7);g.fill();
-    }
-    for(let i=0;i<n;i++){const p=GC[i],col=p.z>=0?'#60a5fa':'#f87171',a=tv(p.x,p.y),b=sv(p.x,p.z);g.fillStyle=col;[a,b].forEach(q=>{if(q[1]<TY-5||q[1]>TY+505)return;g.beginPath();g.arc(q[0],q[1],5,0,7);g.fill();});}
-    // 태양
-    [tv(0,0),sv(0,0)].forEach(q=>{g.fillStyle='#facc15';g.beginPath();g.arc(q[0],q[1],8,0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();g.fillStyle='#fde68a';g.font=SIM.font(19);g.textAlign='center';g.fillText('태양',q[0],q[1]-14);});
-    if(showC&&n>0){const m=cen();[[tv(m[0],m[1]),tv(0,0)],[sv(m[0],m[2]),sv(0,0)]].forEach(([q,s])=>{g.setLineDash([6,6]);g.strokeStyle='#fb923c';g.lineWidth=2;g.beginPath();g.moveTo(s[0],s[1]);g.lineTo(q[0],q[1]);g.stroke();g.setLineDash([]);g.strokeStyle='#fb923c';g.lineWidth=5;g.beginPath();g.moveTo(q[0]-12,q[1]-12);g.lineTo(q[0]+12,q[1]+12);g.moveTo(q[0]+12,q[1]-12);g.lineTo(q[0]-12,q[1]+12);g.stroke();g.fillStyle='#fdba74';g.font=SIM.font(19);g.textAlign='center';g.fillText('분포의 중심',q[0],q[1]+34);});}
-    g.textAlign='left';g.font=SIM.font(18,false);g.fillStyle='#60a5fa';g.fillText('● 은하면 위',TX+530,H-12);g.fillStyle='#f87171';g.fillText('● 은하면 아래',TX+660,H-12);
+    VIEWS.forEach(v=>{
+      g.fillStyle='#e2e8f0';g.font=SIM.font(25);g.textAlign='left';g.fillText(v.name+(v.k==='top'?' (은하면)':''),v.tx,TY-30);
+      g.save();g.beginPath();g.rect(v.tx,TY,VW,VW);g.clip();
+      g.fillStyle='rgba(30,41,59,.55)';g.fillRect(v.tx,TY,VW,VW);
+      g.strokeStyle='rgba(148,163,184,.18)';g.lineWidth=1;for(let x=-10;x<=28;x+=10){const a=P(v,x,20),b=P(v,x,-20);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();}for(let y=-20;y<=20;y+=10){const a=P(v,-12,y),b=P(v,28,y);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();}
+      if(showD){
+        if(v.k==='top'){const o=P(v,CX,0),gr=g.createRadialGradient(o[0],o[1],5,o[0],o[1],15*S);gr.addColorStop(0,'rgba(254,240,138,.45)');gr.addColorStop(1,'rgba(96,165,250,0.04)');g.fillStyle=gr;g.beginPath();g.arc(o[0],o[1],15*S,0,7);g.fill();
+          g.strokeStyle='rgba(147,197,253,.5)';g.lineWidth=2;g.beginPath();g.arc(o[0],o[1],15*S,0,7);g.stroke();}
+        else{const a=P(v,CX-15,0),b=P(v,CX+15,0),gr2=g.createLinearGradient(a[0],0,b[0],0);gr2.addColorStop(0,'rgba(147,197,253,.15)');gr2.addColorStop(.5,'rgba(254,240,138,.7)');gr2.addColorStop(1,'rgba(147,197,253,.15)');g.fillStyle=gr2;g.beginPath();g.ellipse((a[0]+b[0])/2,a[1],(b[0]-a[0])/2,7,0,0,7);g.fill();
+          const cb=P(v,CX,0);g.fillStyle='rgba(254,240,138,.5)';g.beginPath();g.ellipse(cb[0],cb[1],28,18,0,0,7);g.fill();}
+      }
+      // 구상 성단 (하나씩 톡 튀어나오며 찍힘)
+      for(let i=0;i<n;i++){const p=GC[i],q=P(v,p.x,p[v.b]),age=t-(shown[i]||0),k=Math.max(0,1-age/300);
+        g.fillStyle=p.z>=0?'#60a5fa':'#f87171';g.beginPath();g.arc(q[0],q[1],5.5*(1+1.4*k),0,7);g.fill();
+        if(k>0){g.strokeStyle='rgba(253,224,71,'+k+')';g.lineWidth=2;g.beginPath();g.arc(q[0],q[1],6+18*(1-k),0,7);g.stroke();}}
+      // 태양
+      const s=P(v,0,0);g.fillStyle='#facc15';g.beginPath();g.arc(s[0],s[1],9,0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();g.fillStyle='#fde68a';g.font=SIM.font(21);g.textAlign='center';g.fillText('태양',s[0],s[1]-16);
+      // 마우스 안내 (관측 끝, 아직 못 찾은 그림)
+      if(done()&&!ok[v.k]&&!reveal&&hover&&hover.v===v){g.strokeStyle='rgba(226,232,240,.8)';g.lineWidth=2;g.beginPath();g.arc(hover.p.x,hover.p.y,TOL*S,0,7);g.stroke();
+        g.beginPath();g.moveTo(hover.p.x-8,hover.p.y);g.lineTo(hover.p.x+8,hover.p.y);g.moveTo(hover.p.x,hover.p.y-8);g.lineTo(hover.p.x,hover.p.y+8);g.stroke();}
+      // 정답(찾았거나 정답 보기)
+      if(ok[v.k]||reveal){const m=cen(),q=P(v,m.x,m[v.b]),gs=guess[v.k];
+        g.setLineDash([7,7]);g.strokeStyle='#fb923c';g.lineWidth=2.5;g.beginPath();g.moveTo(s[0],s[1]);g.lineTo(q[0],q[1]);g.stroke();g.setLineDash([]);
+        if(gs){const k=Math.min(1,(t-gs.at)/600);g.strokeStyle='rgba(74,222,128,'+(1-0.4*k)+')';g.lineWidth=4;g.beginPath();g.arc(gs.p.x,gs.p.y,16+20*(1-k),0,7);g.stroke();}
+        g.strokeStyle='#fb923c';g.lineWidth=5;g.beginPath();g.moveTo(q[0]-13,q[1]-13);g.lineTo(q[0]+13,q[1]+13);g.moveTo(q[0]+13,q[1]-13);g.lineTo(q[0]-13,q[1]+13);g.stroke();
+        g.fillStyle='#fdba74';g.font=SIM.font(22);g.textAlign='center';g.fillText('분포의 중심',q[0],q[1]+38);}
+      g.restore();
+      g.strokeStyle='#475569';g.lineWidth=2;g.strokeRect(v.tx,TY,VW,VW);
+      g.fillStyle='#94a3b8';g.font=SIM.font(19,false);g.textAlign='center';for(let x=-10;x<=28;x+=10){const a=P(v,x,-20);g.fillText(x+' kpc',a[0],a[1]+26);}
+    });
+    // 틀린 곳
+    const now=performance.now();marks=marks.filter(m=>m.until>now);
+    marks.forEach(m=>{g.save();g.globalAlpha=Math.min(1,(m.until-now)/400);g.strokeStyle='#f87171';g.lineWidth=5;g.beginPath();g.moveTo(m.x-13,m.y-13);g.lineTo(m.x+13,m.y+13);g.moveTo(m.x+13,m.y-13);g.lineTo(m.x-13,m.y+13);g.stroke();g.restore();});
+    g.textAlign='left';g.font=SIM.font(21,false);g.fillStyle='#60a5fa';g.fillText('● 은하면 위',VIEWS[1].tx,H-20);g.fillStyle='#f87171';g.fillText('● 은하면 아래',VIEWS[1].tx+150,H-20);
+    g.fillStyle=done()&&!(ok.top&&ok.side)&&!reveal?'#fde68a':'#94a3b8';g.font=SIM.font(23);
+    g.fillText(done()?(ok.top&&ok.side||reveal?'✔ 분포의 중심 = 우리은하의 중심':'👆 두 그림에서 분포의 중심을 클릭!'):'🔭 구상 성단 관측 중…',VIEWS[0].tx,H-20);
   });
 })();
 
@@ -283,7 +345,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -293,8 +356,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

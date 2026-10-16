@@ -141,6 +141,8 @@
         .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
         .ans { color: #dc2626; font-weight: 800; }
         .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
         .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
     </style>
 <style id="standalone">
@@ -148,12 +150,20 @@
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #t23 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #t23 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; touch-action: none; cursor: grab; }
+  #t23 .sim-stage canvas.drag { cursor: grabbing; }
+  #t23 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -161,15 +171,16 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="t23">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>주계열 맞추기로 성단까지의 거리 구하기</div>
             <div class="ppt-subtitle">표준 주계열(빨간 선)을 위아래로 옮겨 성단의 주계열과 겹쳐 보세요.</div>
             <div class="sim-wrap">
-                <div class="sim-stage light"><canvas id="cS" width="1060" height="610"></canvas></div>
+                <div class="sim-stage light"><canvas id="cS" width="1160" height="900"></canvas></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
                         <div class="sim-btns" style="margin-bottom:8px"><button class="sim-btn on" data-mode="free">연습 성단</button><button class="sim-btn orange" data-mode="quiz">도전! 미지의 성단</button></div>
-                        <div class="sim-row"><span class="lbl" style="width:170px">표준 주계열 이동</span><input type="range" class="sim-range" id="rS" min="0" max="15" step="0.05" value="0"><span class="sim-val" id="vS" style="min-width:110px"></span></div>
+                        <div class="sim-row"><span class="lbl" style="width:auto;white-space:nowrap">표준 주계열 이동</span><input type="range" class="sim-range" id="rS" min="0" max="15" step="0.05" value="0"><span class="sim-val" id="vS" style="min-width:110px"></span></div>
                         <div class="sim-note" id="nS"></div>
                     </div>
                     <div class="sim-box key" id="oS" style="font-size:27px"></div>
@@ -233,14 +244,26 @@
 
 /* ===================== 시뮬레이션 S: 주계열 맞추기 ===================== */
 (function(){
-  const c=document.getElementById('cS'),g=c.getContext('2d'),W=1060,H=610;
-  const L=110,R=940,T=30,B=530,X0=-0.4,X1=1.6,Y0=-4,Y1=24;
+  const c=document.getElementById('cS'),g=c.getContext('2d'),W=1160,H=900;
+  const L=120,R=1020,T=30,B=800,X0=-0.4,X1=1.6,Y0=-4,Y1=24;
   const X=v=>L+(v-X0)/(X1-X0)*(R-L),Y=v=>T+(v-Y0)/(Y1-Y0)*(B-T);
   const MS=[[-0.30,-3.5],[-0.20,-1.6],[-0.10,-0.2],[0.0,0.8],[0.2,2.2],[0.4,3.3],[0.6,4.5],[0.8,5.8],[1.0,6.6],[1.2,7.6],[1.4,8.8],[1.5,9.6]];
   function mOf(bv){for(let i=0;i<MS.length-1;i++){const a=MS[i],b=MS[i+1];if(bv<=b[0])return a[1]+(b[1]-a[1])*(bv-a[0])/(b[0]-a[0]);}return MS[MS.length-1][1];}
-  let mode='free',mu=7.5,s=0,stars=[];
-  function make(seed){const r=SIM.rng(seed);stars=[];for(let i=0;i<260;i++){const bv=-0.25+Math.pow(r(),0.8)*1.7;if(bv>1.48)continue;stars.push({bv:bv+SIM.gauss(r)*0.02,M:mOf(bv)+SIM.gauss(r)*0.25+(r()<.15?-0.5:0)});}for(let i=0;i<25;i++)stars.push({bv:-0.2+r()*1.8,M:-2+r()*14,field:true});}
+  let mode='free',mu=7.5,s=0,stars=[],t0=0;
+  const DT=8,POP=180; // 관측 점이 하나씩 찍히는 간격·튀어나오는 시간(ms)
+  function make(seed){const r=SIM.rng(seed);stars=[];for(let i=0;i<260;i++){const bv=-0.25+Math.pow(r(),0.8)*1.7;if(bv>1.48)continue;stars.push({bv:bv+SIM.gauss(r)*0.02,M:mOf(bv)+SIM.gauss(r)*0.25+(r()<.15?-0.5:0)});}for(let i=0;i<25;i++)stars.push({bv:-0.2+r()*1.8,M:-2+r()*14,field:true});
+    for(let i=stars.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[stars[i],stars[j]]=[stars[j],stars[i]];}
+    stars.forEach((p,i)=>p.t=i*DT);t0=performance.now();}
   const rS=document.getElementById('rS');
+  function setS(v){s=Math.max(0,Math.min(15,Math.round(v/0.05)*0.05));rS.value=s;out();}
+  // 표준 주계열을 마우스(터치)로 위아래 끌기
+  let drag=null;
+  c.addEventListener('pointerdown',e=>{drag={y:SIM.pos(e,c).y,s:s};c.setPointerCapture(e.pointerId);c.classList.add('drag');e.preventDefault();});
+  c.addEventListener('pointermove',e=>{if(!drag)return;setS(drag.s+(SIM.pos(e,c).y-drag.y)/(B-T)*(Y1-Y0));});
+  const endDrag=()=>{drag=null;c.classList.remove('drag');};
+  c.addEventListener('pointerup',endDrag);c.addEventListener('pointercancel',endDrag);
+  // 수업 자료(3.01 성단.html) 안에서 이 슬라이드가 열릴 때마다 관측 점을 다시 찍기
+  addEventListener('message',e=>{if(e.data&&e.data.type==='deck-show')t0=performance.now();});
   function out(){
     document.getElementById('vS').textContent=s.toFixed(1)+' 등급';
     const ok=Math.abs(s-mu)<0.25,show=mode==='free'||ok;
@@ -253,24 +276,29 @@
   document.querySelectorAll('#t23 [data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;if(mode==='quiz'){mu=Math.round((4+Math.random()*9)*10)/10;make(Math.floor(Math.random()*1e6));}else{mu=7.5;make(5);}s=0;rS.value=0;document.querySelectorAll('#t23 [data-mode]').forEach(x=>x.classList.toggle('on',x===b));out();});
   rS.oninput=e=>{s=+e.target.value;out();};
   make(5);out();
-  SIM.loop('t23',()=>{
+  SIM.loop('t23',t=>{
     g.clearRect(0,0,W,H);
-    g.strokeStyle='#e2e8f0';g.lineWidth=1.5;for(let v=-0.4;v<=1.6;v+=0.4){g.beginPath();g.moveTo(X(v),T);g.lineTo(X(v),B);g.stroke();}for(let v=-4;v<=24;v+=4){g.beginPath();g.moveTo(L,Y(v));g.lineTo(R,Y(v));g.stroke();}
+    g.strokeStyle='#e2e8f0';g.lineWidth=1.5;for(let v=-0.4;v<=1.6;v+=0.4){g.beginPath();g.moveTo(X(v),T);g.lineTo(X(v),B);g.stroke();}for(let v=-4;v<=24;v+=2){g.beginPath();g.moveTo(L,Y(v));g.lineTo(R,Y(v));g.stroke();}
     g.strokeStyle='#334155';g.lineWidth=3;g.beginPath();g.moveTo(L,T);g.lineTo(L,B);g.lineTo(R,B);g.lineTo(R,T);g.stroke();
-    g.fillStyle='#334155';g.font=SIM.font(19,false);g.textAlign='center';for(let v=-0.4;v<=1.61;v+=0.4)g.fillText(v.toFixed(1),X(v),B+24);
-    g.textAlign='right';for(let v=-4;v<=24;v+=4)g.fillText(v,L-10,Y(v)+6);
-    g.textAlign='left';g.fillStyle='#dc2626';for(let v=-4;v<=24;v+=4){const a=v-s;if(a>=-6&&a<=14)g.fillText(a.toFixed(0),R+10,Y(v)+6);}
-    g.textAlign='center';g.fillStyle='#334155';g.font=SIM.font(22);g.fillText('색지수 (B−V)',(L+R)/2,B+58);
-    g.save();g.translate(30,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('성단의 겉보기 등급 (m)',0,0);g.restore();
-    g.save();g.translate(W-24,(T+B)/2);g.rotate(Math.PI/2);g.fillStyle='#dc2626';g.fillText('표준 주계열의 절대 등급 (M)',0,0);g.restore();
-    // 성단 별
-    stars.forEach(p=>{const m=p.M+mu;if(m>Y1)return;g.fillStyle=p.field?'rgba(100,116,139,.6)':'#1e293b';g.beginPath();g.arc(X(p.bv),Y(m),3.6,0,7);g.fill();});
+    g.fillStyle='#334155';g.font=SIM.font(22,false);g.textAlign='center';for(let v=-0.4;v<=1.61;v+=0.4)g.fillText(v.toFixed(1),X(v),B+30);
+    g.textAlign='right';for(let v=-4;v<=24;v+=2)g.fillText(v,L-12,Y(v)+7);
+    g.textAlign='left';g.fillStyle='#dc2626';for(let v=-4;v<=24;v+=2){const a=v-s;if(a>=-6&&a<=14)g.fillText(a.toFixed(0),R+12,Y(v)+7);}
+    g.textAlign='center';g.fillStyle='#334155';g.font=SIM.font(25);g.fillText('색지수 (B−V)',(L+R)/2,B+70);
+    g.save();g.translate(34,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('성단의 겉보기 등급 (m)',0,0);g.restore();
+    g.save();g.translate(W-30,(T+B)/2);g.rotate(Math.PI/2);g.fillStyle='#dc2626';g.fillText('표준 주계열의 절대 등급 (M)',0,0);g.restore();
+    // 성단 별 (관측 데이터: 하나씩 빠르게 찍힘)
+    const el=t-t0;let n=0;
+    stars.forEach(p=>{const a=el-p.t;if(a<0)return;n++;const m=p.M+mu;if(m>Y1)return;
+      const k=Math.max(0,1-a/POP),x=X(p.bv),y=Y(m);
+      g.fillStyle=p.field?'rgba(100,116,139,.6)':'#1e293b';g.beginPath();g.arc(x,y,4.2*(1+1.5*k),0,7);g.fill();
+      if(k>0){g.strokeStyle='rgba(37,99,235,'+k+')';g.lineWidth=2.5;g.beginPath();g.arc(x,y,4.2+16*(1-k),0,7);g.stroke();}});
+    if(n<stars.length){g.textAlign='left';g.font=SIM.font(24);g.fillStyle='#2563eb';g.fillText('관측 중… '+n+' / '+stars.length+'개',L+18,B-20);}
     // 처음 위치(점선)
     g.setLineDash([8,8]);g.strokeStyle='rgba(220,38,38,.35)';g.lineWidth=3;g.beginPath();MS.forEach((p,i)=>i?g.lineTo(X(p[0]),Y(p[1])):g.moveTo(X(p[0]),Y(p[1])));g.stroke();g.setLineDash([]);
     // 이동한 표준 주계열
-    g.strokeStyle='#dc2626';g.lineWidth=6;g.beginPath();MS.forEach((p,i)=>i?g.lineTo(X(p[0]),Y(p[1]+s)):g.moveTo(X(p[0]),Y(p[1]+s)));g.stroke();
-    g.fillStyle='#dc2626';g.font=SIM.font(22);g.textAlign='left';g.fillText('표준 주계열',X(-0.28)+14,Y(-3.5+s)+4);
-    if(s>0.3){const x=X(0.9);g.strokeStyle='#ea580c';g.lineWidth=3;g.beginPath();g.moveTo(x,Y(mOf(0.9)));g.lineTo(x,Y(mOf(0.9)+s)-6);g.stroke();g.fillStyle='#ea580c';g.beginPath();g.moveTo(x,Y(mOf(0.9)+s));g.lineTo(x-8,Y(mOf(0.9)+s)-14);g.lineTo(x+8,Y(mOf(0.9)+s)-14);g.fill();g.font=SIM.font(22);g.fillText('m − M = '+s.toFixed(1),x+14,(Y(mOf(0.9))+Y(mOf(0.9)+s))/2);}
+    g.strokeStyle='#dc2626';g.lineWidth=drag?9:7;g.beginPath();MS.forEach((p,i)=>i?g.lineTo(X(p[0]),Y(p[1]+s)):g.moveTo(X(p[0]),Y(p[1]+s)));g.stroke();
+    g.fillStyle='#dc2626';g.font=SIM.font(25);g.textAlign='left';g.fillText('표준 주계열 ↕ 끌어서 이동',X(-0.28)+16,Y(-3.5+s)+5);
+    if(s>0.3){const x=X(0.9);g.strokeStyle='#ea580c';g.lineWidth=3;g.beginPath();g.moveTo(x,Y(mOf(0.9)));g.lineTo(x,Y(mOf(0.9)+s)-6);g.stroke();g.fillStyle='#ea580c';g.beginPath();g.moveTo(x,Y(mOf(0.9)+s));g.lineTo(x-9,Y(mOf(0.9)+s)-16);g.lineTo(x+9,Y(mOf(0.9)+s)-16);g.fill();g.font=SIM.font(25);g.fillText('m − M = '+s.toFixed(1),x+16,(Y(mOf(0.9))+Y(mOf(0.9)+s))/2);}
   });
 })();
 
@@ -282,7 +310,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -292,8 +321,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

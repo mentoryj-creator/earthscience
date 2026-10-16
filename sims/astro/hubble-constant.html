@@ -95,18 +95,28 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simJ .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #simJ .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #simJ .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #simJ .sim-col { flex: 0 0 420px; min-height: 0; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -114,18 +124,23 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simJ">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>은하를 관측해 허블 상수를 직접 구해 봅시다</div>
             <div class="ppt-subtitle">은하를 하나씩 관측하여 거리–후퇴 속도 그래프에 점을 찍어요.</div>
             <div class="sim-wrap">
-                <div class="sim-col" style="width:480px">
-                    <div class="sim-stage"><canvas id="cJ1" width="480" height="610"></canvas></div>
+                <div class="sim-col">
+                    <div class="sim-stage"><canvas id="cJ1" width="420" height="880"></canvas></div>
                 </div>
-                <div class="sim-stage light"><canvas id="cJ2" width="780" height="610"></canvas></div>
+                <div class="sim-stage light"><canvas id="cJ2" width="720" height="880"></canvas></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
-                        <h4>관측하기</h4>
+                        <h4>가상 우주 관측하기</h4>
                         <div class="sim-btns"><button class="sim-btn on" id="bJ1">은하 1개 관측</button><button class="sim-btn" id="bJ2">10개 관측</button><button class="sim-btn" id="bJ3">↺ 초기화</button></div>
+                    </div>
+                    <div class="sim-box">
+                        <h4>역사 속 허블 상수</h4>
+                        <div class="sim-btns"><button class="sim-btn orange" data-hist="h1929">① 허블 1929년</button><button class="sim-btn orange" data-hist="h2001">② 허블 망원경 2001년</button><button class="sim-btn orange" data-hist="now">③ 현재</button></div>
                     </div>
                     <div class="sim-box key">
                         <h4>그래프 기울기</h4>
@@ -197,10 +212,35 @@
     /* ===================== 시뮬레이션 J: 허블 법칙 ===================== */
     (function () {
         const c1 = document.getElementById('cJ1'), g1 = c1.getContext('2d'), c2 = document.getElementById('cJ2'), g2 = c2.getContext('2d');
-        let Ht = 70, pts = [], last = null;
-        const W2 = 780, H2 = 610, L = 110, R = 750, T = 40, B = 520, XM = 500;
+        let Ht = 70, pts = [], last = null, mode = 'sim';
+        const W1 = c1.width, H1 = c1.height, W2 = c2.width, H2 = c2.height, L = 110, R = W2 - 30, T = 60, B = H2 - 100;
+        // 역사 속 허블 상수: ①은 허블(1929) 논문의 실제 자료, ②·③은 발표값을 바탕으로 만든 예시 점
+        const HIST = {
+            h1929: { name: '① 허블 (1929년)', XM: 2.5, XS: 0.5, YMIN: -400, YM: 1200, YS: 400, unit: 1,
+                pts: [[0.032, 170], [0.034, 290], [0.214, -130], [0.263, -70], [0.275, -185], [0.275, -220], [0.45, 200], [0.5, 290], [0.5, 270], [0.63, 200], [0.8, 300], [0.9, -30], [0.9, 650], [0.9, 150], [0.9, 500], [1.0, 920], [1.1, 450], [1.1, 500], [1.4, 500], [1.7, 960], [2.0, 500], [2.0, 850], [2.0, 800], [2.0, 1090]],
+                lines: ['윌슨산 천문대 2.5 m 망원경', '세페이드 변광성 등으로 거리 측정', '가까운 은하 24개 (2 Mpc 이내)', '허블 발표값: 약 500 km/s/Mpc', '', '→ 우주 나이 약 20억 년?', '지구(약 46억 년)보다 어린 모순!', '세페이드 거리 보정이 잘못되어', '거리를 너무 작게 잰 것이었어요.'],
+                src: '자료: Hubble (1929) 논문 표' },
+            h2001: { name: '② 허블 우주 망원경 (2001년)', XM: 400, XS: 100, YMIN: 0, YM: 40000, YS: 10000,
+                gen: { H: 72, n: 30, r0: 5, r1: 380, sc: 0.08, seed: 21 },
+                lines: ['허블 우주 망원경 핵심 프로젝트', '세페이드 변광성으로 보정한', 'Ia형 초신성 등으로 먼 거리까지', '발표값: 72 ± 8 km/s/Mpc', '', '→ 우주 나이 약 136억 년', '오차가 약 10 %로 줄었어요.'],
+                src: '점: 발표값을 바탕으로 만든 예시' },
+            now: { name: '③ 현재 (2020년대)', XM: 600, XS: 100, YMIN: 0, YM: 50000, YS: 10000,
+                gen: { H: 73, n: 45, r0: 5, r1: 580, sc: 0.04, seed: 33 }, alt: 67.4,
+                lines: ['허블·제임스 웹 우주 망원경', 'Ia형 초신성 (SH0ES 팀)', '→ 73.0 ± 1.0 km/s/Mpc', '우주 배경 복사 (플랑크 위성)', '→ 67.4 ± 0.5 km/s/Mpc', '', '두 방법의 값이 서로 달라', '‘허블 긴장’이라 부르며', '지금도 연구 중이에요.'],
+                src: '점: 발표값을 바탕으로 만든 예시' }
+        };
+        Object.values(HIST).forEach(h => { if (!h.gen) return; const q = h.gen, rr = SIM.rng(q.seed); h.pts = [];
+            for (let i = 0; i < q.n; i++) { const r = q.r0 + (q.r1 - q.r0) * rr(); h.pts.push([r, q.H * r * (1 + q.sc * SIM.gauss(rr)) + SIM.gauss(rr) * 250]); } });
         const ymax = () => Math.ceil(Ht * 500 / 10000) * 10000;
+        const axes = () => mode === 'sim' ? { XM: 500, XS: 100, YMIN: 0, YM: ymax(), YS: 10000 } : HIST[mode];
+        function setMode(m) {
+            mode = m; last = null;
+            pts = m === 'sim' ? [] : HIST[m].pts.map(p => ({ r: p[0], v: p[1] }));
+            document.querySelectorAll('#simJ [data-hist]').forEach(b => b.classList.toggle('on', b.dataset.hist === m));
+            fit();
+        }
         function add(n) {
+            if (mode !== 'sim') setMode('sim');
             for (let k = 0; k < n; k++) {
                 const r = 20 + Math.random() * 460, v = Ht * r + SIM.gauss(Math.random) * 900;
                 last = { r: r, v: v, z: v / 299792, rot: Math.random() * 3, t: performance.now() }; pts.push(last);
@@ -215,51 +255,71 @@
         }
         document.getElementById('bJ1').onclick = () => add(1);
         document.getElementById('bJ2').onclick = () => add(10);
-        document.getElementById('bJ3').onclick = () => { pts = []; last = null; fit(); };
-        document.getElementById('rJ').oninput = e => { Ht = +e.target.value; document.getElementById('vJ').textContent = Ht; pts = []; last = null; fit(); };
+        document.getElementById('bJ3').onclick = () => setMode('sim');
+        document.querySelectorAll('#simJ [data-hist]').forEach(b => b.onclick = () => setMode(b.dataset.hist));
+        document.getElementById('rJ').oninput = e => { Ht = +e.target.value; document.getElementById('vJ').textContent = Ht; setMode('sim'); };
         fit();
         SIM.loop('simJ', (t) => {
+            g1.fillStyle = '#0f172a'; g1.fillRect(0, 0, W1, H1);
+            if (mode !== 'sim') {
+                // 왼쪽: 그 시대의 관측 이야기
+                const h = HIST[mode];
+                g1.fillStyle = '#facc15'; g1.font = SIM.font(28); g1.textAlign = 'center'; g1.fillText(h.name, W1 / 2, 60);
+                g1.textAlign = 'left'; g1.font = SIM.font(24, false);
+                h.lines.forEach((s, i) => { g1.fillStyle = s.startsWith('→') ? '#fca5a5' : '#e2e8f0'; g1.fillText(s, 28, 140 + i * 44); });
+                g1.fillStyle = '#94a3b8'; g1.font = SIM.font(20, false); g1.fillText(h.src, 28, H1 - 40);
+            } else
             // 왼쪽: 방금 관측한 은하
-            g1.fillStyle = '#0f172a'; g1.fillRect(0, 0, 480, 610);
-            g1.fillStyle = '#e2e8f0'; g1.font = SIM.font(26); g1.textAlign = 'center'; g1.fillText('방금 관측한 은하', 240, 44);
-            if (!last) { g1.fillStyle = '#94a3b8'; g1.font = SIM.font(22, false); g1.fillText('‘은하 1개 관측’을 눌러 보세요', 240, 300); }
+            {
+            g1.fillStyle = '#e2e8f0'; g1.font = SIM.font(26); g1.textAlign = 'center'; g1.fillText('방금 관측한 은하', W1 / 2, 54);
+            if (!last) { g1.fillStyle = '#94a3b8'; g1.font = SIM.font(22, false); g1.fillText('‘은하 1개 관측’을 눌러 보세요', W1 / 2, 400); }
             else {
-                const s = Math.min(160, Math.max(26, 16000 / last.r)); const cx = 240, cy = 200;
+                const s = Math.min(150, Math.max(26, 16000 / last.r)); const cx = W1 / 2, cy = 260;
                 g1.save(); g1.translate(cx, cy); g1.rotate(last.rot + t / 6000);
                 for (let k = 0; k < 2; k++) for (let i = 0; i < 160; i++) { const th = i / 160 * 4.5 + k * Math.PI, rr = i / 160 * s; g1.fillStyle = 'rgba(191,219,254,' + (0.7 - i / 300).toFixed(2) + ')'; g1.beginPath(); g1.arc(Math.cos(th) * rr, Math.sin(th) * rr * 0.55, Math.max(1, s / 30), 0, 7); g1.fill(); }
                 const cg = g1.createRadialGradient(0, 0, 0, 0, 0, s * 0.35); cg.addColorStop(0, '#fff'); cg.addColorStop(1, 'rgba(254,240,138,0)'); g1.fillStyle = cg; g1.beginPath(); g1.arc(0, 0, s * 0.35, 0, 7); g1.fill();
                 g1.restore();
-                g1.fillStyle = '#94a3b8'; g1.font = SIM.font(18, false); g1.fillText('(멀수록 작고 어둡게 보여요)', 240, 330);
+                g1.fillStyle = '#94a3b8'; g1.font = SIM.font(18, false); g1.fillText('(멀수록 작고 어둡게 보여요)', W1 / 2, 440);
                 // 스펙트럼 띠 (550~800nm)
-                const x0 = 40, x1 = 440, la = 550, lb = 800, X = l => x0 + (l - la) / (lb - la) * (x1 - x0);
-                for (let x = x0; x < x1; x++) { const l = la + (x - x0) / (x1 - x0) * (lb - la); const rgb = l <= 780 ? SIM.wl2rgb(l) : [51, 65, 85]; g1.fillStyle = 'rgb(' + rgb.join(',') + ')'; g1.fillRect(x, 360, 1.5, 40); }
-                g1.fillStyle = '#fff'; g1.fillRect(X(656.3) - 1, 352, 2, 56);
-                g1.fillStyle = '#000'; g1.fillRect(X(656.3 * (1 + last.z)) - 2.5, 360, 5, 40);
-                g1.font = SIM.font(18); g1.fillStyle = '#fff'; g1.fillText('Hα 원래 위치', X(656.3), 428);
-                g1.textAlign = 'left'; g1.font = SIM.font(24); const y0 = 480;
-                g1.fillStyle = '#facc15'; g1.fillText('거리 r (표준 촛불): ' + last.r.toFixed(0) + ' Mpc', 34, y0);
-                g1.fillStyle = '#fca5a5'; g1.fillText('적색 이동 z: ' + last.z.toFixed(4), 34, y0 + 40);
-                g1.fillStyle = '#f87171'; g1.fillText('후퇴 속도 v = cz: ' + Math.round(last.v).toLocaleString() + ' km/s', 34, y0 + 80);
+                const x0 = 30, x1 = W1 - 30, la = 550, lb = 800, X = l => x0 + (l - la) / (lb - la) * (x1 - x0);
+                for (let x = x0; x < x1; x++) { const l = la + (x - x0) / (x1 - x0) * (lb - la); const rgb = l <= 780 ? SIM.wl2rgb(l) : [51, 65, 85]; g1.fillStyle = 'rgb(' + rgb.join(',') + ')'; g1.fillRect(x, 490, 1.5, 50); }
+                g1.fillStyle = '#fff'; g1.fillRect(X(656.3) - 1, 482, 2, 66);
+                g1.fillStyle = '#000'; g1.fillRect(X(656.3 * (1 + last.z)) - 2.5, 490, 5, 50);
+                g1.font = SIM.font(18); g1.fillStyle = '#fff'; g1.fillText('Hα 원래 위치', X(656.3), 570);
+                g1.textAlign = 'left'; g1.font = SIM.font(23); const y0 = 650;
+                g1.fillStyle = '#facc15'; g1.fillText('거리 r (표준 촛불): ' + last.r.toFixed(0) + ' Mpc', 26, y0);
+                g1.fillStyle = '#fca5a5'; g1.fillText('적색 이동 z: ' + last.z.toFixed(4), 26, y0 + 46);
+                g1.fillStyle = '#f87171'; g1.fillText('후퇴 속도 v = cz: ' + Math.round(last.v).toLocaleString() + ' km/s', 26, y0 + 92);
+            }
             }
             // 오른쪽: 그래프
-            const YM = ymax(), X2 = r => L + r / XM * (R - L), Y2 = v => B - v / YM * (B - T);
+            const A = axes(), XM = A.XM, YM = A.YM, YMIN = A.YMIN, X2 = r => L + r / XM * (R - L), Y2 = v => B - (v - YMIN) / (YM - YMIN) * (B - T);
+            const fmtR = r => A.XS < 1 ? r.toFixed(1) : r;
             g2.clearRect(0, 0, W2, H2);
+            g2.fillStyle = '#1e293b'; g2.font = SIM.font(24); g2.textAlign = 'left'; g2.fillText(mode === 'sim' ? '가상 우주 관측 자료' : HIST[mode].name, L, 36);
             g2.strokeStyle = '#e2e8f0'; g2.lineWidth = 1.5;
-            for (let r = 100; r <= XM; r += 100) { g2.beginPath(); g2.moveTo(X2(r), T); g2.lineTo(X2(r), B); g2.stroke(); }
-            for (let v = 10000; v <= YM; v += 10000) { g2.beginPath(); g2.moveTo(L, Y2(v)); g2.lineTo(R, Y2(v)); g2.stroke(); }
+            for (let r = A.XS; r <= XM + 1e-9; r += A.XS) { g2.beginPath(); g2.moveTo(X2(r), T); g2.lineTo(X2(r), B); g2.stroke(); }
+            for (let v = YMIN; v <= YM; v += A.YS) { g2.beginPath(); g2.moveTo(L, Y2(v)); g2.lineTo(R, Y2(v)); g2.stroke(); }
             g2.strokeStyle = '#334155'; g2.lineWidth = 3; g2.beginPath(); g2.moveTo(L, T - 8); g2.lineTo(L, B); g2.lineTo(R + 8, B); g2.stroke();
+            if (YMIN < 0) { g2.strokeStyle = '#94a3b8'; g2.lineWidth = 2; g2.beginPath(); g2.moveTo(L, Y2(0)); g2.lineTo(R, Y2(0)); g2.stroke(); }
             g2.fillStyle = '#334155'; g2.font = SIM.font(19, false); g2.textAlign = 'center';
-            for (let r = 0; r <= XM; r += 100) g2.fillText(r, X2(r), B + 26);
-            g2.textAlign = 'right'; for (let v = 0; v <= YM; v += 10000) g2.fillText(v.toLocaleString(), L - 10, Y2(v) + 6);
+            for (let r = 0; r <= XM + 1e-9; r += A.XS) g2.fillText(fmtR(r), X2(r), B + 26);
+            g2.textAlign = 'right'; for (let v = YMIN; v <= YM; v += A.YS) g2.fillText(v.toLocaleString(), L - 10, Y2(v) + 6);
             g2.textAlign = 'center'; g2.font = SIM.font(22); g2.fillText('거리 r (Mpc)', (L + R) / 2, B + 62);
             g2.save(); g2.translate(26, (T + B) / 2); g2.rotate(-Math.PI / 2); g2.fillText('후퇴 속도 v (km/s)', 0, 0); g2.restore();
+            // 플랑크 위성 값 (현재)
+            if (mode !== 'sim' && HIST[mode].alt) {
+                const h2 = HIST[mode].alt, re = Math.min(XM, YM / h2);
+                g2.setLineDash([12, 8]); g2.strokeStyle = '#7c3aed'; g2.lineWidth = 3; g2.beginPath(); g2.moveTo(X2(0), Y2(0)); g2.lineTo(X2(re), Y2(h2 * re)); g2.stroke(); g2.setLineDash([]);
+                g2.fillStyle = '#7c3aed'; g2.font = SIM.font(21); g2.textAlign = 'right'; g2.fillText('- - 플랑크 위성: 67.4', R - 10, B - 50);
+            }
             if (pts.length >= 2) {
                 let a = 0, b = 0; pts.forEach(p => { a += p.r * p.v; b += p.r * p.r; }); const H = a / b;
                 g2.strokeStyle = '#3b82f6'; g2.lineWidth = 4; g2.beginPath(); g2.moveTo(X2(0), Y2(0)); const re = Math.min(XM, YM / H); g2.lineTo(X2(re), Y2(H * re)); g2.stroke();
                 g2.fillStyle = '#2563eb'; g2.font = SIM.font(24); g2.textAlign = 'left'; g2.fillText('기울기 = H ≈ ' + H.toFixed(1), L + 30, T + 50);
             }
             pts.forEach(p => { const fresh = p === last && t - p.t < 1500; g2.fillStyle = fresh ? '#ef4444' : '#f59e0b'; g2.beginPath(); g2.arc(X2(p.r), Y2(p.v), fresh ? 11 : 8, 0, 7); g2.fill(); g2.strokeStyle = '#fff'; g2.lineWidth = 2; g2.stroke(); });
-            g2.fillStyle = '#64748b'; g2.font = SIM.font(20); g2.textAlign = 'left'; g2.fillText('관측한 은하: ' + pts.length + '개', R - 190, B - 20);
+            g2.fillStyle = '#64748b'; g2.font = SIM.font(20); g2.textAlign = 'right'; g2.fillText((mode === 'sim' ? '관측한 은하: ' : '자료: ') + pts.length + '개', R - 10, B - 20);
         });
     })();
 
@@ -272,7 +332,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -282,8 +343,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

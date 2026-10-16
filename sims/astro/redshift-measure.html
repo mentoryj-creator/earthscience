@@ -95,18 +95,28 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simI .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #simI .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #simI .sim-panel { flex: 0 0 600px; min-height: 0; }
+  #simI .sim-col { min-height: 0; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -114,12 +124,13 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simI">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>스펙트럼으로 적색 이동 측정하기</div>
             <div class="ppt-subtitle">흡수선의 이동량으로 z → 후퇴 속도 v → 거리 r을 차례로 구해 봅시다.</div>
             <div class="sim-wrap">
-                <div class="sim-col" style="width:1060px">
-                    <div class="sim-stage"><canvas id="cI" width="1060" height="440"></canvas></div>
+                <div class="sim-col" style="flex:1">
+                    <div class="sim-stage"><canvas id="cI" width="1160" height="640"></canvas></div>
                     <div class="sim-box" style="padding:10px 22px">
                         <table class="sim-table" style="font-size:25px">
                             <thead><tr><th>흡수선</th><th>고유 파장 λ₀</th><th>관측 파장 λ</th><th>Δλ</th><th>z = Δλ / λ₀</th></tr></thead>
@@ -133,7 +144,8 @@
                         <div class="sim-row"><span class="lbl" id="lI" style="width:150px">적색 이동 z</span><input type="range" class="sim-range" id="rI" min="0" max="0.4" step="0.002" value="0.1"><span class="sim-val" id="vI">0.100</span></div>
                         <div class="sim-note" id="nI"></div>
                     </div>
-                    <div class="sim-box key" id="oI" style="font-size:27px"></div>
+                    <div class="sim-box key" id="oI" style="font-size:26px;padding:12px 24px"></div>
+                    <div class="sim-stage light"><canvas id="cIH" width="600" height="440"></canvas></div>
                 </div>
             </div>
         </div>
@@ -195,21 +207,59 @@
     /* ===================== 시뮬레이션 I: 적색 이동 측정 ===================== */
     (function () {
         const c = document.getElementById('cI'), g = c.getContext('2d');
-        const W = 1060, H = 440, L0 = 350, L1 = 950, XL = 60, XR = 1000;
+        const W = c.width, H = c.height, L0 = 350, L1 = 950, XL = 60, XR = W - 60;
+        const TY = 90, GY = 350, SH = 100, AY = 530; // 기준 스펙트럼·은하 스펙트럼 위치, 파장 축
         const LINES = [['Ca K', 393.4], ['Ca H', 396.8], ['Hβ', 486.1], ['Mg', 517.3], ['Na', 589.0], ['Hα', 656.3]];
+        const NAMES = [['Ca II', '칼슘', 395.1], ['Hβ', '수소', 486.1], ['Mg', '마그네슘', 517.3], ['Na', '나트륨', 589], ['Hα', '수소', 656.3]];
         const X = l => XL + (l - L0) / (L1 - L0) * (XR - XL);
         let mode = 'free', zg = 0.1, zt = 0, zTrue = 0.1;
         const rI = document.getElementById('rI');
-        function strip(y, h, z, label, matched) {
+        const isOk = () => mode === 'quiz' && Math.abs(zt - zTrue) < 0.003;
+        // 은하 흡수선 위치: 탐색 = 고유 파장 × (1+z), 도전 = 관측 파장을 (1+zt)만큼 되돌린 위치
+        const galLam = l0 => mode === 'free' ? l0 * (1 + zg) : l0 * (1 + zTrue) / (1 + zt);
+        function strip(y, h, lamOf, label, matched) {
             for (let x = XL; x < XR; x++) { const l = L0 + (x - XL) / (XR - XL) * (L1 - L0); const vis = l >= 380 && l <= 780; const rgb = vis ? SIM.wl2rgb(l) : [51, 65, 85]; g.fillStyle = 'rgb(' + rgb.join(',') + ')'; g.fillRect(x, y, 1.5, h); }
-            LINES.forEach(([n, l0]) => { const l = l0 * (1 + z); if (l > L1) return; g.fillStyle = matched ? '#16a34a' : '#000'; g.fillRect(X(l) - 2.5, y, 5, h); });
-            g.font = SIM.font(22); g.textAlign = 'left'; const tw = g.measureText(label).width; g.fillStyle = '#0f172a'; g.fillRect(XL - 6, y - 38, tw + 12, 32); g.fillStyle = '#e2e8f0'; g.fillText(label, XL, y - 12);
+            LINES.forEach(([n, l0]) => { const l = lamOf(l0); if (l > L1 || l < L0) return; g.fillStyle = matched ? '#16a34a' : '#000'; g.fillRect(X(l) - 3, y, 6, h); });
+            g.font = SIM.font(24); g.textAlign = 'left'; const tw = g.measureText(label).width; g.fillStyle = '#0f172a'; g.fillRect(XL - 6, y - 40, tw + 12, 34); g.fillStyle = '#e2e8f0'; g.fillText(label, XL, y - 14);
+        }
+        // 허블 법칙 그래프 (거리-후퇴 속도)
+        const ch = document.getElementById('cIH'), gh = ch.getContext('2d');
+        function hubble(z) {
+            const HW = ch.width, HH = ch.height, PL = 100, PR = HW - 25, PT = 50, PB = HH - 70, RM = 2000, VM = 140000;
+            const hx = r => PL + r / RM * (PR - PL), hy = v => PB - v / VM * (PB - PT);
+            gh.clearRect(0, 0, HW, HH);
+            gh.fillStyle = '#1e293b'; gh.font = SIM.font(22); gh.textAlign = 'left'; gh.fillText('허블 법칙  v = H·r', 16, 30);
+            gh.fillStyle = '#64748b'; gh.font = SIM.font(17, false); gh.textAlign = 'right'; gh.fillText('H = 70 km/s/Mpc', PR, 30);
+            gh.strokeStyle = '#e2e8f0'; gh.lineWidth = 1;
+            for (let r = 500; r <= RM; r += 500) { gh.beginPath(); gh.moveTo(hx(r), PT); gh.lineTo(hx(r), PB); gh.stroke(); }
+            for (let v = 40000; v <= VM; v += 40000) { gh.beginPath(); gh.moveTo(PL, hy(v)); gh.lineTo(PR, hy(v)); gh.stroke(); }
+            gh.strokeStyle = '#334155'; gh.lineWidth = 2.5; gh.beginPath(); gh.moveTo(PL, PT - 6); gh.lineTo(PL, PB); gh.lineTo(PR + 6, PB); gh.stroke();
+            gh.fillStyle = '#334155'; gh.font = SIM.font(16, false); gh.textAlign = 'center';
+            for (let r = 0; r <= RM; r += 500) gh.fillText(r, hx(r), PB + 22);
+            gh.textAlign = 'right'; for (let v = 0; v <= VM; v += 40000) gh.fillText(v.toLocaleString(), PL - 8, hy(v) + 5);
+            gh.font = SIM.font(18); gh.textAlign = 'center'; gh.fillText('거리 r (Mpc)', (PL + PR) / 2, PB + 52);
+            gh.save(); gh.translate(20, (PT + PB) / 2); gh.rotate(-Math.PI / 2); gh.fillText('후퇴 속도 v (km/s)', 0, 0); gh.restore();
+            gh.strokeStyle = '#3b82f6'; gh.lineWidth = 4; gh.beginPath(); gh.moveTo(hx(0), hy(0)); gh.lineTo(hx(RM), hy(70 * RM)); gh.stroke();
+            if (z == null) {
+                gh.fillStyle = '#64748b'; gh.font = SIM.font(19); gh.textAlign = 'center'; gh.fillText('흡수선을 맞추면 거리를 구할 수 있어요', (PL + PR) / 2 + 30, PT + 40);
+                return;
+            }
+            const v = 299792 * z, r = v / 70, px = hx(r), py = hy(v);
+            gh.setLineDash([8, 6]); gh.lineWidth = 3;
+            gh.strokeStyle = '#dc2626'; gh.beginPath(); gh.moveTo(PL, py); gh.lineTo(px, py); gh.stroke();   // 가로선: 후퇴 속도
+            gh.strokeStyle = '#ea580c'; gh.beginPath(); gh.moveTo(px, py); gh.lineTo(px, PB); gh.stroke();   // 세로선: 거리
+            gh.setLineDash([]);
+            gh.fillStyle = '#1e293b'; gh.beginPath(); gh.arc(px, py, 7, 0, 7); gh.fill();
+            gh.font = SIM.font(18); gh.textAlign = 'left';
+            gh.fillStyle = '#dc2626'; gh.fillText('v = ' + Math.round(v).toLocaleString() + ' km/s', PL + 8, py - 10);
+            gh.fillStyle = '#ea580c'; gh.textAlign = px > PR - 160 ? 'right' : 'left'; gh.fillText('r = ' + Math.round(r).toLocaleString() + ' Mpc', px + (px > PR - 160 ? -8 : 8), PB - 12);
         }
         function out() {
-            const z = mode === 'free' ? zg : zTrue, ok = mode === 'quiz' && Math.abs(zt - zTrue) < 0.003, show = mode === 'free' || ok;
+            const z = mode === 'free' ? zg : zTrue, ok = isOk(), show = mode === 'free' || ok;
             document.getElementById('vI').textContent = (mode === 'free' ? zg : zt).toFixed(3);
-            document.getElementById('lI').textContent = mode === 'free' ? '적색 이동 z' : '기준선 이동';
-            document.getElementById('nI').innerHTML = mode === 'free' ? '슬라이더로 은하의 적색 이동을 바꿔 보세요.' : '위쪽 <b>기준 스펙트럼</b>을 옮겨 아래 은하의 흡수선과 겹쳐 보세요. <b>(다시 누르면 새 은하)</b>';
+            document.getElementById('lI').textContent = mode === 'free' ? '적색 이동 z' : '되돌린 z';
+            document.getElementById('nI').innerHTML = mode === 'free' ? '슬라이더로 은하의 적색 이동을 바꿔 보세요.' : '아래 <b>미지의 은하 스펙트럼</b>을 왼쪽(짧은 파장)으로 옮겨 위 기준 스펙트럼의 흡수선과 겹쳐 보세요. <b>(다시 누르면 새 은하)</b>';
+            hubble(show ? z : null);
             let h = '';
             [['Ca K', 393.4], ['Hα', 656.3]].forEach(([n, l0]) => { const l = l0 * (1 + z); h += '<tr><td><b>' + n + '</b></td><td>' + l0.toFixed(1) + ' nm</td><td style="color:#dc2626;font-weight:bold">' + (show ? l.toFixed(1) + ' nm' : '?') + '</td><td>' + (show ? (l - l0).toFixed(1) + ' nm' : '?') + '</td><td style="color:#ea580c;font-weight:bold">' + (show ? z.toFixed(3) : '?') + '</td></tr>'; });
             document.getElementById('tI').innerHTML = h;
@@ -218,7 +268,7 @@
                 (ok ? '<div class="sim-ok" style="font-size:30px;margin-bottom:6px">✔ 흡수선 일치! z = ' + zTrue.toFixed(3) + '</div>' : '<h4>계산 결과</h4>') +
                 '<div>① z = <b>' + z.toFixed(3) + '</b></div><div>② v = c·z = <b style="color:#dc2626">' + Math.round(v).toLocaleString() + ' km/s</b></div><div>③ r = v / H = <b style="color:#ea580c">' + Math.round(rr).toLocaleString() + ' Mpc</b> <span class="sim-note">(H = 70)</span></div>' +
                 (z > 0.1 ? '<div class="sim-note" style="margin-top:6px">※ z가 커지면 v = cz는 근사값이 돼요.</div>' : '') :
-                '<h4>아직 맞지 않아요</h4><div>기준선이 ' + (zt < zTrue ? '<b>더 오른쪽(긴 파장)</b>으로' : '<b>더 왼쪽</b>으로') + ' 가야 해요.</div>';
+                '<h4>아직 맞지 않아요</h4><div>은하 스펙트럼을 ' + (zt < zTrue ? '<b>더 왼쪽(짧은 파장)</b>으로' : '<b>조금 오른쪽</b>으로') + ' 옮겨야 해요.</div>';
         }
         document.querySelectorAll('#simI [data-mode]').forEach(b => b.onclick = () => {
             const m = b.dataset.mode;
@@ -228,26 +278,28 @@
         });
         rI.oninput = e => { if (mode === 'free') zg = +e.target.value; else zt = +e.target.value; out(); };
         out();
+        if (document.fonts) document.fonts.ready.then(out); // 허블 그래프를 글꼴이 준비된 뒤 다시 그림
         SIM.loop('simI', () => {
             g.fillStyle = '#0f172a'; g.fillRect(0, 0, W, H);
-            const ok = mode === 'quiz' && Math.abs(zt - zTrue) < 0.003;
-            const zTop = mode === 'free' ? 0 : zt, zBot = mode === 'free' ? zg : zTrue;
-            // 연결선
-            if (mode === 'free') {
-                LINES.forEach(([n, l0], i) => { const l = l0 * (1 + zg); g.setLineDash([6, 6]); g.strokeStyle = 'rgba(250,204,21,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(X(l0), 150); g.lineTo(Math.min(X(l), XR + 30), 250); g.stroke(); g.setLineDash([]); });
-            }
-            strip(70, 80, zTop, mode === 'free' ? '실험실 기준 스펙트럼 (z = 0)' : '기준 스펙트럼 (z = ' + zt.toFixed(3) + ' 만큼 이동)', ok);
-            strip(250, 80, zBot, mode === 'free' ? '관측된 은하 스펙트럼 (z = ' + zg.toFixed(3) + ')' : '미지의 은하 스펙트럼 (z = ?)', ok);
-            // 라벨
-            g.font = SIM.font(18); g.textAlign = 'center'; g.fillStyle = '#facc15';
-            [['Ca II', 395], ['Hβ', 486.1], ['Mg', 517.3], ['Na', 589], ['Hα', 656.3]].forEach(([n, l0]) => { const l = l0 * (1 + zTop); if (l < L1) g.fillText(n, X(l), 172); });
+            const ok = isOk();
+            strip(TY, SH, l0 => l0, '실험실 기준 스펙트럼 (z = 0)', ok);
+            strip(GY, SH, galLam, mode === 'free' ? '관측된 은하 스펙트럼 (z = ' + zg.toFixed(3) + ')' : ok ? '미지의 은하 스펙트럼 → z = ' + zTrue.toFixed(3) : '미지의 은하 스펙트럼 (' + (zt > 0 ? 'z = ' + zt.toFixed(3) + ' 만큼 되돌림' : '관측된 그대로') + ')', ok);
+            // 기준 스펙트럼 흡수선의 원소
+            NAMES.forEach(([s, k, l0]) => { g.textAlign = 'center'; g.font = SIM.font(21); g.fillStyle = '#facc15'; g.fillText(s, X(l0), TY + SH + 26); g.font = SIM.font(18, false); g.fillStyle = '#fde68a'; g.fillText(k, X(l0), TY + SH + 48); });
+            // 연결선 (탐색·정답) / 도전 중에는 기준선에서 내린 안내선
+            LINES.forEach(([n, l0]) => {
+                g.setLineDash([6, 6]);
+                if (mode === 'free' || ok) { const l = galLam(l0); g.strokeStyle = 'rgba(250,204,21,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(X(l0), TY + SH + 58); g.lineTo(Math.min(X(l), XR + 30), GY); g.stroke(); }
+                else { g.strokeStyle = 'rgba(226,232,240,.45)'; g.lineWidth = 2; g.beginPath(); g.moveTo(X(l0), TY + SH + 58); g.lineTo(X(l0), GY + SH); g.stroke(); }
+                g.setLineDash([]);
+            });
             // 축
-            g.strokeStyle = '#94a3b8'; g.lineWidth = 2; g.beginPath(); g.moveTo(XL, 360); g.lineTo(XR, 360); g.stroke();
-            g.fillStyle = '#cbd5e1'; g.font = SIM.font(19, false);
-            for (let l = 400; l <= 900; l += 100) { g.fillText(l, X(l), 388); g.beginPath(); g.moveTo(X(l), 354); g.lineTo(X(l), 366); g.stroke(); }
-            g.font = SIM.font(21); g.fillText('파장 (nm)', (XL + XR) / 2, 420);
-            g.fillStyle = '#64748b'; g.textAlign = 'left'; g.fillText('자외선', XL, 345); g.textAlign = 'right'; g.fillText('적외선', XR, 345);
-            g.textAlign = 'right'; g.fillStyle = '#fca5a5'; g.fillText('긴 파장(붉은색) 쪽 →', XR, 420);
+            g.strokeStyle = '#94a3b8'; g.lineWidth = 2; g.beginPath(); g.moveTo(XL, AY); g.lineTo(XR, AY); g.stroke();
+            g.fillStyle = '#cbd5e1'; g.font = SIM.font(20, false); g.textAlign = 'center';
+            for (let l = 400; l <= 900; l += 100) { g.fillText(l, X(l), AY + 30); g.beginPath(); g.moveTo(X(l), AY - 6); g.lineTo(X(l), AY + 6); g.stroke(); }
+            g.font = SIM.font(22); g.fillText('파장 (nm)', (XL + XR) / 2, AY + 72);
+            g.fillStyle = '#64748b'; g.textAlign = 'left'; g.fillText('자외선', XL, AY - 16); g.textAlign = 'right'; g.fillText('적외선', XR, AY - 16);
+            g.fillStyle = '#fca5a5'; g.fillText('긴 파장(붉은색) 쪽 →', XR, AY + 72);
         });
     })();
 
@@ -260,7 +312,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -270,8 +323,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

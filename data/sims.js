@@ -878,25 +878,6 @@ window.SITE = /*DATA-START*/{
       "inquiry": "각 변광성의 광도 곡선 모양의 특징을 표로 정리해 보자.\n밝기 변화의 원인이 별 자체에 있는 변광성과 그렇지 않은 변광성을 구분해 보자."
     },
     {
-      "id": "cluster-members",
-      "title": "성단의 별을 골라내 봅시다",
-      "desc": "함께 움직이는 별(고유 운동)로 성단 구성원 찾기",
-      "file": "sims/astro/cluster-members.html",
-      "topic": "astro",
-      "sub": "은하와 우주",
-      "links": [
-        {
-          "course": "pss",
-          "unit": "u3"
-        }
-      ],
-      "status": "ready",
-      "height": 0,
-      "howto": "**▶ 시간 흐르기**로 별을 움직이고, 함께 움직이는 별을 **클릭**해 고릅니다.\n**이동 경로 보기**, **성단 별 정답 보기**로 확인합니다.",
-      "concept": "성단의 별들은 같은 성운에서 함께 태어나 **같은 방향·같은 속도**로 움직입니다.\n고유 운동이 비슷한 별을 찾으면 앞뒤로 우연히 겹쳐 보이는 별과 성단 구성원을 구별할 수 있습니다.",
-      "inquiry": "성단 구성원을 고를 때 사용한 기준은 무엇인가?\n성단의 별들이 나이와 화학 조성이 비슷한 까닭을 설명해 보자."
-    },
-    {
       "id": "color-index",
       "title": "별의 온도에 따라 색지수는 어떻게 변할까?",
       "desc": "온도에 따라 B·V 필터에 들어오는 빛의 양과 색지수(B−V)",
@@ -952,6 +933,25 @@ window.SITE = /*DATA-START*/{
       "howto": "**표준 주계열 이동** 슬라이더로 빨간 선을 성단의 주계열에 겹칩니다.\n**연습 성단**과 **도전! 미지의 성단**을 풀어 봅니다.",
       "concept": "성단의 겉보기 등급 색등급도와 **표준 주계열**(절대 등급)을 겹치면, 위아래로 옮긴 양이 **거리 지수(m − M)**입니다.\nm − M = 5 log r − 5로 성단까지의 거리를 구할 수 있습니다(**주계열 맞추기**).",
       "inquiry": "거리 지수가 10인 성단까지의 거리는 몇 pc인가?\n성간 소광이 있다면 구한 거리는 실제보다 어떻게 될까?"
+    },
+    {
+      "id": "cluster-members",
+      "title": "성단의 별을 골라내 봅시다",
+      "desc": "함께 움직이는 별(고유 운동)로 성단 구성원 찾기",
+      "file": "sims/astro/cluster-members.html",
+      "topic": "astro",
+      "sub": "은하와 우주",
+      "links": [
+        {
+          "course": "pss",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "**▶ 시간 흐르기**로 별을 움직이고, 함께 움직이는 별을 **클릭**해 고릅니다.\n**이동 경로 보기**, **성단 별 정답 보기**로 확인합니다.",
+      "concept": "성단의 별들은 같은 성운에서 함께 태어나 **같은 방향·같은 속도**로 움직입니다.\n고유 운동이 비슷한 별을 찾으면 앞뒤로 우연히 겹쳐 보이는 별과 성단 구성원을 구별할 수 있습니다.",
+      "inquiry": "성단 구성원을 고를 때 사용한 기준은 무엇인가?\n성단의 별들이 나이와 화학 조성이 비슷한 까닭을 설명해 보자."
     },
     {
       "id": "cepheid-distance",
@@ -1011,6 +1011,25 @@ window.SITE = /*DATA-START*/{
       "inquiry": "우리은하를 옆에서 본 모습과 밤하늘의 은하수를 관련지어 설명해 보자.\n구상 성단과 산개 성단은 우리은하의 어디에 주로 분포하는가?"
     },
     {
+      "id": "nebula-types",
+      "title": "성운의 종류는 무엇이 결정할까?",
+      "desc": "주변 별의 유무와 온도에 따른 암흑·반사·방출 성운",
+      "file": "sims/astro/nebula-types.html",
+      "topic": "astro",
+      "sub": "은하와 우주",
+      "links": [
+        {
+          "course": "pss",
+          "unit": "u3"
+        }
+      ],
+      "status": "ready",
+      "height": 0,
+      "howto": "**밝은 별 없음/구름 속에 밝은 별** 버튼을 누르고, **별의 표면 온도**를 바꿉니다.",
+      "concept": "뒤쪽 별빛을 가리면 **암흑 성운**, 가까운 별빛을 티끌이 산란하면 파랗게 보이는 **반사 성운**입니다.\n주변 별이 매우 뜨거우면(약 2만 K 이상) 자외선이 수소를 이온화해 붉은 Hα 빛을 내는 **방출 성운**이 됩니다.",
+      "inquiry": "반사 성운이 파랗게 보이는 까닭을 하늘이 파란 까닭과 비교해 보자.\n오리온 대성운처럼 방출 성운이 생기는 곳에는 어떤 별이 있을까?"
+    },
+    {
       "id": "trumpler-extinction",
       "title": "트럼플러의 관측을 직접 재현해 봅시다",
       "desc": "성간 소광이 있을 때 거리 지수로 구한 거리가 과대평가되는 모습",
@@ -1066,25 +1085,6 @@ window.SITE = /*DATA-START*/{
       "howto": "**별의 표면 온도**와 **티끌의 양(Av)**을 바꿉니다.\n**모양 비교(밝기 맞춤)/실제 밝기** 버튼으로 스펙트럼을 비교합니다.",
       "concept": "성간 티끌은 **파장이 짧은 파란빛을 더 많이 소광**시켜 별빛이 실제보다 붉게 보입니다(**성간 적색화**).\n관측 색지수와 고유 색지수의 차이를 **색초과 E(B−V)**라 하며, 소광량은 약 **Av ≈ 3.1 E(B−V)**입니다.",
       "inquiry": "티끌의 양이 많아질수록 색초과는 어떻게 변하는가?\n성간 적색화와 우주 팽창에 의한 적색 이동은 어떻게 다른가?"
-    },
-    {
-      "id": "nebula-types",
-      "title": "성운의 종류는 무엇이 결정할까?",
-      "desc": "주변 별의 유무와 온도에 따른 암흑·반사·방출 성운",
-      "file": "sims/astro/nebula-types.html",
-      "topic": "astro",
-      "sub": "은하와 우주",
-      "links": [
-        {
-          "course": "pss",
-          "unit": "u3"
-        }
-      ],
-      "status": "ready",
-      "height": 0,
-      "howto": "**밝은 별 없음/구름 속에 밝은 별** 버튼을 누르고, **별의 표면 온도**를 바꿉니다.",
-      "concept": "뒤쪽 별빛을 가리면 **암흑 성운**, 가까운 별빛을 티끌이 산란하면 파랗게 보이는 **반사 성운**입니다.\n주변 별이 매우 뜨거우면(약 2만 K 이상) 자외선이 수소를 이온화해 붉은 Hα 빛을 내는 **방출 성운**이 됩니다.",
-      "inquiry": "반사 성운이 파랗게 보이는 까닭을 하늘이 파란 까닭과 비교해 보자.\n오리온 대성운처럼 방출 성운이 생기는 곳에는 어떤 별이 있을까?"
     },
     {
       "id": "rotation-curve",
@@ -1462,10 +1462,6 @@ window.SITE = /*DATA-START*/{
         },
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         },
         {
@@ -2917,10 +2913,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -2939,10 +2931,6 @@ window.SITE = /*DATA-START*/{
       "links": [
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         }
       ],
@@ -2963,10 +2951,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -2985,10 +2969,6 @@ window.SITE = /*DATA-START*/{
       "links": [
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         }
       ],
@@ -3009,10 +2989,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -3031,10 +3007,6 @@ window.SITE = /*DATA-START*/{
       "links": [
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         }
       ],
@@ -3055,10 +3027,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -3077,10 +3045,6 @@ window.SITE = /*DATA-START*/{
       "links": [
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         }
       ],
@@ -3101,10 +3065,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -3123,10 +3083,6 @@ window.SITE = /*DATA-START*/{
       "links": [
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         }
       ],
@@ -3147,10 +3103,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -3170,10 +3122,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -3192,10 +3140,6 @@ window.SITE = /*DATA-START*/{
       "links": [
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         }
       ],
@@ -3950,10 +3894,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u3"
         }
       ],
       "status": "ready",
@@ -3976,10 +3916,6 @@ window.SITE = /*DATA-START*/{
         },
         {
           "course": "es",
-          "unit": "u3"
-        },
-        {
-          "course": "pss",
           "unit": "u3"
         }
       ],

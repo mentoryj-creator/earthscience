@@ -127,18 +127,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #simB .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; align-self: center; }
+  #simB .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #simB .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -146,16 +155,19 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="simB">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>소광량(A)을 바꾸며 거리를 계산해 봅시다</div>
             <div class="ppt-subtitle">먼지가 많아질수록 별은 어둡게, 거리는 멀게 계산됩니다.</div>
             <div class="sim-wrap">
-                <div class="sim-stage"><canvas id="cB" width="1060" height="610"></canvas></div>
+                <div class="sim-stage"><canvas id="cB" width="1160" height="668"></canvas></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
                         <h4>조건 설정 <span style="font-size:22px;color:#64748b;font-weight:normal">(별의 절대 등급 M = 0)</span></h4>
                         <div class="sim-row"><span class="lbl">실제 거리 r</span><input type="range" class="sim-range" id="rB1" min="10" max="2000" step="10" value="400"><span class="sim-val" id="vB1">400 pc</span></div>
                         <div class="sim-row"><span class="lbl">소광량 A</span><input type="range" class="sim-range" id="rB2" min="0" max="5" step="0.1" value="2"><span class="sim-val" id="vB2">2.0 등급</span></div>
+                        <div class="sim-btns" style="margin-top:6px"><button class="sim-btn" id="bB0">↺ 티끌 모두 치우기</button></div>
+                        <div class="sim-note" style="margin-top:6px">왼쪽 화면을 누르거나 끌어서 성간 티끌을 직접 뿌릴 수도 있어요.</div>
                     </div>
                     <div class="sim-box" id="oB" style="font-size:27px"></div>
                     <div class="sim-box key" id="kB" style="font-size:27px"></div>
@@ -220,15 +232,23 @@
     /* ===================== 시뮬레이션 B: 소광량과 거리 ===================== */
     (function () {
         const c = document.getElementById('cB'), g = c.getContext('2d'), r = SIM.rng(7);
-        const W = 1060, H = 610, CX0 = 390, CX1 = 690, CY = 260;
+        const W = 1060, H = 610, CX0 = 390, CX1 = 690, CY = 260, OX = 960;
+        const KS = c.width / W; // 16:9 화면용으로 키운 캔버스에 1060×610 기준 그림을 맞춤
         let dist = 400, A = 2;
-        const dust = []; for (let i = 0; i < 500; i++) dust.push({ x: CX0 + r() * (CX1 - CX0), y: CY + SIM.gauss(r) * 70, s: 1 + r() * 2.5, ph: r() * 6.3 });
+        // 관측자는 고정, 별 위치가 실제 거리에 따라 조금만 움직임 (10 pc → 250, 2000 pc → 100)
+        const starX = () => 250 - 150 * Math.log10(dist / 10) / Math.log10(200);
+        // 성간 티끌: 입자 100개 = 소광 1등급 (슬라이더와 화면 터치가 같은 티끌을 늘리고 줄임)
+        const PER = 100, AMAX = 5, dust = [];
+        const cloudDust = () => ({ x: CX0 + r() * (CX1 - CX0), y: CY + SIM.gauss(r) * 70, s: 1 + r() * 2.5, ph: r() * 6.3 });
+        function syncDust() { const n = Math.round(A * PER); while (dust.length < n) dust.push(cloudDust()); dust.length = n; }
+        syncDust();
         const stars = []; for (let i = 0; i < 90; i++) stars.push({ x: r() * W, y: r() * 470, s: r() * 1.6 + .4 });
-        let ph = []; let got = 0, sent = 0;
+        let ph = []; let got = 0, sent = 0, msg = null, puffs = [];
         function out() {
             const m = 5 * Math.log10(dist) - 5 + A, rr = Math.pow(10, (m + 5) / 5), keep = Math.pow(10, -0.4 * A);
             document.getElementById('vB1').textContent = dist + ' pc';
             document.getElementById('vB2').textContent = A.toFixed(1) + ' 등급';
+            document.getElementById('rB2').value = A;
             document.getElementById('oB').innerHTML =
                 '<h4>관측 결과</h4>' +
                 '<div>관측된 겉보기 등급 m = 5 log ' + dist + ' − 5 + ' + A.toFixed(1) + ' = <b style="color:#dc2626">' + m.toFixed(2) + '</b></div>' +
@@ -239,37 +259,72 @@
                 '<div>실제 거리(' + dist + ' pc)의 <b style="color:#c2410c">' + (rr / dist).toFixed(2) + '배</b>로 <b>과대평가</b>!</div>';
         }
         document.getElementById('rB1').oninput = e => { dist = +e.target.value; out(); };
-        document.getElementById('rB2').oninput = e => { A = +e.target.value; out(); };
+        document.getElementById('rB2').oninput = e => { A = +e.target.value; syncDust(); msg = null; out(); };
+        // 화면을 누르거나 끌면 그 자리에 성간 티끌 추가 (별빛이 지나는 길 위에서만 소광이 늘어남)
+        const onPath = p => p.x > starX() + 70 && p.x < OX - 55 && Math.abs(p.y - CY) < 150;
+        let drawing = false, lastAdd = 0;
+        function addDust(p, now) {
+            if (now - lastAdd < 70) return; lastAdd = now;
+            if (!onPath(p)) { msg = { txt: '별빛이 지나가는 길(별 ↔ 관측자 사이)에 뿌려야 소광이 생겨요', until: now + 1800 }; return; }
+            if (A >= AMAX - 1e-9) { msg = { txt: '티끌이 가득 찼어요 (최대 ' + AMAX + '등급)', until: now + 1500 }; return; }
+            for (let i = 0; i < PER / 10; i++) dust.push({ x: p.x + SIM.gauss(Math.random) * 18, y: p.y + SIM.gauss(Math.random) * 18, s: 1 + Math.random() * 2.5, ph: Math.random() * 6.3 });
+            A = Math.min(AMAX, Math.round((A + 0.1) * 10) / 10); dust.length = Math.round(A * PER);
+            puffs.push({ x: p.x, y: p.y, t: now }); msg = null; out();
+        }
+        const lp = e => { const q = SIM.pos(e, c); return { x: q.x / KS, y: q.y / KS }; };
+        c.style.cursor = 'crosshair'; c.style.touchAction = 'none';
+        c.addEventListener('pointerdown', e => { drawing = true; c.setPointerCapture(e.pointerId); lastAdd = 0; addDust(lp(e), performance.now()); e.preventDefault(); });
+        c.addEventListener('pointermove', e => { if (drawing) addDust(lp(e), performance.now()); });
+        c.addEventListener('pointerup', () => { drawing = false; });
+        c.addEventListener('pointercancel', () => { drawing = false; });
+        document.getElementById('bB0').onclick = () => { A = 0; syncDust(); msg = null; out(); };
         out();
         SIM.loop('simB', (t, dt) => {
-            const keep = Math.pow(10, -0.4 * A), pStep = 1 - Math.pow(keep, 1 / (CX1 - CX0) * 4);
+            g.setTransform(KS, 0, 0, KS, 0, 0);
+            const SX = starX();
+            // 티끌이 퍼져 있는 구간에서 빛이 흩어짐 (전체 통과 확률 = 10^(−0.4A))
+            let DX0 = CX0, DX1 = CX1; if (dust.length) { DX0 = Infinity; DX1 = -Infinity; dust.forEach(d => { DX0 = Math.min(DX0, d.x); DX1 = Math.max(DX1, d.x); }); DX0 -= 8; DX1 += 8; }
+            const keep = Math.pow(10, -0.4 * A), pStep = 1 - Math.pow(keep, 1 / Math.max(40, DX1 - DX0) * 4);
             g.fillStyle = '#0f172a'; g.fillRect(0, 0, W, H);
             stars.forEach(s => { g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(s.x, s.y, s.s, s.s); });
+            // 별빛이 지나는 길 (여기를 누르면 티끌 추가)
+            g.fillStyle = 'rgba(250,204,21,.05)'; g.fillRect(SX + 70, CY - 150, OX - 55 - SX - 70, 300);
+            g.setLineDash([8, 8]); g.strokeStyle = 'rgba(250,204,21,.22)'; g.lineWidth = 2; g.strokeRect(SX + 70, CY - 150, OX - 55 - SX - 70, 300); g.setLineDash([]);
             // 성간 티끌 구름
-            const nd = Math.round(A / 5 * dust.length);
             const grad = g.createRadialGradient((CX0 + CX1) / 2, CY, 20, (CX0 + CX1) / 2, CY, 200);
             grad.addColorStop(0, 'rgba(100,116,139,' + (0.12 * A).toFixed(2) + ')'); grad.addColorStop(1, 'rgba(100,116,139,0)');
             g.fillStyle = grad; g.fillRect(CX0 - 60, CY - 200, CX1 - CX0 + 120, 400);
-            for (let i = 0; i < nd; i++) { const d = dust[i]; g.fillStyle = 'rgba(148,163,184,.7)'; g.beginPath(); g.arc(d.x + Math.sin(t / 900 + d.ph) * 3, d.y + Math.cos(t / 1100 + d.ph) * 3, d.s, 0, 7); g.fill(); }
+            dust.forEach(d => { g.fillStyle = 'rgba(148,163,184,.7)'; g.beginPath(); g.arc(d.x + Math.sin(t / 900 + d.ph) * 3, d.y + Math.cos(t / 1100 + d.ph) * 3, d.s, 0, 7); g.fill(); });
+            puffs = puffs.filter(p => t - p.t < 500);
+            puffs.forEach(p => { const k = (t - p.t) / 500; g.strokeStyle = 'rgba(203,213,225,' + (1 - k).toFixed(2) + ')'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, 10 + 30 * k, 0, 7); g.stroke(); });
             // 별
-            const sg = g.createRadialGradient(130, CY, 5, 130, CY, 80); sg.addColorStop(0, '#fff'); sg.addColorStop(.35, '#fde68a'); sg.addColorStop(1, 'rgba(250,204,21,0)');
-            g.fillStyle = sg; g.beginPath(); g.arc(130, CY, 80, 0, 7); g.fill();
+            const sg = g.createRadialGradient(SX, CY, 5, SX, CY, 80); sg.addColorStop(0, '#fff'); sg.addColorStop(.35, '#fde68a'); sg.addColorStop(1, 'rgba(250,204,21,0)');
+            g.fillStyle = sg; g.beginPath(); g.arc(SX, CY, 80, 0, 7); g.fill();
             // 광자
-            for (let k = 0; k < 3; k++) { ph.push({ x: 180, y: CY + (Math.random() - .5) * 60, vx: 420, vy: 0, alive: 1 }); sent++; }
+            for (let k = 0; k < 3; k++) { ph.push({ x: SX + 50, y: CY + (Math.random() - .5) * 60, vx: 420, vy: 0, alive: 1 }); sent++; }
             ph.forEach(p => {
                 p.x += p.vx * dt; p.y += p.vy * dt;
-                if (p.alive === 1 && p.x > CX0 && p.x < CX1 && Math.random() < pStep) { p.alive = 0.99; const an = Math.random() * 6.28; p.vx = Math.cos(an) * 260; p.vy = Math.sin(an) * 260; }
+                if (p.alive === 1 && p.x > DX0 && p.x < DX1 && Math.random() < pStep) { p.alive = 0.99; const an = Math.random() * 6.28; p.vx = Math.cos(an) * 260; p.vy = Math.sin(an) * 260; }
                 if (p.alive < 1) p.alive -= dt * 1.4;
-                if (p.alive === 1 && p.x > 900) { p.alive = -1; got++; }
+                if (p.alive === 1 && p.x > OX - 60) { p.alive = -1; got++; }
                 if (p.alive > 0) { g.fillStyle = p.alive === 1 ? 'rgba(250,204,21,.95)' : 'rgba(250,204,21,' + (p.alive * 0.6).toFixed(2) + ')'; g.fillRect(p.x, p.y, 7, 3); }
             });
             ph = ph.filter(p => p.alive > 0 && p.x < W + 20);
             // 관측자
-            g.strokeStyle = '#fff'; g.lineWidth = 5; g.beginPath(); g.moveTo(920, CY); g.quadraticCurveTo(960, CY - 40, 1000, CY); g.quadraticCurveTo(960, CY + 40, 920, CY); g.stroke();
-            g.fillStyle = '#fff'; g.beginPath(); g.arc(960, CY, 11, 0, 7); g.fill();
+            g.strokeStyle = '#fff'; g.lineWidth = 5; g.beginPath(); g.moveTo(OX - 40, CY); g.quadraticCurveTo(OX, CY - 40, OX + 40, CY); g.quadraticCurveTo(OX, CY + 40, OX - 40, CY); g.stroke();
+            g.fillStyle = '#fff'; g.beginPath(); g.arc(OX, CY, 11, 0, 7); g.fill();
+            // 거리 표시 (별 ↔ 관측자)
+            const dy = CY + 165; g.strokeStyle = 'rgba(148,163,184,.8)'; g.lineWidth = 2;
+            g.beginPath(); g.moveTo(SX, dy); g.lineTo(OX, dy); g.moveTo(SX, dy - 9); g.lineTo(SX, dy + 9); g.moveTo(OX, dy - 9); g.lineTo(OX, dy + 9); g.stroke();
+            g.fillStyle = '#0f172a'; g.fillRect((SX + OX) / 2 - 78, dy - 16, 156, 32);
+            g.fillStyle = '#e2e8f0'; g.font = SIM.font(22); g.textAlign = 'center'; g.fillText('r = ' + dist + ' pc', (SX + OX) / 2, dy + 8);
             // 라벨
             g.fillStyle = '#fff'; g.font = SIM.font(26); g.textAlign = 'center';
-            g.fillText('별 (M = 0)', 130, CY + 120); g.fillText('성간 티끌', (CX0 + CX1) / 2, CY + 200); g.fillText('관측자', 960, CY + 70);
+            g.fillText('별 (M = 0)', SX, CY + 120); g.fillText('성간 티끌', (CX0 + CX1) / 2, CY + 210); g.fillText('관측자', OX, CY + 70);
+            // 안내
+            g.font = SIM.font(21); g.textAlign = 'left';
+            if (msg && msg.until > t) { g.fillStyle = '#fca5a5'; g.fillText('⚠ ' + msg.txt, 24, 36); }
+            else { g.fillStyle = 'rgba(226,232,240,.85)'; g.fillText('👆 별빛이 지나는 길을 누르거나 끌면 성간 티끌이 늘어나요 (+0.1등급씩)', 24, 36); }
             // 하단 비교 막대
             const y0 = 505;
             g.font = SIM.font(24); g.textAlign = 'left';
@@ -291,7 +346,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -301,8 +357,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

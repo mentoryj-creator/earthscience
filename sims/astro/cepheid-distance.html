@@ -141,6 +141,9 @@
         .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
         .ans { color: #dc2626; font-weight: 800; }
         .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+        .sim-bad { color: #dc2626; font-weight: bold; }
         .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
     </style>
 <style id="standalone">
@@ -148,12 +151,19 @@
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #u6 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #u6 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #u6 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -161,17 +171,19 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="u6">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>세페이드 변광성으로 거리 재기</div>
             <div class="ppt-subtitle">주기를 재면 절대 등급을, 겉보기 등급과 비교하면 거리를 알 수 있어요.</div>
             <div class="sim-wrap">
-                <div class="sim-stage"><canvas id="cT" width="1060" height="610"></canvas></div>
+                <div class="sim-stage"><canvas id="cT" width="1160" height="900"></canvas></div>
                 <div class="sim-panel">
                     <div class="sim-box blue">
                         <div class="sim-row"><span class="lbl" style="width:150px">변광 주기</span><input type="range" class="sim-range" id="rT1" min="-0.5" max="2" step="0.01" value="1.477"><span class="sim-val" id="vT1"></span></div>
                         <div class="sim-row"><span class="lbl" style="width:150px">실제 거리</span><input type="range" class="sim-range" id="rT2" min="2" max="5" step="0.01" value="3.4"><span class="sim-val" id="vT2"></span></div>
                         <div class="sim-btns"><button class="sim-btn" id="bT1">섀플리의 예 (30일, 7등급)</button></div>
                     </div>
+                    <div class="sim-box" id="oPick" style="font-size:26px"></div>
                     <div class="sim-box key" id="oT" style="font-size:27px"></div>
                     <div class="sim-note">※ 주기−광도 관계는 섀플리가 제시한 곡선을 따른 모형이에요. 맥동 속도는 실제보다 빠르게 보여 줘요.</div>
                 </div>
@@ -234,57 +246,103 @@
 
 /* ===================== 시뮬레이션 T: 세페이드 변광성 ===================== */
 (function(){
-  const c=document.getElementById('cT'),g=c.getContext('2d'),W=1060,H=610;
+  const c=document.getElementById('cT'),g=c.getContext('2d'),W=1160,H=900;
   const PL=[[-0.52,-0.35],[-0.3,-0.45],[0,-0.8],[0.477,-1.5],[0.7,-2.1],[1,-3.2],[1.477,-5.0],[1.7,-5.7],[2,-7.0]];
   const Mof=lp=>{for(let i=0;i<PL.length-1;i++){const a=PL[i],b=PL[i+1];if(lp<=b[0])return a[1]+(b[1]-a[1])*(lp-a[0])/(b[0]-a[0]);}return PL[PL.length-1][1];};
   let lp=1.477,lr=3.4,ph=0;
+  // 절대 등급 찾기 단계: 그래프를 직접 클릭해서 맞혀야 거리 풀이가 나옴
+  let found=false,tries=0,last=null,hover=null,marks=[],okAt=0;
+  const TOL=0.35; // 정답으로 인정하는 절대 등급 오차
   const lc=f=>{f=f-Math.floor(f);return f<0.18?Math.sin(f/0.18*Math.PI/2):Math.cos((f-0.18)/0.82*Math.PI/2);}; // 0..1 밝기
+  // 주기−광도 그래프 영역
+  const gx0=110,gx1=1120,gy0=440,gy1=820,X=l=>gx0+(l+0.5)/2.5*(gx1-gx0),Y=M=>gy1-(M/-8)*(gy1-gy0),Minv=y=>-8*(gy1-y)/(gy1-gy0);
   function vals(){const P=Math.pow(10,lp),M=Mof(lp),r=Math.pow(10,lr),m=M+5*lr-5;return{P,M,r,m};}
+  const fP=P=>(P<10?P.toFixed(2):P.toFixed(0));
   function out(){
     const v=vals();
-    document.getElementById('vT1').textContent=(v.P<10?v.P.toFixed(2):v.P.toFixed(0))+' 일';
+    document.getElementById('vT1').textContent=fP(v.P)+' 일';
     document.getElementById('vT2').textContent=v.r>=1000?(v.r/1000).toFixed(1)+' kpc':Math.round(v.r)+' pc';
     document.getElementById('rT1').value=lp;document.getElementById('rT2').value=lr;
-    document.getElementById('oT').innerHTML='<h4>거리 구하기</h4>'+
-      '<div>① 변광 주기: <b>'+(v.P<10?v.P.toFixed(2):v.P.toFixed(0))+' 일</b></div>'+
-      '<div>② 주기−광도 관계 → 절대 등급 M ≈ <b class="or">'+v.M.toFixed(1)+'</b></div>'+
-      '<div>③ 평균 겉보기 등급 m ≈ <b class="or">'+v.m.toFixed(1)+'</b></div>'+
-      '<div>④ m − M = '+(v.m-v.M).toFixed(1)+' = 5 log r − 5</div>'+
-      '<div>→ r ≈ <span class="sim-big" style="font-size:34px">'+(v.r>=1000?(v.r/1000).toFixed(1)+' kpc':Math.round(v.r)+' pc')+'</span></div>';
+    let pk='<h4>② 절대 등급 찾기</h4>';
+    if(found) pk+='<div class="sim-ok" style="font-size:29px">✔ 정답! 절대 등급 M ≈ '+v.M.toFixed(1)+'</div><div class="sim-note">'+(tries?'틀린 횟수 '+tries+'번 · ':'')+'변광 주기를 바꾸면 다시 찾아야 해요.</div>';
+    else{
+      pk+='<div>왼쪽 아래 <b>주기−광도 그래프</b>에서, <b style="color:#2563eb">파란 점선(주기 '+fP(v.P)+'일)</b>과 <b class="or">주황 곡선</b>이 만나는 점을 클릭하세요.</div>';
+      if(last) pk+='<div style="margin-top:6px">'+last+'</div>';
+    }
+    document.getElementById('oPick').innerHTML=pk;
+    let h='<h4>거리 구하기</h4><div>① 변광 주기: <b>'+fP(v.P)+' 일</b></div>';
+    if(found){
+      h+='<div>② 주기−광도 관계 → 절대 등급 M ≈ <b class="or">'+v.M.toFixed(1)+'</b></div>'+
+        '<div>③ 평균 겉보기 등급 m ≈ <b class="or">'+v.m.toFixed(1)+'</b></div>'+
+        '<div>④ m − M = '+(v.m-v.M).toFixed(1)+' = 5 log r − 5</div>'+
+        '<div>→ r ≈ <span class="sim-big" style="font-size:34px">'+(v.r>=1000?(v.r/1000).toFixed(1)+' kpc':Math.round(v.r)+' pc')+'</span></div>';
+    }else{
+      h+='<div>② 절대 등급 M = <b class="or">?</b> <span class="sim-note">(그래프에서 찾기)</span></div>'+
+        '<div>③ 평균 겉보기 등급 m ≈ <b class="or">'+v.m.toFixed(1)+'</b></div>'+
+        '<div class="sim-note" style="margin-top:6px">절대 등급을 찾으면 거리를 계산할 수 있어요.</div>';
+    }
+    document.getElementById('oT').innerHTML=h;
   }
-  document.getElementById('rT1').oninput=e=>{lp=+e.target.value;out();};
+  function setLp(v){if(Math.abs(v-lp)>1e-9){lp=v;found=false;last=null;tries=0;marks=[];}out();}
+  document.getElementById('rT1').oninput=e=>setLp(+e.target.value);
   document.getElementById('rT2').oninput=e=>{lr=+e.target.value;out();};
-  document.getElementById('bT1').onclick=()=>{lp=1.477;lr=3.4;out();};
+  document.getElementById('bT1').onclick=()=>{lr=3.4;setLp(1.477);};
+  // 그래프 클릭 → 맞다 / 틀리다
+  const inGraph=p=>p.x>=gx0-20&&p.x<=gx1+20&&p.y>=gy0-20&&p.y<=gy1+20;
+  c.addEventListener('pointermove',e=>{const p=SIM.pos(e,c);hover=inGraph(p)?p:null;c.style.cursor=hover&&!found?'crosshair':'default';});
+  c.addEventListener('pointerleave',()=>{hover=null;});
+  c.addEventListener('click',e=>{
+    const p=SIM.pos(e,c);if(found||!inGraph(p))return;
+    const v=vals(),Mc=Minv(p.y),now=performance.now();
+    if(Math.abs(p.x-X(lp))>40){last='<span class="sim-bad">파란 점선 위</span>를 클릭해야 해요. 점선은 지금 별의 변광 주기를 나타내요.';marks.push({x:p.x,y:p.y,until:now+1200});}
+    else if(Math.abs(Mc-v.M)<=TOL){found=true;okAt=now;last=null;}
+    else{tries++;marks.push({x:p.x,y:p.y,until:now+1500});
+      last='<span class="sim-bad">✘ 틀렸어요.</span> 클릭한 곳은 절대 등급 약 <b>'+Mc.toFixed(1)+'</b>이에요. 곡선과 만나는 점보다 <b>'+(Mc>v.M?'아래':'위')+'</b>를 눌렀어요. 다시 클릭해 보세요!';}
+    out();
+  });
   out();
   SIM.loop('u6',(t,dt)=>{
     const v=vals();ph+=dt/(0.7+0.55*(lp+0.5));
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
     // 맥동하는 별
-    const b=lc(ph),rad=62+14*b,cx=170,cy=165,gr=g.createRadialGradient(cx,cy,4,cx,cy,rad*1.7);
+    const b=lc(ph),rad=70+16*b,cx=190,cy=195,gr=g.createRadialGradient(cx,cy,4,cx,cy,rad*1.7);
     gr.addColorStop(0,'#fff');gr.addColorStop(.35,'rgba(253,224,71,'+(0.65+0.35*b)+')');gr.addColorStop(1,'rgba(253,186,116,0)');
     g.fillStyle=gr;g.beginPath();g.arc(cx,cy,rad*1.7,0,7);g.fill();
-    g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.textAlign='center';g.fillText(b>0.7?'팽창 · 밝음':(b<0.3?'수축 · 어두움':''),cx,300);
+    g.fillStyle='#e2e8f0';g.font=SIM.font(25);g.textAlign='center';g.fillText(b>0.7?'팽창 · 밝음':(b<0.3?'수축 · 어두움':''),cx,365);
     // 광도 곡선
-    const x0=360,x1=1030,y0=40,y1=270,ncyc=3;
+    const x0=400,x1=1130,y0=50,y1=330,ncyc=3;
     g.strokeStyle='#475569';g.lineWidth=2;g.strokeRect(x0,y0,x1-x0,y1-y0);
-    g.fillStyle='#cbd5e1';g.font=SIM.font(19);g.textAlign='left';g.fillText('광도 곡선 (겉보기 등급)',x0+10,y0-10);
+    g.fillStyle='#cbd5e1';g.font=SIM.font(22);g.textAlign='left';g.fillText('광도 곡선 (겉보기 등급)',x0+10,y0-14);
     g.strokeStyle='#fb923c';g.lineWidth=4;g.beginPath();
-    for(let x=x0;x<=x1;x+=2){const f=(x-x0)/(x1-x0)*ncyc;const yy=y1-30-lc(f)*(y1-y0-60);x===x0?g.moveTo(x,yy):g.lineTo(x,yy);}g.stroke();
-    const cxp=x0+((ph%ncyc)/ncyc)*(x1-x0);g.fillStyle='#fde68a';g.beginPath();g.arc(cxp,y1-30-lc(ph)*(y1-y0-60),9,0,7);g.fill();
-    g.fillStyle='#94a3b8';g.font=SIM.font(17,false);g.textAlign='center';
-    for(let k=0;k<=ncyc;k++)g.fillText((k*v.P<10?(k*v.P).toFixed(1):(k*v.P).toFixed(0))+'일',x0+k*(x1-x0)/ncyc,y1+20);
-    g.textAlign='right';g.fillText((v.m-0.4).toFixed(1),x0-8,y0+36);g.fillText((v.m+0.4).toFixed(1),x0-8,y1-24);
+    for(let x=x0;x<=x1;x+=2){const f=(x-x0)/(x1-x0)*ncyc;const yy=y1-36-lc(f)*(y1-y0-72);x===x0?g.moveTo(x,yy):g.lineTo(x,yy);}g.stroke();
+    const cxp=x0+((ph%ncyc)/ncyc)*(x1-x0);g.fillStyle='#fde68a';g.beginPath();g.arc(cxp,y1-36-lc(ph)*(y1-y0-72),10,0,7);g.fill();
+    g.fillStyle='#94a3b8';g.font=SIM.font(20,false);g.textAlign='center';
+    for(let k=0;k<=ncyc;k++)g.fillText((k*v.P<10?(k*v.P).toFixed(1):(k*v.P).toFixed(0))+'일',x0+k*(x1-x0)/ncyc,y1+26);
+    g.textAlign='right';g.fillText((v.m-0.4).toFixed(1),x0-8,y0+42);g.fillText((v.m+0.4).toFixed(1),x0-8,y1-30);
     // 주기-광도 그래프
-    const gx0=90,gx1=1020,gy0=330,gy1=575,X=l=>gx0+(l+0.5)/2.5*(gx1-gx0),Y=M=>gy1-(M/-8)*(gy1-gy0);
-    g.fillStyle='#e2e8f0';g.font=SIM.font(19);g.textAlign='left';g.fillText('주기−광도 관계',gx0+8,gy0+2);
-    g.strokeStyle='rgba(148,163,184,.3)';g.lineWidth=1;[-0.5,0,0.5,1,1.5,2].forEach(l=>{g.beginPath();g.moveTo(X(l),gy0);g.lineTo(X(l),gy1);g.stroke();});[0,-2,-4,-6,-8].forEach(M=>{g.beginPath();g.moveTo(gx0,Y(M));g.lineTo(gx1,Y(M));g.stroke();});
-    g.fillStyle='#94a3b8';g.font=SIM.font(16,false);g.textAlign='center';[[0.5,-0.301],[1,0],[3,.477],[10,1],[30,1.477],[100,2]].forEach(([p,l])=>g.fillText(p+'일',X(l),gy1+20));
-    g.textAlign='right';[0,-2,-4,-6,-8].forEach(M=>g.fillText(M,gx0-8,Y(M)+5));
-    g.save();g.translate(30,(gy0+gy1)/2);g.rotate(-Math.PI/2);g.textAlign='center';g.fillText('절대 등급',0,0);g.restore();
-    g.strokeStyle='#fb923c';g.lineWidth=4;g.beginPath();for(let l=-0.5;l<=2;l+=0.02){l===-0.5?g.moveTo(X(l),Y(Mof(l))):g.lineTo(X(l),Y(Mof(l)));}g.stroke();
-    g.setLineDash([6,6]);g.strokeStyle='#60a5fa';g.lineWidth=2;g.beginPath();g.moveTo(X(lp),gy1);g.lineTo(X(lp),Y(v.M));g.lineTo(gx0,Y(v.M));g.stroke();g.setLineDash([]);
-    g.fillStyle='#fde68a';g.beginPath();g.arc(X(lp),Y(v.M),10,0,7);g.fill();
-    g.fillStyle='#93c5fd';g.font=SIM.font(19);g.textAlign='left';g.fillText('M ≈ '+v.M.toFixed(1),gx0+8,Y(v.M)-8);
+    g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.textAlign='left';g.fillText('주기−광도 관계'+(found?'':'  👆 절대 등급을 찾아 클릭!'),gx0,gy0-16);
+    g.strokeStyle='rgba(148,163,184,.3)';g.lineWidth=1;[-0.5,0,0.5,1,1.5,2].forEach(l=>{g.beginPath();g.moveTo(X(l),gy0);g.lineTo(X(l),gy1);g.stroke();});for(let M=0;M>=-8;M--){g.beginPath();g.moveTo(gx0,Y(M));g.lineTo(gx1,Y(M));g.stroke();}
+    g.fillStyle='#94a3b8';g.font=SIM.font(20,false);g.textAlign='center';[[0.5,-0.301],[1,0],[3,.477],[10,1],[30,1.477],[100,2]].forEach(([p,l])=>g.fillText(p+'일',X(l),gy1+28));
+    g.textAlign='right';for(let M=0;M>=-8;M--)g.fillText(M,gx0-10,Y(M)+7);
+    g.save();g.translate(36,(gy0+gy1)/2);g.rotate(-Math.PI/2);g.textAlign='center';g.font=SIM.font(22);g.fillText('절대 등급',0,0);g.restore();
+    g.strokeStyle='#fb923c';g.lineWidth=5;g.beginPath();for(let l=-0.5;l<=2;l+=0.02){l===-0.5?g.moveTo(X(l),Y(Mof(l))):g.lineTo(X(l),Y(Mof(l)));}g.stroke();
+    // 지금 별의 변광 주기 (파란 점선)
+    g.setLineDash([8,7]);g.strokeStyle='#60a5fa';g.lineWidth=3;g.beginPath();g.moveTo(X(lp),gy1);g.lineTo(X(lp),found?Y(v.M):gy0);g.stroke();
+    if(found){g.beginPath();g.moveTo(X(lp),Y(v.M));g.lineTo(gx0,Y(v.M));g.stroke();}
+    g.setLineDash([]);
+    g.fillStyle='#93c5fd';g.font=SIM.font(20);g.textAlign='center';g.fillText('주기 '+fP(v.P)+'일',X(lp),gy1-10);
+    // 마우스 위치 안내선 (아직 못 찾았을 때)
+    if(!found&&hover){g.strokeStyle='rgba(226,232,240,.35)';g.lineWidth=1.5;g.beginPath();g.moveTo(gx0,hover.y);g.lineTo(gx1,hover.y);g.stroke();
+      g.strokeStyle='rgba(226,232,240,.7)';g.lineWidth=2;g.beginPath();g.arc(hover.x,hover.y,9,0,7);g.stroke();}
+    // 틀린 곳 표시
+    const now=performance.now();marks=marks.filter(m=>m.until>now);
+    marks.forEach(m=>{g.save();g.globalAlpha=Math.min(1,(m.until-now)/400);g.strokeStyle='#f87171';g.lineWidth=5;g.beginPath();
+      g.moveTo(m.x-13,m.y-13);g.lineTo(m.x+13,m.y+13);g.moveTo(m.x+13,m.y-13);g.lineTo(m.x-13,m.y+13);g.stroke();g.restore();});
+    // 정답 표시
+    if(found){const k=Math.min(1,(now-okAt)/600);
+      g.fillStyle='#fde68a';g.beginPath();g.arc(X(lp),Y(v.M),11,0,7);g.fill();
+      g.strokeStyle='rgba(74,222,128,'+(1-k*0.4)+')';g.lineWidth=4;g.beginPath();g.arc(X(lp),Y(v.M),14+18*(1-k),0,7);g.stroke();
+      g.fillStyle='#4ade80';g.font=SIM.font(24);g.textAlign='left';g.fillText('정답!  M ≈ '+v.M.toFixed(1),gx0+10,Y(v.M)-12);}
   });
 })();
 
@@ -297,7 +355,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -307,8 +366,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

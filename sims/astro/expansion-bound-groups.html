@@ -123,18 +123,27 @@
         .sim-ok { color: #16a34a; font-weight: bold; }
         .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
         .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #s15 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #s15 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #s15 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -142,13 +151,15 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide active" id="s15">
             <div class="ppt-title">우주가 팽창하면 은하 집단은 어떻게 될까?</div>
             <div class="ppt-subtitle">중력으로 뭉친 곳은 <span class="or">그대로</span>, 그 사이는 <span class="or">멀어져요.</span></div>
             <div class="main">
                 <div class="col" style="align-items:center">
                     <div class="sim-stage"><canvas id="c15"></canvas></div>
-                    <div class="sim-row" style="width:100%"><button class="sim-btn on" id="b15p">▶ 팽창 시작</button><span>과거</span><input type="range" class="sim-range" id="r15" min="0" max="1000" value="0"><span>미래</span></div>
+                    <div class="sim-row" style="width:100%"><button class="sim-btn on" id="b15p">▶ 팽창 시작</button><button class="sim-btn" id="b15r">↺ 처음으로</button><span>과거</span><input type="range" class="sim-range" id="r15" min="0" max="1000" value="0"><span>미래</span></div>
+                    <div class="sim-row" style="width:100%"><span style="flex:none;font-weight:bold;color:#2563eb">은하단 안의 중력(결합) 세기</span><input type="range" class="sim-range" id="r15b" min="0" max="100" step="5" value="100"><span class="sim-val" id="v15b" style="min-width:110px;color:#2563eb">100 %</span></div>
                     <div class="note">※ 모식 시뮬레이션이에요. 파란 원 = 중력으로 묶인 은하군·은하단 하나.</div>
                 </div>
                 <div class="col grow" style="justify-content:center">
@@ -184,27 +195,33 @@ const slides=[$('#s15')];let cur=0;function upd(){}
 function setShown(el,n,fire){el._shown=n;$$('[data-step]',el).forEach(e=>e.classList.toggle('on',+e.dataset.step<=n));if(fire&&STEP[el.id])STEP[el.id](n);}
 /* ---------- 15. expansion ---------- */
 (function(){
-  const c=$('#c15'),g=hd(c,720,360,1.25),r=rng(15);
+  const c=$('#c15'),g=hd(c,720,360,1.6),r=rng(15);
   const cells=[];for(let j=0;j<2;j++)for(let i=0;i<3;i++)cells.push({x:(i-1)*170,y:(j-.5)*160,g:[]});
   cells.forEach(cl=>{for(let k=0;k<7;k++){const a=r()*6.28,d=Math.sqrt(r())*26;cl.g.push([Math.cos(a)*d,Math.sin(a)*d]);}});
-  let t=0,play=false;
+  let t=0,play=false,bind=1;
+  // 결합 세기 bind(0~1): 50 % 이상이면 중력이 팽창을 이겨 은하단 크기 그대로, 약할수록 은하단도 팽창을 따라 늘어나 흩어짐 (모식)
+  const inner=a=>bind>=.5?1:1+(a-1)*(1-bind/.5);
   function draw(time){
     g.fillStyle=DARK;g.fillRect(0,0,720,360);
-    const a=1+.85*t;const cx=360,cy=185;
+    const a=1+.85*t;const cx=360,cy=185,ai=inner(a);
     g.strokeStyle='rgba(251,146,60,.75)';g.lineWidth=2.5;g.setLineDash([6,6]);
     const pp=cells.map(cl=>[cx+cl.x*a*0.95,cy+cl.y*a*0.9]);
     [[0,1],[1,2],[3,4],[4,5],[0,3],[1,4],[2,5]].forEach(p=>{g.beginPath();g.moveTo(pp[p[0]][0],pp[p[0]][1]);g.lineTo(pp[p[1]][0],pp[p[1]][1]);g.stroke();});
     g.setLineDash([]);
     cells.forEach((cl,i)=>{const [px,py]=pp[i];
-      g.fillStyle='rgba(59,130,246,.18)';g.beginPath();g.arc(px,py,38,0,7);g.fill();
-      g.strokeStyle=BLUE;g.lineWidth=2.5;g.beginPath();g.arc(px,py,38,0,7);g.stroke();
-      g.fillStyle='#fde68a';cl.g.forEach(q=>{const jx=Math.sin(time/500+q[0])*1.2,jy=Math.cos(time/430+q[1])*1.2;g.beginPath();g.arc(px+q[0]+jx,py+q[1]+jy,3,0,7);g.fill();});});
+      if(bind>=.5){g.fillStyle='rgba(59,130,246,.18)';g.beginPath();g.arc(px,py,38,0,7);g.fill();}
+      g.strokeStyle=BLUE;g.lineWidth=2.5;if(bind<.5)g.setLineDash([4,6]);g.beginPath();g.arc(px,py,38*ai,0,7);g.stroke();g.setLineDash([]);
+      g.fillStyle='#fde68a';cl.g.forEach(q=>{const jx=Math.sin(time/500+q[0])*1.2,jy=Math.cos(time/430+q[1])*1.2;g.beginPath();g.arc(px+q[0]*ai+jx,py+q[1]*ai+jy,3,0,7);g.fill();});});
+    g.fillStyle='rgba(15,23,42,.8)';g.fillRect(8,8,380,56);
     g.fillStyle=ORANGE;g.font=F(19);
     g.fillText('은하단 사이 거리  ×'+a.toFixed(2),16,28);
-    g.fillStyle=BLUE;g.fillText('은하단 안의 거리  ×1.00 (그대로)',16,54);
+    g.fillStyle=bind>=.5?BLUE:'#f87171';g.fillText('은하단 안의 거리  ×'+ai.toFixed(2)+(bind>=.5?' (그대로)':' (흩어짐!)'),16,54);
+    if(bind<.5){g.fillStyle='#f87171';g.font=F(17);g.textAlign='right';g.fillText('중력이 약하면 팽창에 끌려가요 (초은하단처럼)',712,346);g.textAlign='left';}
     g.fillStyle=TXT;g.font=F(17);g.fillText('빈 공간(거대 공동)도 함께 커져요',16,346);
   }
   SIM.s15=loop('s15',(time,dt)=>{if(play){t=Math.min(1,t+dt/9);$('#r15').value=t*1000;if(t>=1){play=false;$('#b15p').textContent='▶ 팽창 시작';}}draw(time);});
+  $('#r15b').oninput=e=>{bind=e.target.value/100;$('#v15b').textContent=e.target.value+' %';};
+  $('#b15r').onclick=()=>{t=0;play=false;bind=1;$('#r15').value=0;$('#r15b').value=100;$('#v15b').textContent='100 %';$('#b15p').textContent='▶ 팽창 시작';};
   $('#r15').oninput=e=>{t=e.target.value/1000;play=false;$('#b15p').textContent='▶ 팽창 시작';};
   $('#b15p').onclick=()=>{if(t>=1)t=0;play=!play;$('#b15p').textContent=play?'❚❚ 멈춤':'▶ 팽창 시작';};
   draw(0);
@@ -221,7 +238,8 @@ window.STEP=STEP;const el=slides[0];if(SIM[el.id])SIM[el.id].start();
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -231,8 +249,27 @@ window.STEP=STEP;const el=slides[0];if(SIM[el.id])SIM[el.id].start();
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){
