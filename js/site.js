@@ -90,7 +90,7 @@
     if (!el) return;
     el.className = 'site-footer';
     el.innerHTML = `지구과학 시뮬레이션 실험실 · 그림의 크기와 거리는 실제 비율과 다를 수 있습니다
-      · <a href="${ROOT}admin.html">관리</a>`;
+      · Made by Kwon Youngjae · <a href="${ROOT}admin.html">관리</a>`;
   }
 
   window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card };
