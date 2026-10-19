@@ -93,6 +93,31 @@
       · Made by Kwon Youngjae · <a href="${ROOT}admin.html">관리</a>`;
   }
 
+
+  /* ---- 목차 따라가기: 화면을 내리다 다른 단원(소주제)으로 넘어가면 왼쪽 목차 글씨가 반짝 ---- */
+  function tocSpy() {
+    const links = [...document.querySelectorAll('.toc a[href^="#"]')];
+    const secs = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+    if (!secs.length) return;
+    let cur = null;
+    function update(first) {
+      const y = 140;
+      let i = 0;
+      secs.forEach((s, k) => { if (s.getBoundingClientRect().top <= y) i = k; });
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) i = secs.length - 1;
+      if (i === cur) return;
+      cur = i;
+      links.forEach((a, k) => {
+        a.classList.toggle('on', k === i);
+        a.classList.remove('flash');
+        if (k === i && !first) { void a.offsetWidth; a.classList.add('flash'); }
+      });
+    }
+    window.addEventListener('scroll', () => update(false), { passive: true });
+    window.addEventListener('resize', () => update(false));
+    update(true);
+  }
+
   window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card };
-  document.addEventListener('DOMContentLoaded', () => { header(); footer(); });
+  document.addEventListener('DOMContentLoaded', () => { header(); footer(); tocSpy(); });
 })();

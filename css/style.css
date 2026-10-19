@@ -149,6 +149,18 @@ a.card:hover { text-decoration: none; transform: translateY(-3px); box-shadow: v
 .toc a { display: block; padding: 6px 10px; border-radius: 8px; color: var(--text); font-size: .93rem; }
 .toc a:hover { background: var(--surface-2); text-decoration: none; }
 .toc a .n { color: var(--muted); font-size: .8rem; float: right; }
+.toc a { position: relative; transition: background .25s, color .25s; }
+.toc a.on { background: var(--accent-soft); color: var(--c, var(--accent)); font-weight: 700; box-shadow: inset 4px 0 0 var(--c, var(--accent)); }
+.toc a.on .n { color: var(--c, var(--accent)); }
+/* 다른 단원으로 넘어갈 때 글씨 뒤 음영이 두 번 반짝 */
+.toc a.flash { animation: toc-flash 1.3s ease-out; }
+@keyframes toc-flash {
+  0%   { background: var(--c, var(--accent)); color: #fff; box-shadow: inset 4px 0 0 var(--c, var(--accent)), 0 0 0 0 var(--c, var(--accent)); }
+  30%  { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--c, var(--accent)), 0 0 14px 2px var(--c, var(--accent)); }
+  50%  { background: var(--c, var(--accent)); color: #fff; }
+  100% { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--c, var(--accent)), 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .toc a.flash { animation: none; } }
 .unit-block { scroll-margin-top: 80px; }
 .unit-block .section-title { margin-top: 0; }
 .unit-block + .unit-block { margin-top: 36px; }
