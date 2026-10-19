@@ -181,25 +181,6 @@ window.SITE = /*DATA-START*/{
       "inquiry": "상현달일 때 태양-지구-달이 이루는 각은 몇 도인가? 이때 달은 언제 남중하는가?\n초저녁(18시 무렵) 남쪽 하늘에 보이는 달의 위상은 무엇인가?\n보름달이 새벽에 서쪽 하늘에 지는 까닭을 공전 위치와 지구 자전으로 설명해 보자.\n일식과 월식은 각각 어떤 위상일 때 일어날 수 있는가? 매달 일어나지 않는 까닭은?"
     },
     {
-      "id": "kepler",
-      "title": "케플러 제2법칙 (면적 속도 일정)",
-      "desc": "타원 궤도에서 행성의 속도가 변하는 이유",
-      "file": "sims/astro/kepler.html",
-      "topic": "astro",
-      "sub": "태양계와 행성의 운동",
-      "links": [
-        {
-          "course": "pss",
-          "unit": "u2"
-        }
-      ],
-      "status": "ready",
-      "height": 0,
-      "howto": "**이심률** 슬라이더로 궤도의 납작한 정도를 바꿉니다. (0이면 원)\n궤도는 공전 주기를 **12개의 같은 시간 구간**으로 나누어 색칠되어 있습니다.\n행성의 화살표 길이는 공전 속력을 나타냅니다.",
-      "concept": "행성과 태양을 잇는 선분은 **같은 시간 동안 같은 면적**을 쓸고 지나갑니다(케플러 제2법칙). 따라서 태양에 가까운 **근일점**에서는 빠르게, 먼 **원일점**에서는 느리게 공전합니다.\n이 법칙은 행성이 받는 힘(만유인력)이 항상 태양 쪽을 향하기 때문에 성립하며, 물리적으로는 각운동량 보존과 같은 내용입니다.",
-      "inquiry": "이심률을 0으로 하면 각 구간의 모양은 어떻게 되는가? 이때 공전 속력은 어떻게 변하는가?\n이심률이 클수록 근일점과 원일점에서의 속력 차이는 어떻게 되는가? 화면의 값을 표로 정리해 보자.\n지구는 1월 초에 근일점을 지난다. 북반구의 겨울이 여름보다 며칠 짧은 까닭을 설명해 보자."
-    },
-    {
       "id": "swing-by",
       "title": "스윙바이로 탐사선 가속하기",
       "desc": "행성 뒤쪽과 앞쪽으로 지나갈 때 탐사선의 속력 비교",
@@ -1264,25 +1245,6 @@ window.SITE = /*DATA-START*/{
       "inquiry": "내가 세운 기준과 예시 답안을 비교해 보자.\n거대 공동의 크기는 은하단과 비교해 어느 정도인가?"
     },
     {
-      "id": "pulsating-variable",
-      "title": "맥동 변광성 시뮬레이션",
-      "desc": "맥동 주기와 위상차에 따른 반경·온도·광도의 변화 그래프",
-      "file": "sims/astro/pulsating-variable.html",
-      "topic": "astro",
-      "sub": "별",
-      "links": [
-        {
-          "course": "pss",
-          "unit": "u2"
-        }
-      ],
-      "status": "ready",
-      "height": 0,
-      "howto": "**맥동 주기**와 **위상차** 슬라이더를 바꿉니다.\n재생/일시정지, 초기화 버튼으로 관찰을 조절합니다.",
-      "concept": "맥동 변광성은 팽창·수축하며 반경과 온도가 함께 변하고, 광도는 **L ∝ R²T⁴**로 결정됩니다.\n반경과 온도의 변화에는 **위상차**가 있어, 광도 최대는 반경 최대와 일치하지 않습니다.",
-      "inquiry": "위상차를 0으로 하면 광도 곡선은 어떻게 변하는가?\n광도 그래프의 최대가 반경 그래프의 최대보다 앞서는 까닭은?"
-    },
-    {
       "id": "eclipse-vs-transit",
       "title": "식쌍성 vs 외계 행성 광도 곡선",
       "desc": "식쌍성과 외계 행성이 만드는 광도 곡선 비교",
@@ -1290,10 +1252,6 @@ window.SITE = /*DATA-START*/{
       "topic": "astro",
       "sub": "별",
       "links": [
-        {
-          "course": "pss",
-          "unit": "u2"
-        },
         {
           "course": "pss",
           "unit": "u1"
@@ -1304,25 +1262,6 @@ window.SITE = /*DATA-START*/{
       "howto": "**관측 대상**(식쌍성/외계 행성)을 고르고, **동반 천체의 크기 비율**을 바꿉니다.\n광도 곡선의 깊이와 모양을 비교합니다.",
       "concept": "식쌍성은 동반성도 스스로 빛을 내므로 **주극소와 부극소**가 모두 나타납니다.\n외계 행성은 빛을 거의 내지 않아 행성이 별을 가릴 때만 **아주 작은 밝기 감소**가 나타납니다.",
       "inquiry": "두 경우 광도 곡선의 극소 개수와 깊이를 비교해 보자.\n동반 천체의 크기 비율이 커지면 밝기 감소량은 어떻게 변하는가?"
-    },
-    {
-      "id": "n-body-star-system",
-      "title": "다중성계 시뮬레이터 (N체 운동)",
-      "desc": "3중성계·4중성계·삼체 문제에서 별들의 공전 궤적",
-      "file": "sims/astro/n-body-star-system.html",
-      "topic": "astro",
-      "sub": "별",
-      "links": [
-        {
-          "course": "pss",
-          "unit": "u2"
-        }
-      ],
-      "status": "ready",
-      "height": 0,
-      "howto": "**시스템 종류**(3중성계/4중성계/삼체 문제)를 고르고 **시뮬레이션 속도**를 바꿉니다.\n재생/일시정지, 초기화로 다시 관찰합니다.",
-      "concept": "여러 별이 서로의 중력으로 묶인 **다중성계**는 가까운 쌍성이 다시 먼 별과 공전하는 **계층 구조**일 때 안정합니다.\n질량이 비슷한 세 별이 얽힌 **삼체 문제**는 처음 조건이 조금만 달라도 궤도가 크게 바뀌는 혼돈 운동을 보입니다.",
-      "inquiry": "3중성계와 삼체 문제의 궤적을 비교해 보자.\n별들의 공통 질량 중심(+)이 움직이지 않는 까닭은?"
     },
     {
       "id": "plate-boundary",
@@ -1393,10 +1332,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2567,10 +2502,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2590,10 +2521,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2613,10 +2540,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2636,10 +2559,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2659,10 +2578,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2682,10 +2597,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2705,10 +2616,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2728,10 +2635,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2751,10 +2654,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2774,10 +2673,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2797,10 +2692,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -2820,10 +2711,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -3797,10 +3684,6 @@ window.SITE = /*DATA-START*/{
         {
           "course": "es",
           "unit": "u3"
-        },
-        {
-          "course": "pss",
-          "unit": "u2"
         }
       ],
       "status": "ready",
@@ -4452,10 +4335,6 @@ window.SITE = /*DATA-START*/{
       "links": [
         {
           "course": "is2",
-          "unit": "u2"
-        },
-        {
-          "course": "pss",
           "unit": "u2"
         }
       ],

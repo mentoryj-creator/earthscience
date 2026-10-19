@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d205_eclipse .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d205_eclipse .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d205_eclipse .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d205_eclipse .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,8 +177,9 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d205_eclipse"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>식 변광성 광도 곡선 만들기</div><div class="ppt-subtitle">두 별의 크기와 온도를 바꾸며 주극소와 부극소의 깊이를 비교해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>두 별의 조건</h4>
 <div class="sim-row"><span class="lbl" style="width:180px">별 A 반지름</span><input type="range" class="sim-range" id="rA1" min="0.5" max="2" step="0.05" value="1.4"><span class="sim-val" id="vA1" style="min-width:90px"></span></div>
 <div class="sim-row"><span class="lbl" style="width:180px">별 A 표면 온도</span><input type="range" class="sim-range" id="rA2" min="3000" max="12000" step="100" value="9000"><span class="sim-val" id="vA2" style="min-width:90px"></span></div>
@@ -233,7 +244,7 @@
 
 /* ===== 식 변광성 ===== */
 (function(){
-  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610;
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,KS=c.width/W;
   let R1=1.4,T1=9000,R2=0.8,T2=4500,ph=0,hist=[];
   function ov(d,r1,r2){if(d>=r1+r2)return 0;if(d<=Math.abs(r1-r2))return Math.PI*Math.min(r1,r2)**2;const a=r1*r1*Math.acos((d*d+r1*r1-r2*r2)/(2*d*r1)),b=r2*r2*Math.acos((d*d+r2*r2-r1*r1)/(2*d*r2)),k=0.5*Math.sqrt((-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2));return a+b-k;}
   const SB=T=>Math.pow(T/6000,4);
@@ -243,6 +254,7 @@
     document.getElementById('oA').innerHTML='<h4>광도 곡선 분석</h4><div>B가 A를 가릴 때 밝기: <b>'+(fa*100).toFixed(1)+'%</b></div><div>A가 B를 가릴 때 밝기: <b>'+(fb*100).toFixed(1)+'%</b></div><div style="margin-top:6px">주극소 = <b class="or">'+(fa<fb?'별 A(':'별 B(')+(fa<fb?T1:T2)+' K)가 가려질 때</b></div><div class="sim-note">'+(Math.abs(T1-T2)<200?'두 별의 온도가 같으면 두 극소의 깊이가 같아요.':'더 뜨거운 별이 가려질 때 더 많이 어두워져요.')+'</div>';}
   [['rA1',x=>R1=x],['rA2',x=>T1=x],['rA3',x=>R2=x],['rA4',x=>T2=x]].forEach(([id,f])=>document.getElementById(id).oninput=e=>{f(+e.target.value);hist=[];out();});out();
   SIM.loop('d205_eclipse',(t,dt)=>{
+    g.setTransform(KS,0,0,KS,0,0);
     ph+=dt*1.1;const F=flux(ph);hist.push(F);if(hist.length>520)hist.shift();
     g.fillStyle='#020617';g.fillRect(0,0,W,H);
     const S=55,cx=530,cy=150,x=Math.cos(ph)*3.2*S,z=Math.sin(ph);
@@ -264,7 +276,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -274,8 +287,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

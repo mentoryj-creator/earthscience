@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d203_doppler .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d203_doppler .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d203_doppler .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d203_doppler .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,11 +177,12 @@
 </head>
 <body>
 <div id="presentation-wrapper">
-<div class="slide sim-slide active" id="d203_doppler"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>스펙트럼으로 시선 속도 측정하기</div><div class="ppt-subtitle">별의 속도를 바꾸며 흡수선의 이동을 관찰하고, 시선 속도를 계산해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1060" height="610"></canvas></div>
-<div class="sim-panel"><div class="sim-box blue"><h4>별의 시선 속도</h4>
-<div class="sim-row"><input type="range" class="sim-range" id="rA" min="-6000" max="6000" step="100" value="3000"><span class="sim-val" id="vA" style="min-width:190px"></span></div>
-<div class="sim-btns"><button class="sim-btn" data-v="-3000">가까워지는 별</button><button class="sim-btn" data-v="0">정지</button><button class="sim-btn" data-v="3000">멀어지는 별</button></div></div>
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="d203_doppler"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>스펙트럼으로 시선 속도 측정하기</div><div class="ppt-subtitle">흡수선의 편이량(Δλ)을 측정해 별의 시선 속도를 구해 봐요.</div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1160" height="668"></canvas></div>
+<div class="sim-panel"><div class="sim-box blue"><h4>관측한 Hα 흡수선의 편이량 Δλ</h4>
+<div class="sim-row"><span style="color:#2563eb;font-weight:bold">− 청색</span><input type="range" class="sim-range" id="rA" min="-13" max="13" step="0.1" value="6.6"><span style="color:#dc2626;font-weight:bold">적색 +</span><span class="sim-val" id="vA" style="min-width:150px"></span></div>
+<div class="sim-btns"><button class="sim-btn" data-v="-6.6">청색 편이 (−)</button><button class="sim-btn" data-v="0">편이 없음</button><button class="sim-btn" data-v="6.6">적색 편이 (+)</button></div></div>
 <div class="sim-box" id="oA" style="font-size:27px"></div>
 <div class="sim-note">※ 흡수선 이동이 잘 보이도록 실제 별보다 큰 속도를 사용했어요.</div></div></div></div>
 </div>
@@ -232,14 +243,21 @@
 
 /* ===== 도플러로 시선 속도 ===== */
 (function(){
-  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,C=3e5;
-  let v=3000,ph=0;const L=[486.1,527,589,656.3],X0=60,X1=1000,LA=440,LB=700,X=l=>X0+(l-LA)/(LB-LA)*(X1-X0);
-  function out(){const z=v/C;document.getElementById('vA').textContent=(v>0?'+':'')+v.toLocaleString()+' km/s';document.getElementById('rA').value=v;
-    const l=656.3*(1+z);document.getElementById('oA').innerHTML='<h4>Hα 흡수선으로 계산하기</h4><div>λ₀ = 656.3 nm → λ = <b>'+l.toFixed(1)+' nm</b></div><div>Δλ = <b>'+(l-656.3).toFixed(2)+' nm</b></div><div>V<sub>r</sub> = Δλ/λ₀ × c = <span class="sim-big" style="font-size:34px;color:'+(v>0?'#dc2626':(v<0?'#2563eb':'#334155'))+'">'+(v>0?'+':'')+v.toLocaleString()+' km/s</span></div><div><b>'+(v>0?'적색 편이 → 멀어지는 중':(v<0?'청색 편이 → 가까워지는 중':'정지 (편이 없음)'))+'</b></div>';
-    document.querySelectorAll('#d203_doppler [data-v]').forEach(b=>b.classList.toggle('on',+b.dataset.v===v));}
-  document.getElementById('rA').oninput=e=>{v=+e.target.value;out();};document.querySelectorAll('#d203_doppler [data-v]').forEach(b=>b.onclick=()=>{v=+b.dataset.v;out();});out();
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,C=3e5,L0=656.3,KS=c.width/W;
+  // 조작하는 값은 편이량 Δλ(nm). 시선 속도는 Δλ로부터 계산한 결과
+  let dl=6.6,v=dl/L0*C,ph=0;const L=[486.1,527,589,656.3],X0=60,X1=1000,LA=440,LB=700,X=l=>X0+(l-LA)/(LB-LA)*(X1-X0);
+  const sgn=x=>(x>0?'+':(x<0?'−':''));
+  function out(){v=dl/L0*C;const vr=Math.round(v/10)*10,col=dl>0?'#dc2626':(dl<0?'#2563eb':'#334155');
+    document.getElementById('vA').textContent=sgn(dl)+Math.abs(dl).toFixed(1)+' nm';document.getElementById('rA').value=dl;
+    document.getElementById('oA').innerHTML='<h4>Hα 흡수선으로 시선 속도 구하기</h4><div>λ₀ = 656.3 nm → 관측 λ = <b>'+(L0+dl).toFixed(1)+' nm</b></div><div>편이량 Δλ = <b style="color:'+col+'">'+sgn(dl)+Math.abs(dl).toFixed(1)+' nm</b> '+(dl>0?'(적색 편이)':(dl<0?'(청색 편이)':'(편이 없음)'))+'</div>'+
+      '<div style="margin-top:6px">V<sub>r</sub> = <span style="font-size:24px">Δλ ÷ λ₀ × c = '+sgn(dl)+Math.abs(dl).toFixed(1)+' ÷ 656.3 × 300,000</span></div>'+
+      '<div style="text-align:right">= <span class="sim-big" style="font-size:38px;color:'+col+'">'+sgn(vr)+Math.abs(vr).toLocaleString()+' km/s</span></div>'+
+      '<div><b>'+(dl>0?'V<sub>r</sub> &gt; 0 → 멀어지는 중':(dl<0?'V<sub>r</sub> &lt; 0 → 가까워지는 중':'V<sub>r</sub> = 0 → 시선 방향 운동 없음'))+'</b></div>';
+    document.querySelectorAll('#d203_doppler [data-v]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.v-dl)<0.01));}
+  document.getElementById('rA').oninput=e=>{dl=+e.target.value;out();};document.querySelectorAll('#d203_doppler [data-v]').forEach(b=>b.onclick=()=>{dl=+b.dataset.v;out();});out();
   function strip(y,z,label){for(let x=X0;x<X1;x++){const l=LA+(x-X0)/(X1-X0)*(LB-LA);g.fillStyle='rgb('+SIM.wl2rgb(l).join(',')+')';g.fillRect(x,y,1.5,70);}L.forEach(l=>{g.fillStyle='#000';g.fillRect(X(l*(1+z))-2.5,y,5,70);});g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';g.fillText(label,X0,y-12);}
   SIM.loop('d203_doppler',(t,dt)=>{
+    g.setTransform(KS,0,0,KS,0,0);
     ph+=dt;g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
     // 별과 관측자
     const sx=530+Math.sin(ph*0.8)*0+ (v/6000)*0,ox=960,oy=110;
@@ -252,6 +270,9 @@
     L.forEach(l=>{g.setLineDash([5,5]);g.strokeStyle='rgba(250,204,21,.7)';g.lineWidth=2;g.beginPath();g.moveTo(X(l),330);g.lineTo(X(l*(1+v/C*6)),420);g.stroke();g.setLineDash([]);});
     g.fillStyle='#94a3b8';g.font=SIM.font(17,false);g.textAlign='center';for(let l=450;l<=700;l+=50)g.fillText(l+' nm',X(l),520);
     g.fillStyle='#fca5a5';g.textAlign='right';g.font=SIM.font(18);g.fillText('※ 흡수선 이동을 6배 과장해서 표시',X1,560);
+    // Δλ로 계산한 시선 속도
+    const vr=Math.round(v/10)*10;g.textAlign='left';g.font=SIM.font(24);g.fillStyle=v>0?'#f87171':(v<0?'#60a5fa':'#e2e8f0');
+    g.fillText('Δλ = '+sgn(dl)+Math.abs(dl).toFixed(1)+' nm  →  Vr = '+sgn(vr)+Math.abs(vr).toLocaleString()+' km/s',X0,595);
   });
 })();
 
@@ -264,7 +285,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -274,8 +296,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

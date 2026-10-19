@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d205_quiz .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d205_quiz .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d205_quiz .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d205_quiz .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,12 +177,13 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d205_quiz"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>어떤 변광성일까?</div><div class="ppt-subtitle">광도 곡선을 보고 변광성의 종류를 맞혀 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage light"><canvas id="cD" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage light"><canvas id="cD" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4 id="hD">문제 1</h4>
 <div class="sim-btns" id="bD"></div></div>
 <div class="sim-box" id="oD" style="font-size:27px;min-height:220px"></div>
-<div class="sim-btns"><button class="sim-btn on" id="bDn">다음 문제 ▶</button></div></div></div></div>
+<div class="sim-btns"><button class="sim-btn" id="bDr">↺ 다시 관측</button><button class="sim-btn on" id="bDn">다음 문제 ▶</button></div></div></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -231,7 +242,7 @@
 
 /* ===== 변광성 퀴즈 ===== */
 (function(){
-  const c=document.getElementById('cD'),g=c.getContext('2d'),W=1060,H=610;
+  const c=document.getElementById('cD'),g=c.getContext('2d'),W=1060,H=610,KS=c.width/W;
   const KIND=['식 변광성','맥동 변광성','폭발 변광성 (초신성)'];
   const Q=[0,1,2,1,0,2];let i=0,ans=null;
   const box=document.getElementById('bD');KIND.forEach((k,j)=>{const b=document.createElement('button');b.className='sim-btn';b.textContent=k;b.onclick=()=>{ans=j;out();};box.appendChild(b);});
@@ -241,12 +252,21 @@
     const s=x-0.15;return s<0?0.05:(s<0.05?0.05+0.95*s/0.05:Math.max(0.05,1-1.5*(s-0.05)));}
   function out(){const k=Q[i];document.getElementById('hD').textContent='문제 '+(i+1)+' / '+Q.length;box.querySelectorAll('button').forEach((b,j)=>b.classList.toggle('on',j===ans));
     document.getElementById('oD').innerHTML=ans===null?'<div class="sim-note">광도 곡선의 모양을 보고 종류를 골라 보세요.</div>':(ans===k?'<div class="sim-ok" style="font-size:30px">⭕ 정답! '+KIND[k]+'</div><div>'+WHY[k]+'</div>':'<div style="color:#dc2626;font-weight:bold;font-size:28px">❌ 다시 생각해 볼까요?</div><div class="sim-note">곡선이 대칭인지, 반복되는지 살펴보세요.</div>');}
-  document.getElementById('bDn').onclick=()=>{i=(i+1)%Q.length;ans=null;out();};out();
-  SIM.loop('d205_quiz',()=>{
-    g.clearRect(0,0,W,H);const k=Q[i],v=i*0.37,L=80,R=1020,T=60,B=520;
+  // 관측 점이 시간 순서대로 하나씩 찍힘 (한 문제에 약 5초)
+  const DUR=5000;let t0=performance.now();const replay=()=>{t0=performance.now();};
+  document.getElementById('bDr').onclick=replay;
+  addEventListener('message',e=>{if(e.data&&e.data.type==='deck-show')replay();});
+  document.getElementById('bDn').onclick=()=>{i=(i+1)%Q.length;ans=null;replay();out();};out();
+  SIM.loop('d205_quiz',(t)=>{
+    g.setTransform(KS,0,0,KS,0,0);
+    g.clearRect(0,0,W,H);const k=Q[i],v=i*0.37,L=80,R=1020,T=60,B=520,prog=Math.min(1,(t-t0)/DUR);
     g.strokeStyle='#334155';g.lineWidth=3;g.beginPath();g.moveTo(L,T);g.lineTo(L,B);g.lineTo(R,B);g.stroke();
     g.fillStyle='#334155';g.font=SIM.font(22);g.textAlign='center';g.fillText('시간 →',(L+R)/2,B+44);g.save();g.translate(40,(T+B)/2);g.rotate(-Math.PI/2);g.fillText('밝기',0,0);g.restore();
-    const r=SIM.rng(i+3);g.fillStyle='#2563eb';for(let x=0;x<=1;x+=0.006){const y=f(k,x,v)+SIM.gauss(r)*0.02;g.beginPath();g.arc(L+x*(R-L),B-20-y*(B-T-40),4,0,7);g.fill();}
+    const r=SIM.rng(i+3);g.fillStyle='#2563eb';let lx=null,ly=null;
+    for(let n=0;n<=166;n++){const x=n*0.006,y=f(k,x,v)+SIM.gauss(r)*0.02;if(x>prog)break;lx=L+x*(R-L);ly=B-20-y*(B-T-40);g.beginPath();g.arc(lx,ly,4,0,7);g.fill();}
+    // 지금 찍히는 점 강조 + 시간 진행선
+    if(prog<1&&lx!=null){g.strokeStyle='rgba(234,88,12,.35)';g.lineWidth=2;g.setLineDash([5,5]);g.beginPath();g.moveTo(lx,T);g.lineTo(lx,B);g.stroke();g.setLineDash([]);
+      g.fillStyle='#ea580c';g.beginPath();g.arc(lx,ly,8,0,7);g.fill();g.fillStyle='#ea580c';g.font=SIM.font(18);g.textAlign='left';g.fillText('관측 중…',Math.min(lx+12,R-80),T+20);}
   });
 })();
 
@@ -259,7 +279,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -269,8 +290,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

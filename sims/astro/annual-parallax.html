@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d202_parallax .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d202_parallax .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d202_parallax .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d202_parallax .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,8 +177,9 @@
 </head>
 <body>
 <div id="presentation-wrapper">
-<div class="slide sim-slide active" id="d202_parallax"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>연주 시차 관측하기</div><div class="ppt-subtitle">지구가 공전하는 동안 가까운 별의 위치가 어떻게 변하는지 관찰해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1060" height="610"></canvas></div>
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="d202_parallax"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>연주 시차 관측하기</div><div class="ppt-subtitle">지구가 공전하는 동안 별의 위치가 어떻게 변하는지 관찰해 봐요.</div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>별까지의 거리</h4>
 <div class="sim-row"><input type="range" class="sim-range" id="rA" min="0.6" max="10" step="0.05" value="1.3"><span class="sim-val" id="vA" style="min-width:140px"></span></div>
 <div class="sim-btns"><button class="sim-btn on" id="bA1">❚❚ 멈춤</button><button class="sim-btn" data-d="1.3">프록시마 센타우리</button><button class="sim-btn" data-d="2.64">시리우스</button></div></div>
@@ -232,18 +243,29 @@
 
 /* ===== 연주 시차 ===== */
 (function(){
-  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610;
-  let d=1.3,ph=Math.PI/2,run=true;const r=SIM.rng(5),bg=[];for(let i=0;i<70;i++)bg.push([r()*W,r()*150+10,r()*1.6+.6]);
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,KS=c.width/W;
+  const SX=530,SY=470,A=110;
+  let d=1.3,th=0,ph=Math.PI/2,run=true,drag=false;
+  // 별의 화면 위치: 태양에서 (60+28d)만큼, 방향은 th(세로선에서 기운 각)
+  const star=()=>{const L=60+d*28;return [SX+L*Math.sin(th),SY-L*Math.cos(th)];};const r=SIM.rng(5),bg=[];for(let i=0;i<70;i++)bg.push([r()*W,r()*150+10,r()*1.6+.6]);
   function out(){const p=1/d;document.getElementById('vA').textContent=d.toFixed(2)+' pc';document.getElementById('rA').value=d;
-    document.getElementById('oA').innerHTML='<h4>측정 결과</h4><div>연주 시차 p = 1 / '+d.toFixed(2)+' = <span class="sim-big" style="font-size:36px">'+p.toFixed(3)+'″</span></div><div>최대 시차 (6개월 간격) = 2p = '+(2*p).toFixed(3)+'″</div><div class="sim-note">거리가 2배가 되면 연주 시차는 1/2이 돼요.</div>';
+    document.getElementById('oA').innerHTML='<h4>측정 결과</h4><div>연주 시차 p = 1 / '+d.toFixed(2)+' = <span class="sim-big" style="font-size:36px">'+p.toFixed(3)+'″</span></div><div>최대 시차 (6개월 간격) = 2p = '+(2*p).toFixed(3)+'″</div><div class="sim-note">거리가 2배가 되면 연주 시차는 1/2이 돼요. 별을 마우스로 끌어 위치를 바꿔 보세요. 별의 방향이 바뀌면 배경 위 궤적의 모양과 자리가 달라지지만, 연주 시차는 거리로만 정해져요.</div>';
     document.querySelectorAll('#d202_parallax [data-d]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.d-d)<0.01));}
   document.getElementById('rA').oninput=e=>{d=+e.target.value;out();};
   document.querySelectorAll('#d202_parallax [data-d]').forEach(b=>b.onclick=()=>{d=+b.dataset.d;out();});
   const b1=document.getElementById('bA1');b1.onclick=()=>{run=!run;b1.textContent=run?'❚❚ 멈춤':'▶ 재생';};out();
+  // 별 끌기: 위아래 → 거리, 좌우 → 방향
+  const at=e=>{const p=SIM.pos(e,c);return [p.x/KS,p.y/KS];};
+  function moveTo(x,y){th=Math.max(-0.9,Math.min(0.9,Math.atan2(x-SX,SY-y)));
+    d=Math.max(0.6,Math.min(10,Math.round(((Math.hypot(x-SX,SY-y)-60)/28)*20)/20));out();}
+  c.addEventListener('pointerdown',e=>{const [x,y]=at(e),s=star();if(Math.hypot(x-s[0],y-s[1])<30){drag=true;c.setPointerCapture(e.pointerId);}});
+  c.addEventListener('pointermove',e=>{const [x,y]=at(e);if(drag){moveTo(x,y);return;}const s=star();c.style.cursor=Math.hypot(x-s[0],y-s[1])<30?'grab':'default';});
+  c.addEventListener('pointerup',()=>{drag=false;});
   SIM.loop('d202_parallax',(t,dt)=>{
+    g.setTransform(KS,0,0,KS,0,0);
     if(run)ph+=dt*0.8;
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    const SX=530,SY=470,A=110,sy=SY-60-d*28;
+    const [stx,sy]=star();
     // 먼 배경별 하늘 띠
     g.fillStyle='rgba(30,41,59,.9)';g.fillRect(0,0,W,170);bg.forEach(b=>{g.fillStyle='#e2e8f0';g.fillRect(b[0],b[1],b[2],b[2]);});
     g.fillStyle='#94a3b8';g.font=SIM.font(18);g.textAlign='left';g.fillText('아주 먼 배경 별들',14,26);
@@ -251,18 +273,20 @@
     g.strokeStyle='rgba(148,163,184,.5)';g.lineWidth=1.5;g.beginPath();g.ellipse(SX,SY,A,A*0.35,0,0,7);g.stroke();
     const sg=g.createRadialGradient(SX,SY,2,SX,SY,24);sg.addColorStop(0,'#fff');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(SX,SY,24,0,7);g.fill();
     const ex=SX+A*Math.cos(ph),ey=SY+A*0.35*Math.sin(ph);
-    // 가까운 별
-    g.fillStyle='#fde68a';g.beginPath();g.arc(SX,sy,8,0,7);g.fill();g.fillStyle='#fde68a';g.font=SIM.font(18);g.textAlign='center';g.fillText('가까운 별',SX,sy-16);
+    // 별 (끌어서 옮길 수 있음)
+    if(drag||c.style.cursor==='grab'){g.strokeStyle='rgba(253,230,138,.7)';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();g.arc(stx,sy,18,0,7);g.stroke();g.setLineDash([]);}
+    g.fillStyle='#fde68a';g.beginPath();g.arc(stx,sy,8,0,7);g.fill();g.font=SIM.font(18);g.textAlign='center';g.fillText('별',stx,sy-16);
     // 시선 연장 → 배경에 투영
-    const k=(85-ey)/(sy-ey),px=ex+(SX-ex)*k;
+    const k=(85-ey)/(sy-ey),px=ex+(stx-ex)*k;
     g.strokeStyle='rgba(96,165,250,.6)';g.lineWidth=2;g.setLineDash([6,6]);g.beginPath();g.moveTo(ex,ey);g.lineTo(px,85);g.stroke();g.setLineDash([]);
     // 배경 위 별 위치 흔적
-    for(let a=0;a<6.283;a+=0.05){const xx=SX+A*Math.cos(a),yy=SY+A*0.35*Math.sin(a),kk=(85-yy)/(sy-yy);g.fillStyle='rgba(253,224,71,.25)';g.fillRect(xx+(SX-xx)*kk-1,84,2,2);}
+    for(let a=0;a<6.283;a+=0.05){const xx=SX+A*Math.cos(a),yy=SY+A*0.35*Math.sin(a),kk=(85-yy)/(sy-yy);g.fillStyle='rgba(253,224,71,.25)';g.fillRect(xx+(stx-xx)*kk-1,84,2,2);}
     g.fillStyle='#facc15';g.beginPath();g.arc(px,85,7,0,7);g.fill();g.fillStyle='#fde68a';g.fillText('보이는 위치',px,120);
     g.fillStyle='#60a5fa';g.beginPath();g.arc(ex,ey,9,0,7);g.fill();g.fillStyle='#93c5fd';g.fillText('지구',ex,ey+28);
     // 각 p 표시
-    g.strokeStyle='rgba(250,204,21,.8)';g.lineWidth=1.5;g.beginPath();g.moveTo(SX-A,SY);g.lineTo(SX,sy);g.lineTo(SX+A,SY);g.stroke();g.beginPath();g.moveTo(SX,sy);g.lineTo(SX,SY);g.stroke();
-    g.fillStyle='#fde68a';g.font=SIM.font(20);g.fillText('p',SX+12,sy+40);g.fillStyle='#cbd5e1';g.font=SIM.font(17,false);g.fillText('1 AU',SX+A/2,SY+16);
+    g.strokeStyle='rgba(250,204,21,.8)';g.lineWidth=1.5;g.beginPath();g.moveTo(SX-A,SY);g.lineTo(stx,sy);g.lineTo(SX+A,SY);g.stroke();g.beginPath();g.moveTo(stx,sy);g.lineTo(SX,SY);g.stroke();
+    g.fillStyle='#fde68a';g.font=SIM.font(20);g.fillText('p',stx+(SX-stx)*0.18+12,sy+(SY-sy)*0.18);
+    g.fillStyle='#94a3b8';g.font=SIM.font(17,false);g.textAlign='right';g.fillText('별을 끌어 옮겨 보세요 (위아래: 거리, 좌우: 방향)',W-14,H-20);g.textAlign='center';g.fillStyle='#cbd5e1';g.font=SIM.font(17,false);g.fillText('1 AU',SX+A/2,SY+16);
     g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';g.fillText(['1월','4월','7월','10월'][Math.floor(((ph%6.283)+6.283)%6.283/6.283*4)]+' 무렵',14,H-20);
   });
 })();
@@ -276,7 +300,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -286,8 +311,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

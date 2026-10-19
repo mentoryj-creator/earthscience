@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d205_sn .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d205_sn .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d205_sn .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d205_sn .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,8 +177,9 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d205_sn"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>Ia형 초신성으로 은하까지의 거리 재기</div><div class="ppt-subtitle">먼 은하에서 터진 초신성의 밝기를 관측해 거리를 구해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>관측하기</h4>
 <div class="sim-btns"><button class="sim-btn on" id="bC1">새 초신성 관측</button><button class="sim-btn" id="bC2">폭 보정하기</button></div>
 <div class="sim-row" style="margin-top:8px"><span class="lbl" style="width:220px">보정한 최대 등급 m</span><b id="vC" class="sim-val" style="min-width:90px">-</b></div></div>
@@ -232,7 +243,7 @@
 
 /* ===== Ia형 초신성 ===== */
 (function(){
-  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610,MABS=-19.3;
+  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610,KS=c.width/W,MABS=-19.3;
   let sn=null,corr=false,anim=0;
   function newSN(){const lr=Math.log10(30+Math.random()*700)+6;const s=0.8+Math.random()*0.4;sn={lr,s,mObs:MABS+5*lr-5-1.2*(s-1)*-1*0+(-(s-1)*1.0)};anim=0;corr=false;document.getElementById('bC2').classList.remove('on');out();}
   function lc(tt,s,m){const x=tt/s;return x<0?m+3*Math.pow(x/15,2):m+Math.min(5,0.065*x+0.002*x*x);}
@@ -245,6 +256,7 @@
   document.getElementById('bC2').onclick=()=>{if(!sn)return;corr=!corr;document.getElementById('bC2').classList.toggle('on',corr);out();};
   newSN();
   SIM.loop('d205_sn',(t,dt)=>{
+    g.setTransform(KS,0,0,KS,0,0);
     anim=Math.min(1,anim+dt*0.5);
     g.fillStyle='#020617';g.fillRect(0,0,W,H);
     // 은하와 초신성
@@ -274,7 +286,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -284,8 +297,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

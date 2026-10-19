@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d204_binary .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d204_binary .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d204_binary .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d204_binary .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,9 +177,11 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d204_binary"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>쌍성의 질량을 직접 재 보기</div><div class="ppt-subtitle">두 별의 질량을 바꾸며 공전 모습을 관찰하고, 관측 자료로 질량을 구해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><div class="sim-btns" style="margin-bottom:8px"><button class="sim-btn on" data-m="free">탐색 모드</button><button class="sim-btn orange" data-m="quiz">도전! 미지의 쌍성</button></div>
+<div class="sim-btns" id="qA" style="display:none"><button class="sim-btn orange" data-q="0">도전 1</button><button class="sim-btn orange" data-q="1">도전 2</button><button class="sim-btn orange" data-q="2">도전 3</button></div>
 <div id="ctlA"><div class="sim-row"><span class="lbl" style="width:150px">별 A 질량</span><input type="range" class="sim-range" id="rA1" min="0.5" max="5" step="0.1" value="1.5"><span class="sim-val" id="vA1" style="min-width:90px"></span></div>
 <div class="sim-row"><span class="lbl" style="width:150px">별 B 질량</span><input type="range" class="sim-range" id="rA2" min="0.5" max="5" step="0.1" value="0.5"><span class="sim-val" id="vA2" style="min-width:90px"></span></div>
 <div class="sim-row"><span class="lbl" style="width:150px">두 별 사이 거리</span><input type="range" class="sim-range" id="rA3" min="1" max="6" step="0.1" value="2"><span class="sim-val" id="vA3" style="min-width:90px"></span></div></div></div>
@@ -232,20 +244,32 @@
 
 /* ===== 쌍성 ===== */
 (function(){
-  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,CX=380,CY=310;let S=80;
-  let m1=1.5,m2=0.5,a=2,ph=0,mode='free',q=null,hist=[],tt=0;
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,CX=380,CY=310,KS=c.width/W;let S=80;
+  let m1=1.5,m2=0.5,a=2,ph=0,mode='free',q=0,hist=[],tt=0;
+  // 도전 문제: 계산이 정수로 딱 떨어지는 값 (a = a₁+a₂, m₁+m₂ = a³/P², m₁:m₂ = a₂:a₁)
+  const QZ=[{P:4,a1:1,a2:3},{P:8,a1:3,a2:5},{P:3,a1:2,a2:4}]; // 답: 4(3,1) · 8(5,3) · 24(16,8)
+  function setQ(i){q=i;const z=QZ[i],A=z.a1+z.a2,M=A**3/z.P**2;a=A;m1=M*z.a2/A;m2=M*z.a1/A;
+    document.querySelectorAll('#qA [data-q]').forEach(b=>b.classList.toggle('on',+b.dataset.q===i));hist=[];out();}
   const P=()=>Math.sqrt(a*a*a/(m1+m2));
   function out(){const p=P(),a1=a*m2/(m1+m2),a2=a*m1/(m1+m2);
     ['vA1','vA2','vA3'].forEach((id,i)=>document.getElementById(id).textContent=[m1.toFixed(1),m2.toFixed(1),a.toFixed(1)+' AU'][i]);
     if(mode==='free'){document.getElementById('oA').innerHTML='<h4>관측 결과</h4><div>공전 주기 P = <b class="or">'+p.toFixed(2)+'년</b></div><div>a₁ = '+a1.toFixed(2)+' AU, a₂ = '+a2.toFixed(2)+' AU</div><div>m₁ + m₂ = a³/P² = <b>'+(a**3/(p*p)).toFixed(2)+'</b></div><div class="sim-note">무거운 별 A가 공통 질량 중심(+)에 더 가까이서 작은 원을 그려요.</div>';}
-    else{document.getElementById('oA').innerHTML='<h4>관측 자료</h4><div>공전 주기 P = <b class="or">'+p.toFixed(1)+'년</b></div><div>a₁ = <b>'+a1.toFixed(2)+' AU</b>, a₂ = <b>'+a2.toFixed(2)+' AU</b></div><div style="margin-top:6px">질량 합 = <span class="blank" style="min-width:120px">'+(m1+m2).toFixed(1)+'</span></div><div>별 A = <span class="blank" style="min-width:100px">'+m1.toFixed(1)+'</span>, 별 B = <span class="blank" style="min-width:100px">'+m2.toFixed(1)+'</span></div><div class="sim-note">계산한 뒤 빈칸을 눌러 확인! (태양 질량 단위)</div>';
+    else{const z=QZ[q],A=z.a1+z.a2,M=A**3/z.P**2;
+      document.getElementById('oA').innerHTML='<h4>도전 '+(q+1)+' · 관측 자료</h4><div>공전 주기 P = <b class="or">'+z.P+'년</b></div><div>a₁ (별 A) = <b>'+z.a1+' AU</b>, a₂ (별 B) = <b>'+z.a2+' AU</b></div>'+
+        '<div style="margin-top:6px">a = a₁ + a₂ = <span class="blank" style="min-width:90px">'+A+' AU</span></div>'+
+        '<div>질량 합 = a³/P² = <span class="blank" style="min-width:90px">'+M+'</span></div>'+
+        '<div>별 A = <span class="blank" style="min-width:80px">'+(M*z.a2/A)+'</span>, 별 B = <span class="blank" style="min-width:80px">'+(M*z.a1/A)+'</span></div>'+
+        '<div class="sim-note">m₁ : m₂ = a₂ : a₁ (질량 중심에 가까운 별이 무거워요). 계산한 뒤 빈칸을 눌러 확인! (태양 질량 단위)</div>';
       document.querySelectorAll('#oA .blank').forEach(b=>b.onclick=()=>b.classList.toggle('on'));}}
   [['rA1',x=>m1=x],['rA2',x=>m2=x],['rA3',x=>a=x]].forEach(([id,f])=>document.getElementById(id).oninput=e=>{f(+e.target.value);hist=[];out();});
   document.querySelectorAll('#d204_binary [data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('#d204_binary [data-m]').forEach(x=>x.classList.toggle('on',x===b));
-    if(mode==='quiz'){m1=Math.round((0.8+Math.random()*3)*10)/10;m2=Math.round((0.5+Math.random()*1.5)*10)/10;a=Math.round((1.5+Math.random()*3.5)*10)/10;document.getElementById('ctlA').style.display='none';}else{document.getElementById('ctlA').style.display='';}
-    hist=[];out();});
+    const qz=mode==='quiz';document.getElementById('ctlA').style.display=qz?'none':'';document.getElementById('qA').style.display=qz?'':'none';
+    if(qz){setQ(q);return;}
+    m1=+document.getElementById('rA1').value;m2=+document.getElementById('rA2').value;a=+document.getElementById('rA3').value;hist=[];out();});
+  document.querySelectorAll('#qA [data-q]').forEach(b=>b.onclick=()=>setQ(+b.dataset.q));
   out();
   SIM.loop('d204_binary',(t,dt)=>{
+    g.setTransform(KS,0,0,KS,0,0);
     const p=P();ph+=dt*2*Math.PI/(p*1.6);
     S=Math.min(120,250/(a*Math.max(m1,m2)/(m1+m2)));const a1=a*m2/(m1+m2)*S,a2=a*m1/(m1+m2)*S;
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
@@ -273,7 +297,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -283,8 +308,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

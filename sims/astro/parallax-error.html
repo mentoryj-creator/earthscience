@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d202_error .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d202_error .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d202_error .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d202_error .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,8 +177,9 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d202_error"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>측정 오차가 거리에 미치는 영향</div><div class="ppt-subtitle">같은 측정 오차라도 먼 별일수록 거리 오차가 매우 커져요.</div>
-<div class="sim-wrap"><div class="sim-stage light"><canvas id="cC" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage light"><canvas id="cC" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>관측 장비의 정밀도</h4>
 <div class="sim-btns"><button class="sim-btn on" data-e="0.01">지상 망원경 (±0.01″)</button><button class="sim-btn" data-e="0.001">히파르코스 (±0.001″)</button><button class="sim-btn orange" data-e="0.00002">가이아 (±0.00002″)</button></div></div>
 <div class="sim-box" id="oC" style="font-size:27px"></div>
@@ -231,14 +242,22 @@
 
 /* ===== 측정 오차 ===== */
 (function(){
-  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610,L=110,R=1020,T=40,B=520;
-  let e=0.01;
+  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610,L=110,R=1020,T=40,B=520,KS=c.width/W;
+  let e=0.01,t0=performance.now();
   const X=v=>L+(Math.log10(v)-0)/4*(R-L);
   function out(){const lim=1/e/5;document.querySelectorAll('#d202_error [data-e]').forEach(b=>b.classList.toggle('on',+b.dataset.e===e));
     document.getElementById('oC').innerHTML='<h4>믿을 만한 거리 범위</h4><div>거리 오차 20% 이내: 약 <span class="sim-big" style="font-size:36px">'+(lim>=1000?(lim/1000).toFixed(0)+',000':Math.round(lim))+' pc</span>까지</div><div class="sim-note">p = 0.01″ (100 pc)인 별: 거리 '+(1/(0.01+e)).toFixed(0)+' ~ '+(e>=0.01?'∞':(1/(0.01-e)).toFixed(0))+' pc</div>';}
-  document.querySelectorAll('#d202_error [data-e]').forEach(b=>b.onclick=()=>{e=+b.dataset.e;out();});out();
-  SIM.loop('d202_error',()=>{
+  document.querySelectorAll('#d202_error [data-e]').forEach(b=>b.onclick=()=>{e=+b.dataset.e;t0=performance.now();out();});out();
+  SIM.loop('d202_error',(now)=>{
+    g.setTransform(KS,0,0,KS,0,0);
     g.clearRect(0,0,W,H);
+    // 측정 불가 지역: 시차가 오차보다 작아지는 거리(1/오차 pc)부터. 장비를 고르면 깜빡이며 나타남
+    const xn=X(1/e),blink=0.5+0.5*Math.sin((now-t0)/180),fade=Math.min(1,(now-t0)/400);
+    if(xn<R){const a=(0.10+0.22*blink)*fade;g.fillStyle='rgba(220,38,38,'+a+')';g.fillRect(xn,T,R-xn,B-T);
+      g.strokeStyle='rgba(220,38,38,'+(0.5+0.5*blink)*fade+')';g.lineWidth=3;g.setLineDash([8,6]);g.beginPath();g.moveTo(xn,T);g.lineTo(xn,B);g.stroke();g.setLineDash([]);
+      g.fillStyle='rgba(185,28,28,'+(0.55+0.45*blink)*fade+')';g.font=SIM.font(24);g.textAlign='center';g.fillText('측정 불가 지역',(xn+R)/2,B-26);
+      g.font=SIM.font(16,false);g.fillText((1/e).toLocaleString()+' pc보다 멀면 시차 < 오차',(xn+R)/2,B-7);}
+    else{g.fillStyle='rgba(22,163,74,'+(0.6+0.4*blink)*fade+')';g.font=SIM.font(20);g.textAlign='right';g.fillText('이 범위(10,000 pc)에는 측정 불가 지역이 없어요 (한계 약 '+(1/e).toLocaleString()+' pc)',R-8,B-20);}
     g.strokeStyle='#e2e8f0';for(let k=0;k<=4;k++){g.beginPath();g.moveTo(X(Math.pow(10,k)),T);g.lineTo(X(Math.pow(10,k)),B);g.stroke();}
     g.strokeStyle='#334155';g.lineWidth=3;g.beginPath();g.moveTo(L,T);g.lineTo(L,B);g.lineTo(R,B);g.stroke();
     g.fillStyle='#334155';g.font=SIM.font(19,false);g.textAlign='center';[1,10,100,1000,10000].forEach(v=>g.fillText(v.toLocaleString()+' pc',X(v),B+26));g.font=SIM.font(22);g.fillText('별까지의 실제 거리',(L+R)/2,B+60);
@@ -260,7 +279,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -270,8 +290,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

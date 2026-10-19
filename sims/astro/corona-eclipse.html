@@ -148,18 +148,28 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d201_eclipse .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d201_eclipse .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d201_eclipse .sim-panel { flex: 0 0 600px; justify-content: center; }
+  #d201_eclipse .sim-stage { align-self: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,11 +177,12 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d201_eclipse"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>밝은 광구를 가리면?</div><div class="ppt-subtitle">달(또는 코로나그래프)로 광구를 가리며 태양 대기를 관찰해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>광구 가리기</h4>
-<div class="sim-row"><span class="lbl" style="width:150px">달의 위치</span><input type="range" class="sim-range" id="rB" min="0" max="1" step="0.005" value="0.5"><span class="sim-val" id="vB" style="min-width:150px"></span></div>
-<div class="sim-btns"><button class="sim-btn" data-b="1">개기 일식</button><button class="sim-btn" data-b="0.5">부분 일식</button></div></div>
+<div class="sim-row"><span class="lbl" style="width:150px">달의 위치</span><input type="range" class="sim-range" id="rB" min="0" max="1" step="0.005" value="0"><span class="sim-val" id="vB" style="min-width:150px"></span></div>
+<div class="sim-btns"><button class="sim-btn orange" id="bPlay">▶ 처음부터 재생</button><button class="sim-btn" data-b="1">개기 일식</button><button class="sim-btn" data-b="0.5">부분 일식</button></div></div>
 <div class="sim-box" id="oB" style="font-size:27px"></div>
 <div class="sim-note">※ 광구는 코로나보다 약 100만 배 밝아서, 광구를 완전히 가려야 코로나가 보여요.</div></div></div></div>
 </div>
@@ -232,22 +243,37 @@
 
 /* ===== 일식과 코로나 ===== */
 (function(){
-  const c=document.getElementById('cB'),g=c.getContext('2d'),W=1060,H=610,CX=530,CY=300,R=150;
-  let f=0.5;const r=SIM.rng(3),streams=[];for(let i=0;i<40;i++)streams.push([r()*6.283,0.8+r()*1.8,r()]);
+  const c=document.getElementById('cB'),g=c.getContext('2d'),W=1060,H=610,CX=530,CY=300,R=150,KS=c.width/W;
+  let f=0,goal=1,last='';const r=SIM.rng(3),streams=[];for(let i=0;i<40;i++)streams.push([r()*6.283,0.8+r()*1.8,r()]);
+  const sm=(a,b,x)=>{const k=Math.max(0,Math.min(1,(x-a)/(b-a)));return k*k*(3-2*k);};
+  function play(){f=0;goal=1;}
+  document.getElementById('bPlay').onclick=play;
+  addEventListener('message',e=>{if(e.data&&e.data.type==='deck-show')play();});
   function out(){const cov=Math.max(0,Math.min(1,f));document.getElementById('vB').textContent=Math.round(cov*100)+'% 가림';document.getElementById('rB').value=f;
     document.getElementById('oB').innerHTML=cov>0.995?'<h4 style="color:#16a34a">개기 일식!</h4><div>광구가 완전히 가려져 <b>채층(붉은 테두리)</b>, <b>홍염</b>, <b>코로나</b>가 보여요.</div>':'<h4>광구가 '+(cov<0.5?'대부분':'일부')+' 보여요</h4><div>밝은 광구 때문에 대기가 <b>보이지 않아요.</b></div>';
     document.querySelectorAll('#d201_eclipse [data-b]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.b-f)<0.01));}
-  document.getElementById('rB').oninput=e=>{f=+e.target.value;out();};document.querySelectorAll('#d201_eclipse [data-b]').forEach(b=>b.onclick=()=>{f=+b.dataset.b;out();});out();
-  SIM.loop('d201_eclipse',(t)=>{
+  document.getElementById('rB').oninput=e=>{goal=null;f=+e.target.value;out();};document.querySelectorAll('#d201_eclipse [data-b]').forEach(b=>b.onclick=()=>{goal=+b.dataset.b;});out();
+  SIM.loop('d201_eclipse',(t,dt)=>{
+    g.setTransform(KS,0,0,KS,0,0);
+    // 달이 서서히 다가옴 (끝부분에서 느려짐, 처음부터 개기까지 약 10초)
+    if(goal!=null){const d=goal-f,v=Math.max(0.025,Math.min(0.13,Math.abs(d)*0.9))*dt;
+      if(Math.abs(d)<=v){f=goal;goal=null;}else f+=Math.sign(d)*v;
+      const k=Math.round(f*200)+'';if(k!==last){last=k;out();}}
     const cov=Math.max(0,Math.min(1,f)),tot=cov>0.995,mx=CX+(1-cov)*2*R*1.02;
+    const ca=sm(0.96,0.997,cov),pa=sm(0.985,0.998,cov); // 코로나·채층이 서서히 드러남
     const exposed=Math.max(0,1-cov);const sky=Math.min(1,exposed*3);
     g.fillStyle='rgb('+Math.round(2+sky*90)+','+Math.round(6+sky*140)+','+Math.round(23+sky*200)+')';g.fillRect(0,0,W,H);
-    if(tot){streams.forEach(s=>{const gr=g.createLinearGradient(CX,CY,CX+Math.cos(s[0])*R*(1+s[1]),CY+Math.sin(s[0])*R*(1+s[1]));gr.addColorStop(0,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.strokeStyle=gr;g.lineWidth=8+s[2]*20;g.beginPath();g.moveTo(CX,CY);g.lineTo(CX+Math.cos(s[0])*R*(1+s[1]),CY+Math.sin(s[0])*R*(1+s[1]));g.stroke();});
-      const cg=g.createRadialGradient(CX,CY,R,CX,CY,R*2.4);cg.addColorStop(0,'rgba(255,255,255,.85)');cg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=cg;g.beginPath();g.arc(CX,CY,R*2.4,0,7);g.fill();
-      g.strokeStyle='rgba(244,63,94,.9)';g.lineWidth=5;g.beginPath();g.arc(CX,CY,R+3,0,7);g.stroke();
-      g.fillStyle='rgba(244,63,94,.9)';[[0.6,30],[3.6,40]].forEach(([a,h])=>{g.beginPath();g.ellipse(CX+Math.cos(a)*(R+h*0.5),CY+Math.sin(a)*(R+h*0.5),12,h*0.6,a+Math.PI/2,0,7);g.fill();});}
-    const sg=g.createRadialGradient(CX,CY,5,CX,CY,R*1.25);sg.addColorStop(0,'#fff');sg.addColorStop(0.75,'#fef3c7');sg.addColorStop(1,'rgba(254,243,199,0)');g.fillStyle=sg;g.beginPath();g.arc(CX,CY,R*1.25,0,7);g.fill();
-    g.fillStyle=tot?'#020617':'#111827';g.beginPath();g.arc(mx,CY,R*1.02,0,7);g.fill();
+    if(ca>0){g.save();g.globalAlpha=ca;streams.forEach(s=>{const gr=g.createLinearGradient(CX,CY,CX+Math.cos(s[0])*R*(1+s[1]),CY+Math.sin(s[0])*R*(1+s[1]));gr.addColorStop(0,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.strokeStyle=gr;g.lineWidth=8+s[2]*20;g.beginPath();g.moveTo(CX,CY);g.lineTo(CX+Math.cos(s[0])*R*(1+s[1]),CY+Math.sin(s[0])*R*(1+s[1]));g.stroke();});
+      const cg=g.createRadialGradient(CX,CY,R,CX,CY,R*2.4);cg.addColorStop(0,'rgba(255,255,255,.85)');cg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=cg;g.beginPath();g.arc(CX,CY,R*2.4,0,7);g.fill();g.restore();}
+    const sg=g.createRadialGradient(CX,CY,5,CX,CY,R*1.25);sg.addColorStop(0,'#fff');sg.addColorStop(0.75,'#fef3c7');sg.addColorStop(1,'rgba(254,243,199,0)');
+    g.save();g.globalAlpha=1-0.85*ca;g.fillStyle=sg;g.beginPath();g.arc(CX,CY,R*1.25,0,7);g.fill();g.restore();
+    g.fillStyle=cov>0.97?'#020617':'#111827';g.beginPath();g.arc(mx,CY,R*1.02,0,7);g.fill();
+    if(pa>0){g.save();g.globalAlpha=pa;g.strokeStyle='rgba(244,63,94,.9)';g.lineWidth=5;g.beginPath();g.arc(CX,CY,R*1.02+2,0,7);g.stroke();
+      g.fillStyle='rgba(244,63,94,.9)';[[0.6,30],[3.6,40]].forEach(([a,h])=>{g.beginPath();g.ellipse(CX+Math.cos(a)*(R+h*0.5),CY+Math.sin(a)*(R+h*0.5),12,h*0.6,a+Math.PI/2,0,7);g.fill();});g.restore();}
+    // 다이아몬드 반지: 개기 직전 마지막 빛 한 점
+    const dr=sm(0.965,0.985,cov)*(1-sm(0.99,0.997,cov));
+    if(dr>0){const x=CX-R,dg=g.createRadialGradient(x,CY,0,x,CY,60);dg.addColorStop(0,'rgba(255,255,255,'+dr+')');dg.addColorStop(0.25,'rgba(255,250,220,'+dr*0.6+')');dg.addColorStop(1,'rgba(255,250,220,0)');
+      g.fillStyle=dg;g.beginPath();g.arc(x,CY,60,0,7);g.fill();}
     if(tot){g.fillStyle='#fff';g.font=SIM.font(22);g.textAlign='left';g.fillText('코로나',CX+R*1.7,CY-R*1.2);g.fillStyle='#fda4af';g.fillText('채층·홍염',CX+R+60,CY+R*0.5);}
     g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';g.fillText(tot?'개기 일식 중':'달이 태양 앞을 지나가는 중',20,36);
   });
@@ -262,7 +288,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -272,8 +299,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){
