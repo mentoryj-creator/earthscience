@@ -166,10 +166,18 @@
   /* 16:9 고정 (1920×1080) */
   #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
   #presentation-wrapper > .slide { height: 100% !important; }
-  #d202_parallax .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  /* 위: 부제목 + 거리 조절 / 가운데: 그림 두 개 / 아래: 측정 결과 */
+  #d202_parallax .top-row { flex: none; display: flex; align-items: center; gap: 24px; margin-bottom: 14px; padding-right: 250px; }
+  #d202_parallax .top-row .ppt-subtitle { margin: 0 !important; font-size: 30px; padding: 10px 24px; white-space: nowrap; }
+  #d202_parallax .ctl { flex: 1; display: flex; align-items: center; gap: 16px; padding: 10px 22px; min-width: 0; }
+  #d202_parallax .ctl b { white-space: nowrap; color: #1d4ed8; }
+  #d202_parallax .sim-wrap { flex: 1; min-height: 0; display: flex; gap: 24px; }
+  #d202_parallax .sim-stage { display: flex; align-items: center; justify-content: center; min-height: 0; }
   #d202_parallax .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
-  #d202_parallax .sim-panel { flex: 0 0 600px; justify-content: center; }
-  #d202_parallax .sim-stage { align-self: center; }
+  #d202_parallax .st-main { flex: 1 1 0; min-width: 0; }
+  #d202_parallax .st-sky { flex: 0 0 auto; }
+  #d202_parallax .res { flex: none; margin-top: 16px; display: grid; grid-template-columns: auto auto 1fr; gap: 36px; align-items: center; font-size: 27px; }
+  #cA { cursor: default; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -178,13 +186,11 @@
 <body>
 <div id="presentation-wrapper">
 <button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
-<div class="slide sim-slide active" id="d202_parallax"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>연주 시차 관측하기</div><div class="ppt-subtitle">지구가 공전하는 동안 별의 위치가 어떻게 변하는지 관찰해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1160" height="668"></canvas></div>
-<div class="sim-panel"><div class="sim-box blue"><h4>별까지의 거리</h4>
-<div class="sim-row"><input type="range" class="sim-range" id="rA" min="0.6" max="10" step="0.05" value="1.3"><span class="sim-val" id="vA" style="min-width:140px"></span></div>
-<div class="sim-btns"><button class="sim-btn on" id="bA1">❚❚ 멈춤</button><button class="sim-btn" data-d="1.3">프록시마 센타우리</button><button class="sim-btn" data-d="2.64">시리우스</button></div></div>
-<div class="sim-box" id="oA" style="font-size:27px"></div>
-<div class="sim-note">※ 실제 연주 시차는 1″보다 작아요. 화면에서는 각도를 크게 과장해서 나타냈어요.</div></div></div></div>
+<div class="slide sim-slide active" id="d202_parallax"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>연주 시차 관측하기</div><div class="top-row"><div class="ppt-subtitle">지구가 공전하면 별의 보이는 위치는?</div>
+<div class="sim-box blue ctl"><b>별까지의 거리</b><input type="range" class="sim-range" id="rA" min="0.6" max="10" step="0.05" value="1.3"><span class="sim-val" id="vA" style="min-width:120px"></span><button class="sim-btn on" id="bA1">❚❚ 멈춤</button></div></div>
+<div class="sim-wrap"><div class="sim-stage st-main"><canvas id="cA" width="1260" height="760"></canvas></div>
+<div class="sim-stage st-sky"><canvas id="cS" width="520" height="760"></canvas></div></div>
+<div class="sim-box res" id="oA"></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -243,51 +249,85 @@
 
 /* ===== 연주 시차 ===== */
 (function(){
-  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,KS=c.width/W;
-  const SX=530,SY=470,A=110;
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1260,H=760,KS=c.width/W;
+  const cs=document.getElementById('cS'),gs=cs.getContext('2d'),SW=cs.width,SH=cs.height;
+  const SX=630,SY=600,A=140,RC=560; // 태양, 공전 궤도 반지름, 천구 반지름
   let d=1.3,th=0,ph=Math.PI/2,run=true,drag=false;
-  // 별의 화면 위치: 태양에서 (60+28d)만큼, 방향은 th(세로선에서 기운 각)
-  const star=()=>{const L=60+d*28;return [SX+L*Math.sin(th),SY-L*Math.cos(th)];};const r=SIM.rng(5),bg=[];for(let i=0;i<70;i++)bg.push([r()*W,r()*150+10,r()*1.6+.6]);
+  // 별의 위치: 태양에서 (160+25d)만큼, 방향 th(황도의 극=위쪽에서 기운 각, ±90°면 공전 궤도면)
+  const star=()=>{const L=160+d*25;return [SX+L*Math.sin(th),SY-L*Math.cos(th)];};
+  const r=SIM.rng(5),bg=[];for(let i=0;i<160;i++)bg.push([Math.PI*(0.9+r()*1.2),RC-6-r()*26,r()*1.6+.6]);
+  const bgS=[];for(let i=0;i<50;i++)bgS.push([r(),r(),r()*1.5+.6]);
   function out(){const p=1/d;document.getElementById('vA').textContent=d.toFixed(2)+' pc';document.getElementById('rA').value=d;
-    document.getElementById('oA').innerHTML='<h4>측정 결과</h4><div>연주 시차 p = 1 / '+d.toFixed(2)+' = <span class="sim-big" style="font-size:36px">'+p.toFixed(3)+'″</span></div><div>최대 시차 (6개월 간격) = 2p = '+(2*p).toFixed(3)+'″</div><div class="sim-note">거리가 2배가 되면 연주 시차는 1/2이 돼요. 별을 마우스로 끌어 위치를 바꿔 보세요. 별의 방향이 바뀌면 배경 위 궤적의 모양과 자리가 달라지지만, 연주 시차는 거리로만 정해져요.</div>';
-    document.querySelectorAll('#d202_parallax [data-d]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.d-d)<0.01));}
+    document.getElementById('oA').innerHTML='<div>연주 시차 p = 1 / '+d.toFixed(2)+' = <span class="sim-big" style="font-size:38px">'+p.toFixed(3)+'″</span></div>'+
+      '<div>최대 시차 (6개월 간격) = 2p = <b>'+(2*p).toFixed(3)+'″</b></div>'+
+      '<div class="sim-note">거리가 2배가 되면 연주 시차는 1/2. 별을 끌어 방향을 바꾸면 천구 위 궤적의 모양(원↔타원↔선)은 달라지지만 연주 시차는 거리로만 정해져요. ※ 실제 연주 시차는 1″보다 작아 그림에서는 크게 과장했어요.</div>';}
   document.getElementById('rA').oninput=e=>{d=+e.target.value;out();};
-  document.querySelectorAll('#d202_parallax [data-d]').forEach(b=>b.onclick=()=>{d=+b.dataset.d;out();});
   const b1=document.getElementById('bA1');b1.onclick=()=>{run=!run;b1.textContent=run?'❚❚ 멈춤':'▶ 재생';};out();
-  // 별 끌기: 위아래 → 거리, 좌우 → 방향
+  // 별 끌기: 태양에서 멀고 가까움 → 거리, 방향 → 별의 방향 (공전 궤도면까지)
   const at=e=>{const p=SIM.pos(e,c);return [p.x/KS,p.y/KS];};
-  function moveTo(x,y){th=Math.max(-0.9,Math.min(0.9,Math.atan2(x-SX,SY-y)));
-    d=Math.max(0.6,Math.min(10,Math.round(((Math.hypot(x-SX,SY-y)-60)/28)*20)/20));out();}
-  c.addEventListener('pointerdown',e=>{const [x,y]=at(e),s=star();if(Math.hypot(x-s[0],y-s[1])<30){drag=true;c.setPointerCapture(e.pointerId);}});
-  c.addEventListener('pointermove',e=>{const [x,y]=at(e);if(drag){moveTo(x,y);return;}const s=star();c.style.cursor=Math.hypot(x-s[0],y-s[1])<30?'grab':'default';});
+  function moveTo(x,y){th=Math.max(-Math.PI/2,Math.min(Math.PI/2,Math.atan2(x-SX,SY-y)));
+    d=Math.max(0.6,Math.min(10,Math.round(((Math.hypot(x-SX,SY-y)-160)/25)*20)/20));out();}
+  c.addEventListener('pointerdown',e=>{const [x,y]=at(e),s=star();if(Math.hypot(x-s[0],y-s[1])<34){drag=true;c.setPointerCapture(e.pointerId);}});
+  c.addEventListener('pointermove',e=>{const [x,y]=at(e);if(drag){moveTo(x,y);return;}const s=star();c.style.cursor=Math.hypot(x-s[0],y-s[1])<34?'grab':'default';});
   c.addEventListener('pointerup',()=>{drag=false;});
+  // 지구에서 별을 지나는 시선이 천구(반지름 RC인 원)와 만나는 점
+  function onSphere(x0,y0,sx,sy){const vx=sx-x0,vy=sy-y0,fx=x0-SX,fy=y0-SY,aa=vx*vx+vy*vy,bb=2*(fx*vx+fy*vy),cc=fx*fx+fy*fy-RC*RC,D=bb*bb-4*aa*cc;if(D<0)return null;const t=(-bb+Math.sqrt(D))/(2*aa);return [x0+vx*t,y0+vy*t];}
+  const EARTH=a=>[SX+A*Math.cos(a),SY+A*0.35*Math.sin(a)];
   SIM.loop('d202_parallax',(t,dt)=>{
     g.setTransform(KS,0,0,KS,0,0);
     if(run)ph+=dt*0.8;
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    const [stx,sy]=star();
-    // 먼 배경별 하늘 띠
-    g.fillStyle='rgba(30,41,59,.9)';g.fillRect(0,0,W,170);bg.forEach(b=>{g.fillStyle='#e2e8f0';g.fillRect(b[0],b[1],b[2],b[2]);});
-    g.fillStyle='#94a3b8';g.font=SIM.font(18);g.textAlign='left';g.fillText('아주 먼 배경 별들',14,26);
-    // 궤도 & 태양
+    const [stx,sy]=star(),[ex,ey]=EARTH(ph);
+    // 둥근 천구와 아주 먼 배경 별들
+    const A0=Math.PI-0.22,A1=2*Math.PI+0.22;
+    g.strokeStyle='rgba(51,65,85,.95)';g.lineWidth=34;g.beginPath();g.arc(SX,SY,RC-17,A0,A1);g.stroke();
+    g.strokeStyle='rgba(148,163,184,.5)';g.lineWidth=2;g.beginPath();g.arc(SX,SY,RC,A0,A1);g.stroke();
+    bg.forEach(b=>{g.fillStyle='#e2e8f0';g.fillRect(SX+b[1]*Math.cos(b[0]),SY+b[1]*Math.sin(b[0]),b[2],b[2]);});
+    g.fillStyle='#94a3b8';g.font=SIM.font(19);g.textAlign='left';g.fillText('둥근 띠 = 천구 (아주 먼 배경 별들)',20,34);g.textAlign='center';
+    // 1년 동안 천구 위에 보이는 위치들
+    for(let a=0;a<6.283;a+=0.04){const e=EARTH(a),q=onSphere(e[0],e[1],stx,sy);if(q){g.fillStyle='rgba(253,224,71,.4)';g.beginPath();g.arc(q[0],q[1],2,0,7);g.fill();}}
+    // 공전 궤도와 태양
     g.strokeStyle='rgba(148,163,184,.5)';g.lineWidth=1.5;g.beginPath();g.ellipse(SX,SY,A,A*0.35,0,0,7);g.stroke();
-    const sg=g.createRadialGradient(SX,SY,2,SX,SY,24);sg.addColorStop(0,'#fff');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(SX,SY,24,0,7);g.fill();
-    const ex=SX+A*Math.cos(ph),ey=SY+A*0.35*Math.sin(ph);
+    const sg=g.createRadialGradient(SX,SY,2,SX,SY,26);sg.addColorStop(0,'#fff');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(SX,SY,26,0,7);g.fill();
+    // 연주 시차 p: 태양–별 방향에 수직인 1 AU 기준선의 양 끝(공전 궤도 위 두 지점, 6개월 간격). 별의 방향이 바뀌면 함께 돌아감
+    const ux=Math.cos(th),uy=Math.sin(th),tq=1/Math.sqrt((ux/A)**2+(uy/(A*0.35))**2),P1=[SX-ux*tq,SY-uy*tq],P2=[SX+ux*tq,SY+uy*tq];
+    g.strokeStyle='rgba(250,204,21,.85)';g.lineWidth=1.5;g.beginPath();g.moveTo(P1[0],P1[1]);g.lineTo(stx,sy);g.lineTo(P2[0],P2[1]);g.stroke();g.beginPath();g.moveTo(stx,sy);g.lineTo(SX,SY);g.stroke();
+    g.setLineDash([4,4]);g.beginPath();g.moveTo(P1[0],P1[1]);g.lineTo(P2[0],P2[1]);g.stroke();g.setLineDash([]);
+    [P1,P2].forEach(q=>{g.fillStyle='#facc15';g.beginPath();g.arc(q[0],q[1],5,0,7);g.fill();});
+    g.fillStyle='#fde68a';g.font=SIM.font(22);g.textAlign='center';g.fillText('p',stx+(SX-stx)*0.2+14,sy+(SY-sy)*0.2);
+    // 지금의 시선과 보이는 위치
+    const hp=onSphere(ex,ey,stx,sy);
+    if(hp){g.strokeStyle='rgba(96,165,250,.7)';g.lineWidth=2;g.setLineDash([7,6]);g.beginPath();g.moveTo(ex,ey);g.lineTo(hp[0],hp[1]);g.stroke();g.setLineDash([]);
+      const hg=g.createRadialGradient(hp[0],hp[1],1,hp[0],hp[1],14);hg.addColorStop(0,'#fff');hg.addColorStop(.5,'#facc15');hg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=hg;g.beginPath();g.arc(hp[0],hp[1],14,0,7);g.fill();
+      const ux=(hp[0]-SX)/RC,uy=(hp[1]-SY)/RC;g.fillStyle='#fde68a';g.font=SIM.font(18);g.fillText('보이는 위치',hp[0]-ux*58,hp[1]-uy*58+6);}
     // 별 (끌어서 옮길 수 있음)
-    if(drag||c.style.cursor==='grab'){g.strokeStyle='rgba(253,230,138,.7)';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();g.arc(stx,sy,18,0,7);g.stroke();g.setLineDash([]);}
-    g.fillStyle='#fde68a';g.beginPath();g.arc(stx,sy,8,0,7);g.fill();g.font=SIM.font(18);g.textAlign='center';g.fillText('별',stx,sy-16);
-    // 시선 연장 → 배경에 투영
-    const k=(85-ey)/(sy-ey),px=ex+(stx-ex)*k;
-    g.strokeStyle='rgba(96,165,250,.6)';g.lineWidth=2;g.setLineDash([6,6]);g.beginPath();g.moveTo(ex,ey);g.lineTo(px,85);g.stroke();g.setLineDash([]);
-    // 배경 위 별 위치 흔적
-    for(let a=0;a<6.283;a+=0.05){const xx=SX+A*Math.cos(a),yy=SY+A*0.35*Math.sin(a),kk=(85-yy)/(sy-yy);g.fillStyle='rgba(253,224,71,.25)';g.fillRect(xx+(stx-xx)*kk-1,84,2,2);}
-    g.fillStyle='#facc15';g.beginPath();g.arc(px,85,7,0,7);g.fill();g.fillStyle='#fde68a';g.fillText('보이는 위치',px,120);
-    g.fillStyle='#60a5fa';g.beginPath();g.arc(ex,ey,9,0,7);g.fill();g.fillStyle='#93c5fd';g.fillText('지구',ex,ey+28);
-    // 각 p 표시
-    g.strokeStyle='rgba(250,204,21,.8)';g.lineWidth=1.5;g.beginPath();g.moveTo(SX-A,SY);g.lineTo(stx,sy);g.lineTo(SX+A,SY);g.stroke();g.beginPath();g.moveTo(stx,sy);g.lineTo(SX,SY);g.stroke();
-    g.fillStyle='#fde68a';g.font=SIM.font(20);g.fillText('p',stx+(SX-stx)*0.18+12,sy+(SY-sy)*0.18);
-    g.fillStyle='#94a3b8';g.font=SIM.font(17,false);g.textAlign='right';g.fillText('별을 끌어 옮겨 보세요 (위아래: 거리, 좌우: 방향)',W-14,H-20);g.textAlign='center';g.fillStyle='#cbd5e1';g.font=SIM.font(17,false);g.fillText('1 AU',SX+A/2,SY+16);
-    g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';g.fillText(['1월','4월','7월','10월'][Math.floor(((ph%6.283)+6.283)%6.283/6.283*4)]+' 무렵',14,H-20);
+    if(drag||c.style.cursor==='grab'){g.strokeStyle='rgba(253,230,138,.7)';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();g.arc(stx,sy,20,0,7);g.stroke();g.setLineDash([]);}
+    g.fillStyle='#fde68a';g.beginPath();g.arc(stx,sy,9,0,7);g.fill();g.font=SIM.font(18);g.fillText('별',stx,sy-18);
+    g.fillStyle='#60a5fa';g.beginPath();g.arc(ex,ey,10,0,7);g.fill();g.fillStyle='#93c5fd';g.fillText('지구',ex,ey+30);
+    g.fillStyle='#cbd5e1';g.font=SIM.font(17,false);g.fillText('1 AU',(SX+P2[0])/2+(uy>0.3?16:0),(SY+P2[1])/2+18);
+    g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.textAlign='left';g.fillText(['1월','4월','7월','10월'][Math.floor(((ph%6.283)+6.283)%6.283/6.283*4)]+' 무렵',20,H-22);
+    g.fillStyle='#94a3b8';g.font=SIM.font(18,false);g.textAlign='right';g.fillText('별을 끌어 옮겨 보세요 (멀리·가까이: 거리, 기울이기: 방향)',W-20,H-22);
+
+    // ===== 오른쪽 창: 천구에서 본 별의 1년 동안 위치 =====
+    // 1년 동안 별은 작은 타원을 그려요. 긴반지름 = 연주 시차 p, 짧은반지름 = p × sin(황위 β).
+    // 크기는 보기 쉽게 로그로 줄여 나타냄(10 pc에서도 반지름 90, 가장 가까울 때 210, 실제 비율 아님)
+    const p=1/d,beta=Math.PI/2-Math.abs(th),ra=90+120*Math.max(0,Math.min(1,Math.log(p/0.1)/Math.log(1/0.06))),rb=ra*Math.sin(beta),cx=SW/2,cy=330;
+    gs.fillStyle='#020617';gs.fillRect(0,0,SW,SH);
+    bgS.forEach(b=>{gs.fillStyle='rgba(226,232,240,.55)';gs.fillRect(b[0]*SW,60+b[1]*520,b[2],b[2]);});
+    gs.fillStyle='#e2e8f0';gs.font=SIM.font(24);gs.textAlign='center';gs.fillText('천구에서 본 별의 1년 동안 위치',cx,42);
+    gs.strokeStyle='rgba(253,224,71,.6)';gs.lineWidth=2.5;gs.setLineDash([6,6]);gs.beginPath();gs.ellipse(cx,cy,ra,Math.max(rb,1),0,0,7);gs.stroke();gs.setLineDash([]);
+    gs.font=SIM.font(17,false);gs.fillStyle='#94a3b8';
+    [[0,'1월'],[Math.PI/2,'4월'],[Math.PI,'7월'],[Math.PI*1.5,'10월']].forEach(([q,m])=>{const mx=cx-ra*Math.cos(q),my=cy-rb*Math.sin(q);gs.beginPath();gs.arc(mx,my,4,0,7);gs.fill();
+      if(rb>=30||Math.abs(Math.cos(q))>0.5)gs.fillText(m,mx+(Math.cos(q)>0.5?-28:Math.cos(q)<-0.5?28:0),my+(Math.sin(q)>0.5?-12:Math.sin(q)<-0.5?26:6));});
+    gs.strokeStyle='rgba(148,163,184,.7)';gs.lineWidth=1.5;gs.beginPath();gs.moveTo(cx-8,cy);gs.lineTo(cx+8,cy);gs.moveTo(cx,cy-8);gs.lineTo(cx,cy+8);gs.stroke();
+    gs.strokeStyle='#f97316';gs.lineWidth=3.5;gs.beginPath();gs.moveTo(cx,cy);gs.lineTo(cx+ra,cy);gs.stroke();
+    gs.fillStyle='#f97316';gs.beginPath();gs.moveTo(cx+ra,cy);gs.lineTo(cx+ra-11,cy-6);gs.lineTo(cx+ra-11,cy+6);gs.fill();
+    gs.font=SIM.font(24);gs.fillText('p',cx+ra/2,cy-10);
+    const sx2=cx-ra*Math.cos(ph),sy2=cy-rb*Math.sin(ph),s2=gs.createRadialGradient(sx2,sy2,1,sx2,sy2,15);s2.addColorStop(0,'#fff');s2.addColorStop(.5,'#facc15');s2.addColorStop(1,'rgba(250,204,21,0)');gs.fillStyle=s2;gs.beginPath();gs.arc(sx2,sy2,15,0,7);gs.fill();
+    gs.textAlign='left';gs.font=SIM.font(24);gs.fillStyle='#fdba74';gs.fillText('연주 시차 p = '+p.toFixed(3)+'″',28,SH-118);
+    gs.fillStyle='#e2e8f0';gs.fillText('거리 r = 1 / p = '+d.toFixed(2)+' pc',28,SH-82);
+    gs.fillStyle='#94a3b8';gs.font=SIM.font(17,false);gs.fillText('+ 태양에서 본 위치 · 황위 '+Math.round(beta*180/Math.PI)+'° (공전 궤도면에 가까울수록 납작)',28,SH-48);
+    gs.fillText('궤적 크기는 보기 쉽게 확대해 그렸어요',28,SH-22);
   });
 })();
 
