@@ -187,6 +187,12 @@
 
   <section id="tab-stats" hidden>
     <div class="stat-cards" id="statCards"></div>
+    <div class="admin-box"><h2>방문 · 열람 수 <span class="pill" id="gcStatus">GoatCounter</span></h2>
+      <div class="row-btns" style="margin-top:0"><button class="btn small" id="gcLoad">숫자 불러오기</button>
+        <a class="btn ghost small" href="https://earthscience-lab.goatcounter.com" target="_blank" rel="noopener">GoatCounter 대시보드 열기 ↗</a></div>
+      <div class="stat-cards" id="gcCards"></div>
+      <div id="gcTop"></div>
+      <p class="hint">열람 수 = 시뮬레이션 페이지가 열린 횟수(카드 클릭·주소 직접 입력 모두 포함). 설치한 뒤부터 집계되며, 날짜별 그래프와 카드 클릭 기록(/click/…)은 대시보드에서 볼 수 있어요.</p></div>
     <div class="admin-box"><h2>과목 · 단원별</h2><div id="statCourses"></div></div>
     <div class="admin-box"><h2>주제별</h2><div id="statTopics"></div></div>
     <p class="hint">공개 = 사이트에 보이는 시뮬레이션, 준비 중 = 목록에는 있지만 아직 공개하지 않은 것. 한 시뮬레이션이 여러 단원에 연결되면 단원마다 한 번씩 셉니다.</p>
@@ -643,13 +649,42 @@ function renderStats() {
     const [n, r] = cnt(all, inC(c.id));
     return `<div class="stat-group"><div class="stat-row head"><span>${esc(c.name)}</span><b>${n}</b><span class="hint">공개 ${r}</span></div>` +
       c.units.map(u => { const [un, ur] = cnt(all, inC(c.id, u.id));
-        return `<div class="stat-row"><span>${esc(u.name)}</span><b>${un}</b><span class="hint">공개 ${ur}</span>${bar(un, maxU)}</div>`; }).join('') + '</div>';
+        const uv = gcViews ? all.filter(inC(c.id, u.id)).reduce((a, x) => a + (gcViews[x.id] || 0), 0) : null;
+        return `<div class="stat-row"><span>${esc(u.name)}</span><b>${un}</b><span class="hint">공개 ${ur}${uv != null ? ' · 열람 ' + uv.toLocaleString() : ''}</span>${bar(un, maxU)}</div>`; }).join('') + '</div>';
   }).join('');
   const maxT = Math.max(1, ...data.topics.map(t => all.filter(x => x.topic === t.id).length));
   $('statTopics').innerHTML = data.topics.map(t => { const [n, r] = cnt(all, x => x.topic === t.id);
     return `<div class="stat-row"><span>${esc(t.name)}</span><b>${n}</b><span class="hint">공개 ${r}</span>${bar(n, maxT)}</div>`; }).join('');
   const etc = all.filter(x => !data.topics.some(t => t.id === x.topic));
   if (etc.length) $('statTopics').innerHTML += `<div class="stat-row"><span>주제 없음 (통합과학 등)</span><b>${etc.length}</b><span class="hint">공개 ${etc.filter(x => x.status === 'ready').length}</span>${bar(etc.length, maxT)}</div>`;
+}
+
+// ---- GoatCounter 숫자 (공개 카운터 주소, 토큰 필요 없음) ----
+let gcViews = null;
+async function gcCount(path) {
+  try { const r = await fetch(App.GC + '/counter/' + encodeURIComponent(path) + '.json'); if (!r.ok) return 0;
+        const j = await r.json(); return +String(j.count || '0').replace(/[^0-9]/g, '') || 0; } catch (e) { return 0; }
+}
+$('gcLoad').onclick = async () => {
+  const b = $('gcLoad'); b.disabled = true; const st = $('gcStatus');
+  const ids = data.sims.filter(x => x.status === 'ready').map(x => x.id);
+  const views = {}; let done = 0;
+  const total = await gcCount('TOTAL');
+  async function worker() { while (ids.length) { const id = ids.shift(); views[id] = await gcCount('/sim/' + id); st.textContent = '불러오는 중 ' + (++done); } }
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  gcViews = views; st.textContent = '불러옴'; st.className = 'pill ok'; b.disabled = false; renderGc(total);
+};
+function renderGc(total) {
+  if (!gcViews) return;
+  const sum = Object.values(gcViews).reduce((a, b) => a + b, 0);
+  const card = (n, l) => `<div class="stat"><div class="n">${n.toLocaleString()}</div><div class="l">${l}</div></div>`;
+  if (total != null) $('gcCards').innerHTML = card(total, '사이트 전체 방문') + card(sum, '시뮬레이션 열람 합계') +
+    card(Object.values(gcViews).filter(v => v > 0).length, '한 번 이상 열린 시뮬레이션');
+  const top = data.sims.filter(x => gcViews[x.id] != null).sort((a, b) => gcViews[b.id] - gcViews[a.id]).slice(0, 20);
+  const max = Math.max(1, ...top.map(x => gcViews[x.id]));
+  $('gcTop').innerHTML = '<div class="stat-row head"><span>많이 열어 본 시뮬레이션 (상위 20)</span><b>열람</b><span></span><span></span></div>' +
+    top.map((x, i) => `<div class="stat-row"><span>${i + 1}. ${esc(x.title)}</span><b>${gcViews[x.id].toLocaleString()}</b><span></span><span class="sbar"><i style="width:${Math.round(gcViews[x.id] / max * 100)}%"></i></span></div>`).join('');
+  renderStats();
 }
 
 function renderAll() { renderTheme(); renderFilter(); renderSims(); renderCourses(); renderTopics(); if (!$('tab-stats').hidden) renderStats(); }

@@ -34,6 +34,22 @@
   const unit = (cid, uid) => (course(cid)?.units || []).find(u => u.id === uid);
   const param = k => new URLSearchParams(location.search).get(k);
 
+  // ---- 방문 통계 (GoatCounter, 쿠키 없음) ----
+  // 페이지마다 알아보기 쉬운 주소로 기록: /, /course/pss, /topic/astro, /sim/<id>
+  // 관리 페이지와 내 컴퓨터(localhost)에서 열 때는 기록하지 않음
+  const GC = 'https://earthscience-lab.goatcounter.com';
+  const page = location.pathname.split('/').pop() || 'index.html';
+  const gcPath = page === 'sim.html' ? '/sim/' + (new URLSearchParams(location.search).get('id') || '')
+    : page === 'course.html' ? '/course/' + (new URLSearchParams(location.search).get('c') || '')
+    : page === 'topic.html' ? '/topic/' + (new URLSearchParams(location.search).get('t') || '')
+    : page === 'index.html' ? '/' : '/' + page;
+  if (page !== 'admin.html' && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && location.protocol !== 'file:') {
+    window.goatcounter = { path: gcPath };
+    const gs = document.createElement('script');
+    gs.async = true; gs.src = 'https://gc.zgo.at/count.js'; gs.dataset.goatcounter = GC + '/count';
+    document.head.appendChild(gs);
+  }
+
   const url = {
     home: () => ROOT + 'index.html',
     course: (cid, uid) => ROOT + 'course.html?c=' + cid + (uid ? '#' + uid : ''),
@@ -52,7 +68,7 @@
       <h3>${esc(sim.title)}</h3><p>${esc(sim.desc)}</p>${chips}`;
     const style = `style="--c:${t.color || 'var(--accent)'}"`;
     return sim.status === 'ready'
-      ? `<a class="card" ${style} href="${url.sim(sim.id)}">${inner}</a>`
+      ? `<a class="card" ${style} href="${url.sim(sim.id)}" data-goatcounter-click="/click/${esc(sim.id)}" data-goatcounter-title="${esc(sim.title)}">${inner}</a>`
       : `<div class="card soon" ${style}>${inner}</div>`;
   }
 
@@ -118,6 +134,6 @@
     update(true);
   }
 
-  window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card };
+  window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card, GC };
   document.addEventListener('DOMContentLoaded', () => { header(); footer(); tocSpy(); });
 })();
