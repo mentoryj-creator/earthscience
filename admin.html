@@ -48,6 +48,16 @@
     .tabs { display: flex; gap: 4px; margin-top: 28px; border-bottom: 1px solid var(--line); }
     .tab { background: none; border: none; padding: 10px 16px; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; font-size: .97rem; }
     .tab.on { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
+    .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
+    .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+    .stat .n { font-size: 2rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+    .stat .l { font-size: .9rem; color: var(--muted); margin-top: 4px; }
+    .stat-group + .stat-group { margin-top: 14px; }
+    .stat-row { display: grid; grid-template-columns: minmax(140px, 1.2fr) 48px 70px 2fr; gap: 10px; align-items: center; padding: 5px 0; font-size: .93rem; }
+    .stat-row.head { border-bottom: 1px solid var(--line); font-weight: 700; }
+    .stat-row b { text-align: right; }
+    .sbar { display: block; height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+    .sbar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
 
     .list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
     .item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
@@ -147,6 +157,7 @@
     <button class="tab on" data-tab="sims">시뮬레이션</button>
     <button class="tab" data-tab="courses">과목 · 단원</button>
     <button class="tab" data-tab="topics">주제</button>
+    <button class="tab" data-tab="stats">통계</button>
   </div>
 
   <section id="tab-sims">
@@ -172,6 +183,13 @@
   <section id="tab-topics" hidden>
     <p class="hint" style="margin-top:16px">소주제는 한 줄에 하나씩 적습니다. 순서대로 주제 페이지에 표시됩니다.</p>
     <div id="topicList"></div>
+  </section>
+
+  <section id="tab-stats" hidden>
+    <div class="stat-cards" id="statCards"></div>
+    <div class="admin-box"><h2>과목 · 단원별</h2><div id="statCourses"></div></div>
+    <div class="admin-box"><h2>주제별</h2><div id="statTopics"></div></div>
+    <p class="hint">공개 = 사이트에 보이는 시뮬레이션, 준비 중 = 목록에는 있지만 아직 공개하지 않은 것. 한 시뮬레이션이 여러 단원에 연결되면 단원마다 한 번씩 셉니다.</p>
   </section>
 
   <!-- ===== 저장 막대 ===== -->
@@ -253,7 +271,8 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 // ---------- 탭 ----------
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
-  ['sims', 'courses', 'topics'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
+  ['sims', 'courses', 'topics', 'stats'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
+  if (b.dataset.tab === 'stats') renderStats();
 });
 
 // =====================================================================
@@ -607,7 +626,33 @@ function renderTheme() {
 }
 $('themeSel').onchange = () => { data.theme = $('themeSel').value; $('themePreview').href = 'index.html?theme=' + data.theme; markDirty(); };
 
-function renderAll() { renderTheme(); renderFilter(); renderSims(); renderCourses(); renderTopics(); }
+// =====================================================================
+//  통계
+// =====================================================================
+function renderStats() {
+  const all = data.sims, ready = all.filter(x => x.status === 'ready');
+  const noLink = all.filter(x => !(x.links || []).length).length;
+  const card = (n, label, sub) => `<div class="stat"><div class="n">${n}</div><div class="l">${label}</div>${sub ? `<div class="hint">${sub}</div>` : ''}</div>`;
+  $('statCards').innerHTML = card(all.length, '전체 시뮬레이션') + card(ready.length, '공개') +
+    card(all.length - ready.length, '준비 중') + card(noLink, '과목 연결 없음');
+  const cnt = (list, f) => [list.filter(f).length, list.filter(x => x.status === 'ready' && f(x)).length];
+  const bar = (n, max) => `<span class="sbar"><i style="width:${max ? Math.round(n / max * 100) : 0}%"></i></span>`;
+  const inC = (c, u) => x => (x.links || []).some(l => l.course === c && (!u || l.unit === u));
+  const maxU = Math.max(1, ...data.courses.flatMap(c => c.units.map(u => cnt(all, inC(c.id, u.id))[0])));
+  $('statCourses').innerHTML = data.courses.map(c => {
+    const [n, r] = cnt(all, inC(c.id));
+    return `<div class="stat-group"><div class="stat-row head"><span>${esc(c.name)}</span><b>${n}</b><span class="hint">공개 ${r}</span></div>` +
+      c.units.map(u => { const [un, ur] = cnt(all, inC(c.id, u.id));
+        return `<div class="stat-row"><span>${esc(u.name)}</span><b>${un}</b><span class="hint">공개 ${ur}</span>${bar(un, maxU)}</div>`; }).join('') + '</div>';
+  }).join('');
+  const maxT = Math.max(1, ...data.topics.map(t => all.filter(x => x.topic === t.id).length));
+  $('statTopics').innerHTML = data.topics.map(t => { const [n, r] = cnt(all, x => x.topic === t.id);
+    return `<div class="stat-row"><span>${esc(t.name)}</span><b>${n}</b><span class="hint">공개 ${r}</span>${bar(n, maxT)}</div>`; }).join('');
+  const etc = all.filter(x => !data.topics.some(t => t.id === x.topic));
+  if (etc.length) $('statTopics').innerHTML += `<div class="stat-row"><span>주제 없음 (통합과학 등)</span><b>${etc.length}</b><span class="hint">공개 ${etc.filter(x => x.status === 'ready').length}</span>${bar(etc.length, maxT)}</div>`;
+}
+
+function renderAll() { renderTheme(); renderFilter(); renderSims(); renderCourses(); renderTopics(); if (!$('tab-stats').hidden) renderStats(); }
 renderAll();
 </script>
 <script>
