@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d102_debris .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d102_debris .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d102_debris .sim-panel { flex: 0 0 600px; justify-content: center; gap: 12px; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,13 +176,14 @@
 </head>
 <body>
 <div id="presentation-wrapper">
-<div class="slide sim-slide active" id="d102_debris"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>우주 쓰레기는 왜 계속 늘어날까?</div><div class="ppt-subtitle">파편끼리 부딪쳐 더 많은 파편이 생기는 <span class="or">연쇄 충돌</span>을 관찰해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1060" height="610"></canvas></div>
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="d102_debris"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>우주 쓰레기는 왜 계속 늘어날까?</div><div class="ppt-subtitle">충돌은 드물지만, 한 번 일어나면 <span class="or">파편이 급격히 늘어나</span> 다음 충돌 위험을 키워요.</div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1160" height="900"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>우주 활동</h4>
 <div class="sim-btns"><button class="sim-btn on" id="bC1">▶ 시간 흐르기</button><button class="sim-btn" id="bC2">인공위성 10개 발사</button><button class="sim-btn orange" id="bC3">충돌 일으키기</button><button class="sim-btn" id="bC4">↺</button></div>
 <div class="sim-row"><span class="lbl" style="width:200px">수명 다한 위성 수거</span><input type="range" class="sim-range" id="rC" min="0" max="1" step="0.05" value="0"><span class="sim-val" id="vC" style="min-width:90px"></span></div></div>
 <div class="sim-box" id="oC" style="font-size:27px"></div>
-<div class="sim-note">※ 실제보다 크기와 충돌 확률을 크게 나타낸 모형이에요 (케슬러 증후군).</div></div></div></div>
+<div class="sim-box key" style="font-size:24px">평소에는 충돌이 일어나지 않아요. <b>충돌 일으키기</b>를 누르면 위성이 부서져 파편 수십 개가 생기고, 그 파편이 <b>아주 낮은 확률</b>로 다른 위성과 부딪히면 또 파편이 늘어나요 (<b>케슬러 증후군</b>). <span class="sim-note">※ 크기·확률은 실제보다 크게 나타냈어요.</span></div></div></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -232,39 +242,95 @@
 
 /* ===== 우주 쓰레기 연쇄 충돌 ===== */
 (function(){
-  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610,CX=420,CY=305,RE=80;
-  let obj=[],run=false,t=0,col=0,hist=[],coll=0;
+  const c=document.getElementById('cC'),g=c.getContext('2d'),W=c.width,H=c.height,CX=460,CY=470,S=1.45,RE=80*S;
+  const KH=0.000012; // 파편 1개가 위성 1개와 1년에 부딪힐 확률 (아주 낮음)
+  let obj=[],run=false,t=0,col=0,hist=[],coll=0,booms=[],evs=[],lastT=-1; // hist: [연도, 파편 수], evs: [연도, 직접 충돌?]
+  const scr=o=>[CX+o.x*S,CY+(o.y*0.55-o.z*0.8)*S];
+  function boom(o,big){evs.push([t,big]);pos(o);const [x,y]=scr(o);booms.push({x,y,t:0,big,p:Array.from({length:big?40:24},()=>{const a=Math.random()*6.283,v=40+Math.random()*(big?220:140);return [Math.cos(a)*v,Math.sin(a)*v,Math.random()<.5?'#fde047':(Math.random()<.5?'#fb923c':'#f87171')];})});}
+  function hitRate(){let ns=0,nd=0;obj.forEach(o=>{if(o.type==='deb')nd++;else ns++;});return KH*nd*ns;}
   function mk(type,r,inc,node,phase){return{type,r,inc,node,phase,age:0,life:type==='sat'?20+Math.random()*30:0,x:0,y:0,z:0};}
-  function reset(){obj=[];t=0;coll=0;hist=[];for(let i=0;i<60;i++)obj.push(mk(Math.random()<.6?'sat':'dead',120+Math.random()*130,(Math.random()-.5)*2.4,Math.random()*6.28,Math.random()*6.28));out();}
+
+  /* ---- 지구 모형: 대륙(경위도 윤곽을 정사영) + 구름 + 낮/밤 + 대기 ---- */
+  const LAND=[
+    [[-168,65],[-140,70],[-95,72],[-80,63],[-60,55],[-66,45],[-75,35],[-81,25],[-97,26],[-105,20],[-95,16],[-83,9],[-78,8],[-90,15],[-105,22],[-117,32],[-124,40],[-125,49],[-135,58],[-150,60],[-165,60]],
+    [[-78,8],[-60,10],[-50,0],[-35,-7],[-40,-22],[-48,-28],[-58,-38],[-65,-55],[-72,-50],[-73,-40],[-71,-18],[-80,-5],[-80,2]],
+    [[-17,15],[-16,22],[-10,30],[-5,36],[10,37],[20,32],[32,31],[35,25],[43,12],[51,12],[40,-5],[40,-15],[35,-25],[20,-35],[15,-25],[12,-5],[8,4],[-8,4],[-15,10]],
+    [[-10,36],[-9,43],[-2,47],[-5,48],[5,52],[10,57],[5,62],[20,70],[40,68],[60,70],[80,73],[110,77],[140,72],[170,70],[180,66],[160,60],[143,50],[140,40],[127,35],[122,30],[120,22],[108,20],[105,10],[100,13],[98,8],[92,20],[80,15],[77,8],[72,20],[57,25],[50,30],[48,28],[55,22],[52,15],[43,13],[35,30],[28,37],[22,40],[15,40],[10,44],[3,43]],
+    [[114,-22],[122,-18],[130,-12],[137,-12],[142,-11],[146,-19],[153,-28],[150,-37],[141,-38],[131,-31],[115,-34]],
+    [[44,-25],[50,-15],[49,-12],[43,-17]],[[130,31],[141,36],[142,45],[139,40]],[[-5,50],[1,51],[-2,57],[-6,56]],
+    [[95,5],[105,-6],[115,-8],[120,-4],[110,2],[100,3]]];
+  const ICE=[[[-50,60],[-42,60],[-20,70],[-20,80],[-40,83],[-60,80],[-55,70]],Array.from({length:37},(_,i)=>[-180+i*10,-70+4*Math.sin(i*1.3)])];
+  const CLOUD=[];{const r=SIM.rng(21);for(let i=0;i<34;i++)CLOUD.push([r()*360-180,(r()-.5)*150,6+r()*14,0.25+r()*0.35]);}
+  const ec=document.createElement('canvas'),ER=Math.round(RE),eg2=ec.getContext('2d');ec.width=ec.height=ER*2+40;
+  let rot=-20;const LAT0=18*Math.PI/180;
+  function proj(lon,lat){const l=(lon-rot)*Math.PI/180,p=lat*Math.PI/180,cc=Math.sin(LAT0)*Math.sin(p)+Math.cos(LAT0)*Math.cos(p)*Math.cos(l);
+    let x=Math.cos(p)*Math.sin(l),y=Math.cos(LAT0)*Math.sin(p)-Math.sin(LAT0)*Math.cos(p)*Math.cos(l);if(cc<0){const n=Math.hypot(x,y)||1;x/=n;y/=n;}return [x,-y,cc];}
+  function drawEarth(){const q=eg2,o=ER+20;q.clearRect(0,0,ec.width,ec.height);
+    // 대기 빛
+    const ag=q.createRadialGradient(o,o,ER*0.9,o,o,ER+18);ag.addColorStop(0,'rgba(96,165,250,.55)');ag.addColorStop(1,'rgba(96,165,250,0)');q.fillStyle=ag;q.beginPath();q.arc(o,o,ER+18,0,7);q.fill();
+    q.save();q.beginPath();q.arc(o,o,ER,0,7);q.clip();
+    const sea=q.createRadialGradient(o-ER*0.3,o-ER*0.3,ER*0.1,o,o,ER);sea.addColorStop(0,'#2f6fd0');sea.addColorStop(1,'#0b2a66');q.fillStyle=sea;q.fillRect(0,0,ec.width,ec.height);
+    const poly=(pts,col)=>{const P=pts.map(([a,b])=>proj(a,b));if(P.every(p=>p[2]<0))return;q.fillStyle=col;q.beginPath();P.forEach((p,i)=>{const x=o+p[0]*ER,y=o+p[1]*ER;i?q.lineTo(x,y):q.moveTo(x,y);});q.closePath();q.fill();};
+    LAND.forEach((L,i)=>poly(L,i===2?'#9a8a4e':'#3f7d3a'));
+    poly([[-15,15],[0,30],[30,28],[35,18],[15,12]],'#c9b26b'); // 사하라
+    ICE.forEach(L=>poly(L,'#e8f1f8'));
+    CLOUD.forEach(cl=>{const p=proj(cl[0]+rot*0.15,cl[1]);if(p[2]<0.05)return;q.fillStyle='rgba(255,255,255,'+(cl[3]*p[2])+')';q.beginPath();q.ellipse(o+p[0]*ER,o+p[1]*ER,cl[2]*ER/80*(0.4+0.6*p[2]),cl[2]*ER/80*0.5*(0.4+0.6*p[2]),0,0,7);q.fill();});
+    // 밤 쪽 그림자 (빛은 왼쪽 위에서)
+    const sh=q.createLinearGradient(o-ER*0.6,o-ER*0.6,o+ER,o+ER);sh.addColorStop(0,'rgba(0,0,0,0)');sh.addColorStop(.55,'rgba(0,0,0,.05)');sh.addColorStop(1,'rgba(0,0,10,.75)');q.fillStyle=sh;q.fillRect(0,0,ec.width,ec.height);
+    const lg=q.createRadialGradient(o-ER*0.4,o-ER*0.45,0,o-ER*0.4,o-ER*0.45,ER*0.7);lg.addColorStop(0,'rgba(255,255,255,.18)');lg.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=lg;q.fillRect(0,0,ec.width,ec.height);
+    q.restore();
+    g.drawImage(ec,CX-o,CY-o);}
+  function reset(){obj=[];t=0;coll=0;hist=[[0,0]];evs=[];lastT=0;for(let i=0;i<60;i++)obj.push(mk(Math.random()<.6?'sat':'dead',120+Math.random()*130,(Math.random()-.5)*2.4,Math.random()*6.28,Math.random()*6.28));out();}
   function frag(p,n){for(let k=0;k<n;k++)obj.push(mk('deb',Math.max(100,Math.min(270,p.r+(Math.random()-.5)*30)),p.inc+(Math.random()-.5)*1.4,p.node+(Math.random()-.5)*0.8,p.phase+(Math.random()-.5)*0.3));}
   function out(){const cnt={sat:0,dead:0,deb:0};obj.forEach(o=>cnt[o.type]++);document.getElementById('vC').textContent=Math.round(col*100)+'%';
-    document.getElementById('oC').innerHTML='<h4>궤도 위의 물체 ('+Math.floor(t)+'년)</h4><table class="sim-table"><tbody><tr><td style="color:#16a34a;font-weight:bold">■ 작동 위성</td><td><b>'+cnt.sat+'</b></td></tr><tr><td style="color:#64748b;font-weight:bold">■ 고장 위성</td><td><b>'+cnt.dead+'</b></td></tr><tr><td style="color:#dc2626;font-weight:bold">● 파편</td><td><b class="sim-big" style="font-size:30px">'+cnt.deb+'</b></td></tr><tr><td>충돌 횟수</td><td><b>'+coll+'</b></td></tr></tbody></table>';}
+    document.getElementById('oC').innerHTML='<h4>궤도 위의 물체 ('+Math.floor(t)+'년)</h4><table class="sim-table"><tbody><tr><td style="color:#16a34a;font-weight:bold">■ 작동 위성</td><td><b>'+cnt.sat+'</b></td></tr><tr><td style="color:#64748b;font-weight:bold">■ 고장 위성</td><td><b>'+cnt.dead+'</b></td></tr><tr><td style="color:#dc2626;font-weight:bold">● 파편</td><td><b class="sim-big" style="font-size:30px">'+cnt.deb+'</b></td></tr><tr><td>충돌 횟수</td><td><b>'+coll+'</b></td></tr><tr><td>1년 내 연쇄 충돌 확률</td><td><b class="or">'+(100*(1-Math.exp(-hitRate()))).toFixed(1)+'%</b></td></tr></tbody></table>';}
   const b1=document.getElementById('bC1');b1.onclick=()=>{run=!run;b1.textContent=run?'❚❚ 멈춤':'▶ 시간 흐르기';};
   document.getElementById('bC2').onclick=()=>{for(let i=0;i<10;i++)obj.push(mk('sat',120+Math.random()*130,(Math.random()-.5)*2.4,Math.random()*6.28,Math.random()*6.28));out();};
-  document.getElementById('bC3').onclick=()=>{const s=obj.filter(o=>o.type!=='deb');if(s.length){const p=s[(Math.random()*s.length)|0];obj.splice(obj.indexOf(p),1);frag(p,45);coll++;}out();};
-  document.getElementById('bC4').onclick=()=>{run=false;b1.textContent='▶ 시간 흐르기';reset();};
+  // 충돌 일으키기: 앞쪽(보이는 쪽)의 위성 하나가 부서져 파편 수십 개
+  document.getElementById('bC3').onclick=()=>{obj.forEach(pos);let s=obj.filter(o=>o.type!=='deb'&&o.z>=0);if(!s.length)s=obj.filter(o=>o.type!=='deb');
+    if(s.length){const p=s[(Math.random()*s.length)|0];boom(p,true);obj.splice(obj.indexOf(p),1);frag(p,50);coll++;if(!run)b1.onclick();}out();};
+  document.getElementById('bC4').onclick=()=>{run=false;b1.textContent='▶ 시간 흐르기';booms=[];reset();};
   document.getElementById('rC').oninput=e=>{col=+e.target.value;out();};
   reset();
   function pos(o){const ca=Math.cos(o.phase),sa=Math.sin(o.phase);let x=o.r*ca,y=o.r*sa*Math.cos(o.inc),z=o.r*sa*Math.sin(o.inc);const cn=Math.cos(o.node),sn=Math.sin(o.node);o.x=x*cn-y*sn;o.y=x*sn+y*cn;o.z=z;}
   let fr=0;
   SIM.loop('d102_debris',(tm,dt)=>{
+    rot-=dt*(run?12:3);
     if(run){t+=dt*2;obj.forEach(o=>{o.phase+=dt*2.2*Math.pow(150/o.r,1.5);if(o.type==='sat'){o.age+=dt*2;if(o.age>o.life)o.type='dead';}});
       if(col>0)obj=obj.filter(o=>!(o.type==='dead'&&Math.random()<col*dt*0.6));
       obj.forEach(pos);
-      if((fr++)%2===0){const bins={};obj.forEach((o,i)=>{const k=Math.floor(o.x/10)+','+Math.floor(o.y/10)+','+Math.floor(o.z/10);(bins[k]=bins[k]||[]).push(i);});
-        const dead=new Set();Object.values(bins).forEach(l=>{for(let a=0;a<l.length;a++)for(let b=a+1;b<l.length;b++){const p=obj[l[a]],q=obj[l[b]];if(dead.has(l[a])||dead.has(l[b]))continue;if(Math.hypot(p.x-q.x,p.y-q.y,p.z-q.z)<4.5&&Math.random()<0.5){dead.add(l[a]);dead.add(l[b]);}}});
-        if(dead.size){const rm=[...dead].map(i=>obj[i]);rm.forEach(p=>{frag(p,p.type==='deb'?6:20);coll+=0.5;});obj=obj.filter((o,i)=>!dead.has(i));coll=Math.round(coll);}
-        if(obj.length>2200)obj=obj.slice(-2200);}
-      hist.push(obj.filter(o=>o.type==='deb').length);if(hist.length>400)hist.shift();out();}
+      // 파편이 위성과 부딪히는 일은 아주 드묾: 1년에 (파편 수 × 위성 수 × KH) 번 꼴. 파편이 많을수록 위험 증가
+      if(Math.random()<hitRate()*dt*2){const s=obj.filter(o=>o.type!=='deb');if(s.length){const p=s[(Math.random()*s.length)|0];boom(p,false);obj.splice(obj.indexOf(p),1);frag(p,25);coll++;}}
+      if(obj.length>2200)obj=obj.slice(-2200);
+      if(t-lastT>=0.25){lastT=t;hist.push([t,obj.filter(o=>o.type==='deb').length]);}out();}
     else obj.forEach(pos);
     g.fillStyle='#020617';g.fillRect(0,0,W,H);
     const back=obj.filter(o=>o.z<0),front=obj.filter(o=>o.z>=0);
-    const dot=o=>{const x=CX+o.x,y=CY+o.y*0.55-o.z*0.8;if(o.type==='deb'){g.fillStyle='#f87171';g.fillRect(x-1.2,y-1.2,2.4,2.4);}else{g.fillStyle=o.type==='sat'?'#4ade80':'#94a3b8';g.fillRect(x-3,y-3,6,6);}};
-    back.forEach(dot);const eg=g.createRadialGradient(CX-20,CY-20,10,CX,CY,RE);eg.addColorStop(0,'#93c5fd');eg.addColorStop(1,'#1e40af');g.fillStyle=eg;g.beginPath();g.arc(CX,CY,RE,0,7);g.fill();front.forEach(dot);
+    const dot=o=>{const [x,y]=scr(o);if(o.type==='deb'){g.fillStyle='#f87171';g.fillRect(x-1.6,y-1.6,3.2,3.2);}else{g.fillStyle=o.type==='sat'?'#4ade80':'#94a3b8';g.fillRect(x-4,y-4,8,8);}};
+    back.forEach(dot);drawEarth();front.forEach(dot);
+    // 충돌 임팩트: 섬광 + 퍼지는 고리 + 불꽃 + '충돌!'
+    booms=booms.filter(b=>(b.t+=dt)<1.8);
+    booms.forEach(b=>{const k=b.t,a=Math.max(0,1-k/1.8),R=(b.big?18:12)+k*(b.big?120:80);
+      if(b.big&&k<0.25){g.fillStyle='rgba(255,255,255,'+(0.35*(1-k/0.25))+')';g.fillRect(0,0,W,H);}
+      const fg=g.createRadialGradient(b.x,b.y,0,b.x,b.y,R);fg.addColorStop(0,'rgba(255,255,255,'+a+')');fg.addColorStop(.35,'rgba(253,224,71,'+a*.85+')');fg.addColorStop(1,'rgba(239,68,68,0)');g.fillStyle=fg;g.beginPath();g.arc(b.x,b.y,R,0,7);g.fill();
+      g.strokeStyle='rgba(253,186,116,'+a+')';g.lineWidth=3*a+1;g.beginPath();g.arc(b.x,b.y,R*1.5,0,7);g.stroke();
+      const e=1-Math.exp(-k*2.5);g.globalAlpha=a;b.p.forEach(q=>{g.fillStyle=q[2];g.beginPath();g.arc(b.x+q[0]*e,b.y+q[1]*e,2.5,0,7);g.fill();});g.globalAlpha=1;
+      if(k<1.3){g.fillStyle='rgba(254,240,138,'+Math.min(1,(1.3-k)*2)+')';g.font=SIM.font(b.big?40:30);g.textAlign='center';g.fillText(b.big?'충돌!':'연쇄 충돌!',b.x,b.y-R-14);g.textAlign='left';}});
     // 그래프
-    const gx=790,gy=60,gw=250,gh=150;g.fillStyle='rgba(15,23,42,.9)';g.fillRect(gx-10,gy-36,gw+20,gh+56);g.strokeStyle='#475569';g.strokeRect(gx,gy,gw,gh);
-    g.fillStyle='#fca5a5';g.font=SIM.font(17);g.fillText('파편 수의 변화',gx,gy-12);const mx=Math.max(100,...hist);
-    g.strokeStyle='#f87171';g.lineWidth=2.5;g.beginPath();hist.forEach((v,i)=>{const x=gx+i/400*gw,y=gy+gh-v/mx*gh;i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();
+    // 파편 수 그래프: 처음부터 모든 기록을 한 화면에 (가로축 100년 단위로 늘어남)
+    const gx=850,gy=62,gw=285,gh=380,TM=Math.max(100,Math.ceil(t/100)*100),nNow=obj.filter(o=>o.type==='deb').length;
+    const vmax=Math.max(nNow,...hist.map(h=>h[1])),YM=[50,100,200,300,500,800,1200,2000,3000].find(v=>v>=vmax*1.1)||3000,YS=YM/5;
+    const X=yr=>gx+yr/TM*gw,Y=v=>gy+gh-v/YM*gh;
+    g.fillStyle='rgba(15,23,42,.92)';g.fillRect(gx-58,gy-44,W-gx+58,gh+92);
+    g.fillStyle='#fca5a5';g.font=SIM.font(21);g.textAlign='left';g.fillText('파편 수의 변화',gx-46,gy-16);g.fillStyle='#fde68a';g.textAlign='right';g.fillText(nNow+'개',gx+gw,gy-16);
+    g.font=SIM.font(15,false);g.lineWidth=1;
+    for(let v=0;v<=YM;v+=YS){g.strokeStyle='rgba(71,85,105,.6)';g.beginPath();g.moveTo(gx,Y(v));g.lineTo(gx+gw,Y(v));g.stroke();g.fillStyle='#94a3b8';g.textAlign='right';g.fillText(v,gx-6,Y(v)+5);}
+    g.textAlign='center';for(let y=0;y<=TM;y+=TM/4){g.fillStyle='#94a3b8';g.textAlign=y===TM?'right':'center';g.fillText(y+'년',X(y)+(y===TM?6:0),gy+gh+20);}g.textAlign='center';
+    g.strokeStyle='#64748b';g.strokeRect(gx,gy,gw,gh);
+    let lx=-99,ly=0;evs.forEach(e=>{const ex=X(e[0]);ly=ex-lx<44?(ly+20)%80:0;lx=ex;g.strokeStyle=e[1]?'rgba(251,146,60,.8)':'rgba(248,113,113,.7)';g.setLineDash([4,4]);g.beginPath();g.moveTo(X(e[0]),gy);g.lineTo(X(e[0]),gy+gh);g.stroke();g.setLineDash([]);
+      g.fillStyle=e[1]?'#fb923c':'#f87171';g.font=SIM.font(16);g.fillText(e[1]?'충돌':'연쇄',ex,gy+16+ly);});
+    g.strokeStyle='#f87171';g.lineWidth=3;g.beginPath();hist.forEach((h,i)=>{i?g.lineTo(X(h[0]),Y(h[1])):g.moveTo(X(h[0]),Y(h[1]));});g.lineTo(X(t),Y(nNow));g.stroke();
+    g.fillStyle='#fef08a';g.beginPath();g.arc(X(t),Y(nNow),4,0,7);g.fill();g.textAlign='left';
   });
 })();
 
@@ -277,7 +343,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -287,8 +354,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

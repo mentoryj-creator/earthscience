@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d105_micro .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d105_micro .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d105_micro .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,14 +176,15 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d105_micro"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>미세 중력 렌즈 광도 곡선 만들기</div><div class="ppt-subtitle">앞쪽 별이 뒤쪽 별 앞을 지나갈 때 밝기 변화를 관찰해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1160" height="900"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>조건 설정</h4>
-<div class="sim-btns"><button class="sim-btn on" data-pl="1">행성 있음</button><button class="sim-btn" data-pl="0">행성 없음</button></div>
+<div class="sim-row" style="flex-wrap:nowrap"><span class="lbl" style="width:170px">별 B의 행성</span><span class="sim-btns" style="flex-wrap:nowrap;gap:8px"><button class="sim-btn" data-pl="0" style="padding:9px 16px">없음</button><button class="sim-btn on" data-pl="1" style="padding:9px 16px">1개</button><button class="sim-btn" data-pl="2" style="padding:9px 16px">2개</button><button class="sim-btn" data-pl="3" style="padding:9px 16px">3개</button></span></div>
 <div class="sim-row"><span class="lbl" style="width:170px">지나가는 위치</span><input type="range" class="sim-range" id="rC" min="0.05" max="1" step="0.01" value="0.3"><span class="sim-val" id="vC" style="min-width:100px"></span></div>
 <div class="sim-btns"><button class="sim-btn on" id="bC1">▶ 다시 관측</button></div></div>
 <div class="sim-box" id="oC" style="font-size:26px"></div>
-<div class="sim-box key" style="font-size:24px">행성은 아주 가볍지만, 렌즈 역할을 해서 광도 곡선에 <b>짧고 뾰족한 봉우리</b>를 만들어요. 한 번만 일어나는 사건이라 <b>반복 관측이 어려워요.</b></div></div></div></div>
+<div class="sim-box key" style="font-size:24px">가운데 큰 봉우리는 <b>앞쪽 별 B</b>가 만든 것이고, 별 B를 공전하는 행성이 별 A 바로 앞을 지날 때마다 <b>짧고 뾰족한 봉우리</b>가 더해져요. 한 번만 일어나는 사건이라 <b>반복 관측이 어려워요.</b></div></div></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -233,32 +243,63 @@
 
 /* ===== 미세 중력 렌즈 ===== */
 (function(){
-  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610;
-  let pl=1,u0=0.3,t=-2,hist=[];
+  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1160,H=900,TAU=Math.PI*2;
+  // 길이 단위: 별 B의 아인슈타인 반지름. 별 A(뒤쪽)는 원점에 고정, 별 B(앞쪽)는 (t, u0)로 이동.
+  // 행성은 별 B 둘레를 공전하고, 행성이 별 A 바로 앞을 지날 때 작은 렌즈가 되어 짧은 봉우리를 만듦.
+  const EPS=0.08,RHO=0.35*EPS; // 행성의 아인슈타인 반지름(크게 과장), 별 A 크기에 의한 최대 밝기 제한
+  const PL=[{a:1.2,s:1,col:'#60a5fa',n:'행성 1'},{a:1.5,s:-1,col:'#4ade80',n:'행성 2'},{a:0.8,s:1,col:'#f472b6',n:'행성 3'}];
+  let np=1,u0=0.3,t=-2,hist=[],mxAll=4;
   const A=u=>(u*u+2)/(u*Math.sqrt(u*u+4));
-  function mag(tt){const u=Math.hypot(tt,u0);let a=A(u);if(pl){const du=Math.hypot(tt-0.9,u0-0.15);a+=0.9*Math.exp(-du*du/0.006);}return a;}
-  function reset(){t=-2;hist=[];}
-  function out(){document.getElementById('vC').textContent=u0.toFixed(2);document.querySelectorAll('#d105_micro [data-pl]').forEach(b=>b.classList.toggle('on',+b.dataset.pl===pl));
-    const mx=Math.max(...hist.map(h=>h[1]),1);document.getElementById('oC').innerHTML='<h4>관측 결과</h4><div>최대 밝기: 평소의 <span class="sim-big" style="font-size:34px">'+mx.toFixed(1)+'배</span></div><div class="sim-note">가까이 지나갈수록(위치 값이 작을수록) 더 밝아져요.</div>';}
-  document.querySelectorAll('#d105_micro [data-pl]').forEach(b=>b.onclick=()=>{pl=+b.dataset.pl;reset();out();});
+  const om=p=>1.6/Math.pow(p.a,1.5); // 공전 각속도 (시간 단위당 라디안)
+  // 행성마다 "별 A 앞을 지나는 시각" tc를 정하고, 그때 별 A 쪽에 오도록 처음 위치(위상)를 맞춤
+  function setup(){PL.forEach(p=>{p.hit=p.a>u0+0.02;if(p.hit){p.tc=p.s*Math.sqrt(p.a*p.a-u0*u0);p.ph=Math.atan2(-u0,-p.tc)-om(p)*p.tc;}else{p.tc=null;p.ph=p.s>0?0.5:2.5;}});}
+  const ppos=(p,tt)=>{const q=p.ph+om(p)*tt;return [tt+p.a*Math.cos(q),u0+p.a*Math.sin(q)];};
+  function mag(tt){let m=A(Math.max(1e-3,Math.hypot(tt,u0)));
+    // 행성 봉우리 높이 = 가운데(별 B) 봉우리 높이의 약 35%
+    const k=0.35*(A(Math.max(1e-3,u0))-1)/(A(RHO/EPS)-1);
+    for(let i=0;i<np;i++){const q=ppos(PL[i],tt),d=Math.hypot(q[0],q[1]);m+=k*(A(Math.hypot(d,RHO)/EPS)-1);}return m;}
+  function reset(){t=-2;hist=[];setup();mxAll=4;for(let tt=-2;tt<=2;tt+=0.002)mxAll=Math.max(mxAll,mag(tt));}
+  function out(){document.getElementById('vC').textContent=u0.toFixed(2);document.querySelectorAll('#d105_micro [data-pl]').forEach(b=>b.classList.toggle('on',+b.dataset.pl===np));
+    const mx=Math.max(...hist.map(h=>h[1]),1),seen=PL.slice(0,np).filter(p=>p.hit&&t>p.tc+0.05).length,miss=PL.slice(0,np).filter(p=>!p.hit).length;
+    document.getElementById('oC').innerHTML='<h4>관측 결과</h4><div>최대 밝기: 평소의 <span class="sim-big" style="font-size:34px">'+mx.toFixed(1)+'배</span></div>'+
+      '<div>봉우리: 별 B <b>1개</b>'+(np?' + 행성 <b>'+seen+'개</b>':'')+'</div>'+
+      '<div class="sim-note">'+(miss?'이번 경로에서는 행성 '+miss+'개가 별 A 앞을 지나지 않아 봉우리가 없어요.':'별 B가 가까이 지나갈수록(위치 값이 작을수록) 가운데 봉우리가 높아져요.')+'</div>';}
+  document.querySelectorAll('#d105_micro [data-pl]').forEach(b=>b.onclick=()=>{np=+b.dataset.pl;reset();out();});
   document.getElementById('rC').oninput=e=>{u0=+e.target.value;reset();out();};
-  document.getElementById('bC1').onclick=()=>{reset();out();};out();
+  document.getElementById('bC1').onclick=()=>{reset();out();};reset();out();
+  addEventListener('message',e=>{if(e.data&&e.data.type==='deck-show'){reset();out();}});
   let ot=0;
   SIM.loop('d105_micro',(tm,dt)=>{
-    if(t<2){t+=dt*0.35;hist.push([t,mag(t)]);}
+    if(t<2){t=Math.min(2,t+dt*0.3);hist.push([t,mag(t)]);}
     g.fillStyle='#020617';g.fillRect(0,0,W,H);
-    // 하늘 모습 (위)
-    const cx=530,cy=140,S=110;const a=mag(Math.min(t,2));
-    const bg=g.createRadialGradient(cx,cy,1,cx,cy,14+10*Math.sqrt(a));bg.addColorStop(0,'#fff');bg.addColorStop(.4,'rgba(253,224,71,'+Math.min(1,0.3+a*0.25)+')');bg.addColorStop(1,'rgba(253,224,71,0)');g.fillStyle=bg;g.beginPath();g.arc(cx,cy,14+10*Math.sqrt(a),0,7);g.fill();
-    g.fillStyle='#fde68a';g.font=SIM.font(18);g.textAlign='center';g.fillText('뒤쪽 별 A',cx,cy+60);
-    const lx=cx+t*S,ly=cy+u0*S;g.fillStyle='#f87171';g.beginPath();g.arc(lx,ly,9,0,7);g.fill();g.fillStyle='#fca5a5';g.fillText('앞쪽 별 B',lx,ly+30);
-    if(pl){g.fillStyle='#60a5fa';g.beginPath();g.arc(lx+0.9*S*0.98-0*S,ly-0.15*S,4,0,7);g.fill();}
-    g.setLineDash([5,6]);g.strokeStyle='rgba(248,113,113,.4)';g.beginPath();g.moveTo(cx-2*S,ly);g.lineTo(cx+2*S,ly);g.stroke();g.setLineDash([]);
-    // 그래프
-    const gx=80,gy=300,gw=920,gh=260,mx=Math.max(4,...hist.map(h=>h[1]));const X=v=>gx+(v+2)/4*gw,Y=v=>gy+gh-(v-1)/(mx-1)*(gh-20);
-    g.strokeStyle='#475569';g.lineWidth=2;g.strokeRect(gx,gy,gw,gh);g.strokeStyle='#facc15';g.lineWidth=3;g.beginPath();hist.forEach((h,i)=>{i?g.lineTo(X(h[0]),Y(h[1])):g.moveTo(X(h[0]),Y(h[1]));});g.stroke();
-    g.fillStyle='#fde68a';g.font=SIM.font(19);g.textAlign='left';g.fillText('별 A의 밝기',gx,gy-10);g.fillStyle='#94a3b8';g.textAlign='right';g.fillText('시간 →',gx+gw,gy+gh+26);
-    if(pl&&t>1){g.fillStyle='#93c5fd';g.textAlign='left';g.fillText('← 행성에 의한 봉우리!',X(0.9)+16,Y(mag(0.9))+6);}
+    // 하늘 모습 (위) — 그래프와 같은 시각 t
+    const cx=580,cy=175,S=110,m=mag(t),lx=cx+t*S,ly=cy+u0*S;
+    g.fillStyle='#94a3b8';g.font=SIM.font(22);g.textAlign='left';g.fillText('하늘에서 본 모습',24,38);
+    g.setLineDash([5,6]);g.strokeStyle='rgba(248,113,113,.35)';g.lineWidth=1.5;g.beginPath();g.moveTo(cx-2.3*S,ly);g.lineTo(cx+2.3*S,ly);g.stroke();
+    g.strokeStyle='rgba(253,186,116,.35)';g.beginPath();g.arc(lx,ly,S,0,TAU);g.stroke();g.setLineDash([]);
+    g.fillStyle='rgba(253,186,116,.6)';g.font=SIM.font(16,false);g.textAlign='center';g.fillText('별 B의 아인슈타인 고리',lx,ly-S-8);
+    for(let i=0;i<np;i++){const p=PL[i];g.strokeStyle='rgba(148,163,184,.25)';g.lineWidth=1;g.beginPath();g.arc(lx,ly,p.a*S,0,TAU);g.stroke();}
+    const R=16+10*Math.sqrt(m),bg=g.createRadialGradient(cx,cy,1,cx,cy,R);bg.addColorStop(0,'#fff');bg.addColorStop(.4,'rgba(253,224,71,'+Math.min(1,0.3+m*0.2)+')');bg.addColorStop(1,'rgba(253,224,71,0)');g.fillStyle=bg;g.beginPath();g.arc(cx,cy,R,0,TAU);g.fill();
+    g.fillStyle='#fde68a';g.font=SIM.font(20);g.fillText('뒤쪽 별 A',cx,cy-34);
+    g.fillStyle='#f87171';g.beginPath();g.arc(lx,ly,10,0,TAU);g.fill();g.fillStyle='#fca5a5';g.fillText('앞쪽 별 B',lx,ly+34);
+    for(let i=0;i<np;i++){const p=PL[i],q=ppos(p,t),x=cx+q[0]*S,y=cy+q[1]*S,near=Math.hypot(q[0],q[1])<EPS*3;
+      if(near){g.strokeStyle=p.col;g.lineWidth=3;g.beginPath();g.arc(x,y,14,0,TAU);g.stroke();}
+      g.fillStyle=p.col;g.beginPath();g.arc(x,y,6,0,TAU);g.fill();g.font=SIM.font(17);g.fillText(p.n,x,y-12);}
+    // 그래프 (아래) — 앞쪽 별 B와 행성에 의한 별 A의 밝기 변화
+    const gx=110,gy=520,gw=1020,gh=300,X=v=>gx+(v+2)/4*gw,Y=v=>gy+gh-(v-1)/(mxAll-1)*(gh-30);
+    g.fillStyle='#0b1222';g.fillRect(gx,gy,gw,gh);g.strokeStyle='#475569';g.lineWidth=2;g.strokeRect(gx,gy,gw,gh);
+    g.font=SIM.font(17,false);g.fillStyle='#94a3b8';g.textAlign='right';[1,2,3,4,6,8,12,16].filter(v=>v<=mxAll).forEach(v=>{g.fillText(v+'배',gx-8,Y(v)+6);});
+    // 지금 시각 표시
+    g.strokeStyle='rgba(255,255,255,.25)';g.lineWidth=1;g.beginPath();g.moveTo(X(t),gy);g.lineTo(X(t),gy+gh);g.stroke();
+    g.strokeStyle='#facc15';g.lineWidth=3;g.beginPath();hist.forEach((h,i)=>{i?g.lineTo(X(h[0]),Y(h[1])):g.moveTo(X(h[0]),Y(h[1]));});g.stroke();
+    g.fillStyle='#fff';g.beginPath();g.arc(X(t),Y(m),6,0,TAU);g.fill();
+    // 봉우리 이름
+    g.textAlign='center';g.font=SIM.font(19);
+    if(t>0.05){const yb=Y(A(Math.max(1e-3,u0)));g.fillStyle='#fca5a5';g.fillText('앞쪽 별 B에 의한',X(0),Math.max(gy+22,yb-34));g.fillText('미세 중력 렌즈 현상',X(0),Math.max(gy+44,yb-12));}
+    for(let i=0;i<np;i++){const p=PL[i];if(p.hit&&t>p.tc+0.03){const x=X(p.tc),y=Y(mag(p.tc));g.fillStyle=p.col;g.fillText(p.n+'에 의한 봉우리',Math.min(gx+gw-90,Math.max(gx+90,x)),Math.max(gy+22,y-14));}}
+    g.fillStyle='#fde68a';g.font=SIM.font(23);g.textAlign='left';g.fillText('별 A의 밝기 (광도 곡선)',gx,gy-14);
+    g.fillStyle='#94a3b8';g.font=SIM.font(19,false);g.textAlign='right';g.fillText('시간 →',gx+gw,gy+gh+28);
+    g.textAlign='left';g.font=SIM.font(16,false);g.fillText('※ 행성의 렌즈 효과와 공전 속도는 잘 보이도록 과장했어요.',gx,gy+gh+28);
     if(tm-ot>300){ot=tm;out();}
   });
 })();
@@ -272,7 +313,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -282,8 +324,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

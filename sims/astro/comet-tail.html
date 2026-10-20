@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d104_comet .sim-stage { align-self: center; flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d104_comet .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d104_comet .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,8 +176,9 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d104_comet"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>혜성의 꼬리는 어느 쪽을 향할까?</div><div class="ppt-subtitle">혜성이 태양 주위를 도는 동안 두 꼬리의 방향과 길이를 관찰해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1160" height="668"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>관찰하기</h4>
 <div class="sim-btns"><button class="sim-btn on" id="bB1">❚❚ 멈춤</button><button class="sim-btn" id="bB2">느리게</button></div>
 <div class="sim-row"><span class="lbl" style="width:150px">이심률</span><input type="range" class="sim-range" id="rB" min="0.5" max="0.95" step="0.01" value="0.85"><span class="sim-val" id="vB" style="min-width:80px"></span></div></div>
@@ -234,16 +244,19 @@
 (function(){
   const c=document.getElementById('cB'),g=c.getContext('2d'),W=1060,H=610;
   let e=0.85,M=0,run=true,slow=false,dust=[];
-  const A=380,SX=W/2+150,SY=305;
+  // 궤도가 화면 안에 들어오도록: 긴반지름 A를 이심률에 맞춰 줄이고, 궤도 중심을 왼쪽에 둠(근일점 쪽 꼬리 공간 확보)
+  const KS=c.width/W,CX=W/2-110,SY=305;let A=400,SX=CX+A*e;
+  function fitA(){A=Math.min(400,270/Math.sqrt(1-e*e));SX=CX+A*e;}fitA();
   function kep(M){let E=M;for(let k=0;k<30;k++)E-=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));return E;}
   function pos(M){const E=kep(M),b=A*Math.sqrt(1-e*e);return{x:SX+A*(Math.cos(E)-e),y:SY-b*Math.sin(E)};}
   function out(){document.getElementById('vB').textContent=e.toFixed(2);const p=pos(M),r=Math.hypot(p.x-SX,p.y-SY)/A;
     document.getElementById('oB').innerHTML='<h4>현재 상태</h4><div>태양과의 거리: <b class="or">'+(r*5).toFixed(1)+' AU</b> (예시)</div><div>'+(r<0.6?'태양열로 얼음이 증발 → <b>코마와 꼬리가 길어요!</b>':(r<1.2?'꼬리가 짧아지고 있어요.':'태양에서 멀어 <b>꼬리가 거의 없어요.</b>'))+'</div>';}
-  document.getElementById('rB').oninput=x=>{e=+x.target.value;dust=[];};
+  document.getElementById('rB').oninput=x=>{e=+x.target.value;fitA();dust=[];};
   const b1=document.getElementById('bB1');b1.onclick=()=>{run=!run;b1.textContent=run?'❚❚ 멈춤':'▶ 재생';};
   const b2=document.getElementById('bB2');b2.onclick=()=>{slow=!slow;b2.classList.toggle('on',slow);};
   let ot=0;
   SIM.loop('d104_comet',(t,dt)=>{
+    g.setTransform(KS,0,0,KS,0,0);
     if(run)M+=dt*(slow?0.12:0.4);
     const p=pos(M),dx=p.x-SX,dy=p.y-SY,r=Math.hypot(dx,dy),ux=dx/r,uy=dy/r,act=Math.max(0,Math.min(1,(220-r)/170+0.15));
     if(run&&act>0.05)for(let k=0;k<6*act;k++)dust.push({x:p.x,y:p.y,vx:ux*(20+Math.random()*25),vy:uy*(20+Math.random()*25),life:1});
@@ -252,7 +265,7 @@
     const b=A*Math.sqrt(1-e*e);g.strokeStyle='rgba(148,163,184,.3)';g.setLineDash([6,8]);g.lineWidth=1.5;g.beginPath();g.ellipse(SX-A*e,SY,A,b,0,0,7);g.stroke();g.setLineDash([]);
     const sg=g.createRadialGradient(SX,SY,3,SX,SY,40);sg.addColorStop(0,'#fff');sg.addColorStop(.4,'#facc15');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(SX,SY,40,0,7);g.fill();g.fillStyle='#fde68a';g.font=SIM.font(19);g.textAlign='center';g.fillText('태양',SX,SY+56);
     dust.forEach(d=>{g.fillStyle='rgba(253,224,71,'+(d.life*0.55)+')';g.fillRect(d.x,d.y,2.5,2.5);});
-    if(act>0.05){const L=260*act;const gr=g.createLinearGradient(p.x,p.y,p.x+ux*L,p.y+uy*L);gr.addColorStop(0,'rgba(96,165,250,.9)');gr.addColorStop(1,'rgba(96,165,250,0)');g.strokeStyle=gr;g.lineWidth=7;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x+ux*L,p.y+uy*L);g.stroke();}
+    if(act>0.05){const L=220*act;const gr=g.createLinearGradient(p.x,p.y,p.x+ux*L,p.y+uy*L);gr.addColorStop(0,'rgba(96,165,250,.9)');gr.addColorStop(1,'rgba(96,165,250,0)');g.strokeStyle=gr;g.lineWidth=7;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x+ux*L,p.y+uy*L);g.stroke();}
     const cg=g.createRadialGradient(p.x,p.y,1,p.x,p.y,8+22*act);cg.addColorStop(0,'#fff');cg.addColorStop(1,'rgba(224,242,254,0)');g.fillStyle=cg;g.beginPath();g.arc(p.x,p.y,8+22*act,0,7);g.fill();
     g.textAlign='left';g.font=SIM.font(20);g.fillStyle='#93c5fd';g.fillText('━ 이온 꼬리 (태양풍)',20,32);g.fillStyle='#fde68a';g.fillText('••• 먼지 꼬리 (복사압)',20,60);
     if(t-ot>300){ot=t;out();}
@@ -268,7 +281,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -278,8 +292,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

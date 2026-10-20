@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d102_wind .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d102_wind .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d102_wind .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,13 +176,15 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d102_wind"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>태양풍이 지구에 도착하면?</div><div class="ppt-subtitle">태양풍의 속력과 세기를 바꿔 지구 자기권의 변화를 관찰해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1160" height="900"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>태양풍 조건</h4>
 <div class="sim-row"><span class="lbl" style="width:170px">속력</span><input type="range" class="sim-range" id="rA1" min="200" max="1500" step="10" value="400"><span class="sim-val" id="vA1" style="min-width:150px"></span></div>
 <div class="sim-row"><span class="lbl" style="width:170px">세기 (입자 수)</span><input type="range" class="sim-range" id="rA2" min="1" max="10" step="0.5" value="2"><span class="sim-val" id="vA2" style="min-width:150px"></span></div>
 <div class="sim-btns"><button class="sim-btn" data-s="400,2">평상시</button><button class="sim-btn orange" data-s="1200,9">코로나 물질 분출(CME)</button></div></div>
 <div class="sim-box" id="oA" style="font-size:27px"></div>
+<div class="sim-box key" style="font-size:24px">자기권은 <b>태양 쪽은 눌려</b> 지구 반지름의 약 10배까지만, <b>반대쪽은 길게 늘어나</b> 수백 배의 <b>자기 꼬리</b>를 만들어요. 일부 입자는 <b>극 첨점</b>과 <b>자기 꼬리</b>에서 자기력선을 따라 <b>극지방</b>으로 들어가 오로라를 만들어요.</div>
 <div class="sim-note">※ 1500 km/s 이상은 매우 강한 코로나 물질 분출 때 나타나요. 크기 비율은 실제와 달라요.</div></div></div></div>
 </div>
 <script>
@@ -233,8 +244,8 @@
 
 /* ===== 태양풍과 자기권 ===== */
 (function(){
-  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610,EX=800,EY=305,RE=24;
-  let v=400,n=2,ps=[];
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=c.width,H=c.height,EX=430,EY=450,RE=24;
+  let v=400,n=2,ps=[],au=[],hit=[0,0];
   const ratio=()=>n*v*v/(2*400*400), sd=()=>10*Math.pow(ratio(),-1/6);
   const gl=()=>{const r=ratio();return r<2?0:r<5?1:r<10?2:r<20?3:r<40?4:5;};
   function out(){document.getElementById('vA1').textContent=v+' km/s';document.getElementById('vA2').textContent='× '+n;document.getElementById('rA1').value=v;document.getElementById('rA2').value=n;
@@ -243,26 +254,67 @@
     document.querySelectorAll('#d102_wind [data-s]').forEach(b=>{const s=b.dataset.s.split(',');b.classList.toggle('on',+s[0]===v&&+s[1]===n);});}
   document.getElementById('rA1').oninput=e=>{v=+e.target.value;out();};document.getElementById('rA2').oninput=e=>{n=+e.target.value;out();};
   document.querySelectorAll('#d102_wind [data-s]').forEach(b=>b.onclick=()=>{const s=b.dataset.s.split(',');v=+s[0];n=+s[1];out();});out();
-  const bnd=th=>{const s=sd()*RE*0.62;return s*Math.pow(2/(1+Math.cos(th)),0.62);};
+  // 자기권계면(Shue 모형 꼴): 태양 쪽은 눌리고 반대쪽은 꼬리처럼 벌어짐. th=0이 태양 방향
+  const R0=()=>sd()*RE*0.8;
+  const bnd=th=>R0()*Math.pow(2/(1+Math.cos(th)),0.6);
+  const bow=th=>(R0()*1.32+12)*Math.pow(2/(1+Math.cos(th)),0.9);
+  const at=(f,th)=>{const r=f(th);return [EX-r*Math.cos(th),EY+r*Math.sin(th)];};
+  const bez=(P,s)=>{const u=1-s;return [u*u*P[0][0]+2*u*s*P[1][0]+s*s*P[2][0],u*u*P[0][1]+2*u*s*P[1][1]+s*s*P[2][1]];};
+  // 오로라 입자: 극 첨점(낮 쪽) 또는 자기 꼬리(밤 쪽)에서 자기력선을 따라 극지방으로
+  function cusp(x,y,hemi){const r0=R0();au.push({P:[[x,y],[EX-RE*0.6,EY+hemi*r0*0.55],[EX-RE*0.3,EY+hemi*RE*0.95]],s:0,sp:0.55+Math.random()*0.3,h:hemi});}
+  function tail(hemi){const x=EX+380+Math.random()*(W-EX-380),y=EY+hemi*Math.random()*14;au.push({P:[[x,y],[EX+80+Math.random()*60,EY+hemi*(80+Math.random()*50)],[EX+RE*0.4,EY+hemi*RE*0.93]],s:0,sp:0.35+Math.random()*0.25,h:hemi});}
+  const st=[];{const r=SIM.rng(4);for(let i=0;i<140;i++)st.push([r()*W,r()*H,r()*1.4+.3]);}
   SIM.loop('d102_wind',(t,dt)=>{
-    const sp=v*0.55,rate=n*6;
-    for(let k=0;k<rate*dt*10;k++)ps.push({x:110,y:40+Math.random()*(H-80),vx:sp,vy:0,life:1});
-    g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    const sg=g.createRadialGradient(-120,EY,40,-120,EY,260);sg.addColorStop(0,'#fff7ed');sg.addColorStop(.5,'#f97316');sg.addColorStop(1,'rgba(249,115,22,0)');g.fillStyle=sg;g.fillRect(0,0,260,H);
-    g.fillStyle='#fde68a';g.font=SIM.font(22);g.fillText('태양',20,40);
-    // 자기권 경계
-    g.strokeStyle='rgba(96,165,250,.8)';g.lineWidth=3;g.beginPath();for(let a=-1.9;a<=1.9;a+=0.05){const r=bnd(a),x=EX-r*Math.cos(a),y=EY+r*Math.sin(a);a<=-1.89?g.moveTo(x,y):g.lineTo(x,y);}g.stroke();
-    // 쌍극자 자기력선
-    g.strokeStyle='rgba(147,197,253,.35)';g.lineWidth=1.5;[1.6,2.4,3.4].forEach(L=>{const sq=Math.min(1,bnd(Math.PI/2)/(L*RE*1.4));g.beginPath();for(let a=0.25;a<=Math.PI-0.25;a+=0.05){const r=L*RE*Math.sin(a)**2*1.4,x=EX+r*Math.sin(a)*(Math.sin(a)>0?1:1)*(1)*0+r*Math.sin(a),y=EY-r*Math.cos(a);a<=0.26?g.moveTo(x,y):g.lineTo(x,y);}g.stroke();g.beginPath();for(let a=0.25;a<=Math.PI-0.25;a+=0.05){const r=L*RE*Math.sin(a)**2*1.4*sq,x=EX-r*Math.sin(a),y=EY-r*Math.cos(a);a<=0.26?g.moveTo(x,y):g.lineTo(x,y);}g.stroke();});
-    // 입자
-    ps.forEach(p=>{const dx=p.x-EX,dy=p.y-EY,r=Math.hypot(dx,dy),th=Math.atan2(dy,-dx);if(Math.abs(th)<1.9&&r<bnd(th)+4){p.vy+=Math.sign(dy||1)*sp*3*dt;p.vx=Math.max(p.vx*0.97,sp*0.35);if(Math.random()<0.002*ratio())p.aur=1;}
-      p.x+=p.vx*dt;p.y+=p.vy*dt;g.fillStyle=p.aur?'#4ade80':'rgba(253,186,116,.85)';g.fillRect(p.x,p.y,3,2);});
-    ps=ps.filter(p=>p.x<W+10&&p.y>-10&&p.y<H+10).slice(-1500);
-    // 지구 & 오로라
-    const G=gl(),ag=Math.min(1,0.15+G*0.18);[[EY-RE+2,-1],[EY+RE-2,1]].forEach(([y])=>{const gr=g.createRadialGradient(EX,y,2,EX,y,18+G*6);gr.addColorStop(0,'rgba(74,222,128,'+ag+')');gr.addColorStop(1,'rgba(74,222,128,0)');g.fillStyle=gr;g.beginPath();g.arc(EX,y,18+G*6,0,7);g.fill();});
-    const eg=g.createRadialGradient(EX-8,EY-8,3,EX,EY,RE);eg.addColorStop(0,'#93c5fd');eg.addColorStop(1,'#1d4ed8');g.fillStyle=eg;g.beginPath();g.arc(EX,EY,RE,0,7);g.fill();
-    g.fillStyle='#fff';g.font=SIM.font(20);g.textAlign='center';g.fillText('지구',EX,EY+RE+26);g.fillStyle='#93c5fd';g.fillText('자기권 경계',EX-bnd(0)-10,EY-bnd(0)*0.9-10);g.textAlign='left';
-    g.fillStyle='#86efac';g.font=SIM.font(18);g.fillText('초록색 = 극지방으로 들어가 오로라를 만드는 입자',20,H-18);
+    const sp=v*0.5,rate=n*7,r0=R0(),G=gl();
+    for(let k=0;k<rate*dt*12;k++)ps.push({x:150,y:20+Math.random()*(H-40),vx:sp,vy:0});
+    if(Math.random()<dt*(0.6+ratio()*0.5))tail(Math.random()<.5?-1:1);
+    g.fillStyle='#0b1226';g.fillRect(0,0,W,H);st.forEach(q=>{g.fillStyle='rgba(255,255,255,.3)';g.fillRect(q[0],q[1],q[2],q[2]);});
+    const sg=g.createRadialGradient(-160,EY,40,-160,EY,330);sg.addColorStop(0,'#fff7ed');sg.addColorStop(.45,'#f97316');sg.addColorStop(1,'rgba(249,115,22,0)');g.fillStyle=sg;g.fillRect(0,0,240,H);
+    g.fillStyle='#fde68a';g.font=SIM.font(24);g.textAlign='left';g.fillText('태양 →',18,44);g.fillText('태양풍',18,74);
+    // 자기권 안쪽(옅은 파랑) + 자기권계면
+    const mp=[];for(let th=-2.8;th<=2.8;th+=0.02)mp.push(at(bnd,th));
+    g.fillStyle='rgba(59,130,246,.10)';g.beginPath();mp.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill();
+    g.strokeStyle='rgba(96,165,250,.9)';g.lineWidth=3;g.beginPath();mp.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();
+    // 뱃머리 충격파
+    g.strokeStyle='rgba(251,146,60,.6)';g.lineWidth=2.5;g.setLineDash([10,8]);g.beginPath();for(let th=-2.2,i=0;th<=2.2;th+=0.02,i++){const p=at(bow,th);i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]);}g.stroke();g.setLineDash([]);
+    // 자기력선: 낮 쪽은 눌리고 밤 쪽은 늘어남
+    g.lineWidth=1.6;
+    [1.6,2.3,3.2,4.3,5.6].forEach(L=>{const cD=Math.min(1,0.9*r0/(L*RE)),cN=1+0.22*L;
+      [-1,1].forEach(side=>{g.strokeStyle='rgba(147,197,253,.45)';g.beginPath();
+        for(let a=0.12,i=0;a<=Math.PI-0.12;a+=0.03,i++){const r=L*RE*Math.sin(a)**2,x=EX+side*r*Math.sin(a)*(side<0?cD:cN),y=EY-r*Math.cos(a);i?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();});});
+    // 열린 자기력선(꼬리 엽): 극 근처에서 나와 꼬리 쪽으로 길게
+    [0.45,0.62,0.8].forEach((f,i)=>[-1,1].forEach(h=>{const ty=EY+h*(30+i*45+r0*0.25);g.strokeStyle='rgba(147,197,253,.35)';g.beginPath();
+      g.moveTo(EX+RE*0.1*(i+1),EY+h*RE*0.98);g.bezierCurveTo(EX-r0*0.15,EY+h*r0*(0.7+i*0.12),EX+r0*0.5,ty,W+20,ty);g.stroke();}));
+    // 플라스마 시트
+    g.fillStyle='rgba(250,204,21,.10)';g.fillRect(EX+160,EY-10,W-EX-160,20);
+    // 태양풍 입자
+    ps.forEach(p=>{const dx=p.x-EX,dy=p.y-EY,r=Math.hypot(dx,dy),th=Math.atan2(dy,-dx),sgn=dy<0?-1:1;
+      if(Math.abs(th)<2.6&&r<bow(th)){const q0=at(bnd,th),q1=at(bnd,th+sgn*0.03),tx=q1[0]-q0[0],ty=q1[1]-q0[1],tl=Math.hypot(tx,ty)||1;
+        p.vx+=(tx/tl*sp*0.75-p.vx)*4*dt;p.vy+=(ty/tl*sp*0.75-p.vy)*4*dt;
+        const rm=bnd(th);if(r<rm){p.x=q0[0];p.y=q0[1];}
+        if(Math.abs(th)>0.8&&Math.abs(th)<1.45&&r<rm+14&&Math.random()<dt*0.06*Math.min(ratio(),12)&&au.length<160){cusp(p.x,p.y,sgn);p.dead=1;}}
+      p.x+=p.vx*dt;p.y+=p.vy*dt;g.fillStyle='rgba(253,186,116,.9)';g.fillRect(p.x,p.y,4,3);});
+    ps=ps.filter(p=>!p.dead&&p.x<W+10&&p.y>-10&&p.y<H+10).slice(-1800);
+    // 오로라 입자: 자기력선을 따라 나선을 그리며 극지방으로
+    au.forEach(q=>{q.s+=dt*q.sp;const s1=Math.min(1,q.s),p=bez(q.P,s1),p2=bez(q.P,Math.min(1,s1+0.01)),nx=-(p2[1]-p[1]),ny=p2[0]-p[0],nl=Math.hypot(nx,ny)||1,w=7*(1-s1)*Math.sin(q.s*55);
+      const x=p[0]+nx/nl*w,y=p[1]+ny/nl*w;g.fillStyle='#4ade80';g.shadowColor='#4ade80';g.shadowBlur=8;g.beginPath();g.arc(x,y,2.6,0,7);g.fill();g.shadowBlur=0;
+      if(q.s>=1){hit[q.h<0?0:1]+=1;q.dead=1;}});
+    au=au.filter(q=>!q.dead).slice(-300);hit=hit.map(h=>h*Math.exp(-dt*0.8));
+    // 지구 (낮/밤) & 오로라 고리
+    const eg=g.createLinearGradient(EX-RE,0,EX+RE,0);eg.addColorStop(0,'#60a5fa');eg.addColorStop(.55,'#1d4ed8');eg.addColorStop(1,'#0f1f4d');g.fillStyle=eg;g.beginPath();g.arc(EX,EY,RE,0,7);g.fill();
+    [[-1,0],[1,1]].forEach(([h,i])=>{const A=Math.min(1,0.25+G*0.13+hit[i]*0.05),sprd=0.32+G*0.07,c0=h<0?-Math.PI/2:Math.PI/2;
+      g.lineCap='round';g.shadowColor='#4ade80';g.shadowBlur=16;g.strokeStyle='rgba(74,222,128,'+A+')';g.lineWidth=5+G;g.beginPath();g.arc(EX,EY,RE+3,c0-sprd,c0+sprd);g.stroke();
+      if(G>=2){g.shadowColor='#f87171';g.strokeStyle='rgba(248,113,113,'+A*0.7+')';g.lineWidth=3;g.beginPath();g.arc(EX,EY,RE+10,c0-sprd*0.9,c0+sprd*0.9);g.stroke();}
+      g.shadowBlur=0;g.lineCap='butt';});
+    // 이름표
+    g.font=SIM.font(20);g.textAlign='center';g.fillStyle='#fff';g.fillText('지구',EX,EY+RE+56);
+    g.textAlign='right';const lp=at(bnd,0.45);g.fillStyle='#93c5fd';g.fillText('자기권계면',lp[0]-12,lp[1]+6);
+    const bp=at(bow,-0.2);g.fillStyle='#fdba74';g.fillText('뱃머리 충격파',bp[0]-12,bp[1]+6);
+    g.textAlign='left';const cp=at(bnd,-1.3);g.fillStyle='#86efac';g.fillText('◀ 극 첨점',cp[0]+14,cp[1]+4);g.textAlign='center';
+    g.fillStyle='#bfdbfe';g.fillText('자기 꼬리 (수백 배까지 길게 늘어남) →',EX+430,EY-r0*1.1-20);
+    g.fillStyle='#fde68a';g.font=SIM.font(17);g.fillText('플라스마 시트',EX+640,EY+34);
+    g.fillStyle='#cbd5e1';g.font=SIM.font(18);g.fillText('눌림 (약 '+sd().toFixed(0)+'배)',EX-r0/2,EY+6);
+    g.textAlign='left';g.fillStyle='#86efac';g.font=SIM.font(20);g.fillText('초록 입자 = 자기력선을 따라 극지방으로 들어가 오로라를 만드는 입자',20,H-20);
   });
 })();
 
@@ -275,7 +327,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -285,8 +338,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

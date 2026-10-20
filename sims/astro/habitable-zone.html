@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d105_hz .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d105_hz .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d105_hz .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,13 +176,18 @@
 </head>
 <body>
 <div id="presentation-wrapper">
-<div class="slide sim-slide active" id="d105_hz"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>생명 가능 지대 탐험</div><div class="ppt-subtitle">중심별의 질량을 바꾸며 행성을 생명 가능 지대에 넣어 보세요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cD" width="1060" height="610"></canvas></div>
-<div class="sim-panel"><div class="sim-box blue"><h4>행성계 설정</h4>
-<div class="sim-row"><span class="lbl" style="width:170px">중심별 질량</span><input type="range" class="sim-range" id="rD1" min="0.3" max="3" step="0.05" value="1"><span class="sim-val" id="vD1" style="min-width:160px"></span></div>
-<div class="sim-row"><span class="lbl" style="width:170px">행성의 거리</span><input type="range" class="sim-range" id="rD2" min="0.05" max="6" step="0.01" value="1"><span class="sim-val" id="vD2" style="min-width:160px"></span></div>
-<div class="sim-btns"><button class="sim-btn" data-s="1,1">태양-지구</button><button class="sim-btn" data-s="0.4,0.12">작은 별 (적색 왜성)</button><button class="sim-btn" data-s="2.5,4">큰 별</button></div></div>
-<div class="sim-box" id="oD" style="font-size:26px"></div></div></div></div>
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="d105_hz"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>생명 가능 지대 탐험</div><div class="ppt-subtitle">중심별의 광도, 행성의 궤도·반사율·온실 효과를 바꾸며 생명 가능 지대를 찾아보세요.</div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cD" width="1160" height="900"></canvas></div>
+<div class="sim-panel"><div class="sim-box blue"><h4>중심별과 공전 궤도</h4>
+<div class="sim-row"><span class="lbl" style="width:170px">중심별 광도</span><input type="range" class="sim-range" id="rD1" min="-2" max="1.5" step="0.01" value="0"><span class="sim-val" id="vD1" style="min-width:160px"></span></div>
+<div class="sim-row"><span class="lbl" style="width:170px">궤도 긴반지름</span><input type="range" class="sim-range" id="rD2" min="0.05" max="6" step="0.01" value="1"><span class="sim-val" id="vD2" style="min-width:160px"></span></div>
+<div class="sim-row"><span class="lbl" style="width:170px">궤도 이심률</span><input type="range" class="sim-range" id="rD5" min="0" max="0.8" step="0.01" value="0"><span class="sim-val" id="vD5" style="min-width:160px"></span></div>
+<div class="sim-btns"><button class="sim-btn" data-s="1,1">태양-지구</button><button class="sim-btn" data-s="0.01,0.08">적색 왜성</button><button class="sim-btn" data-s="20,3.5">밝은 별</button></div></div>
+<div class="sim-box blue"><h4>행성의 반사율과 대기</h4>
+<div class="sim-row"><span class="lbl" style="width:170px">반사율</span><input type="range" class="sim-range" id="rD3" min="0" max="0.9" step="0.01" value="0.3"><span class="sim-val" id="vD3" style="min-width:160px"></span></div>
+<div class="sim-row"><span class="lbl" style="width:170px">온실 효과</span><input type="range" class="sim-range" id="rD4" min="0" max="150" step="1" value="33"><span class="sim-val" id="vD4" style="min-width:160px"></span></div>
+<div class="sim-btns"><button class="sim-btn" data-a="0,0">없음</button><button class="sim-btn" data-a="0.3,33">지구</button><button class="sim-btn" data-a="0.25,5">화성형</button><button class="sim-btn" data-a="0.75,150">금성형</button></div></div><div class="sim-box" id="oD" style="font-size:26px"></div></div></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -232,32 +246,87 @@
 
 /* ===== 생명 가능 지대 ===== */
 (function(){
-  const c=document.getElementById('cD'),g=c.getContext('2d'),W=1060,H=610;
-  let M=1,d=1,ph=0;
-  const L=()=>Math.pow(M,3.8),inner=()=>0.95*Math.sqrt(L()),outer=()=>1.67*Math.sqrt(L()),life=()=>100*Math.pow(M,-2.5);
-  const Teff=()=>5778*Math.pow(M,0.55);
-  function out(){document.getElementById('vD1').textContent='태양의 '+M.toFixed(2)+'배';document.getElementById('vD2').textContent=d.toFixed(2)+' AU';document.getElementById('rD1').value=M;document.getElementById('rD2').value=d;
-    const i=inner(),o=outer(),T=Math.round(255*Math.pow(L(),0.25)/Math.sqrt(d)*1.12-273);let st,col;
-    if(d<i){st='너무 뜨거워요! 물이 증발해요.';col='#dc2626';}else if(d>o){st='너무 추워요! 물이 얼어요.';col='#2563eb';}else{st='생명 가능 지대 안! 액체 물 가능 💧';col='#16a34a';}
+  const c=document.getElementById('cD'),g=c.getContext('2d'),W=1160,H=900,TAU=Math.PI*2;
+  let L=1,a=1,e=0,Al=0.3,GH=33,Mn=0;
+  // 행성 온도 (단순 복사 평형): 별빛만 → 반사율 반영 → 온실 효과 더하기 (r: 지금 별까지 거리)
+  const T0=al=>278.6*Math.pow(1-al,0.25)*Math.pow(L,0.25);
+  const Tbb=r=>T0(0)/Math.sqrt(r),Teq=r=>T0(Al)/Math.sqrt(r),Ts=r=>Teq(r)+GH;
+  // 생명 가능 지대 = 표면 온도가 0~100 ℃ (273~373 K)인 거리
+  const inner=()=>373-GH>0?Math.pow(T0(Al)/(373-GH),2):Infinity,outer=()=>273-GH>0?Math.pow(T0(Al)/(273-GH),2):Infinity;
+  const Ms=()=>Math.pow(L,1/3.8),life=()=>100*Math.pow(Ms(),-2.5),Teff=()=>5778*Math.pow(Ms(),0.55);
+  const C=K=>Math.round(K-273),fmtL=v=>v>=10?v.toFixed(0):(v>=1?v.toFixed(1):v.toFixed(v>=0.1?2:3));
+  function kep(M){let E=e>0.8?Math.PI:M;for(let k=0;k<20;k++)E-=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));return E;}
+  const pos=M=>{const E=kep(M);return {x:a*(Math.cos(E)-e),y:a*Math.sqrt(1-e*e)*Math.sin(E),r:a*(1-e*Math.cos(E))};};
+  // 한 바퀴 동안의 온도 (시간 기준으로 고르게 샘플)
+  function orbitStats(){const N=360;let mn=1e9,mx=-1e9,inn=0;const arr=[];for(let k=0;k<N;k++){const T=C(Ts(pos(k/N*TAU).r));arr.push(T);mn=Math.min(mn,T);mx=Math.max(mx,T);if(T>=0&&T<=100)inn++;}return {arr,mn,mx,frac:inn/N};}
+  let ST=orbitStats();
+  function out(){ST=orbitStats();
+    document.getElementById('vD1').textContent='태양의 '+fmtL(L)+'배';document.getElementById('vD2').textContent=a.toFixed(2)+' AU';document.getElementById('vD5').textContent=e.toFixed(2);
+    document.getElementById('vD3').textContent=Al.toFixed(2);document.getElementById('vD4').textContent='+'+GH+' ℃';
+    document.getElementById('rD1').value=Math.log10(L);document.getElementById('rD2').value=a;document.getElementById('rD5').value=e;document.getElementById('rD3').value=Al;document.getElementById('rD4').value=GH;
+    const i=inner(),o=outer(),f=ST.frac;let st,col;
+    if(f>0.999){st='공전하는 내내 생명 가능 지대 안! 💧';col='#16a34a';}else if(f>0){st='공전 시간의 '+Math.round(f*100)+'%만 생명 가능 지대 안';col='#ea580c';}else{st=ST.mn>100?'늘 너무 뜨거워요! 물이 증발해요.':'늘 너무 추워요! 물이 얼어요.';col=ST.mn>100?'#dc2626':'#2563eb';}
     const lf=life();
-    document.getElementById('oD').innerHTML='<h4>결과</h4><div>생명 가능 지대: <b class="or">'+i.toFixed(2)+' ~ '+o.toFixed(2)+' AU</b></div><div>행성 평균 기온: 약 <b>'+T+' ℃</b></div><div style="color:'+col+';font-weight:bold;font-size:28px">'+st+'</div><div>중심별의 수명: <b>약 '+(lf>=10?Math.round(lf)+'0억':(lf*10).toFixed(0)+'억')+' 년</b>'+(lf<10?' <span style="color:#dc2626">(생명체 진화엔 너무 짧아요!)</span>':'')+'</div>'+(M<0.5&&d<o?'<div class="sim-note">별에 너무 가까워 <b>동주기 자전</b>할 가능성이 커요.</div>':'');
-    document.querySelectorAll('#d105_hz [data-s]').forEach(b=>{const s=b.dataset.s.split(',');b.classList.toggle('on',+s[0]===M&&+s[1]===d);});}
-  document.getElementById('rD1').oninput=e=>{M=+e.target.value;out();};document.getElementById('rD2').oninput=e=>{d=+e.target.value;out();};
-  document.querySelectorAll('#d105_hz [data-s]').forEach(b=>b.onclick=()=>{const s=b.dataset.s.split(',');M=+s[0];d=+s[1];out();});out();
+    document.getElementById('oD').innerHTML='<h4>결과</h4><div>생명 가능 지대: <b class="or">'+(isFinite(i)?i.toFixed(2):'없음')+' ~ '+(isFinite(o)?o.toFixed(2):'∞')+' AU</b></div>'+
+      '<div>표면 기온: <b>'+ST.mn+' ℃ ~ '+ST.mx+' ℃</b> <span class="sim-note">(공전하는 동안)</span></div><div style="color:'+col+';font-weight:bold;font-size:27px">'+st+'</div>'+
+      '<div>중심별의 수명: <b>약 '+(lf>=1?Math.round(lf).toLocaleString():lf.toFixed(1))+'억 년</b>'+(lf<10?' <span style="color:#dc2626">(생명체 진화엔 너무 짧아요!)</span>':'')+'</div>';
+    document.querySelectorAll('#d105_hz [data-s]').forEach(b=>{const s=b.dataset.s.split(',');b.classList.toggle('on',Math.abs(+s[0]-L)<1e-6&&+s[1]===a);});
+    document.querySelectorAll('#d105_hz [data-a]').forEach(b=>{const s=b.dataset.a.split(',');b.classList.toggle('on',+s[0]===Al&&+s[1]===GH);});}
+  const on=(id,f)=>document.getElementById(id).oninput=ev=>{f(+ev.target.value);out();};
+  on('rD1',v=>L=Math.pow(10,v));on('rD2',v=>a=v);on('rD5',v=>e=v);on('rD3',v=>Al=v);on('rD4',v=>GH=v);
+  document.querySelectorAll('#d105_hz [data-s]').forEach(b=>b.onclick=()=>{const s=b.dataset.s.split(',');L=+s[0];a=+s[1];out();});
+  document.querySelectorAll('#d105_hz [data-a]').forEach(b=>b.onclick=()=>{const s=b.dataset.a.split(',');Al=+s[0];GH=+s[1];out();});out();
+
   SIM.loop('d105_hz',(t,dt)=>{
-    ph+=dt*0.6/Math.pow(Math.max(d,0.05),1.5)*Math.sqrt(M);
+    Mn=(Mn+dt*TAU/7)%TAU; // 한 바퀴 약 7초 (실제 시간과는 다름)
+    const P=pos(Mn),Tnow=C(Ts(P.r)),i=inner(),o=outer();
     g.fillStyle='#020617';g.fillRect(0,0,W,H);
-    const cx=90,cy=305,xmax=Math.max(3,outer()*1.6,d*1.15),S=(W-140)/xmax;
-    const i=inner(),o=outer();
-    const zg=g.createLinearGradient(cx+i*S,0,cx+o*S,0);zg.addColorStop(0,'rgba(34,197,94,.15)');zg.addColorStop(.5,'rgba(34,197,94,.35)');zg.addColorStop(1,'rgba(34,197,94,.15)');
-    g.fillStyle='rgba(239,68,68,.12)';g.fillRect(cx,40,i*S,H-110);g.fillStyle=zg;g.fillRect(cx+i*S,40,(o-i)*S,H-110);g.fillStyle='rgba(59,130,246,.12)';g.fillRect(cx+o*S,40,W-cx-o*S,H-110);
-    g.fillStyle='#fca5a5';g.font=SIM.font(20);g.textAlign='center';if(i*S>70)g.fillText('너무 뜨거움',cx+i*S/2+20,70);g.fillStyle='#86efac';g.fillText('생명 가능 지대',cx+(i+o)/2*S,70);g.fillStyle='#93c5fd';g.fillText('너무 추움',Math.min(W-90,cx+o*S+120),70);
-    const rgb=SIM.bbRGB(Teff()),R=20+Math.pow(M,0.8)*16,sg=g.createRadialGradient(cx,cy,2,cx,cy,R*2.2);sg.addColorStop(0,'#fff');sg.addColorStop(.35,'rgba('+rgb.join(',')+',1)');sg.addColorStop(1,'rgba('+rgb.join(',')+',0)');g.fillStyle=sg;g.beginPath();g.arc(cx,cy,R*2.2,0,7);g.fill();
-    const px=cx+d*S,py=cy;g.strokeStyle='rgba(148,163,184,.3)';g.setLineDash([4,6]);g.beginPath();g.moveTo(cx,cy);g.lineTo(px,py);g.stroke();g.setLineDash([]);
-    const inZ=d>=i&&d<=o;g.fillStyle=inZ?'#22c55e':(d<i?'#b45309':'#e0f2fe');g.beginPath();g.arc(px,py,14,0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
-    g.fillStyle='#e2e8f0';g.font=SIM.font(19);g.fillText('행성',px,py+38);
-    g.strokeStyle='#94a3b8';g.lineWidth=2;g.beginPath();g.moveTo(cx,H-50);g.lineTo(W-40,H-50);g.stroke();g.fillStyle='#94a3b8';g.font=SIM.font(16,false);
-    const step=xmax>8?2:(xmax>4?1:0.5);for(let x=0;x<=xmax;x+=step){g.fillText(x+' AU',cx+x*S,H-26);}
+    // ① 위에서 내려다본 공전 모습 (왼쪽)
+    const OX=325,OY=330,RP=290;
+    const Rm=Math.max(a*(1+e)*1.08,isFinite(o)?o*1.1:0,isFinite(i)?i*1.6:0,0.05),S=RP/Rm;
+    g.save();g.beginPath();g.rect(10,10,630,640);g.clip();
+    g.fillStyle='rgba(59,130,246,.13)';g.fillRect(10,10,630,640);
+    if(isFinite(o)){g.fillStyle='#020617';g.beginPath();g.arc(OX,OY,o*S,0,TAU);g.fill();g.fillStyle='rgba(34,197,94,.3)';g.beginPath();g.arc(OX,OY,o*S,0,TAU);g.fill();}else{g.fillStyle='rgba(34,197,94,.3)';g.fillRect(10,10,630,640);}
+    if(isFinite(i)){g.fillStyle='#020617';g.beginPath();g.arc(OX,OY,i*S,0,TAU);g.fill();g.fillStyle='rgba(239,68,68,.2)';g.beginPath();g.arc(OX,OY,i*S,0,TAU);g.fill();}
+    g.strokeStyle='rgba(134,239,172,.6)';g.lineWidth=1.5;g.setLineDash([6,6]);[i,o].forEach(r=>{if(isFinite(r)){g.beginPath();g.arc(OX,OY,r*S,0,TAU);g.stroke();}});g.setLineDash([]);
+    // 궤도 (별은 초점)
+    g.strokeStyle='rgba(226,232,240,.75)';g.lineWidth=2;g.beginPath();g.ellipse(OX-a*e*S,OY,a*S,a*Math.sqrt(1-e*e)*S,0,0,TAU);g.stroke();
+    const rgb=SIM.bbRGB(Teff()),R=12+Math.min(26,Math.pow(L,0.2)*10),sg=g.createRadialGradient(OX,OY,1,OX,OY,R*2.2);sg.addColorStop(0,'#fff');sg.addColorStop(.35,'rgba('+rgb.join(',')+',1)');sg.addColorStop(1,'rgba('+rgb.join(',')+',0)');g.fillStyle=sg;g.beginPath();g.arc(OX,OY,R*2.2,0,TAU);g.fill();
+    const px=OX+P.x*S,py=OY-P.y*S,inZ=Tnow>=0&&Tnow<=100;
+    g.strokeStyle='rgba(253,224,71,.35)';g.setLineDash([4,6]);g.lineWidth=1.5;g.beginPath();g.moveTo(OX,OY);g.lineTo(px,py);g.stroke();g.setLineDash([]);
+    if(GH>0){g.fillStyle='rgba(251,191,36,'+Math.min(0.5,GH/300)+')';g.beginPath();g.arc(px,py,12+GH/14,0,TAU);g.fill();}
+    const pc=inZ?[34,197,94]:(Tnow>100?[180,83,9]:[186,230,253]),mix=v=>Math.round(v+(255-v)*Al*0.7);
+    g.fillStyle='rgb('+pc.map(mix).join(',')+')';g.beginPath();g.arc(px,py,12,0,TAU);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+    g.font=SIM.font(20);g.textAlign='center';g.lineWidth=5;g.strokeStyle='rgba(2,6,23,.85)';const lb='행성 '+Tnow+' ℃',lx=Math.max(80,Math.min(570,px)),ly=py<70?py+38:py-22;g.strokeText(lb,lx,ly);g.fillStyle='#fff';g.fillText(lb,lx,ly);
+    if(e>0.02){g.fillStyle='#cbd5e1';g.font=SIM.font(17);const qx=OX+a*(1-e)*S,ax=OX-a*(1+e)*S;g.fillText('근일점',qx,OY+30);g.fillText('원일점',ax,OY+30);}
+    g.restore();
+    g.strokeStyle='#334155';g.lineWidth=2;g.strokeRect(10,10,630,640);
+    // 범례·축척
+    g.textAlign='left';g.font=SIM.font(19);
+    [['rgba(239,68,68,.6)','너무 뜨거움'],['rgba(34,197,94,.75)','생명 가능 지대'],['rgba(59,130,246,.6)','너무 추움']].forEach((q,k)=>{g.fillStyle=q[0];g.fillRect(26+k*200,618,18,18);g.fillStyle='#e2e8f0';g.fillText(q[1],50+k*200,634);});
+    const sb=[0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10].filter(v=>v<=Rm*0.45).pop()||0.01;const sbp=sb*S;g.strokeStyle='#e2e8f0';g.lineWidth=2;g.beginPath();g.moveTo(620-sbp,32);g.lineTo(620,32);g.stroke();g.fillStyle='#e2e8f0';g.textAlign='right';g.font=SIM.font(17,false);g.fillText(sb+' AU',620,56);
+    g.textAlign='left';g.fillStyle='#94a3b8';g.font=SIM.font(19);g.fillText('위에서 내려다본 모습',26,36);
+    // ② 공전하는 동안의 표면 온도 (오른쪽)
+    const gx=730,gy=60,gw=400,gh=520,tmn=Math.min(-60,ST.mn-20),tmx=Math.max(160,ST.mx+20),GY=v=>gy+gh-(v-tmn)/(tmx-tmn)*gh,GX=m=>gx+m/TAU*gw;
+    g.fillStyle='#0b1222';g.fillRect(gx,gy,gw,gh);g.fillStyle='rgba(56,189,248,.16)';g.fillRect(gx,GY(100),gw,GY(0)-GY(100));
+    g.strokeStyle='#475569';g.lineWidth=2;g.strokeRect(gx,gy,gw,gh);
+    g.font=SIM.font(16,false);g.fillStyle='#94a3b8';g.textAlign='right';const tst=(tmx-tmn)>400?100:50;for(let v=Math.ceil(tmn/tst)*tst;v<=tmx;v+=tst){g.fillText(v+' ℃',gx-8,GY(v)+5);}
+    g.fillStyle='#7dd3fc';g.font=SIM.font(16);g.textAlign='left';g.fillText('액체 물 (0~100 ℃)',gx+8,GY(100)+20);
+    g.strokeStyle='#f87171';g.lineWidth=3;g.beginPath();ST.arr.forEach((T,k)=>{const x=GX(k/ST.arr.length*TAU),y=GY(T);k?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();
+    g.fillStyle='#fff';g.beginPath();g.arc(GX(Mn),GY(Tnow),7,0,TAU);g.fill();
+    g.fillStyle='#94a3b8';g.font=SIM.font(16,false);g.textAlign='center';g.fillText('근일점',GX(0)+22,gy+gh+22);g.fillText('원일점',GX(Math.PI),gy+gh+22);g.fillText('근일점',GX(TAU)-22,gy+gh+22);
+    g.fillStyle='#fde68a';g.font=SIM.font(22);g.textAlign='left';g.fillText('공전하는 동안 표면 온도',gx-60,gy-20);
+    g.fillStyle='#94a3b8';g.font=SIM.font(16,false);g.textAlign='right';g.fillText('한 바퀴 (시간) →',gx+gw,gy+gh+46);
+    // ③ 지금 위치의 온도 구성 (아래): 별빛만 → 반사율 → 온실 효과
+    const bx0=380,bx1=1120,TL=-200,TH=300,BX=tc=>bx0+(Math.max(TL,Math.min(TH,tc))-TL)/(TH-TL)*(bx1-bx0),y0=700,RH=56;
+    g.fillStyle='#e2e8f0';g.font=SIM.font(22);g.textAlign='left';g.fillText('지금 위치('+P.r.toFixed(2)+' AU)의 표면 온도는 어떻게 정해질까?',26,y0-14);
+    g.fillStyle='rgba(56,189,248,.18)';g.fillRect(BX(0),y0,BX(100)-BX(0),3*RH);
+    g.strokeStyle='rgba(148,163,184,.3)';g.lineWidth=1;g.font=SIM.font(14,false);g.fillStyle='#94a3b8';g.textAlign='center';
+    for(let v=TL;v<=TH;v+=100){g.beginPath();g.moveTo(BX(v),y0);g.lineTo(BX(v),y0+3*RH);g.stroke();g.fillText(v+' ℃',BX(v),y0+3*RH+20);}
+    const rows=[['① 별빛만','반사율 0, 온실 0',C(Tbb(P.r)),'#fbbf24'],['② 반사율 반영','빛의 '+Math.round(Al*100)+'% 반사',C(Teq(P.r)),'#e2e8f0'],['③ + 온실 효과','+'+GH+' ℃',Tnow,'#f87171']];
+    rows.forEach((q,k)=>{const y=y0+k*RH;g.textAlign='left';g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.fillText(q[0],26,y+26);g.fillStyle='#94a3b8';g.font=SIM.font(15,false);g.fillText(q[1],26,y+46);
+      const bw=BX(q[2])-bx0;g.fillStyle=q[3];g.globalAlpha=0.85;g.fillRect(bx0,y+10,Math.max(2,bw),34);g.globalAlpha=1;
+      g.fillStyle='#fff';g.font=SIM.font(20);const lx=bx0+bw+10,rt=lx>bx1-80;g.textAlign=rt?'right':'left';g.fillText(q[2]+' ℃',rt?bx0+bw-10:lx,y+34);});
   });
 })();
 
@@ -270,7 +339,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -280,8 +350,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

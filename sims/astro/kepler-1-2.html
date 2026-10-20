@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d103_k12 .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d103_k12 .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d103_k12 .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,8 +176,9 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d103_k12"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>케플러 제1·2법칙 확인하기</div><div class="ppt-subtitle">이심률을 바꾸며 행성의 속도와 휩쓴 면적을 비교해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cA" width="1160" height="900"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>궤도 설정</h4>
 <div class="sim-row"><span class="lbl" style="width:140px">이심률 e</span><input type="range" class="sim-range" id="rA" min="0" max="0.9" step="0.01" value="0.6"><span class="sim-val" id="vA" style="min-width:90px"></span></div>
 <div class="sim-btns"><button class="sim-btn on" id="bA1">❚❚ 멈춤</button><button class="sim-btn" id="bA2">면적 표시 지우기</button><button class="sim-btn" data-e="0.017">지구</button><button class="sim-btn" data-e="0.206">수성</button><button class="sim-btn orange" data-e="0.67">혜성 (예시)</button></div></div>
@@ -230,43 +240,52 @@
 
 
 /* 케플러 방정식 풀기 */
-function kepler(M,e){let E=e<0.8?M:Math.PI;for(let i=0;i<30;i++)E-=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));return E;}
+function kepler(M,e){M=((M%(2*Math.PI))+2*Math.PI)%(2*Math.PI);let E=e<0.8?M:Math.PI;for(let i=0;i<30;i++)E-=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));return E;}
 
 /* ===== 제1·2법칙 ===== */
 (function(){
-  const c=document.getElementById('cA'),g=c.getContext('2d'),W=1060,H=610;
-  let e=0.6,M=0,run=true,sectors=[],T=8;
-  const A=300;
-  function geo(){const b=A*Math.sqrt(1-e*e),f=A*e;return{b,f,cx:530+f*0.5,cy:300};}
-  function posAt(Mm){const E=kepler(Mm,e),{b,cx,cy}=geo();return{x:cx+A*Math.cos(E),y:cy-b*Math.sin(E),E};}
+  const c=document.getElementById('cA'),g=c.getContext('2d'),W=c.width,H=c.height,A=400,T=9,TAU=2*Math.PI,SEC=TAU/6;
+  let e=0.6,M=0,run=true,show=true,acc=0,secT=[],curT=0,lastK=0; // secT: 구간별로 실제 걸린 시간(초)
+  const clearT=()=>{secT=[];curT=0;lastK=0;};
+  function geo(){const b=A*Math.sqrt(1-e*e),f=A*e;return{b,f,cx:W/2+f*0.15,cy:430};}
+  // 이심 근점 이각 E로 위치 계산 (E 기준으로 촘촘히 그려야 근일점 근처도 매끄러움)
+  function posE(E){const {b,cx,cy}=geo();return{x:cx+A*Math.cos(E),y:cy-b*Math.sin(E)};}
+  const posAt=Mm=>{const n=Math.floor(Mm/TAU);return posE(kepler(Mm,e)+n*TAU);};
+  // 평균 근점 이각 M0~M1 사이를 휩쓴 부채꼴의 꼭짓점들 (태양 + 궤도 위 점들)
+  function sector(M0,M1){const {f,cx,cy}=geo(),n0=Math.floor(M0/TAU),E0=kepler(M0,e)+n0*TAU;let E1=kepler(M1,e)+Math.floor(M1/TAU)*TAU;if(M1-M0>=SEC-1e-9&&E1<=E0)E1+=TAU;
+    const pts=[[cx+f,cy]],N=Math.max(2,Math.ceil((E1-E0)/0.004));for(let i=0;i<=N;i++){const p=posE(E0+(E1-E0)*i/N);pts.push([p.x,p.y]);}return pts;}
+  const area=P=>{let s2=0;for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length];s2+=p[0]*q[1]-q[0]*p[1];}return Math.abs(s2)/2;};
   function out(){document.getElementById('vA').textContent=e.toFixed(2);document.getElementById('rA').value=e;
-    const vp=Math.sqrt((1+e)/(1-e)),va=Math.sqrt((1-e)/(1+e));
-    document.getElementById('oA').innerHTML='<h4>속도 비교</h4><div>근일점 속도 : 원일점 속도 = <b class="or">'+(vp/va).toFixed(2)+' : 1</b></div><div>근일점 거리 : 원일점 거리 = '+(1-e).toFixed(2)+' : '+(1+e).toFixed(2)+'</div>';
+    const vp=Math.sqrt((1+e)/(1-e)),va=Math.sqrt((1-e)/(1+e)),{b}=geo(),full=Math.PI*A*b/6,k=Math.floor((M%TAU)/SEC);
+    let row='';for(let i=0;i<6;i++){const done=i<k,cur=i===k;let val='';if(show&&(done||cur)){const P=sector(Math.floor(M/TAU)*TAU+i*SEC,done?Math.floor(M/TAU)*TAU+(i+1)*SEC:M);val=(area(P)/full).toFixed(2);}row+='<td style="background:'+cols[i].replace('.45','.25')+'"><b>'+(val||'·')+'</b></td>';}
+    document.getElementById('oA').innerHTML='<h4>속도 비교</h4><div>근일점 속도 : 원일점 속도 = <b class="or">'+(vp/va).toFixed(2)+' : 1</b></div><div>근일점 거리 : 원일점 거리 = '+(1-e).toFixed(2)+' : '+(1+e).toFixed(2)+'</div>'+
+      '<div style="margin-top:8px;font-size:23px">부채꼴 넓이 (한 바퀴의 1/6 = 1.00)와 걸린 시간</div><table class="sim-table" style="font-size:24px"><tbody><tr>'+[1,2,3,4,5,6].map(i=>'<td>'+i+'</td>').join('')+'</tr><tr>'+row+'</tr><tr>'+[0,1,2,3,4,5].map(i=>'<td style="font-size:21px">'+(i===k?'<span style="color:#ea580c">'+curT.toFixed(1)+'초…</span>':(secT[i]!=null?secT[i].toFixed(2)+'초':'·'))+'</td>').join('')+'</tr></tbody></table><div class="sim-note" style="margin-top:4px">아래 줄: 각 구간을 지나는 데 실제로 걸린 시간 (모두 약 '+(T/6).toFixed(2)+'초)</div>';
     document.querySelectorAll('#d103_k12 [data-e]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.e-e)<0.005));}
-  document.getElementById('rA').oninput=x=>{e=+x.target.value;sectors=[];M=0;out();};
-  document.querySelectorAll('#d103_k12 [data-e]').forEach(b=>b.onclick=()=>{e=+b.dataset.e;sectors=[];M=0;out();});
-  const b1=document.getElementById('bA1');b1.onclick=()=>{run=!run;b1.textContent=run?'❚❚ 멈춤':'▶ 재생';};
-  document.getElementById('bA2').onclick=()=>{sectors=[];};
-  out();
   const cols=['rgba(96,165,250,.45)','rgba(251,146,60,.45)','rgba(74,222,128,.45)','rgba(244,114,182,.45)','rgba(250,204,21,.45)','rgba(167,139,250,.45)'];
-  let lastK=-1;
+  document.getElementById('rA').oninput=x=>{e=+x.target.value;M=0;clearT();out();};
+  document.querySelectorAll('#d103_k12 [data-e]').forEach(b=>b.onclick=()=>{e=+b.dataset.e;M=0;clearT();out();});
+  const b1=document.getElementById('bA1');b1.onclick=()=>{run=!run;b1.textContent=run?'❚❚ 멈춤':'▶ 재생';};
+  const b2=document.getElementById('bA2');b2.onclick=()=>{show=!show;b2.textContent=show?'면적 표시 지우기':'면적 표시하기';out();};
+  out();
   SIM.loop('d103_k12',(t,dt)=>{
-    if(run){M+=dt*2*Math.PI/T;}
-    const k=Math.floor(M/(2*Math.PI/6));
-    if(k!==lastK){lastK=k;if(k%2===0||true){sectors.push({M0:k*2*Math.PI/6,k:k%6});if(sectors.length>6)sectors.shift();}}
-    const {b,f,cx,cy}=geo(),sx=cx+f,sy=cy;
+    if(run){M+=dt*TAU/T;curT+=dt;const kk=Math.floor((M%TAU)/SEC);if(kk!==lastK){secT[lastK]=curT;curT=0;lastK=kk;out();}}
+    acc+=dt;if(acc>0.15){acc=0;out();}
+    const {b,f,cx,cy}=geo(),sx=cx+f,sy=cy,n=Math.floor(M/TAU),k=Math.floor((M-n*TAU)/SEC);
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    sectors.forEach(s=>{const end=Math.min(M,s.M0+2*Math.PI/6);g.fillStyle=cols[s.k];g.beginPath();g.moveTo(sx,sy);for(let m=s.M0;m<=end+1e-6;m+=0.01){const p=posAt(m);g.lineTo(p.x,p.y);}g.closePath();g.fill();});
+    // 한 바퀴(공전 주기)를 같은 시간 6구간으로 나눈 부채꼴: 지난 구간은 꽉 차게, 지금 구간은 진행 중
+    if(show)for(let i=0;i<=k;i++){const M0=n*TAU+i*SEC,P=sector(M0,i<k?M0+SEC:M);g.fillStyle=cols[i];g.beginPath();P.forEach((p,j)=>j?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill();
+      if(i<k){g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1;g.stroke();const mid=P[Math.floor(P.length/2)],lx=sx+(mid[0]-sx)*0.62,ly=sy+(mid[1]-sy)*0.62;
+        if(Math.hypot(mid[0]-sx,mid[1]-sy)>60){g.fillStyle='#fff';g.font=SIM.font(22);g.textAlign='center';g.fillText(i+1,lx,ly+8);}}}
     g.strokeStyle='#94a3b8';g.lineWidth=2;g.beginPath();g.ellipse(cx,cy,A,b,0,0,7);g.stroke();
-    g.fillStyle='#64748b';g.beginPath();g.arc(cx-f,cy,4,0,7);g.fill();g.fillStyle='#94a3b8';g.font=SIM.font(17,false);g.textAlign='center';g.fillText('빈 초점',cx-f,cy+24);
-    const sg=g.createRadialGradient(sx,sy,2,sx,sy,26);sg.addColorStop(0,'#fff');sg.addColorStop(.4,'#facc15');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(sx,sy,26,0,7);g.fill();
-    g.fillStyle='#fde68a';g.font=SIM.font(19);g.fillText('태양 (초점)',sx,sy+40);
-    g.fillStyle='#e2e8f0';g.fillText('근일점',cx+A+38,cy+6);g.fillText('원일점',cx-A-40,cy+6);
-    const p=posAt(M);g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=1.5;g.beginPath();g.moveTo(sx,sy);g.lineTo(p.x,p.y);g.stroke();
-    g.fillStyle='#60a5fa';g.beginPath();g.arc(p.x,p.y,11,0,7);g.fill();
-    const r=Math.hypot(p.x-sx,p.y-sy)/A,v=Math.sqrt(2/r-1);
-    // 속도 막대
-    g.textAlign='left';g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.fillText('현재 공전 속도',24,H-56);g.fillStyle='#334155';g.fillRect(24,H-44,320,22);g.fillStyle='#4ade80';g.fillRect(24,H-44,Math.min(320,320*v/Math.sqrt((1+0.9)/(1-0.9))*1.6),22);
+    g.fillStyle='#64748b';g.beginPath();g.arc(cx-f,cy,4,0,7);g.fill();g.fillStyle='#94a3b8';g.font=SIM.font(18,false);g.textAlign='center';if(f>20)g.fillText('빈 초점',cx-f,cy+26);
+    const sr=Math.max(10,Math.min(24,A*(1-e)*0.5)),sg=g.createRadialGradient(sx,sy,2,sx,sy,sr);sg.addColorStop(0,'#fff');sg.addColorStop(.45,'#facc15');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(sx,sy,sr,0,7);g.fill();
+    g.fillStyle='#fde68a';g.font=SIM.font(20);g.fillText('태양 (초점)',sx-(e>0.7?40:0),sy+(e>0.7?-28:42));
+    g.fillStyle='#e2e8f0';g.textAlign='left';g.fillText('근일점',cx+A+12,cy+7);g.textAlign='right';g.fillText('원일점',cx-A-12,cy+7);
+    const p=posAt(M);g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=1.5;g.beginPath();g.moveTo(sx,sy);g.lineTo(p.x,p.y);g.stroke();
+    g.fillStyle='#60a5fa';g.beginPath();g.arc(p.x,p.y,9,0,7);g.fill();
+    const r=Math.hypot(p.x-sx,p.y-sy)/A,v=Math.sqrt(Math.max(0,2/r-1));
+    g.textAlign='left';g.fillStyle='#e2e8f0';g.font=SIM.font(21);g.fillText('현재 공전 속도',24,H-58);g.fillStyle='#334155';g.fillRect(24,H-46,340,22);g.fillStyle='#4ade80';g.fillRect(24,H-46,Math.min(340,340*v/4.4),22);
+    g.fillStyle='#cbd5e1';g.font=SIM.font(20);g.fillText('한 바퀴를 같은 시간 6구간으로 나눴어요 ('+(k+1)+'번째 구간 진행 중)',24,40);
   });
 })();
 
@@ -279,7 +298,8 @@ function kepler(M,e){let E=e<0.8?M:Math.PI;for(let i=0;i<30;i++)E-=(E-e*Math.sin
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -289,8 +309,27 @@ function kepler(M,e){let E=e<0.8?M:Math.PI;for(let i=0;i<30;i++)E-=(E-e*Math.sin
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

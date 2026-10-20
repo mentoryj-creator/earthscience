@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d101_seeing .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d101_seeing .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d101_seeing .sim-panel { flex: 0 0 600px; justify-content: center; gap: 12px; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,13 +176,20 @@
 </head>
 <body>
 <div id="presentation-wrapper">
-<div class="slide sim-slide active" id="d101_seeing"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>지상 망원경 vs 우주 망원경</div><div class="ppt-subtitle">대기의 흔들림과 광공해를 바꿔 가며 두 망원경의 상을 비교해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1060" height="610"></canvas></div>
-<div class="sim-panel"><div class="sim-box blue"><h4>지상의 관측 조건</h4>
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="d101_seeing"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>지상 망원경 vs 우주 망원경</div><div class="ppt-subtitle">지상 망원경에 보이는 별을 <span class="or">클릭해 세어 보고</span>, 우주 망원경 결과와 비교해 봐요.</div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1160" height="900"></canvas></div>
+<div class="sim-panel"><div class="sim-box blue"><h4>지상의 관측 조건 <span style="font-size:20px;color:#64748b;font-weight:normal">(바꾸면 다시 세기)</span></h4>
 <div class="sim-row"><span class="lbl" style="width:200px">대기의 흔들림</span><input type="range" class="sim-range" id="rC1" min="0" max="1" step="0.01" value="0.6"><span class="sim-val" id="vC1" style="min-width:100px"></span></div>
 <div class="sim-row"><span class="lbl" style="width:200px">광공해 (도시 불빛)</span><input type="range" class="sim-range" id="rC2" min="0" max="1" step="0.01" value="0.5"><span class="sim-val" id="vC2" style="min-width:100px"></span></div>
-<div class="sim-btns"><button class="sim-btn" data-c="0.1,0.05">맑은 산꼭대기 천문대</button><button class="sim-btn" data-c="0.7,0.9">도시 한가운데</button></div></div>
-<div class="sim-box" id="oC" style="font-size:27px"></div></div></div></div>
+<div class="sim-btns"><button class="sim-btn" data-c="0.1,0.05">맑은 산꼭대기 천문대</button><button class="sim-btn" data-c="0.7,0.9">도시 한가운데</button></div>
+</div>
+<div class="sim-box key"><h4>🖱 별 세기 게임</h4>
+<div style="display:flex;align-items:center;gap:18px;margin-top:6px"><span>찾은 별</span><span class="sim-big" id="nC">0개</span>
+<span class="sim-btns" style="margin-left:auto"><button class="sim-btn orange" id="bCk">정답 확인</button><button class="sim-btn" id="bCr">다시 세기</button></span></div>
+<div id="fC" style="margin-top:4px;font-size:24px"></div></div>
+<div class="sim-box" id="oC" style="font-size:26px"></div>
+<div class="sim-btns"><button class="sim-btn orange" id="bCs" style="flex:1;font-size:28px;padding:12px">🔭 우주 망원경 결과 공개</button></div></div></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -232,31 +248,83 @@
 
 /* ===== 지상 vs 우주 망원경 ===== */
 (function(){
-  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610,PW=520;
-  let tur=0.6,lp=0.5;const r=SIM.rng(9),stars=[];for(let i=0;i<220;i++)stars.push({x:r()*PW,y:220+r()*370,m:Math.pow(r(),2.2)});
-  const pc=document.createElement('canvas');pc.width=200;pc.height=200;const pg=pc.getContext('2d');
-  {const gr=pg.createRadialGradient(85,85,10,100,100,90);gr.addColorStop(0,'#fde7c4');gr.addColorStop(1,'#c08a52');pg.fillStyle=gr;pg.beginPath();pg.arc(100,100,90,0,7);pg.fill();pg.save();pg.beginPath();pg.arc(100,100,90,0,7);pg.clip();[[60,10,'#a16207'],[85,8,'#d6a26b'],[112,12,'#92400e'],[135,7,'#b45309'],[150,6,'#d6a26b']].forEach(([y,h,col])=>{pg.fillStyle=col;pg.fillRect(0,y,200,h);});pg.fillStyle='#b91c1c';pg.beginPath();pg.ellipse(130,122,14,8,0,0,7);pg.fill();pg.restore();}
-  function out(){document.getElementById('vC1').textContent=Math.round(tur*100)+'%';document.getElementById('vC2').textContent=Math.round(lp*100)+'%';document.getElementById('rC1').value=tur;document.getElementById('rC2').value=lp;
-    const th=0.05+lp*0.55,n=stars.filter(s=>s.m>th).length;
-    document.getElementById('oC').innerHTML='<h4>관측 결과 비교</h4><table class="sim-table"><thead><tr><th></th><th>지상</th><th>우주</th></tr></thead><tbody><tr><td>보이는 별</td><td><b class="or">'+n+'개</b></td><td><b>'+stars.length+'개</b></td></tr><tr><td>상의 선명도</td><td><b class="or">'+(tur<0.2?'좋음':(tur<0.55?'보통':'흐림'))+'</b></td><td><b>매우 선명</b></td></tr></tbody></table>';}
-  document.getElementById('rC1').oninput=e=>{tur=+e.target.value;out();};document.getElementById('rC2').oninput=e=>{lp=+e.target.value;out();};
-  document.querySelectorAll('#d101_seeing [data-c]').forEach(b=>b.onclick=()=>{const v=b.dataset.c.split(',');tur=+v[0];lp=+v[1];out();});out();
+  const c=document.getElementById('cC'),g=c.getContext('2d'),W=c.width,H=c.height,PW=570,X2=PW+20,SY0=360,SY1=830;
+  const $=id=>document.getElementById(id);
+  let tur=0.6,lp=0.6,shown=false,found=new Set(),miss=[];
+  // 별: 밝기 m(0~1), 어두운 별이 훨씬 많음
+  const r=SIM.rng(9),stars=[];for(let i=0;i<170;i++)stars.push({x:22+r()*(PW-44),y:SY0+r()*(SY1-SY0),m:Math.pow(r(),2.2),tw:r()*6.28});
+  const TH=()=>0.42+lp*0.45, vis=()=>stars.filter(s=>s.m>TH());
+
+  /* ---- 토성 모형 (편평한 본체 + 줄무늬 + 고리(C·B·카시니 간극·A) + 고리 그림자) ---- */
+  const pc=document.createElement('canvas');pc.width=460;pc.height=280;const pg=pc.getContext('2d');
+  (function(){
+    const R=80,RY=72,K=0.30,ROT=-0.16;
+    const bands=[[0.97,1.24,'rgba(150,120,80,.18)'],[1.24,1.53,'rgba(196,170,130,.35)'],[1.53,1.95,'rgba(236,214,168,.95)'],[1.95,2.03,'rgba(0,0,0,0)'],[2.03,2.27,'rgba(214,190,146,.85)'],[2.21,2.23,'rgba(0,0,0,.5)']];
+    function rings(front){pg.save();pg.beginPath();front?pg.rect(-240,0,480,140):pg.rect(-240,-140,480,140);pg.clip();
+      bands.forEach(([a,b,col])=>{pg.fillStyle=col;pg.beginPath();pg.ellipse(0,0,b*R,b*R*K,0,0,7);pg.ellipse(0,0,a*R,a*R*K,0,7,0,true);pg.fill();});
+      // B고리 안쪽의 결
+      for(let q=1.56;q<1.94;q+=0.045){pg.strokeStyle='rgba(180,150,105,.25)';pg.lineWidth=1;pg.beginPath();pg.ellipse(0,0,q*R,q*R*K,0,0,7);pg.stroke();}
+      pg.restore();}
+    function body(){pg.save();pg.beginPath();pg.ellipse(0,0,R,RY,0,0,7);pg.clip();
+      pg.fillStyle='#e3c98f';pg.fillRect(-R,-RY,2*R,2*RY);
+      [[-72,-50,'#a9a48c'],[-50,-36,'#cdb27a'],[-36,-22,'#e8d6a6'],[-22,-12,'#c9a46a'],[-12,6,'#efdcae'],[6,16,'#d8b77c'],[16,30,'#e9d4a1'],[30,44,'#c8a970'],[44,60,'#d9c08c'],[60,72,'#b3a88a']].forEach(([y0,y1,col])=>{pg.fillStyle=col;pg.fillRect(-R,y0,2*R,y1-y0);});
+      const sh=pg.createRadialGradient(-22,-20,10,0,0,R*1.05);sh.addColorStop(0,'rgba(255,250,235,.25)');sh.addColorStop(.7,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(20,10,0,.6)');pg.fillStyle=sh;pg.fillRect(-R,-RY,2*R,2*RY);
+      pg.fillStyle='rgba(20,12,0,.45)';pg.beginPath();pg.ellipse(0,-9,1.95*R,1.95*R*K,0,Math.PI,2*Math.PI);pg.ellipse(0,-9,1.53*R,1.53*R*K,0,2*Math.PI,Math.PI,true);pg.fill(); // 고리 그림자
+      pg.restore();}
+    pg.translate(230,140);pg.rotate(ROT);rings(false);body();rings(true);
+  })();
+
+  function out(){$('vC1').textContent=Math.round(tur*100)+'%';$('vC2').textContent=Math.round(lp*100)+'%';$('rC1').value=tur;$('rC2').value=lp;
+    const n=vis().length;$('nC').textContent=found.size+'개';
+    $('oC').innerHTML='<h4>관측 결과 비교</h4><table class="sim-table"><thead><tr><th></th><th>지상</th><th>우주</th></tr></thead><tbody><tr><td>보이는 별</td><td><b class="or">'+(ok?n+'개':'? (세는 중)')+'</b></td><td><b>'+(shown?stars.length+'개':'?')+'</b></td></tr><tr><td>상의 선명도</td><td><b class="or">'+(tur<0.2?'좋음':(tur<0.55?'보통':'흐림'))+'</b></td><td><b>'+(shown?'매우 선명':'?')+'</b></td></tr></tbody></table>'+
+      (shown?'<div class="sim-note" style="margin-top:6px">우주에서는 대기가 없어 흔들림·광공해 없이 <b>'+(stars.length-n)+'개</b>의 별을 더 볼 수 있어요.</div>':'');}
+  let ok=false;
+  function reset(){found=new Set();ok=false;miss=[];$('fC').innerHTML='';out();}
+  $('rC1').oninput=e=>{tur=+e.target.value;reset();};$('rC2').oninput=e=>{lp=+e.target.value;reset();};
+  document.querySelectorAll('#d101_seeing [data-c]').forEach(b=>b.onclick=()=>{const v=b.dataset.c.split(',');tur=+v[0];lp=+v[1];reset();});
+  $('bCr').onclick=reset;
+  const bS=$('bCs');function show(v){shown=v;bS.textContent=v?'🙈 우주 망원경 결과 가리기':'🔭 우주 망원경 결과 공개';bS.classList.toggle('on',v);out();}
+  bS.onclick=()=>show(!shown);
+  $('bCk').onclick=()=>{const V=vis(),left=V.filter(s=>!found.has(s)),f=$('fC');
+    if(!left.length){ok=true;f.innerHTML='<span class="sim-ok">정답! 지상에서 보이는 별은 '+V.length+'개예요.</span> 이제 우주 망원경 결과를 공개해 보세요.';out();return;}
+    const mx=left.reduce((a,s)=>a+s.x,0)/left.length,my=left.reduce((a,s)=>a+s.y,0)/left.length;
+    const dir=(my<(SY0+SY1)/2?'위':'아래')+'쪽 '+(mx<PW/2?'왼쪽':'오른쪽');
+    f.innerHTML='<b style="color:#dc2626">아직 '+left.length+'개 더 있어요.</b> 힌트: <b>'+dir+'</b>을 잘 살펴봐요.';};
+  // 클릭: 가까운 보이는 별에 표시(다시 누르면 취소), 빈 곳이면 ×
   let jx=0,jy=0;
-  function panel(x0,ground,t){
+  c.addEventListener('pointerdown',e=>{const p=SIM.pos(e,c);if(p.x>PW)return;let best=null,bd=20;
+    vis().forEach(s=>{const d=Math.hypot(p.x-(s.x+jx*0.6),p.y-s.y);if(d<bd){bd=d;best=s;}});
+    if(best){found.has(best)?found.delete(best):found.add(best);ok=false;$('fC').innerHTML='';out();}else miss.push({x:p.x,y:p.y,t:0});});
+  c.addEventListener('pointermove',e=>{const p=SIM.pos(e,c);c.style.cursor=p.x<PW&&p.y>SY0-20?'crosshair':'default';});
+  addEventListener('message',e=>{if(e.data&&e.data.type==='deck-show'){reset();show(false);}});
+  reset();
+
+  function panel(x0,ground,t,dt){
     g.save();g.beginPath();g.rect(x0,0,PW,H);g.clip();
-    const sky=ground?g.createLinearGradient(0,0,0,H):null;
-    if(ground){sky.addColorStop(0,'rgb('+Math.round(8+lp*40)+','+Math.round(12+lp*30)+','+Math.round(30+lp*20)+')');sky.addColorStop(1,'rgb('+Math.round(15+lp*150)+','+Math.round(20+lp*90)+','+Math.round(40+lp*30)+')');g.fillStyle=sky;}else g.fillStyle='#020617';
+    if(ground){const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'rgb('+Math.round(8+lp*40)+','+Math.round(12+lp*30)+','+Math.round(30+lp*20)+')');sky.addColorStop(1,'rgb('+Math.round(15+lp*150)+','+Math.round(20+lp*90)+','+Math.round(40+lp*30)+')');g.fillStyle=sky;}else g.fillStyle='#020617';
     g.fillRect(x0,0,PW,H);
-    const blur=ground?tur*7:0;if(ground){jx+=(Math.random()-.5)*tur*3-jx*0.2;jy+=(Math.random()-.5)*tur*3-jy*0.2;}
+    const blur=ground?tur*6:0;
     g.filter=blur>0.3?'blur('+blur.toFixed(1)+'px)':'none';
-    g.drawImage(pc,x0+PW/2-80+(ground?jx:0),30+(ground?jy:0),160,160);
-    const th=ground?0.05+lp*0.55:0;
-    stars.forEach(s=>{if(s.m<=th)return;const tw=ground?1-tur*0.6*Math.random():1;const a=Math.min(1,(s.m-th)/(1-th)*1.4)*tw;g.fillStyle='rgba(255,255,255,'+a+')';g.beginPath();g.arc(x0+s.x+(ground?jx*0.6:0),s.y,0.8+s.m*2.4,0,7);g.fill();});
+    g.drawImage(pc,x0+PW/2-230+(ground?jx:0),30+(ground?jy:0));
+    const th=ground?TH():0;
+    stars.forEach(s=>{if(s.m<=th)return;const tw=ground?1-tur*0.45*(0.5+0.5*Math.sin(t/90+s.tw*7)):1;
+      const a=(ground?0.45+0.55*Math.min(1,(s.m-th)/(1-th)*1.6):0.25+0.75*Math.min(1,s.m*2.5))*tw;
+      g.fillStyle='rgba(255,255,255,'+a+')';g.beginPath();g.arc(x0+s.x+(ground?jx*0.6:0),s.y,1+s.m*2.6,0,7);g.fill();});
     g.filter='none';
-    g.fillStyle='rgba(15,23,42,.8)';g.fillRect(x0,H-50,PW,50);g.fillStyle='#fff';g.font=SIM.font(24);g.textAlign='center';g.fillText(ground?'지상 망원경으로 본 모습':'우주 망원경으로 본 모습',x0+PW/2,H-17);
+    if(ground){found.forEach(s=>{g.strokeStyle='#4ade80';g.lineWidth=2.5;g.beginPath();g.arc(s.x+jx*0.6,s.y,11,0,7);g.stroke();});
+      miss=miss.filter(m=>(m.t+=dt)<0.8);miss.forEach(m=>{g.globalAlpha=1-m.t/0.8;g.strokeStyle='#f87171';g.lineWidth=3;g.beginPath();g.moveTo(m.x-8,m.y-8);g.lineTo(m.x+8,m.y+8);g.moveTo(m.x+8,m.y-8);g.lineTo(m.x-8,m.y+8);g.stroke();g.globalAlpha=1;});
+      g.fillStyle='rgba(15,23,42,.75)';g.fillRect(x0+14,SY0-44,250,34);g.fillStyle='#fde68a';g.font=SIM.font(20);g.textAlign='left';g.fillText('찾은 별: '+found.size+'개',x0+26,SY0-20);}
+    else{found.forEach(s=>{g.strokeStyle='rgba(74,222,128,.7)';g.lineWidth=2;g.beginPath();g.arc(x0+s.x,s.y,10,0,7);g.stroke();});
+      g.fillStyle='rgba(15,23,42,.75)';g.fillRect(x0+14,SY0-44,330,34);g.fillStyle='#bbf7d0';g.font=SIM.font(20);g.textAlign='left';g.fillText('초록 원 = 지상에서 찾은 별',x0+26,SY0-20);}
+    g.fillStyle='#fde68a';g.font=SIM.font(20);g.textAlign='right';g.fillText('토성',x0+PW-20,52);
+    g.fillStyle='rgba(15,23,42,.85)';g.fillRect(x0,H-54,PW,54);g.fillStyle='#fff';g.font=SIM.font(26);g.textAlign='center';g.fillText(ground?'지상 망원경으로 본 모습':'우주 망원경으로 본 모습',x0+PW/2,H-18);
+    if(!ground&&!shown){g.fillStyle='#0f172a';g.fillRect(x0,0,PW,H-54);g.fillStyle='rgba(148,163,184,.12)';for(let i=0;i<14;i++){g.fillRect(x0,i*66,PW,2);}
+      g.fillStyle='#475569';g.font=SIM.font(200);g.fillText('?',x0+PW/2,H/2+40);g.fillStyle='#cbd5e1';g.font=SIM.font(26);g.fillText('아직 비공개!',x0+PW/2,H/2+110);
+      g.font=SIM.font(21,false);g.fillStyle='#94a3b8';g.fillText('별을 다 센 뒤 ‘결과 공개’ 버튼을 눌러요',x0+PW/2,H/2+150);}
     g.restore();
   }
-  SIM.loop('d101_seeing',(t)=>{panel(0,true,t);panel(PW+20,false,t);g.fillStyle='#fff';g.fillRect(PW,0,20,H);});
+  SIM.loop('d101_seeing',(t,dt)=>{jx+=(Math.random()-.5)*tur*3-jx*0.2;jy+=(Math.random()-.5)*tur*3-jy*0.2;
+    panel(0,true,t,dt);panel(X2,false,t,dt);g.fillStyle='#fff';g.fillRect(PW,0,20,H);});
 })();
 
 
@@ -268,7 +336,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -278,8 +347,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

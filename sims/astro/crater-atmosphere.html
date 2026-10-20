@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d104_crater .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d104_crater .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d104_crater .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,10 +176,11 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d104_crater"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>대기가 있을 때와 없을 때</div><div class="ppt-subtitle">수억 년 동안 운석이 떨어지면 표면은 어떻게 변할까요?</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cD" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cD" width="1160" height="900"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>시간 흐르기</h4>
-<div class="sim-btns"><button class="sim-btn on" id="bD1">▶ 시작</button><button class="sim-btn" id="bD2">↺ 처음으로</button></div>
+<div class="sim-btns"><button class="sim-btn on" id="bD1">▶ 시작</button><button class="sim-btn" id="bD2">↺ 처음으로</button><button class="sim-btn orange" id="bD3">☄ 큰 운석 하나</button></div>
 <div style="margin-top:10px">경과 시간: <b class="or" id="oD1">0</b> 억 년</div></div>
 <div class="sim-box" id="oD" style="font-size:27px"></div>
 <div class="sim-note">※ 개념을 보여 주는 단순 모형이에요.</div></div></div></div>
@@ -232,28 +242,137 @@
 
 /* ===== 운석 구덩이와 대기 ===== */
 (function(){
-  const c=document.getElementById('cD'),g=c.getContext('2d'),W=1060,H=610,PW=510;
-  let run=false,time=0,cr=[[],[]],mets=[];
-  function reset(){time=0;cr=[[],[]];mets=[];}
+  const c=document.getElementById('cD'),g=c.getContext('2d'),W=1160,H=900,PW=560,GAP=40,HZ=280,GB=H-56,TAU=Math.PI*2;
+  const pf=y=>0.45+0.55*(y-HZ)/(GB-HZ); // 원근: 가까울수록 크게
+  let run=false,time=0,mets=[],parts=[],flash=[],smoke=[],ecr=[],mcount=0,growing=[],rain=[],clouds=[],rings=[],texts=[],shake=0;
+  // 바탕 그림 (한 번만 그려 둠) — 달 표면은 구덩이를 계속 새겨 넣는 캔버스
+  const mk=()=>{const o=document.createElement('canvas');o.width=PW;o.height=H;return o;};
+  const moonBase=mk(),moonSurf=mk(),earthBase=mk();
+  function paintBases(){
+    let x=moonBase.getContext('2d'),r=SIM.rng(7);
+    x.fillStyle='#000';x.fillRect(0,0,PW,HZ);for(let i=0;i<140;i++){x.fillStyle='rgba(255,255,255,'+(0.3+r()*0.6)+')';x.fillRect(r()*PW,r()*HZ,1.3,1.3);}
+    let gr=x.createLinearGradient(0,HZ,0,H);gr.addColorStop(0,'#52525b');gr.addColorStop(1,'#8b8b93');x.fillStyle=gr;x.fillRect(0,HZ,PW,H-HZ);
+    for(let i=0;i<5000;i++){const y=HZ+r()*(H-HZ);x.fillStyle=r()<.5?'rgba(255,255,255,.07)':'rgba(0,0,0,.09)';const s=1+pf(y)*2*r();x.fillRect(r()*PW,y,s,s*0.6);}
+    x.fillStyle='rgba(255,255,255,.12)';x.fillRect(0,HZ,PW,2);
+    x=earthBase.getContext('2d');r=SIM.rng(8);
+    gr=x.createLinearGradient(0,0,0,HZ);gr.addColorStop(0,'#1e5fa8');gr.addColorStop(.75,'#7cb7e6');gr.addColorStop(1,'#cfe6f5');x.fillStyle=gr;x.fillRect(0,0,PW,HZ);
+    x.fillStyle='#5b7f3a';x.beginPath();x.moveTo(0,HZ);for(let i=0;i<=20;i++)x.lineTo(i/20*PW,HZ-18-14*Math.sin(i*1.3)-8*r());x.lineTo(PW,HZ);x.fill();
+    gr=x.createLinearGradient(0,HZ,0,H);gr.addColorStop(0,'#55752f');gr.addColorStop(1,'#4d7c0f');x.fillStyle=gr;x.fillRect(0,HZ,PW,H-HZ);
+    for(let i=0;i<5000;i++){const y=HZ+r()*(H-HZ);x.fillStyle=r()<.5?'rgba(190,242,100,.08)':'rgba(20,40,5,.12)';const s=1+pf(y)*2*r();x.fillRect(r()*PW,y,s,s*0.7);}
+    clouds=[];r=SIM.rng(9);for(let i=0;i<4;i++)clouds.push({x:r()*PW,y:30+r()*120,s:40+r()*40,v:6+r()*8});
+    rain=[];for(let i=0;i<90;i++)rain.push({x:Math.random()*PW,y:Math.random()*GB});
+  }
+  paintBases();
+  function reset(){time=0;mets=[];parts=[];flash=[];smoke=[];ecr=[];growing=[];rings=[];texts=[];shake=0;mcount=0;moonSurf.getContext('2d').drawImage(moonBase,0,0);}
+
+  // 구덩이 그리기. k=0 달(영구), k=1 지구(age 0→1 로 풍화)
+  function crater(x,X,Y,s,k,age,sc){
+    const rx=s*pf(Y)*sc,ry=rx*0.42,seed=Math.floor(X*13+Y*7),r=SIM.rng(seed),d=1-age;
+    if(k===0){
+      if(s>18){x.strokeStyle='rgba(229,231,235,.16)';x.lineCap='round';for(let i=0;i<11;i++){const a=r()*TAU,L=rx*(2.6+r()*2.5);x.lineWidth=Math.max(1,rx*0.12*r()+1);x.beginPath();x.moveTo(X+Math.cos(a)*rx*1.1,Y+Math.sin(a)*ry*1.1);x.lineTo(X+Math.cos(a)*L,Y+Math.sin(a)*L*0.42);x.stroke();}}
+      x.save();x.translate(X,Y);x.scale(1,0.42);let gr=x.createRadialGradient(0,0,rx*0.8,0,0,rx*2);gr.addColorStop(0,'rgba(212,212,216,.45)');gr.addColorStop(1,'rgba(212,212,216,0)');x.fillStyle=gr;x.beginPath();x.arc(0,0,rx*2,0,TAU);x.fill();x.restore();
+      x.save();x.beginPath();x.ellipse(X,Y,rx,ry,0,0,TAU);x.fillStyle='#3f3f46';x.fill();x.clip();
+      x.fillStyle='#a1a1aa';x.beginPath();x.ellipse(X+rx*0.18,Y+ry*0.45,rx*0.95,ry*0.85,0,0,TAU);x.fill();
+      x.fillStyle='rgba(0,0,0,.35)';x.beginPath();x.ellipse(X-rx*0.25,Y-ry*0.35,rx*0.9,ry*0.7,0,0,TAU);x.fill();x.restore();
+      x.lineWidth=Math.max(1.5,rx*0.09);x.strokeStyle='#e4e4e7';x.beginPath();x.ellipse(X,Y,rx,ry,0,Math.PI*0.95,Math.PI*2.05);x.stroke();
+      x.strokeStyle='rgba(39,39,42,.8)';x.beginPath();x.ellipse(X,Y,rx,ry,0,0.05,Math.PI*0.95);x.stroke();return;}
+    // 지구: 갓 생긴 흙 → 빗물 고임 → 퇴적물로 메워짐 → 식물로 덮임
+    x.save();x.translate(X,Y);x.scale(1,0.42);let gr=x.createRadialGradient(0,0,rx*0.8,0,0,rx*1.9);gr.addColorStop(0,'rgba(146,98,40,'+0.6*d*d+')');gr.addColorStop(1,'rgba(146,98,40,0)');x.fillStyle=gr;x.beginPath();x.arc(0,0,rx*1.9,0,TAU);x.fill();x.restore();
+    const sh=1-0.55*Math.min(1,age*1.4); // 침식으로 얕아짐(테두리가 낮아지고 안쪽이 밝아짐)
+    x.save();x.globalAlpha=Math.min(1,d*1.6);x.beginPath();x.ellipse(X,Y,rx,ry,0,0,TAU);x.fillStyle='#5b3a15';x.fill();x.clip();
+    x.fillStyle='#a16207';x.beginPath();x.ellipse(X+rx*0.18,Y+ry*0.45,rx*0.95,ry*0.85,0,0,TAU);x.fill();
+    x.fillStyle='rgba(0,0,0,'+0.35*sh+')';x.beginPath();x.ellipse(X-rx*0.25,Y-ry*0.35,rx*0.9,ry*0.7,0,0,TAU);x.fill();
+    // 빗물이 고였다가 퇴적물로 메워짐
+    if(age>0.15&&age<0.8){const u=(age-0.15)/0.65,wa=Math.sin(Math.PI*u)*0.85,ws=0.85-0.5*u;
+      const wg=x.createLinearGradient(X,Y-ry,X,Y+ry);wg.addColorStop(0,'rgba(56,189,248,'+wa+')');wg.addColorStop(1,'rgba(14,116,144,'+wa+')');x.fillStyle=wg;x.beginPath();x.ellipse(X+rx*0.05,Y+ry*0.12,rx*ws,ry*ws,0,0,TAU);x.fill();
+      x.strokeStyle='rgba(224,242,254,'+wa*0.6+')';x.lineWidth=1.5;x.beginPath();x.ellipse(X+rx*0.05,Y+ry*0.12,rx*ws,ry*ws,0,Math.PI*1.1,Math.PI*1.6);x.stroke();}
+    // 퇴적물(흙)과 식물이 덮음
+    if(age>0.35){x.fillStyle='rgba(120,90,40,'+Math.min(.7,(age-0.35)*1.6)+')';x.beginPath();x.ellipse(X,Y+ry*0.1,rx,ry*0.9,0,0,TAU);x.fill();}
+    x.restore();
+    const va=Math.max(0,Math.min(1,(age-0.4)/0.5));
+    if(va>0){x.save();x.translate(X,Y);x.scale(1,0.42);x.globalAlpha=va;x.fillStyle='#4f7a1e';x.beginPath();x.arc(0,0,rx*1.15,0,TAU);x.fill();x.restore();
+      x.fillStyle='rgba(22,101,52,'+Math.min(1,va*1.5)*(1-Math.max(0,age-0.9)*10)+')';for(let i=0;i<8+rx/3;i++){const a=r()*TAU,q=Math.sqrt(r())*0.95;if(r()<va)x.beginPath(),x.arc(X+Math.cos(a)*rx*q,Y+Math.sin(a)*ry*q,1.5+rx*0.06*r(),0,TAU),x.fill();}}
+    const ra=d*d;if(ra>0.02){x.lineWidth=Math.max(1,rx*0.09*sh);x.strokeStyle='rgba(234,179,8,'+ra*0.9+')';x.beginPath();x.ellipse(X,Y,rx,ry,0,Math.PI*0.95,Math.PI*2.05);x.stroke();
+      x.strokeStyle='rgba(41,24,5,'+ra*0.8+')';x.beginPath();x.ellipse(X,Y,rx,ry,0,0.05,Math.PI*0.95);x.stroke();}
+  }
+
+  function spawn(s,big){const dir=Math.random()<.5?-1:1,X=big?PW/2+(Math.random()-.5)*120:40+Math.random()*(PW-80),Y=big?GB-230:330+Math.random()*(GB-350),X0=X-dir*(big?400:220+Math.random()*160),T=big?1.6:0.7;
+    // 지구: 작은 유성체(s<14)는 대기에서 다 타 버림
+    const burn=!big&&s<14?0.3+0.4*(s/14):null;
+    [0,1].forEach(k=>mets.push({k,x0:X0,y0:-30,x1:X,y1:Y,s,t:0,T,big,burn:k?burn:null,last:[X0,-30]}));}
+  function impact(m){const X=m.x1,Y=m.y1,s=m.k?m.s*0.85:m.s,ox=m.k*(PW+GAP),p=pf(Y);
+    flash.push({x:X+ox,y:Y,r:s*p*3,t:0});
+    const n=m.k?8+s*0.6:14+s*1.2;
+    for(let i=0;i<n;i++){const a=Math.random()*TAU,v=(m.k?40:80)+Math.random()*(m.k?120:240);
+      parts.push({x:X+ox,y:Y,vx:Math.cos(a)*v*p,vy:Math.sin(a)*v*0.42*p,z:0,vz:(m.k?120:200)+Math.random()*(m.k?160:320),g:m.k?700:260,col:m.k?'rgba(120,80,30,':'rgba(200,200,205,',sz:1+Math.random()*2.2*p,t:0,clip:ox});}
+    if(m.k)for(let i=0;i<6+s*0.3;i++){const a=Math.random()*TAU;smoke.push({x:X+ox+Math.cos(a)*s*p*0.6,y:Y+Math.sin(a)*s*p*0.25,r:6+s*p*0.4,vx:Math.cos(a)*15,vy:-15-Math.random()*20,t:0,L:2.2+Math.random(),col:'150,120,80',clip:ox});}
+    if(m.big){shake=0.7;flash.push({x:X+ox,y:Y,r:s*p*7,t:0,L:0.8});flash.push({panel:ox,t:0,L:0.5});
+      rings.push({x:X+ox,y:Y,R:s*p*9,t:0,L:1.3,clip:ox,col:m.k?'254,215,170':'241,245,249'});rings.push({x:X+ox,y:Y,R:s*p*5,t:-0.15,L:1.1,clip:ox,col:'253,186,116'});
+      for(let i=0;i<(m.k?140:260);i++){const a=Math.random()*TAU,v=60+Math.random()*(m.k?260:420),hot=Math.random()<0.3;
+        parts.push({x:X+ox,y:Y,vx:Math.cos(a)*v*p,vy:Math.sin(a)*v*0.42*p,z:0,vz:150+Math.random()*(m.k?380:560),g:m.k?520:240,col:hot?'rgba(251,146,60,':(m.k?'rgba(120,80,30,':'rgba(210,210,215,'),sz:1.5+Math.random()*3.5*p,t:0,clip:ox,L:m.k?3:4.5});}
+      if(m.k)for(let i=0;i<34;i++){const a=Math.random()*TAU,q=Math.random();smoke.push({x:X+ox+Math.cos(a)*s*p*q,y:Y+Math.sin(a)*s*p*0.35*q,r:14+s*p*0.5*Math.random(),vx:Math.cos(a)*40*Math.random(),vy:-30-Math.random()*70,t:0,L:4+Math.random()*2.5,col:i%3?'140,110,75':'90,70,50',clip:ox});}
+      texts.push({x:X+ox,y:Y-s*p*1.6,t:0,L:1.6,s:m.k?'쾅!':'번쩍! (소리 없음 — 공기가 없어요)',big:m.k});}
+    growing.push({k:m.k,x:X,y:Y,s:s,t:0,T:m.big?0.9:0.35});}
+
   function out(){document.getElementById('oD1').textContent=time.toFixed(1);
-    const a=cr[0].filter(c=>c.d>0.15).length,b=cr[1].filter(c=>c.d>0.15).length;
-    document.getElementById('oD').innerHTML='<h4>남아 있는 운석 구덩이</h4><table class="sim-table"><tbody><tr><td>대기 없음 (달)</td><td><span class="sim-big" style="font-size:32px">'+a+'</span>개</td></tr><tr><td>대기 있음 (지구)</td><td><b style="font-size:30px;color:#2563eb">'+b+'</b>개</td></tr></tbody></table><div class="sim-note" style="margin-top:6px">대기가 있으면 작은 유성체는 <b>타서 사라지고</b>, 생긴 구덩이도 <b>침식</b>되어 지워져요.</div>';}
+    const b=ecr.filter(c=>c.age<0.85).length;
+    document.getElementById('oD').innerHTML='<h4>남아 있는 운석 구덩이</h4><table class="sim-table"><tbody><tr><td>대기 없음 (달)</td><td><span class="sim-big" style="font-size:32px">'+mcount+'</span>개</td></tr><tr><td>대기 있음 (지구)</td><td><b style="font-size:30px;color:#2563eb">'+b+'</b>개</td></tr></tbody></table><div class="sim-note" style="margin-top:6px">대기가 있으면 작은 유성체는 <b>마찰열로 타서 사라지고</b>, 생긴 구덩이도 비·바람에 의한 <b>풍화·침식</b>과 퇴적, 식물에 덮여 지워져요.</div>';}
   const b1=document.getElementById('bD1');b1.onclick=()=>{run=!run;b1.textContent=run?'❚❚ 멈춤':'▶ 시작';};
   document.getElementById('bD2').onclick=()=>{reset();run=false;b1.textContent='▶ 시작';out();};
+  document.getElementById('bD3').onclick=()=>spawn(80+Math.random()*10,true);
   reset();out();let ot=0;
-  SIM.loop('d104_crater',(t,dt)=>{
-    if(run){time+=dt*0.5;if(Math.random()<dt*9){const s=Math.pow(Math.random(),3)*40+4,x=30+Math.random()*(PW-60),y=150+Math.random()*400;[0,1].forEach(k=>mets.push({k,x:x+k*(PW+40),y,s,ty:-20,burn:k===1&&s<16}));}
-      cr[1].forEach(c=>c.d-=dt*0.05);cr[1]=cr[1].filter(c=>c.d>0);}
-    mets.forEach(m=>{m.ty+=dt*900;if(m.ty>=m.y){if(!m.burn)cr[m.k].push({x:m.x,y:m.y,s:m.s,d:1});m.dead=1;}});mets=mets.filter(m=>!m.dead);
-    [0,1].forEach(k=>{const x0=k*(PW+40);g.save();g.beginPath();g.rect(x0,0,PW,H);g.clip();
-      g.fillStyle=k?'#365314':'#6b7280';g.fillRect(x0,0,PW,H);
-      if(k){g.fillStyle='rgba(125,211,252,.35)';g.fillRect(x0,0,PW,100);}else{g.fillStyle='#020617';g.fillRect(x0,0,PW,100);}
-      cr[k].forEach(c=>{g.globalAlpha=Math.min(1,c.d);g.fillStyle=k?'#3f6212':'#4b5563';g.beginPath();g.ellipse(c.x,c.y,c.s,c.s*0.55,0,0,7);g.fill();g.strokeStyle=k?'#84cc16':'#d1d5db';g.lineWidth=2;g.beginPath();g.ellipse(c.x,c.y-1,c.s,c.s*0.55,0,Math.PI,2*Math.PI);g.stroke();g.globalAlpha=1;});
-      mets.filter(m=>m.k===k).forEach(m=>{const burnt=m.burn&&m.ty>60;if(burnt){g.fillStyle='rgba(251,146,60,'+Math.max(0,1-(m.ty-60)/200)+')';g.beginPath();g.arc(m.x,Math.min(m.ty,150),4,0,7);g.fill();if(m.ty>260)m.dead=1;return;}g.strokeStyle=k?'#fb923c':'#e5e7eb';g.lineWidth=3;g.beginPath();g.moveTo(m.x-20,m.ty-40);g.lineTo(m.x,m.ty);g.stroke();});
-      g.fillStyle='rgba(15,23,42,.8)';g.fillRect(x0,H-50,PW,50);g.fillStyle='#fff';g.font=SIM.font(24);g.textAlign='center';g.fillText(k?'대기가 있는 천체 (지구)':'대기가 없는 천체 (달)',x0+PW/2,H-17);
+
+  SIM.loop('d104_crater',(tm,dt)=>{
+    if(run){time+=dt*0.5;if(Math.random()<dt*5)spawn(Math.pow(Math.random(),3)*40+4);
+      ecr.forEach(c=>c.age+=dt*0.055);ecr=ecr.filter(c=>c.age<1);}
+    // 운석 이동·충돌
+    mets.forEach(m=>{m.t+=dt;const f=Math.min(1,m.t/m.T);m.f=f;m.hx=m.x0+(m.x1-m.x0)*f;m.hy=m.y0+(m.y1-m.y0)*f;
+      if(m.burn!=null&&f>=m.burn){m.dead=1;const ox=PW+GAP;smoke.push({trail:1,x:m.hx+ox,y:m.hy,dx:m.x0-m.x1,dy:m.y0-m.y1,t:0,L:1.4,clip:ox});flash.push({x:m.hx+ox,y:m.hy,r:10+m.s,t:0,air:1});}
+      else if(f>=1){m.dead=1;impact(m);}});mets=mets.filter(m=>!m.dead);
+    growing.forEach(q=>{q.t+=dt;if(q.t>=q.T){q.done=1;if(q.k===0){crater(moonSurf.getContext('2d'),q.x,q.y,q.s,0,0,1);mcount++;}else ecr.push({x:q.x,y:q.y,s:q.s,age:0});}});growing=growing.filter(q=>!q.done);
+    parts.forEach(p=>{p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vz-=p.g*dt;p.z+=p.vz*dt;if(p.z<0)p.dead=1;});parts=parts.filter(p=>!p.dead).slice(-1500);
+    smoke.forEach(s=>{s.t+=dt;if(!s.trail){s.x+=s.vx*dt;s.y+=s.vy*dt;s.r+=dt*14;}});smoke=smoke.filter(s=>s.t<s.L);
+    flash.forEach(f=>f.t+=dt);flash=flash.filter(f=>f.t<(f.L||0.35));rings.forEach(r=>r.t+=dt);rings=rings.filter(r=>r.t<r.L);texts.forEach(x=>x.t+=dt);texts=texts.filter(x=>x.t<x.L);shake=Math.max(0,shake-dt);
+    if(run){rain.forEach(d=>{d.y+=dt*900;d.x-=dt*160;if(d.y>GB){d.y=-10-Math.random()*60;d.x=Math.random()*(PW+120);}});}
+    clouds.forEach(cl=>{cl.x+=cl.v*dt*(run?3:1);if(cl.x>PW+cl.s*2)cl.x=-cl.s*2;});
+
+    g.fillStyle='#fff';g.fillRect(0,0,W,H);g.save();if(shake>0){const A=18*shake;g.translate((Math.random()-.5)*A,(Math.random()-.5)*A);}
+    [0,1].forEach(k=>{const ox=k*(PW+GAP);g.save();g.beginPath();g.rect(ox,0,PW,H);g.clip();g.translate(ox,0);
+      g.drawImage(k?earthBase:moonSurf,0,0);
+      if(k){ecr.forEach(cr=>crater(g,cr.x,cr.y,cr.s,1,cr.age,1));
+        clouds.forEach(cl=>{g.fillStyle='rgba(255,255,255,.75)';[[0,0,1],[-.8,.2,.7],[.8,.15,.75],[.3,-.35,.65]].forEach(([a,b,s])=>{g.beginPath();g.arc(cl.x+a*cl.s,cl.y+b*cl.s,cl.s*s*0.7,0,TAU);g.fill();});});
+        if(run){g.strokeStyle='rgba(219,234,254,.35)';g.lineWidth=1.3;g.beginPath();rain.forEach(d=>{if(d.y>40){g.moveTo(d.x,d.y);g.lineTo(d.x+8,d.y-26);}});g.stroke();}}
+      growing.filter(q=>q.k===k).forEach(q=>crater(g,q.x,q.y,q.s,k,0,0.3+0.7*Math.min(1,q.t/q.T)));
       g.restore();});
-    g.fillStyle='#fff';g.fillRect(PW,0,40,H);
-    if(t-ot>300){ot=t;out();}
+
+    // 운석 (패널 밖으로 안 나가게 각 패널을 잘라서 그림)
+    [0,1].forEach(k=>{const ox=k*(PW+GAP);g.save();g.beginPath();g.rect(ox,0,PW,GB);g.clip();
+      smoke.filter(s=>s.clip===ox).forEach(s=>{const a=1-s.t/s.L;
+        if(s.trail){const L=Math.hypot(s.dx,s.dy),ux=s.dx/L,uy=s.dy/L;const gr=g.createLinearGradient(s.x,s.y,s.x+ux*160,s.y+uy*160);gr.addColorStop(0,'rgba(226,232,240,'+0.55*a+')');gr.addColorStop(1,'rgba(226,232,240,0)');g.strokeStyle=gr;g.lineWidth=4+6*(1-a);g.beginPath();g.moveTo(s.x,s.y);g.lineTo(s.x+ux*160,s.y+uy*160);g.stroke();}
+        else{g.fillStyle='rgba('+s.col+','+0.45*a+')';g.beginPath();g.arc(s.x,s.y,s.r,0,TAU);g.fill();}});
+      mets.filter(m=>m.k===k).forEach(m=>{const X=m.hx+ox,Y=m.hy,L=Math.hypot(m.x1-m.x0,m.y1-m.y0),ux=(m.x0-m.x1)/L,uy=(m.y0-m.y1)/L,rs=m.big?(6+m.s*0.2)*(0.5+0.5*m.f):2+m.s*0.12;
+        if(k===0){// 달: 대기가 없어 빛나지 않고 그대로 떨어짐
+          g.strokeStyle='rgba(161,161,170,.35)';g.lineWidth=rs;g.beginPath();g.moveTo(X,Y);g.lineTo(X+ux*30,Y+uy*30);g.stroke();
+          g.fillStyle='#78716c';g.beginPath();g.arc(X,Y,rs,0,TAU);g.fill();g.fillStyle='#a8a29e';g.beginPath();g.arc(X-rs*0.3,Y-rs*0.3,rs*0.5,0,TAU);g.fill();}
+        else{// 지구: 대기와의 마찰로 불덩어리(유성)가 되어 꼬리를 남김
+          const heat=Math.min(1,Math.max(0,(m.f-0.08)/0.2)),tl=(60+m.s*6)*heat,hw=rs*(1+1.6*heat);
+          if(heat>0){const gr=g.createLinearGradient(X,Y,X+ux*tl,Y+uy*tl);gr.addColorStop(0,'rgba(254,240,138,.95)');gr.addColorStop(.25,'rgba(251,146,60,.75)');gr.addColorStop(1,'rgba(239,68,68,0)');g.strokeStyle=gr;g.lineCap='round';g.lineWidth=hw*1.6;g.beginPath();g.moveTo(X,Y);g.lineTo(X+ux*tl,Y+uy*tl);g.stroke();
+            const gg=g.createRadialGradient(X,Y,0,X,Y,hw*3.2);gg.addColorStop(0,'rgba(255,255,255,'+heat+')');gg.addColorStop(.35,'rgba(253,224,71,'+0.8*heat+')');gg.addColorStop(1,'rgba(249,115,22,0)');g.fillStyle=gg;g.beginPath();g.arc(X,Y,hw*3.2,0,TAU);g.fill();
+            if(Math.random()<0.6)parts.push({x:X,y:Y,vx:(Math.random()-.5)*60+ux*40,vy:(Math.random()-.5)*60+uy*40,z:0,vz:0,g:-1,col:'rgba(253,186,116,',sz:1.5,t:0,clip:ox,spark:1});}
+          g.fillStyle='#57534e';g.beginPath();g.arc(X,Y,rs,0,TAU);g.fill();}});
+      parts.filter(p=>p.clip===ox).forEach(p=>{const a=p.spark?Math.max(0,1-p.t/0.4):Math.max(0,1-p.t/(p.L||2.5));if(p.spark&&p.t>0.4)p.dead=1;g.fillStyle=p.col+a+')';g.fillRect(p.x,p.y-p.z,p.sz*(p.spark?1:1.4),p.sz*(p.spark?1:1.4));});
+      rings.filter(r=>r.clip===ox&&r.t>0).forEach(r=>{const u=r.t/r.L,rr=r.R*(0.15+u),a=(1-u);g.strokeStyle='rgba('+r.col+','+0.8*a+')';g.lineWidth=3+10*a;g.beginPath();g.ellipse(r.x,r.y,rr,rr*0.42,0,0,TAU);g.stroke();
+        g.strokeStyle='rgba('+r.col+','+0.25*a+')';g.lineWidth=24*a;g.beginPath();g.ellipse(r.x,r.y,rr*0.9,rr*0.38,0,0,TAU);g.stroke();});
+      flash.filter(f=>f.panel===ox).forEach(f=>{g.fillStyle='rgba(255,255,255,'+0.85*(1-f.t/f.L)+')';g.fillRect(ox,0,PW,GB);});
+      flash.filter(f=>f.panel==null&&Math.abs(f.x-ox-PW/2)<=PW/2+1).forEach(f=>{const k2=f.t/(f.L||0.35),rr=f.r*(0.5+k2*1.2),gr=g.createRadialGradient(f.x,f.y,0,f.x,f.y,rr);gr.addColorStop(0,'rgba(255,255,255,'+(1-k2)+')');gr.addColorStop(.4,'rgba(254,240,138,'+0.7*(1-k2)+')');gr.addColorStop(1,'rgba(251,146,60,0)');g.fillStyle=gr;g.beginPath();g.arc(f.x,f.y,rr,0,TAU);g.fill();});
+      texts.filter(x=>Math.abs(x.x-ox-PW/2)<=PW/2+1).forEach(x=>{const u=x.t/x.L,sc=Math.min(1,x.t*6);g.globalAlpha=Math.min(1,(1-u)*2.5);g.textAlign='center';g.font=SIM.font(x.big?Math.round(30+50*sc):26);g.lineWidth=6;g.strokeStyle='rgba(15,23,42,.8)';g.strokeText(x.s,x.x,x.y-u*30);g.fillStyle=x.big?'#fde047':'#e2e8f0';g.fillText(x.s,x.x,x.y-u*30);g.globalAlpha=1;});
+      g.restore();
+      g.textAlign='left';g.font=SIM.font(19);g.fillStyle=k?'rgba(15,23,42,.75)':'rgba(226,232,240,.8)';
+      g.fillText(k?'대기: 유성체가 마찰열로 타요':'대기 없음: 그대로 충돌',ox+16,30);
+      if(k){g.font=SIM.font(17);g.fillStyle='rgba(15,23,42,.8)';g.fillText('풍화·침식: 빗물 고임 → 퇴적물로 메워짐 → 식물로 덮임',ox+16,HZ+26);}
+      g.fillStyle='rgba(15,23,42,.85)';g.fillRect(ox,GB,PW,H-GB);g.fillStyle='#fff';g.font=SIM.font(25);g.textAlign='center';g.fillText(k?'대기가 있는 천체 (지구)':'대기가 없는 천체 (달)',ox+PW/2,GB+37);});
+    g.restore();g.fillStyle='#fff';g.fillRect(PW,0,GAP,H);
+    if(tm-ot>300){ot=tm;out();}
   });
 })();
 
@@ -266,7 +385,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -276,8 +396,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

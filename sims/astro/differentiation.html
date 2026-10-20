@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d104_diff .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d104_diff .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d104_diff .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,10 +176,11 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d104_diff"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>천체의 분화 과정 관찰하기</div><div class="ppt-subtitle">천체를 가열해 녹이면 물질들이 어떻게 움직일까요?</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cC" width="1160" height="900"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>천체 가열하기</h4>
-<div class="sim-row"><span class="lbl" style="width:140px">온도</span><input type="range" class="sim-range" id="rC" min="0" max="1" step="0.01" value="0"><span class="sim-val" id="vC" style="min-width:150px"></span></div>
+<div class="sim-row"><span class="lbl" style="width:140px">중심 온도</span><input type="range" class="sim-range" id="rC" min="0" max="1" step="0.01" value="0"><span class="sim-val" id="vC" style="min-width:150px"></span></div>
 <div class="sim-btns"><button class="sim-btn orange" id="bC1">🔥 녹이기</button><button class="sim-btn" id="bC2">↺ 처음으로</button></div></div>
 <div class="sim-box" id="oC" style="font-size:27px"></div>
 <div class="sim-box key" style="font-size:25px"><b>미분화 운석</b>은 태양계 초기 물질을 그대로 간직하고, <b>철질 운석</b>은 분화된 천체의 <b>핵</b> 조각이에요.</div></div></div></div>
@@ -232,27 +242,114 @@
 
 /* ===== 분화 ===== */
 (function(){
-  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1060,H=610,CX=420,CY=305,R=240;
-  let T=0,target=0,P=[];
-  function reset(){const r=SIM.rng(4);P=[];for(let i=0;i<520;i++){const a=r()*6.283,d=Math.sqrt(r())*R*0.95,k=r();P.push({x:CX+Math.cos(a)*d,y:CY+Math.sin(a)*d,type:k<0.22?'m':(k<0.6?'s':'l'),vx:0,vy:0});}T=0;target=0;}
-  function out(){document.getElementById('vC').textContent=Math.round(300+T*1700)+' K';document.getElementById('rC').value=T;
-    const melt=T>0.45;let inner=0,m=0;P.forEach(p=>{if(p.type==='m'){m++;if(Math.hypot(p.x-CX,p.y-CY)<R*0.45)inner++;}});
-    document.getElementById('oC').innerHTML='<h4>'+(melt?'🔥 천체가 녹았어요!':'고체 상태')+'</h4><div>금속 중 중심부(핵 영역)에 모인 비율: <span class="sim-big" style="font-size:36px">'+Math.round(inner/m*100)+'%</span></div><div class="sim-note">'+(melt?'밀도가 큰 <b>금속</b>은 가라앉아 핵을, 가벼운 <b>규산염</b>은 떠올라 맨틀과 지각을 만들어요.':'녹지 않으면 물질들이 섞인 채로 남아요 (미분화 천체).')+'</div>';}
+  const c=document.getElementById('cC'),g=c.getContext('2d'),W=1160,H=900,CX=335,CY=455,R=285,TAU=Math.PI*2;
+  // 물질: 금속(철·니켈) 22%, 규산염 63%, 가벼운 암석 15% → 층 경계(넓이 비율): 핵 √0.22, 맨틀 √0.85
+  const RHO={m:7.9,s:3.3,l:2.7},RC=Math.sqrt(0.22),RM=Math.sqrt(0.85),TMELT=1400,N=900;
+  const RHO0=0.22*RHO.m+0.63*RHO.s+0.15*RHO.l;
+  let T=0,target=0,P=[],spk=[],imp=[],impT=0;
+  function reset(){const r=SIM.rng(4);P=[];
+    for(let i=0;i<N;i++){const k=r(),type=k<0.22?'m':(k<0.85?'s':'l');
+      const lo=type==='m'?0:(type==='s'?RC:RM),hi=type==='m'?RC:(type==='s'?RM:0.97);
+      const x=0.97*Math.sqrt(r());P.push({a:r()*TAU,x:x,px:x,xt:Math.sqrt(lo*lo+r()*(hi*hi-lo*lo)),type:type});}
+    T=0;target=0;spk=[];imp=[];}
+  // 온도: 중심 Tc, 표면 Ts (가열할수록 둘 다 올라감), 그 사이는 포물선
+  const Tc=()=>300+1700*T,Ts=()=>250+1200*T,Tof=x=>Ts()+(Tc()-Ts())*(1-x*x);
+  function meltR(){const a=Tc(),b=Ts();if(a<=TMELT)return 0;if(b>=TMELT)return 1;return Math.sqrt((a-TMELT)/(a-b));}
+  const coreFrac=()=>{let m=0,k=0;P.forEach(p=>{if(p.type==='m'){m++;if(p.x<RC*1.06)k++;}});return k/m;};
+  function rhoAt(x){let sw=0,s=0;P.forEach(p=>{const d=(p.x-x)/0.045,w=Math.exp(-d*d);sw+=w;s+=w*RHO[p.type];});return sw>1e-9?s/sw:RHO0;}
+  function stage(){const rm=meltR(),D=coreFrac();
+    if(D>0.9)return [4,'④ 층 구조 완성 — 핵·맨틀·지각'];
+    if(rm>=1)return [3,'③ 분화 중 — 무거운 금속은 가라앉고, 가벼운 암석은 떠올라요'];
+    if(rm>0)return [2,'② 중심부부터 녹기 시작'];
+    return [1,T<target?'① 가열 중 (방사성 원소 붕괴열·충돌열)':'① 고체 상태 — 물질이 섞여 있어요 (미분화)'];}
+  function out(){document.getElementById('vC').textContent=Math.round(Tc())+' K';document.getElementById('rC').value=T;
+    const st=stage(),rm=meltR(),D=coreFrac();
+    document.getElementById('oC').innerHTML='<h4>'+st[1]+'</h4>'+
+      '<div>녹은 영역: <b class="or">'+(rm<=0?'없음':(rm>=1?'천체 전체':'중심 ~ '+Math.round(rm*100)+'% 깊이까지'))+'</b></div>'+
+      '<div>금속 중 핵 영역에 모인 비율: <span class="sim-big" style="font-size:36px">'+Math.round(D*100)+'%</span></div>'+
+      '<div class="sim-note">'+(st[0]===1?'녹지 않으면 물질이 섞인 채로 남아요 (미분화 천체).':(st[0]===4?'다시 식어도 층 구조는 그대로 남아요. 오른쪽 밀도 그래프의 계단을 확인해 보세요!':'밀도가 큰 <b>금속</b>은 가라앉아 <b>핵</b>을, 가벼운 <b>규산염</b>은 떠올라 <b>맨틀·지각</b>을 만들어요.'))+'</div>';}
   document.getElementById('rC').oninput=x=>{T=target=+x.target.value;out();};
   document.getElementById('bC1').onclick=()=>{target=1;};
   document.getElementById('bC2').onclick=()=>{reset();out();};
   reset();out();
+
+  // 온도 → 색 (차가운 암석 → 붉게 달아오름 → 밝은 주황)
+  function tcol(K,a){const t=Math.max(0,Math.min(1,(K-300)/1700));let r,gg,b;
+    if(t<0.6){const u=t/0.6;r=87+(185-87)*u;gg=83+(60-83)*u;b=78+(30-78)*u;}else{const u=(t-0.6)/0.4;r=185+(253-185)*u;gg=60+(170-60)*u;b=30+(80-30)*u;}
+    return 'rgba('+Math.round(r)+','+Math.round(gg)+','+Math.round(b)+','+(a==null?1:a)+')';}
+  // 그래프 틀
+  function frame(x0,y0,w,h,title,ymax,step,unit){
+    g.fillStyle='#111c33';g.fillRect(x0-80,y0-50,w+100,h+110);
+    g.fillStyle='#e2e8f0';g.font=SIM.font(24);g.textAlign='left';g.fillText(title,x0-50,y0-18);
+    g.strokeStyle='#334155';g.lineWidth=1;g.font=SIM.font(16,false);g.fillStyle='#94a3b8';g.textAlign='right';
+    for(let v=0;v<=ymax+1e-9;v+=step){const y=y0+h-v/ymax*h;g.beginPath();g.moveTo(x0,y);g.lineTo(x0+w,y);g.stroke();g.fillText(String(Math.round(v*10)/10).replace(/\B(?=(\d{3})+(?!\d))/g,','),x0-8,y+5);}
+    g.textAlign='center';[[0,'중심'],[0.5,'0.5'],[1,'표면']].forEach(([v,s])=>g.fillText(s,x0+v*w,y0+h+22));
+    g.fillText('중심으로부터 거리 (반지름 비율)',x0+w/2,y0+h+46);
+    g.save();g.translate(x0-62,y0+h/2);g.rotate(-Math.PI/2);g.fillText(unit,0,0);g.restore();
+    g.strokeStyle='#64748b';g.lineWidth=2;g.strokeRect(x0,y0,w,h);}
+
   let ot=0;
-  SIM.loop('d104_diff',(t,dt)=>{
-    if(T<target){T=Math.min(target,T+dt*0.3);}
-    const melt=Math.max(0,(T-0.45)/0.55);
-    if(melt>0)P.forEach(p=>{const dx=p.x-CX,dy=p.y-CY,r=Math.hypot(dx,dy)+1e-3;const ux=dx/r,uy=dy/r;const s=p.type==='m'?-1:(p.type==='l'?0.35:0.1);p.vx+=ux*s*60*melt*dt+(Math.random()-.5)*20*melt*dt;p.vy+=uy*s*60*melt*dt+(Math.random()-.5)*20*melt*dt;p.vx*=0.92;p.vy*=0.92;p.x+=p.vx;p.y+=p.vy;const rr=Math.hypot(p.x-CX,p.y-CY);if(rr>R*0.96){p.x=CX+(p.x-CX)/rr*R*0.96;p.y=CY+(p.y-CY)/rr*R*0.96;}if(p.type==='m'&&rr<4){p.x+=Math.random()*4-2;}});
+  SIM.loop('d104_diff',(tm,dt)=>{
+    const heating=T<target;if(heating)T=Math.min(target,T+dt*0.09);
+    const rm=meltR(),melt=rm>0;
+    // 녹은 영역 안의 물질만 움직임: 각자 밀도에 맞는 층(xt)으로 이동
+    P.forEach(p=>{p.px=p.x;if(p.x>rm+0.01)return;const k=p.type==='m'?0.5:(p.type==='l'?0.4:0.25);
+      let nx=p.x+(p.xt-p.x)*Math.min(1,k*dt);if(p.type!=='m'&&nx>rm&&rm<1)nx=Math.max(p.x,Math.min(nx,rm));
+      p.x=nx;p.a+=(Math.random()-0.5)*(p.type==='m'?0.15:0.6)*dt;});
+    // 가열 효과: 내부 반짝임(방사성 붕괴) + 충돌체
+    if(heating){for(let k=0;k<3;k++){const a=Math.random()*TAU,x=0.95*Math.sqrt(Math.random());spk.push({x:CX+Math.cos(a)*x*R,y:CY+Math.sin(a)*x*R,l:0.5});}
+      impT-=dt;if(impT<=0){impT=0.6+Math.random()*0.6;imp.push({a:Math.random()*TAU,t:0});}}
+    spk.forEach(s=>s.l-=dt);spk=spk.filter(s=>s.l>0);imp.forEach(s=>s.t+=dt);imp=imp.filter(s=>s.t<0.9);
+
     g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    const hot=T;const gr=g.createRadialGradient(CX,CY,10,CX,CY,R);gr.addColorStop(0,'rgb('+Math.round(120+135*hot)+','+Math.round(110+40*hot)+','+Math.round(100-60*hot)+')');gr.addColorStop(1,'rgb('+Math.round(80+120*hot)+','+Math.round(75+20*hot)+','+Math.round(70-40*hot)+')');g.fillStyle=gr;g.beginPath();g.arc(CX,CY,R,0,7);g.fill();
-    P.forEach(p=>{g.fillStyle=p.type==='m'?'#cbd5e1':(p.type==='s'?'#a16207':'#fde68a');if(p.type==='m'){g.beginPath();g.arc(p.x,p.y,6,0,7);g.fill();g.strokeStyle='#475569';g.stroke();}else{g.fillRect(p.x-3.5,p.y-3.5,7,7);}});
-    g.fillStyle='#e2e8f0';g.font=SIM.font(21);g.textAlign='left';
-    g.fillStyle='#cbd5e1';g.fillText('● 금속 (철·니켈, 밀도 큼)',720,200);g.fillStyle='#d97706';g.fillText('■ 규산염 암석',720,240);g.fillStyle='#fde68a';g.fillText('■ 가벼운 암석',720,280);
-    if(t-ot>400){ot=t;out();}
+    // 천체 바탕: 깊이에 따른 온도 색
+    const gr=g.createRadialGradient(CX,CY,0,CX,CY,R);[0,.25,.5,.75,1].forEach(x=>gr.addColorStop(x,tcol(Tof(x))));
+    g.fillStyle=gr;g.beginPath();g.arc(CX,CY,R,0,TAU);g.fill();
+    if(melt){const a=0.18+0.08*Math.sin(tm/300);g.fillStyle='rgba(251,146,60,'+a+')';g.beginPath();g.arc(CX,CY,rm*R,0,TAU);g.fill();
+      if(rm<1){g.setLineDash([8,6]);g.strokeStyle='rgba(254,215,170,.9)';g.lineWidth=2;g.beginPath();g.arc(CX,CY,rm*R,0,TAU);g.stroke();g.setLineDash([]);
+        g.fillStyle='#fed7aa';g.font=SIM.font(19);g.textAlign='center';g.fillText('녹은 영역',CX,CY-rm*R-10);}}
+    // 층 구조가 생기면 경계와 이름
+    const D=coreFrac(),la=Math.max(0,Math.min(1,(D-0.75)/0.2));
+    if(la>0){g.globalAlpha=la*0.35;g.fillStyle='#e2e8f0';g.beginPath();g.arc(CX,CY,RC*R,0,TAU);g.fill();g.globalAlpha=1;}
+    // 입자
+    P.forEach(p=>{const ca=Math.cos(p.a),sa=Math.sin(p.a),x=CX+ca*p.x*R,y=CY+sa*p.x*R;
+      if(p.type==='m'){const v=(p.px-p.x)*R;if(v>0.6){g.strokeStyle='rgba(203,213,225,.45)';g.lineWidth=3;g.beginPath();g.moveTo(x,y);g.lineTo(x+ca*v*6,y+sa*v*6);g.stroke();}
+        g.fillStyle='#cbd5e1';g.beginPath();g.arc(x,y,5,0,TAU);g.fill();g.strokeStyle='#475569';g.lineWidth=1;g.stroke();}
+      else{g.fillStyle=p.type==='s'?'#a16207':'#fde68a';g.fillRect(x-3,y-3,6,6);}});
+    if(la>0){g.globalAlpha=la;g.strokeStyle='#f8fafc';g.lineWidth=2.5;[RC,RM].forEach(x=>{g.beginPath();g.arc(CX,CY,x*R,0,TAU);g.stroke();});
+      g.font=SIM.font(24);g.textAlign='center';
+      [['핵 (철·니켈)',0],['맨틀 (규산염)',(RC+RM)/2],['지각',(RM+1)/2]].forEach(([s,x],k)=>{const y=CY+x*R+(k?8:8);g.lineWidth=5;g.strokeStyle='rgba(15,23,42,.85)';g.strokeText(s,CX,y);g.fillStyle='#fff';g.fillText(s,CX,y);});g.globalAlpha=1;}
+    // 가열 효과 그리기
+    spk.forEach(s=>{g.fillStyle='rgba(254,240,138,'+s.l*1.6+')';g.beginPath();g.arc(s.x,s.y,3+4*(0.5-s.l),0,TAU);g.fill();});
+    imp.forEach(s=>{const ca=Math.cos(s.a),sa=Math.sin(s.a);if(s.t<0.4){const d=R+100*(1-s.t/0.4);g.fillStyle='#a8a29e';g.beginPath();g.arc(CX+ca*d,CY+sa*d,7,0,TAU);g.fill();
+        g.strokeStyle='rgba(251,191,36,.6)';g.lineWidth=3;g.beginPath();g.moveTo(CX+ca*d,CY+sa*d);g.lineTo(CX+ca*(d+40),CY+sa*(d+40));g.stroke();}
+      else{const k=(s.t-0.4)/0.5,fg=g.createRadialGradient(CX+ca*R,CY+sa*R,0,CX+ca*R,CY+sa*R,10+50*k);fg.addColorStop(0,'rgba(255,255,255,'+(1-k)+')');fg.addColorStop(.4,'rgba(253,224,71,'+(1-k)*.8+')');fg.addColorStop(1,'rgba(239,68,68,0)');g.fillStyle=fg;g.beginPath();g.arc(CX+ca*R,CY+sa*R,10+50*k,0,TAU);g.fill();}});
+    // 제목·범례
+    const st=stage();g.fillStyle='#fde68a';g.font=SIM.font(26);g.textAlign='center';g.fillText(st[1].length>26?st[1].split(' — ')[0]:st[1],CX,72);
+    g.font=SIM.font(21);g.textAlign='left';
+    g.fillStyle='#cbd5e1';g.beginPath();g.arc(60,840,7,0,TAU);g.fill();g.fillText('금속 (철·니켈, 7.9)',76,847);
+    g.fillStyle='#a16207';g.fillRect(278,833,13,13);g.fillStyle='#d6a35c';g.fillText('규산염 (3.3)',300,847);
+    g.fillStyle='#fde68a';g.fillRect(440,833,13,13);g.fillText('가벼운 암석 (2.7)',462,847);
+    g.fillStyle='#64748b';g.font=SIM.font(16,false);g.fillText('괄호 안: 밀도 (g/cm³)',60,878);
+
+    // 그래프 1: 온도
+    const gx=770,gw=350,gh=250;
+    frame(gx,95,gw,gh,'온도 (중심 → 표면)',2200,500,'온도 (K)');
+    const ty=v=>95+gh-v/2200*gh;
+    g.setLineDash([8,6]);g.strokeStyle='#f87171';g.lineWidth=2;g.beginPath();g.moveTo(gx,ty(TMELT));g.lineTo(gx+gw,ty(TMELT));g.stroke();g.setLineDash([]);
+    g.fillStyle='#fca5a5';g.font=SIM.font(16);g.textAlign='right';g.fillText('녹는점 약 1,400 K',gx+gw-6,ty(TMELT)-8);
+    if(melt){g.fillStyle='rgba(251,146,60,.18)';g.fillRect(gx,95,rm*gw,gh);}
+    g.strokeStyle='#fb923c';g.lineWidth=4;g.beginPath();for(let k=0;k<=60;k++){const x=k/60,y=ty(Tof(x));k?g.lineTo(gx+x*gw,y):g.moveTo(gx+x*gw,y);}g.stroke();
+    // 그래프 2: 밀도 (입자 분포에서 실제로 계산)
+    const dy0=505;frame(gx,dy0,gw,gh,'밀도 (중심 → 표면)',9,2,'밀도 (g/cm³)');
+    const dyv=v=>dy0+gh-v/9*gh;
+    g.setLineDash([6,6]);g.strokeStyle='#94a3b8';g.lineWidth=2;g.beginPath();g.moveTo(gx,dyv(RHO0));g.lineTo(gx+gw,dyv(RHO0));g.stroke();g.setLineDash([]);
+    g.fillStyle='#94a3b8';g.font=SIM.font(16);g.textAlign='right';g.fillText('분화 전 (고르게 섞임)',gx+gw-6,dyv(RHO0)-8);
+    g.strokeStyle='#60a5fa';g.lineWidth=4;g.beginPath();for(let k=0;k<=50;k++){const x=k/50*0.97,y=dyv(rhoAt(x));k?g.lineTo(gx+x/0.97*gw,y):g.moveTo(gx,y);}g.stroke();
+    if(la>0){g.globalAlpha=la;g.fillStyle='#bfdbfe';g.font=SIM.font(17);g.textAlign='center';
+      [['핵',RC/2],['맨틀',(RC+RM)/2],['지각',(RM+1)/2]].forEach(([s,x])=>g.fillText(s,gx+x*gw,dy0+22));
+      g.strokeStyle='rgba(191,219,254,.5)';g.lineWidth=1.5;g.setLineDash([4,4]);[RC,RM].forEach(x=>{g.beginPath();g.moveTo(gx+x*gw,dy0);g.lineTo(gx+x*gw,dy0+gh);g.stroke();});g.setLineDash([]);g.globalAlpha=1;}
+    if(tm-ot>300){ot=tm;out();}
   });
 })();
 
@@ -265,7 +362,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -275,8 +373,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

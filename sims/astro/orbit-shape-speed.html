@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d103_energy .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d103_energy .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d103_energy .sim-panel { flex: 0 0 600px; justify-content: center; gap: 10px; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,13 +176,14 @@
 </head>
 <body>
 <div id="presentation-wrapper">
-<div class="slide sim-slide active" id="d103_energy"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>속도를 바꿔 궤도의 모양 만들기</div><div class="ppt-subtitle">근일점에서의 속도를 바꾸면 이심률과 총에너지가 어떻게 변할까요?</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1060" height="610"></canvas></div>
-<div class="sim-panel"><div class="sim-box blue"><h4>근일점에서의 속도</h4>
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="d103_energy"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>속도를 바꿔 궤도의 모양 만들기</div><div class="ppt-subtitle">출발점에서의 속도를 바꾸면 이심률과 총에너지가 어떻게 변할까요?</div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1160" height="900"></canvas></div>
+<div class="sim-panel"><div class="sim-box blue"><h4 id="hB">출발점(근일점)에서의 속도</h4>
 <div class="sim-row"><input type="range" class="sim-range" id="rB" min="0.75" max="1.8" step="0.005" value="1.15"><span class="sim-val" id="vB" style="min-width:230px"></span></div>
-<div class="sim-btns"><button class="sim-btn" data-v="1">원</button><button class="sim-btn" data-v="1.2">타원</button><button class="sim-btn" data-v="1.41421">포물선</button><button class="sim-btn orange" data-v="1.62">쌍곡선</button></div></div>
-<div class="sim-box" id="oB" style="font-size:28px"></div>
-<div class="sim-note">※ 속도는 같은 거리에서 원 궤도를 도는 속도(원 궤도 속도)를 1로 나타냈어요. 탈출 속도 = √2 ≈ 1.41</div></div></div></div>
+<div class="sim-btns"><button class="sim-btn" data-v="1">원</button><button class="sim-btn" data-v="1.2">타원</button><button class="sim-btn" data-v="1.41421">포물선</button><button class="sim-btn orange" data-v="1.62">쌍곡선</button><button class="sim-btn" id="bBr">↺ 다시</button></div></div>
+<div class="sim-box" id="oB" style="font-size:24px;padding:12px 22px"></div>
+<div class="sim-box key" style="font-size:22px;padding:12px 22px"><h4 style="font-size:26px;margin-bottom:4px">총에너지란?</h4><b>총에너지 = 운동 에너지 + 중력 퍼텐셜 에너지</b> &nbsp; <b style="font-size:25px">E = (1/2)×m×v² − GMm/r</b><br>운동 에너지는 항상 (+), 중력 퍼텐셜 에너지는 무한히 먼 곳을 0으로 잡아 항상 (−). 도는 동안 둘은 바뀌어도 <b>합은 일정</b>해요.<div class="sim-note" style="font-size:19px;margin-top:4px">※ 속도는 원 궤도 속도=1, 에너지는 질량 1 기준(GM=1, 근일점 거리=1). 탈출 속도 = √2 ≈ 1.41</div></div></div></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -234,33 +244,52 @@ function kepler(M,e){let E=e<0.8?M:Math.PI;for(let i=0;i<30;i++)E-=(E-e*Math.sin
 
 /* ===== 속도와 궤도 모양 ===== */
 (function(){
-  const c=document.getElementById('cB'),g=c.getContext('2d'),W=1060,H=610,SX=640,SY=305,R0=110;
-  let v=1.15,path=[],st,run=true;
-  function reset(){st={x:R0,y:0,vx:0,vy:-v};path=[];}
-  function out(){const e=Math.abs(v*v-1),E=v*v/2-1;let kind,col;
-    if(Math.abs(v-1)<0.006){kind='원';col='#2563eb';}else if(v<1.41){kind='타원';col='#16a34a';}else if(v<1.418){kind='포물선';col='#ea580c';}else{kind='쌍곡선';col='#dc2626';}
-    document.getElementById('vB').textContent=v.toFixed(2)+' (원 궤도 속도의 '+v.toFixed(2)+'배)';document.getElementById('rB').value=v;
-    document.getElementById('oB').innerHTML='<h4>궤도의 모양</h4><div><span class="sim-big" style="color:'+col+'">'+kind+'</span> 궤도</div><div>이심률 e ≈ <b>'+e.toFixed(2)+'</b></div><div>총에너지: <b style="color:'+col+'">'+(Math.abs(E)<0.01?'0':(E<0?'(−) 음수':'(+) 양수'))+'</b></div><div class="sim-note">'+(E<-0.005?'태양에 묶여 계속 돌아요.':'태양을 한 번 지나 영원히 멀어져요.')+'</div>';
+  // 단위: 근일점 거리 = 1, GM = 1 → 원 궤도 속도 = 1, 탈출 속도 = √2
+  const c=document.getElementById('cB'),g=c.getContext('2d'),W=c.width,H=c.height,SX=790,SY=450,S0=150,RSTOP=30;
+  let v=1.15,path=[],st,S=S0,stop=false,acc=0;
+  const kindOf=()=>Math.abs(v-1)<0.006?0:(v<1.41?1:(v<1.418?2:3));
+  const COL=['#60a5fa','#4ade80','#fb923c','#f87171'],NAME=['원','타원','포물선','쌍곡선'],TCOL=['#2563eb','#16a34a','#ea580c','#dc2626'];
+  function reset(){st={x:1,y:0,vx:0,vy:-v};path=[[1,0]];stop=false;}
+  // 화면에 담아야 할 범위 (태양 기준, 단위 거리)
+  function extent(){const k=kindOf();if(k<2){const a=1/(2-v*v),e=Math.abs(v*v-1),bb=a*Math.sqrt(Math.max(0,1-e*e));return {L:2*a-1,Rt:1,Y:Math.max(1,bb)};}
+    let L=1,Rt=1,Y=1;path.forEach(p=>{L=Math.max(L,-p[0]);Rt=Math.max(Rt,p[0]);Y=Math.max(Y,Math.abs(p[1]));});return {L,Rt,Y};}
+  function out(){const k=kindOf(),r=Math.hypot(st.x,st.y),sp=Math.hypot(st.vx,st.vy),KE=sp*sp/2,PE=-1/r,E=v*v/2-1,e=Math.abs(v*v-1);
+    document.getElementById('hB').textContent=v<0.994?'출발점(원일점)에서의 속도':'출발점(근일점)에서의 속도';document.getElementById('vB').textContent=v.toFixed(2)+' (원 궤도 속도의 '+v.toFixed(2)+'배)';document.getElementById('rB').value=v;
+    const f=x=>(x>=0?'+':'−')+Math.abs(x).toFixed(2);
+    document.getElementById('oB').innerHTML='<h4>궤도의 모양</h4><div><span class="sim-big" style="color:'+TCOL[k]+'">'+NAME[k]+'</span> 궤도 &nbsp; 이심률 e ≈ <b>'+e.toFixed(2)+'</b></div>'+
+      '<table class="sim-table" style="margin-top:6px;font-size:24px"><tbody><tr><td>운동 에너지 (1/2)×v²</td><td><b>'+f(KE)+'</b></td></tr><tr><td>중력 퍼텐셜 에너지 −GM/r</td><td><b>'+f(PE)+'</b></td></tr><tr><td><b>총에너지</b></td><td><b style="color:'+TCOL[k]+'">'+(Math.abs(E)<0.01?'0':f(E))+(Math.abs(E)<0.01?' (0)':(E<0?' (−)':' (+)'))+'</b></td></tr></tbody></table>'+
+      '<div class="sim-note" style="margin-top:4px">'+(E<-0.005?'태양에 묶여 계속 돌아요.':(stop?'태양에서 영원히 멀어지고 있어요. (멀리 가서 멈춤)':'태양을 한 번 지나 영원히 멀어져요.'))+'</div>';
     document.querySelectorAll('#d103_energy [data-v]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.v-v)<0.006));}
   document.getElementById('rB').oninput=x=>{v=+x.target.value;reset();out();};
   document.querySelectorAll('#d103_energy [data-v]').forEach(b=>b.onclick=()=>{v=+b.dataset.v;reset();out();});
+  document.getElementById('bBr').onclick=()=>{reset();S=S0;out();};
   reset();out();
+  const stars=[];{const r=SIM.rng(8);for(let i=0;i<180;i++)stars.push([r()*W,r()*H,r()*1.4+.3]);}
   SIM.loop('d103_energy',(t,dt)=>{
-    const GM=R0*R0*R0*(1/R0/R0)*R0*0+1; // 단위: R0=1, v_circ=1
-    const n=40,h=dt*1.2/n;for(let i=0;i<n;i++){const r=Math.hypot(st.x,st.y)/R0,a=-1/(r*r*r);st.vx+=a*st.x/R0*h;st.vy+=a*st.y/R0*h;st.x+=st.vx*R0*h;st.y+=st.vy*R0*h;}
-    path.push([st.x,st.y]);if(path.length>3000)path.shift();
-    if(Math.hypot(st.x,st.y)>2400)reset();
-    g.fillStyle='#0f172a';g.fillRect(0,0,W,H);
-    // 참고 궤도들
+    const tw=1+Math.hypot(st.x,st.y)/4; // 멀리 갈수록 시간을 빨리 감기
+    if(!stop){const n=60,h=dt*2.2*tw/n;for(let i=0;i<n;i++){const r=Math.hypot(st.x,st.y),a=-1/(r*r*r);st.vx+=a*st.x*h;st.vy+=a*st.y*h;st.x+=st.vx*h;st.y+=st.vy*h;}
+      const lp=path[path.length-1];if(Math.hypot(st.x-lp[0],st.y-lp[1])*S>2)path.push([st.x,st.y]);if(path.length>6000)path.shift();
+      if(kindOf()>=2&&Math.hypot(st.x,st.y)>RSTOP){stop=true;out();}}
+    // 화면 배율: 궤도(또는 지금까지의 경로)가 화면에 들어오도록 서서히 줄임
+    const X=extent(),St=Math.min(S0,(SX-50)/X.L,(W-SX-50)/X.Rt,(SY-50)/X.Y);S+=(St-S)*Math.min(1,dt*2.5);
+    acc+=dt;if(acc>0.1){acc=0;out();}
+    g.fillStyle='#0f172a';g.fillRect(0,0,W,H);stars.forEach(q=>{g.fillStyle='rgba(255,255,255,.3)';g.fillRect(q[0],q[1],q[2],q[2]);});
+    const P=(x,y)=>[SX+x*S,SY-y*S];
+    // 참고 궤도: 원(속도 1)과 포물선(탈출 속도)
     g.setLineDash([6,8]);g.lineWidth=1.5;
-    [[1,'rgba(96,165,250,.35)'],[1.41421,'rgba(251,146,60,.35)']].forEach(([vv,cl])=>{g.strokeStyle=cl;g.beginPath();const ee=vv*vv-1,p=R0*vv*vv;for(let th=-2.5;th<=2.5;th+=0.02){const r=p/(1+ee*Math.cos(th));if(r<0||r>2000)continue;const x=SX+r*Math.cos(th),y=SY-r*Math.sin(th);th<=-2.49?g.moveTo(x,y):g.lineTo(x,y);}g.stroke();});
+    g.strokeStyle='rgba(96,165,250,.4)';g.beginPath();g.arc(SX,SY,S,0,7);g.stroke();
+    g.strokeStyle='rgba(251,146,60,.4)';g.beginPath();for(let th=-3.0,i=0;th<=3.0;th+=0.01){const r=2/(1+Math.cos(th));if(r>400)continue;const q=P(r*Math.cos(th),r*Math.sin(th));i++?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);}g.stroke();
     g.setLineDash([]);
-    const col=Math.abs(v-1)<0.006?'#60a5fa':(v<1.41?'#4ade80':(v<1.418?'#fb923c':'#f87171'));
-    g.strokeStyle=col;g.lineWidth=3;g.beginPath();path.forEach((p,i)=>{const x=SX+p[0],y=SY-p[1];i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();
-    const sg=g.createRadialGradient(SX,SY,2,SX,SY,24);sg.addColorStop(0,'#fff');sg.addColorStop(.4,'#facc15');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(SX,SY,24,0,7);g.fill();
-    g.fillStyle='#fff';g.beginPath();g.arc(SX+st.x,SY-st.y,8,0,7);g.fill();
-    g.fillStyle='#e2e8f0';g.font=SIM.font(19);g.textAlign='left';g.fillText('출발점 (근일점)',SX+R0+14,SY+6);
-    g.fillStyle='rgba(147,197,253,.8)';g.fillText('- - 원 궤도',20,30);g.fillStyle='rgba(253,186,116,.8)';g.fillText('- - 포물선 궤도 (탈출 속도)',20,58);
+    const k=kindOf();g.strokeStyle=COL[k];g.lineWidth=3;g.beginPath();path.forEach((p,i)=>{const q=P(p[0],p[1]);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);});g.stroke();
+    const sr=Math.max(8,24*Math.sqrt(S/S0)),sg=g.createRadialGradient(SX,SY,2,SX,SY,sr);sg.addColorStop(0,'#fff');sg.addColorStop(.4,'#facc15');sg.addColorStop(1,'rgba(250,204,21,0)');g.fillStyle=sg;g.beginPath();g.arc(SX,SY,sr,0,7);g.fill();
+    const pp=P(st.x,st.y);g.fillStyle='#fff';g.beginPath();g.arc(pp[0],pp[1],8,0,7);g.fill();
+    // 속도 화살표
+    const vl=Math.hypot(st.vx,st.vy);g.strokeStyle='#fde68a';g.lineWidth=3;g.beginPath();g.moveTo(pp[0],pp[1]);g.lineTo(pp[0]+st.vx/vl*30*Math.min(2,vl),pp[1]-st.vy/vl*30*Math.min(2,vl));g.stroke();
+    g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';const q0=P(1,0);const apo=v<0.994;if(!apo)g.fillText('출발점 (근일점)',q0[0]+14,q0[1]+28);else{const t1='출발점 (',t2='근일점',t3=' → 원일점)',w1=g.measureText(t1).width,w2=g.measureText(t2).width,w3=g.measureText(t3).width,x0=Math.min(q0[0]+14,W-16-w1-w2-w3),y0=q0[1]+30;g.fillText(t1,x0,y0);g.fillStyle='#94a3b8';g.fillText(t2,x0+w1,y0);g.strokeStyle='#f87171';g.lineWidth=2.5;g.beginPath();g.moveTo(x0+w1,y0-7);g.lineTo(x0+w1+w2,y0-7);g.stroke();g.fillStyle='#fca5a5';g.fillText(t3,x0+w1+w2,y0);g.fillStyle='#fde68a';g.font=SIM.font(22);g.textAlign='center';g.fillText('속도가 원 궤도 속도(1)보다 느리면 출발점이 태양에서 가장 먼 원일점이 돼요',W/2,H-60);g.textAlign='left';}
+    g.fillStyle='rgba(147,197,253,.85)';g.fillText('- - 원 궤도',20,34);g.fillStyle='rgba(253,186,116,.85)';g.fillText('- - 포물선 궤도 (탈출 속도)',20,64);
+    if(S<S0*0.97){g.fillStyle='#cbd5e1';g.font=SIM.font(20);g.fillText('화면 축소: 실제의 1/'+(S0/S).toFixed(S0/S<10?1:0)+' 크기로 보는 중',20,H-24);}
+    if(!stop&&tw>1.6){g.fillStyle='#fde68a';g.font=SIM.font(20);g.textAlign='right';g.fillText('⏩ 시간 빨리 감기 ×'+tw.toFixed(0),W-20,H-24);g.textAlign='left';}
+    if(stop){g.fillStyle='#fca5a5';g.font=SIM.font(26);g.textAlign='center';g.fillText('태양에서 영원히 멀어져요',W/2,90);g.textAlign='left';}
   });
 })();
 
@@ -273,7 +302,8 @@ function kepler(M,e){let E=e<0.8?M:Math.PI;for(let i=0;i<30;i++)E-=(E-e*Math.sin
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -283,8 +313,27 @@ function kepler(M,e){let E=e<0.8?M:Math.PI;for(let i=0;i<30;i++)E-=(E-e*Math.sin
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){

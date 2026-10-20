@@ -148,18 +148,27 @@
         .imgbox video { max-width:100%; max-height:100%; }
         .sim-stage canvas { touch-action:none; }
         .vid-miss { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px; color:#e2e8f0; font-size:28px; line-height:1.6; background:#0f172a; }
+        .fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-family: 'Gowun Dodum', sans-serif; font-size: 32px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+        .fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
     </style>
 <style id="standalone">
   /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
   html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
     overflow: hidden !important; display: block !important; background: #ffffff; }
   html.fit, html.fit body { height: 100% !important; background: #0f172a; }
+  html.pfs body { position: fixed !important; inset: 0 !important; z-index: 9999; }
   #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
     width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
     border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
   #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
     padding: 34px 60px 40px 60px !important; }
   #presentation-wrapper > .slide > .ppt-title { display: none !important; }
+  /* 16:9 고정 (1920×1080) */
+  #presentation-wrapper { height: 1080px !important; overflow: hidden !important; }
+  #presentation-wrapper > .slide { height: 100% !important; }
+  #d102_iono .sim-stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  #d102_iono .sim-stage canvas { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  #d102_iono .sim-panel { flex: 0 0 600px; justify-content: center; }
   #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
   #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
   #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
@@ -167,12 +176,14 @@
 </head>
 <body>
 <div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
 <div class="slide sim-slide active" id="d102_iono"><div class="ppt-title"><span class="sim-tag">시뮬레이션</span>태양 플레어가 터지면 통신은?</div><div class="ppt-subtitle">플레어 전후로 전파가 전리층에서 어떻게 달라지는지 비교해 봐요.</div>
-<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1060" height="610"></canvas></div>
+<div class="sim-wrap"><div class="sim-stage"><canvas id="cB" width="1160" height="900"></canvas></div>
 <div class="sim-panel"><div class="sim-box blue"><h4>태양 활동</h4>
 <div class="sim-btns"><button class="sim-btn on" data-f="0">평상시</button><button class="sim-btn orange" data-f="1">태양 플레어 발생!</button></div>
 <div class="sim-row"><span class="lbl" style="width:170px">전리층 교란</span><input type="range" class="sim-range" id="rB" min="0" max="1" step="0.01" value="0"><span class="sim-val" id="vB" style="min-width:100px"></span></div></div>
-<div class="sim-box" id="oB" style="font-size:27px"></div></div></div></div>
+<div class="sim-box" id="oB" style="font-size:27px"></div>
+<div class="sim-box key" style="font-size:24px"><h4>GPS는 어떻게 위치를 찾을까?</h4>위성 <b>4개 이상</b>이 보낸 신호의 도착 시간으로 각 위성까지의 <b>거리</b>를 구하고, 그 거리 원들이 만나는 점을 내 위치로 정해요. (3개는 위치, 1개는 수신기 시계 보정) 플레어로 전리층이 교란되면 신호가 <b>늦게 도착</b>해 거리가 틀려지고, 원들이 한 점에서 만나지 않아 <b>오차 범위가 넓어져요</b>.</div></div></div></div>
 </div>
 <script>
     /* ===== 시뮬레이션 공통 도구 (추가) ===== */
@@ -231,36 +242,66 @@
 
 /* ===== 전리층과 통신 ===== */
 (function(){
-  const c=document.getElementById('cB'),g=c.getContext('2d'),W=1060,H=610;
-  let d=0,target=0,ph=0;
+  const c=document.getElementById('cB'),g=c.getContext('2d'),W=c.width,H=c.height,GND=640;
+  let d=0,target=0,ph=0,hist=[],acc=0,rms=1;
+  // GPS 위성 4개: 옆에서 본 위치, 위에서 본 방향(방위각), 고도각(낮을수록 전리층을 비스듬히 오래 지남)
+  const SAT=[{x:650,y:80,az:-2.4,el:35,col:'#f472b6'},{x:790,y:44,az:-0.6,el:70,col:'#60a5fa'},{x:960,y:60,az:0.9,el:55,col:'#4ade80'},{x:1110,y:100,az:2.6,el:28,col:'#facc15'}];
+  SAT.forEach((s,i)=>{s.k=1/Math.sin(s.el*Math.PI/180);s.w=0.7+i*0.37;s.f=i*1.9;s.u=[Math.cos(s.az),Math.sin(s.az)];});
+  const CAR=[880,GND],MAP={x:600,y:662,w:540,h:226},MC=[870,775],SC=2.2; // 지도: 1 m = 2.2 px
+  const gauss=()=>{let u=0;while(!u)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(6.283*Math.random());};
+  // 위성까지 거리 오차(m): 전리층 지연 × 비스듬함 + 잡음
+  const errs=t=>SAT.map(s=>(2.6+d*27)*s.k*(0.55+0.45*Math.sin(t*s.w+s.f))+(0.4+d*4)*gauss());
+  // 최소제곱: e_i = -u_i·p + b (p: 위치 오차, b: 수신기 시계 오차) → 위성 4개로 미지수 3개를 구함
+  function solve(e){const A=SAT.map(s=>[-s.u[0],-s.u[1],1]),M=[[0,0,0],[0,0,0],[0,0,0]],v=[0,0,0];
+    A.forEach((a,i)=>{for(let r=0;r<3;r++){v[r]+=a[r]*e[i];for(let q=0;q<3;q++)M[r][q]+=a[r]*a[q];}});
+    const det=m=>m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]),D=det(M);
+    return [0,1,2].map(k=>det(M.map((row,r)=>row.map((x,q)=>q===k?v[r]:x)))/D);}
+  let E=errs(0),X=solve(E);
   function out(){document.getElementById('vB').textContent=Math.round(d*100)+'%';document.getElementById('rB').value=d;
-    const sig=Math.max(0,1-d*1.05),err=1+d*35;
-    document.getElementById('oB').innerHTML='<h4>통신 상태</h4><div>단파 통신 수신 세기: <b class="'+(sig<0.4?'':'or')+'" style="'+(sig<0.4?'color:#dc2626':'')+'">'+Math.round(sig*100)+'%</b></div><div>GPS 위치 오차: <span class="sim-big" style="font-size:34px">약 '+err.toFixed(0)+' m</span></div><div class="sim-note">'+(d>0.5?'D층이 짙어져 단파가 흡수돼요 (델린저 현상). GPS 신호도 굴절·지연돼요.':'전파가 F층에서 반사되어 멀리까지 전달돼요.')+'</div>';
+    const sig=Math.max(0,1-d*1.05),R=rms*1.6;
+    document.getElementById('oB').innerHTML='<h4>통신 상태</h4><div>단파 통신 수신 세기: <b class="'+(sig<0.4?'':'or')+'" style="'+(sig<0.4?'color:#dc2626':'')+'">'+Math.round(sig*100)+'%</b></div><div>GPS 위치 오차 범위: <span class="sim-big" style="font-size:34px">약 '+(R<10?R.toFixed(1):R.toFixed(0))+' m</span></div><div class="sim-note">'+(d>0.5?'D층이 짙어져 단파가 흡수돼요 (델린저 현상). GPS 신호는 전리층에서 늦어져 위성까지의 거리가 틀리게 계산돼요.':'단파는 F층에서 반사되어 멀리 전달되고, GPS 거리 원 4개가 거의 한 점에서 만나요.')+'</div>';
     document.querySelectorAll('#d102_iono [data-f]').forEach(b=>b.classList.toggle('on',(+b.dataset.f===1)===(target>0.5)));}
-  document.querySelectorAll('#d102_iono [data-f]').forEach(b=>b.onclick=()=>{target=+b.dataset.f*0.95;out();});
+  document.querySelectorAll('#d102_iono [data-f]').forEach(b=>b.onclick=()=>{target=+b.dataset.f*0.95;hist=[];out();});
   document.getElementById('rB').oninput=e=>{d=target=+e.target.value;out();};out();
   SIM.loop('d102_iono',(t,dt)=>{
-    if(Math.abs(d-target)>0.005){d+=(target-d)*Math.min(1,dt*2);out();}
-    ph+=dt;
-    const sk=g.createLinearGradient(0,0,0,H);sk.addColorStop(0,'#020617');sk.addColorStop(1,'#1e3a8a');g.fillStyle=sk;g.fillRect(0,0,W,H);
-    // 층
-    const lay=[['F층',150,'rgba(167,139,250,.25)'],['E층',250,'rgba(96,165,250,.2)'],['D층',320,'rgba(251,146,60,'+(0.12+d*0.55)+')']];
-    lay.forEach(([n,y,col])=>{g.fillStyle=col;g.fillRect(0,y-22,W,44);g.fillStyle='#e2e8f0';g.font=SIM.font(19);g.fillText(n,W-70,y+6);});
-    g.fillStyle='#166534';g.beginPath();g.ellipse(W/2,H+760,W*1.1,880,0,0,7);g.fill();
-    // 태양 플레어 표시
-    if(d>0.05){g.fillStyle='rgba(253,224,71,'+d+')';g.font=SIM.font(22);g.fillText('☀ 플레어의 X선이 D층을 강하게 이온화!',20,40);}
-    // 단파 경로
-    const tx=[120,520],rx=[560,520],top=[340,150];const sig=Math.max(0,1-d*1.05);
-    const P=[tx,top,rx];g.strokeStyle='rgba(250,204,21,.25)';g.lineWidth=2;g.setLineDash([6,6]);g.beginPath();g.moveTo(...tx);g.lineTo(...top);g.lineTo(...rx);g.stroke();g.setLineDash([]);
-    for(let k=0;k<6;k++){let f=((ph*0.45+k/6)%1);let x,y,a=1;if(f<0.5){const u=f*2;x=tx[0]+(top[0]-tx[0])*u;y=tx[1]+(top[1]-tx[1])*u;if(y<342&&y>298)a=1;if(y<298)a=sig;}else{const u=(f-0.5)*2;x=top[0]+(rx[0]-top[0])*u;y=top[1]+(rx[1]-top[1])*u;a=y>298?sig*sig:sig;}
-      if(a>0.02){g.fillStyle='rgba(250,204,21,'+a+')';g.beginPath();g.arc(x,y,7,0,7);g.fill();}}
-    g.fillStyle='#e2e8f0';g.fillRect(tx[0]-6,tx[1]-50,12,50);g.fillRect(rx[0]-6,rx[1]-50,12,50);g.font=SIM.font(19);g.textAlign='center';g.fillText('송신소',tx[0],tx[1]+28);g.fillText('수신소',rx[0],rx[1]+28);
-    g.fillStyle='#334155';g.fillRect(rx[0]-40,rx[1]-90,80,14);g.fillStyle=sig>0.4?'#4ade80':'#ef4444';g.fillRect(rx[0]-40,rx[1]-90,80*sig,14);
-    // GPS
-    const gx=850,gy=60;g.fillStyle='#cbd5e1';g.fillRect(gx-14,gy-8,28,16);g.fillStyle='#60a5fa';g.fillRect(gx-44,gy-4,26,8);g.fillRect(gx+18,gy-4,26,8);g.fillText('GPS 위성',gx,gy+34);
-    const cx=880,cy=500;g.strokeStyle='rgba(96,165,250,.8)';g.lineWidth=2;g.beginPath();g.moveTo(gx,gy+10);g.lineTo(gx+(cx-gx)*0.42,320);g.lineTo(cx+d*40,cy-20);g.stroke();
-    g.fillStyle='#f8fafc';g.fillRect(cx-22,cy-12,44,22);g.fillText('자동차',cx,cy+36);
-    const er=6+d*60;g.strokeStyle='#f87171';g.lineWidth=3;g.setLineDash([5,5]);g.beginPath();g.arc(cx,cy,er,0,7);g.stroke();g.setLineDash([]);g.fillStyle='#fca5a5';g.fillText('위치 오차 범위',cx,cy-er-10);g.textAlign='left';
+    if(Math.abs(d-target)>0.005){d+=(target-d)*Math.min(1,dt*2);}
+    ph+=dt;acc+=dt;
+    if(acc>0.12){acc=0;E=errs(ph);X=solve(E);hist.push([X[0],X[1]]);if(hist.length>45)hist.shift();
+      const m=Math.sqrt(hist.reduce((a,p)=>a+p[0]*p[0]+p[1]*p[1],0)/hist.length);rms+=(m-rms)*0.25;out();}
+    const sk=g.createLinearGradient(0,0,0,GND);sk.addColorStop(0,'#020617');sk.addColorStop(1,'#1e3a8a');g.fillStyle=sk;g.fillRect(0,0,W,H);
+    // 전리층
+    const lay=[['F층',170,'rgba(167,139,250,.25)'],['E층',280,'rgba(96,165,250,.2)'],['D층',360,'rgba(251,146,60,'+(0.12+d*0.55)+')']];
+    lay.forEach(([n,y,col])=>{g.fillStyle=col;g.fillRect(0,y-24,W,48);g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';g.fillText(n,14,y+7);});
+    g.fillStyle='#166534';g.fillRect(0,GND,W,H-GND);g.fillStyle='#14532d';g.fillRect(0,GND,W,6);
+    if(d>0.05){g.fillStyle='rgba(253,224,71,'+d+')';g.font=SIM.font(24);g.textAlign='left';g.fillText('☀ 플레어의 X선이 D층을 강하게 이온화!',80,40);}
+    // 단파 통신
+    const tx=[110,GND],rx=[500,GND],top=[305,170],sig=Math.max(0,1-d*1.05);
+    g.strokeStyle='rgba(250,204,21,.25)';g.lineWidth=2;g.setLineDash([6,6]);g.beginPath();g.moveTo(...tx);g.lineTo(...top);g.lineTo(...rx);g.stroke();g.setLineDash([]);
+    for(let k=0;k<6;k++){const f=(ph*0.45+k/6)%1;let x,y,a=1;if(f<0.5){const u=f*2;x=tx[0]+(top[0]-tx[0])*u;y=tx[1]+(top[1]-tx[1])*u;if(y<336)a=sig;}else{const u=(f-0.5)*2;x=top[0]+(rx[0]-top[0])*u;y=top[1]+(rx[1]-top[1])*u;a=y>336?sig*sig:sig;}
+      if(a>0.02){g.fillStyle='rgba(250,204,21,'+a+')';g.beginPath();g.arc(x,y,8,0,7);g.fill();}}
+    g.fillStyle='#e2e8f0';g.fillRect(tx[0]-6,tx[1]-60,12,60);g.fillRect(rx[0]-6,rx[1]-60,12,60);g.font=SIM.font(20);g.textAlign='center';g.fillText('단파 송신소',tx[0],tx[1]+30);g.fillText('수신소',rx[0],rx[1]+30);
+    g.fillStyle='#334155';g.fillRect(rx[0]-44,rx[1]-100,88,14);g.fillStyle=sig>0.4?'#4ade80':'#ef4444';g.fillRect(rx[0]-44,rx[1]-100,88*sig,14);
+    // GPS 위성 4개 → 자동차 (전리층을 지나며 늦어짐)
+    SAT.forEach((s,i)=>{g.strokeStyle=s.col;g.globalAlpha=.55;g.lineWidth=2;g.beginPath();g.moveTo(s.x,s.y+10);g.lineTo(CAR[0],CAR[1]-14);g.stroke();g.globalAlpha=1;
+      for(let k=0;k<3;k++){const f=(ph*0.35+k/3+i*0.13)%1,y0=s.y+10,y1=CAR[1]-14,y=y0+(y1-y0)*f,inI=y>146&&y<384,x=s.x+(CAR[0]-s.x)*(y-y0)/(y1-y0);
+        g.fillStyle=inI&&d>0.3?'#fb923c':s.col;g.beginPath();g.arc(x,y,inI?4+d*3:4,0,7);g.fill();}
+      g.fillStyle='#cbd5e1';g.fillRect(s.x-12,s.y-7,24,14);g.fillStyle=s.col;g.fillRect(s.x-38,s.y-4,22,8);g.fillRect(s.x+16,s.y-4,22,8);
+      g.font=SIM.font(17);g.textAlign='center';g.fillText('GPS '+(i+1),s.x,s.y-14);});
+    g.fillStyle='#f8fafc';g.fillRect(CAR[0]-24,CAR[1]-16,48,16);g.fillStyle='#0f172a';g.beginPath();g.arc(CAR[0]-13,CAR[1],5,0,7);g.arc(CAR[0]+13,CAR[1],5,0,7);g.fill();
+    g.fillStyle='#fff';g.font=SIM.font(18);g.fillText('자동차',CAR[0]+62,CAR[1]-8);
+    // 위에서 본 지도: 위성마다 '거리 원'(호) → 만나는 점이 GPS가 계산한 위치
+    g.save();g.fillStyle='#e7e5e4';g.fillRect(MAP.x,MAP.y,MAP.w,MAP.h);g.beginPath();g.rect(MAP.x,MAP.y,MAP.w,MAP.h);g.clip();
+    g.fillStyle='#fff';g.fillRect(MAP.x,MC[1]-14,MAP.w,28);g.fillRect(MC[0]-14,MAP.y,28,MAP.h);g.strokeStyle='#fbbf24';g.lineWidth=2;g.setLineDash([12,10]);g.beginPath();g.moveTo(MAP.x,MC[1]);g.lineTo(MAP.x+MAP.w,MC[1]);g.stroke();g.setLineDash([]);
+    const b=X[2],DP=1400;
+    SAT.forEach((s,i)=>{const cx=MC[0]+DP*s.u[0],cy=MC[1]+DP*s.u[1],r=DP+(E[i]-b)*SC,a0=Math.atan2(-s.u[1],-s.u[0]);g.strokeStyle=s.col;g.lineWidth=3;g.beginPath();g.arc(cx,cy,Math.max(1,r),a0-0.14,a0+0.14);g.stroke();});
+    const R=rms*1.6*SC;g.fillStyle='rgba(239,68,68,.12)';g.strokeStyle='#dc2626';g.lineWidth=2.5;g.setLineDash([6,5]);g.beginPath();g.arc(MC[0],MC[1],Math.max(6,R),0,7);g.fill();g.stroke();g.setLineDash([]);
+    hist.forEach((p,i)=>{g.fillStyle='rgba(220,38,38,'+(0.2+0.6*i/hist.length)+')';g.beginPath();g.arc(MC[0]+p[0]*SC,MC[1]+p[1]*SC,3,0,7);g.fill();});
+    g.fillStyle='#0f172a';g.fillRect(MC[0]-9,MC[1]-5,18,10);
+    g.restore();
+    g.strokeStyle='#94a3b8';g.lineWidth=2;g.strokeRect(MAP.x,MAP.y,MAP.w,MAP.h);
+    g.fillStyle='rgba(15,23,42,.85)';g.fillRect(MAP.x,MAP.y,250,30);g.fillStyle='#fff';g.font=SIM.font(17);g.textAlign='left';g.fillText('위에서 본 자동차 주변 (확대)',MAP.x+8,MAP.y+21);
+    g.fillStyle='#b91c1c';g.font=SIM.font(18);g.textAlign='right';g.fillText('빨간 점 = GPS가 계산한 위치',MAP.x+MAP.w-8,MAP.y+MAP.h-30);g.fillText('색깔 호 = 위성까지의 거리',MAP.x+MAP.w-8,MAP.y+MAP.h-8);
+    g.textAlign='left';g.fillStyle='#e2e8f0';g.font=SIM.font(17);g.fillText('지도 축척',MAP.x-140,MAP.y+MAP.h-44);g.fillRect(MAP.x-140,MAP.y+MAP.h-34,10*SC,4);g.fillText('10 m',MAP.x-140,MAP.y+MAP.h-8);
   });
 })();
 
@@ -273,7 +314,8 @@
   var w = document.getElementById('presentation-wrapper');
   var inFrame = window.top !== window.self;
   function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+    var de = document.documentElement;
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs');
     var s = window.innerWidth / 1920, x = 0, y = 0;
     document.documentElement.classList.toggle('fit', fs);
     if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
@@ -283,8 +325,27 @@
   }
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
+  document.addEventListener('webkitfullscreenchange', fit);
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  /* ---- 전체화면 버튼 ---- */
+  var btn = document.getElementById('fsBtn'), de = document.documentElement;
+  function isFs(){ return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function sync(){ btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; fit(); setTimeout(fit, 100); }
+  btn.onclick = function(){
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function(){}); } catch(e){} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function(){ de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(sync, fallback); else sync(); } catch(e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 /* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
 (function(){
