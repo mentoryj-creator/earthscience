@@ -164,7 +164,7 @@
             let last = performance.now();
             function f(t) {
                 const dt = Math.min(0.05, (t - last) / 1000); last = t;
-                if (el && el.classList.contains('active')) fn(t, dt);
+                try { if (el && el.classList.contains('active')) fn(t, dt); } catch (e) { console.error(e); }
                 requestAnimationFrame(f);
             }
             requestAnimationFrame(f);
@@ -216,13 +216,13 @@
       tx:'10억 개가 넘는 별의 위치와 움직임을 정밀하게 재었어요. 같은 방향·같은 속도로 움직이는 별을 골라내, 몰랐던 성단을 수백 개 넘게 새로 찾아냈어요.'}
   };
 
-  /* ---- 칭호와 기록 (이 브라우저에만 저장) ---- */
+  /* ---- 칭호와 기록 (새로 열 때마다 0부터 시작) ---- */
   const TITLES=[[0,'견습 관측자'],[6,'별빛 탐색가'],[15,'성단 탐정'],[30,'성단 박사'],[50,'우주 지도 제작자']];
   const titleOf=n=>{let t=TITLES[0][1];TITLES.forEach(([k,v])=>{if(n>=k)t=v;});return t;};
   const KEY='clusterLab.v1';
   let rec={stars:0,best:0,cards:[]};
-  try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o)rec=Object.assign(rec,o);}catch(e){}
-  function save(){try{localStorage.setItem(KEY,JSON.stringify(rec));}catch(e){}}
+  try{localStorage.removeItem(KEY);}catch(e){} // 예전에 저장해 둔 기록은 지움
+  function save(){}
   function renderRec(){
     $('rTitle').textContent=titleOf(rec.stars);$('rStars').textContent=rec.stars;$('rBest').textContent=rec.best;
     $('rCards').textContent=rec.cards.length;
@@ -445,7 +445,7 @@
     // 찾은 성단 전체를 큰 동그라미로 표시
     found.forEach((f,ci)=>{if(!f)return;const ce=centroid(ci);if(!ce)return;
       const ds=ce[2].map(q=>Math.hypot(q[0]-ce[0],q[1]-ce[1])).sort((a,b)=>a-b);
-      const R=ds[Math.floor(ds.length*0.9)]+28,k=Math.min(1,(now-foundAt[ci])/500),e=1-Math.pow(1-k,3);
+      const R=ds[Math.floor(ds.length*0.9)]+28,k=Math.max(0,Math.min(1,(now-foundAt[ci])/500)),e=1-Math.pow(1-k,3); // 시각 차이가 음수여도 반지름이 0 아래로 내려가지 않게
       g.save();g.globalAlpha=0.9;g.strokeStyle='#4ade80';g.lineWidth=5;g.setLineDash([14,10]);
       g.beginPath();g.arc(ce[0],ce[1],R*e,0,7);g.stroke();g.setLineDash([]);
       g.fillStyle='rgba(74,222,128,.08)';g.fill();g.restore();
@@ -473,9 +473,9 @@
     parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;p.vx*=0.985;p.life-=dt*0.7;
       g.globalAlpha=Math.max(0,p.life);g.fillStyle=p.col;g.beginPath();g.arc(p.x,p.y,p.r,0,7);g.fill();});
     g.globalAlpha=1;
-    if(done&&now-doneAt<3500){const k=Math.min(1,(now-doneAt)/350),a=Math.min(1,(3500-(now-doneAt))/500);
+    if(done&&now-doneAt<3500){const k=Math.max(0,Math.min(1,(now-doneAt)/350)),a=Math.min(1,(3500-(now-doneAt))/500);
       g.save();g.globalAlpha=a;g.translate(W/2,H/2);g.scale(0.6+0.4*k,0.6+0.4*k);
-      g.fillStyle='rgba(2,6,23,.75)';g.beginPath();g.roundRect(-300,-110,600,200,26);g.fill();
+      g.fillStyle='rgba(2,6,23,.75)';g.beginPath();if(g.roundRect)g.roundRect(-300,-110,600,200,26);else g.rect(-300,-110,600,200);g.fill();
       g.font=SIM.font(84);g.textAlign='center';
       for(let i=0;i<3;i++){g.fillStyle=i<got?'#facc15':'#334155';g.fillText('★',(i-1)*100,10);}
       g.font=SIM.font(34);g.fillStyle='#e2e8f0';g.fillText(got?'성단 찾기 성공!':'다음엔 정답 보기 없이!',0,70);
