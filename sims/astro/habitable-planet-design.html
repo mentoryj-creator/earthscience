@@ -1,205 +1,391 @@
-<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>생명 가능 행성 설계실</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<style>/* 공통 실험실 스타일: 위 넓은 단면 창 + 프레임 안 조작부, 아래 측정값·설명 */
-:root{
-  --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4;
-  --accent:#0a6a8a; --accent-soft:#dcedf3;
-  --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b;
-  --sky-top:#b9d5ea; --sky-bot:#e7f1f7; --land:#8a7c58; --land-edge:#6c6043;
-  --air:#35597a; --wind:#136b88; --cloud:#ffffff; --cloud-edge:#9cb0bf; --rain:#4a7fa8;
-  --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --strip:#e3eaef; --space:#0d1724;
-  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
-  --accent:#53b9d8; --accent-soft:#16303c;
-  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
-  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
-  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
-  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0c141b; --surface:#131f29; --fg:#e2ebf1; --muted:#93a6b4; --line:#243440;
-  --accent:#53b9d8; --accent-soft:#16303c;
-  --warm:#ef7c50; --cool:#6f9cf0; --calm:#71b98a; --gold:#e3b445;
-  --sky-top:#0a1521; --sky-bot:#1a2b3b; --land:#5b523a; --land-edge:#463f2c;
-  --air:#9cc3dc; --wind:#6fd0ea; --cloud:#cdd7df; --cloud-edge:#7f909c; --rain:#8ab8d8;
-  --halo:rgba(9,17,25,.85); --sea:#1f5f80; --strip:#17242f; --space:#060b12; color-scheme:dark}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생명 가능 행성 설계실</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style id="sim-kit">
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
 
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
-.wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
-header h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
-header p{margin:.2rem 0 0;color:var(--muted);max-width:68ch}
-.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
-.back{font-size:.82rem;color:var(--muted);text-decoration:none}
-.back:hover{color:var(--accent)}
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
 
-.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
-.slider{flex:1 1 260px;min-width:0;display:grid;gap:4px}
-.slider-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.slider label{font-weight:600}
-.slider output{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);text-align:right}
-input[type=range]{width:100%;accent-color:var(--accent);height:28px;margin:0}
-.ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-family:var(--f-mono)}
-.presets{display:flex;flex-wrap:wrap;gap:8px}
-button{font:inherit;font-size:.9rem;font-weight:600;border-radius:999px;padding:7px 14px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
-button:hover{border-color:var(--accent)}
-button:disabled{opacity:.45;cursor:not-allowed}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button.warm{border-color:color-mix(in srgb,var(--warm) 55%,var(--line));color:var(--warm)}
-button.cool{border-color:color-mix(in srgb,var(--cool) 55%,var(--line));color:var(--cool)}
-button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-.toggles{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.88rem;color:var(--muted)}
-.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
-.toggles input{accent-color:var(--accent);width:16px;height:16px}
-.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap}
-.seg button{border:0;padding:5px 12px;font-size:.85rem}
-input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:6px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:7.5em}
-select{font-family:var(--f-body);width:auto}
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
 
-.canvas-wrap{position:relative;background:var(--sky-bot)}
-canvas{display:block;width:100%;height:auto;touch-action:none}
-.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted)}
-.legend .bar{flex:1 1 220px;max-width:360px;min-width:0}
-.legend .grad{height:10px;border-radius:3px}
-.legend .scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem}
-.legend .note{flex:1 1 260px;min-width:0}
-.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
 
-.lower{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:860px){.lower{grid-template-columns:1fr}}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
-.panel h2{font-size:1.05rem;margin:0 0 10px;font-weight:700;text-wrap:balance}
-.panel h3{font-size:.95rem;margin:12px 0 6px}
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
 
-.status{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
-.chip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;padding:5px 14px 5px 10px;border-radius:999px;background:var(--accent-soft)}
-.chip i{width:12px;height:12px;border-radius:50%;background:var(--calm)}
-.chip[data-s=warm] i{background:var(--warm)} .chip[data-s=cool] i{background:var(--cool)} .chip[data-s=gold] i{background:var(--gold)}
-.big{text-align:right}
-.big .k{font-size:.78rem;color:var(--muted)}
-.big .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px 18px}
-.m{display:grid;gap:2px;min-width:0}
-.m .k{font-size:.8rem;color:var(--muted);font-weight:500}
-.m .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;font-weight:600}
-.m .v small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.78rem;margin-right:3px}
-.m .d{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.up{color:var(--warm)} .dn{color:var(--cool)} .ok{color:var(--calm)}
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
 
-.chain{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:0}
-.chain li{position:relative;padding:6px 0 6px 26px}
-.chain li::before{content:"";position:absolute;left:7px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.chain li:not(:last-child)::after{content:"";position:absolute;left:10.5px;top:25px;bottom:-9px;width:1.5px;background:var(--line)}
-.impact{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:.92rem}
-.impact b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;margin-bottom:2px}
-.qs{margin:0;padding-left:1.2em;display:grid;gap:4px}
-.foot{font-size:.8rem;color:var(--muted);max-width:90ch}
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
 
-/* 게임 */
-.game{border:1.5px dashed color-mix(in srgb,var(--gold) 60%,var(--line))}
-.game .gh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
-.game .gh h2{margin:0}
-.score{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap;font-size:.92rem}
-.score b{color:var(--gold)}
-.mission{font-size:.95rem}
-.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
-.feedback{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:.92rem;min-height:2.6em}
-.feedback.good{background:color-mix(in srgb,var(--calm) 18%,var(--surface))}
-.feedback.bad{background:color-mix(in srgb,var(--warm) 15%,var(--surface))}
-.stars{color:var(--gold);letter-spacing:2px}
-.cards{display:flex;flex-wrap:wrap;gap:8px}
-.card{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
-.card.sel{border-color:var(--accent);background:var(--accent-soft)}
-.card.done{border-color:var(--calm);color:var(--calm);cursor:default}
-.card.wrong{border-color:var(--warm);color:var(--warm)}
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
 
-.fsbtn{margin-left:auto}
-.fsinfo{display:none;font-family:var(--f-mono);font-size:.85rem;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums}
-.stage:fullscreen,.stage.fs{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0;border-radius:0;display:flex;flex-direction:column;background:var(--surface);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.stage:fullscreen .canvas-wrap,.stage.fs .canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
-.stage:fullscreen .fsinfo,.stage.fs .fsinfo{display:block}
-.stage:fullscreen .legend .note,.stage.fs .legend .note{display:none}
-body.lock{overflow:hidden}
-@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
+
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
 </style>
-</head><body>
-<div class="wrap">
-  <header>
-    <a class="back" href="../../course.html?c=ess#u3" target="_top">← 지구시스템과학 3단원 목록</a>
-    <div class="eyebrow">Ⅲ-01 지구 대기와 생명체 존재 조건 · 생명 가능 지대</div>
-    <h1>생명 가능 행성 설계실</h1>
-    <p>중심별의 질량, 행성의 공전 궤도 반지름, 대기압, 오존층, 자기장, 위성까지 정해 생명체가 살 수 있는 행성을 설계합니다. 지구가 화성만큼 멀었다면? 대기압이 0.01기압이라면?</p>
-  </header>
-
-  <section class="stage" aria-label="시뮬레이션">
-    <div class="controls">
-      <div class="slider"><div class="slider-top"><label for="ms">중심별의 질량</label><output id="msOut">1.0 태양</output></div><input id="ms" type="range" min="50" max="200" step="5" value="100"></div>
-      <div class="slider"><div class="slider-top"><label for="ar">공전 궤도 반지름</label><output id="arOut">1.00 AU</output></div><input id="ar" type="range" min="0" max="1000" step="1" value="500"></div>
-      <div class="slider"><div class="slider-top"><label for="pr">대기압</label><output id="prOut">1 기압</output></div><input id="pr" type="range" min="-300" max="200" step="10" value="0"></div>
-    </div>
-    <div class="controls" style="padding-block:10px">
-      <div class="toggles">
-        <label><input type="checkbox" id="tO3" checked>오존층</label>
-        <label><input type="checkbox" id="tMag" checked>자기장</label>
-        <label><input type="checkbox" id="tMoon" checked>큰 위성(달)</label>
-        <label><input type="checkbox" id="tWater" checked>물이 있음</label>
+<style>
+  /* 이 시뮬레이션만의 스타일 (캔버스 그리기용 색) */
+  :root { --bg:#eef3f6; --surface:#ffffff; --fg:#13212c; --muted:#56687a; --line:#d3dde4; --accent:#0a6a8a; --accent-soft:#dcedf3;
+    --warm:#c9512a; --cool:#2a64c9; --calm:#3f7f55; --gold:#b8860b; --halo:rgba(255,255,255,.85); --sea:#2c7fa8; --space:#0d1724; }
+  .sim-box .sim-row { margin: 2px 0; }
+  .sim-box .sim-row > .lbl { width: 150px; font-size: 23px; }
+  .sim-box .sim-val { min-width: 130px; font-size: 24px; }
+  .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 23px; margin-top: 4px; }
+  .toggles label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .toggles input { width: 24px; height: 24px; accent-color: #3b82f6; }
+  .presets .sim-btn { font-size: 21px; padding: 5px 12px; }
+  .status { display: flex; justify-content: space-between; align-items: center; gap: 10px; white-space: nowrap; }
+  .status .sim-big { font-size: 34px; }
+  .status .sim-big.up { color: #dc2626; } .status .sim-big.dn { color: #2563eb; }
+  .state { font-size: 23px; font-weight: bold; padding: 3px 14px; border-radius: 999px; background: #dcfce7; color: #15803d; }
+  .state[data-s="warm"] { background: #ffedd5; color: #c2410c; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; margin-top: 4px; }
+  .metrics .m { display: flex; flex-direction: column; font-size: 19px; border-top: 1px solid #e2e8f0; padding-top: 2px; line-height: 1.3; }
+  .metrics .k { font-weight: bold; color: #334155; }
+  .metrics .v { color: #ea580c; font-weight: bold; }
+  .metrics .d { color: #64748b; font-size: 17px; }
+  .game .sim-btn { font-size: 22px; padding: 6px 14px; }
+  .score { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 22px; }
+  .score b { color: #ea580c; }
+  .fb { font-size: 21px; line-height: 1.45; margin-top: 6px; color: #334155; }
+  .fb.good { color: #15803d; } .fb.bad { color: #c2410c; }
+  #realBox .sim-btn { font-size: 22px; padding: 6px 12px; }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="slideMain">
+  <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>생명 가능 행성 설계실</div>
+  <div class="ppt-subtitle">중심별·궤도·대기·<span class="or">보호 장치</span>를 정해 <span class="or">생명체가 살 수 있는 행성</span>을 설계해요.</div>
+  <div class="sim-wrap">
+    <div class="sim-stage light"><canvas id="sim" width="1160" height="860" role="img" aria-label="별의 질량에 따른 생명 가능 지대 그래프, 설계한 행성의 모습, 궤도 그림"></canvas><div class="sim-hint">그래프를 누르거나, 아래 궤도 그림의 내 행성을 좌우로 끌어 보세요</div></div>
+    <div class="sim-panel">
+      <div class="sim-tabs">
+        <button class="sim-tab on" data-tab="predict">① 예측</button>
+        <button class="sim-tab" data-tab="lab">② 실험</button>
+        <button class="sim-tab" data-tab="mission">③ 미션</button>
       </div>
-      <div class="presets"><button id="pE" type="button">현재 지구</button><button id="pM" type="button">지구가 화성 궤도에</button><button id="pL" type="button">대기압 0.01기압</button><button id="pV" type="button">금성 같은 행성</button></div>
-      <button id="fsBtn" class="fsbtn" type="button" aria-pressed="false">⛶ 전체화면</button>
-    </div>
-    <div class="canvas-wrap"><canvas id="sim" width="1000" height="580" role="img" aria-label="별의 질량에 따른 생명 가능 지대 그래프와 설계한 행성의 모습"></canvas></div>
-    <div class="legend">
-      <span><i class="sw" style="background:#3f9f6a"></i>생명 가능 지대</span>
-      <div class="fsinfo" id="fsInfo"></div>
-      <div class="note">왼쪽 그래프를 눌러 행성 위치(궤도 반지름)와 별의 질량을 한 번에 바꿀 수 있습니다. 가로축은 로그 눈금입니다.</div>
-    </div>
-  </section>
-
-  <div class="lower">
-    <section class="panel" aria-label="측정값">
-      <div class="status">
-        <span class="chip" id="chip" data-s="cool"><i></i><span id="stateName">생명체 존재 가능</span></span>
-        <div class="big"><div class="k">평균 표면 온도</div><div class="v" id="bigT">–</div></div>
+      <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div>
+        <div class="sim-box" id="realBox">
+          <h4>실제 외계 행성 불러오기</h4>
+          <div class="sim-btns"><button class="sim-btn orange" data-real="0" type="button">케플러-452b</button><button class="sim-btn orange" data-real="1" type="button">케플러-62f</button><button class="sim-btn orange" data-real="2" type="button">케플러-186f</button></div>
+          <div class="sim-note" id="realOut" style="margin-top:6px;font-size:21px;color:#334155">중심별 질량과 공전 주기로 궤도 반지름을 계산해 맞춰요(케플러 제3법칙).</div>
+          <div class="real-src">NASA 케플러 우주 망원경 발견 행성(Jenkins 2015, Borucki 2013, Quintana 2014)</div>
+        </div>
       </div>
-      <div class="metrics" id="metrics"></div>
-    </section>
-    <section class="panel" aria-label="설명">
-      <h2>생명체가 존재하기 위한 조건</h2>
-      <ol class="chain">
-        <li>액체 상태의 물: 별 주위에서 물이 액체로 있을 수 있는 영역이 생명 가능 지대이다. 질량이 큰 별일수록 생명 가능 지대는 멀어지고 폭이 넓어진다.</li>
-        <li>적절한 두께와 조성의 대기: 온실 효과로 평균 기온을 알맞게 유지한다. 대기압이 너무 낮으면 물은 낮은 온도에서도 끓어 버린다.</li>
-        <li>오존층: 생명체에 해로운 자외선을 흡수한다.</li>
-        <li>자기장: 우주에서 오는 고에너지 입자와 태양풍을 막는다.</li>
-        <li>큰 위성(달): 자전축 경사를 안정하게 유지해 환경의 급격한 변화를 막는다.</li>
-      </ol>
-    </section>
+
+      <div class="sim-tabpage" data-page="lab">
+        <div class="sim-box blue">
+          <div class="sim-row"><span class="lbl">중심별 질량</span><input id="ms" class="sim-range" type="range" min="50" max="200" step="5" value="100" aria-label="중심별의 질량"><span class="sim-val" id="msOut">1.0 태양</span></div>
+          <div class="sim-row"><span class="lbl">궤도 반지름</span><input id="ar" class="sim-range" type="range" min="0" max="1000" step="1" value="500" aria-label="공전 궤도 반지름"><span class="sim-val" id="arOut">1.00 AU</span></div>
+          <div class="sim-row"><span class="lbl">대기압</span><input id="pr" class="sim-range" type="range" min="-300" max="200" step="10" value="0" aria-label="대기압"><span class="sim-val" id="prOut">1 기압</span></div>
+          <div class="sim-row"><span class="lbl">반사율</span><input id="al" class="sim-range" type="range" min="5" max="80" step="5" value="30" aria-label="행성의 반사율"><span class="sim-val" id="alOut">0.30</span></div>
+          <div class="toggles">
+            <label><input type="checkbox" id="tO3" checked>오존층</label>
+            <label><input type="checkbox" id="tMag" checked>자기장</label>
+            <label><input type="checkbox" id="tMoon" checked>큰 위성(달)</label>
+            <label><input type="checkbox" id="tWater" checked>물이 있음</label>
+          </div>
+          <div class="sim-btns presets" style="margin-top:6px"><button class="sim-btn" id="pE" type="button">현재 지구</button><button class="sim-btn" id="pM" type="button">지구가 화성 궤도에</button><button class="sim-btn" id="pL" type="button">대기압 0.01기압</button><button class="sim-btn" id="pV" type="button">금성 같은 행성</button></div>
+        </div>
+        <div class="sim-box">
+          <div class="status"><span class="state" id="chip" data-s="cool"><span id="stateName">생명체 존재 가능</span></span><span>평균 표면 온도 <b class="sim-big" id="bigT">–</b></span></div>
+          <div class="metrics" id="metrics"></div>
+        </div>
+      </div>
+
+      <div class="sim-tabpage" data-page="mission"><div class="sim-box" id="missionBox"></div>
+        <div class="sim-box blue game">
+          <div class="score"><span>이주 의뢰 <b id="qn">–</b>/3</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div>
+          <div class="sim-btns" style="margin-top:6px"><button id="gStart" type="button" class="sim-btn orange">의뢰 받기</button><button id="gCheck" type="button" class="sim-btn">✓ 설계 제출</button></div>
+          <div id="gQ" style="font-size:22px;font-weight:bold;margin-top:4px"></div>
+          <div class="fb" id="fb">‘의뢰 받기’를 누르면 본부가 별을 정해 줘요(별 질량 고정). 다섯 조건을 모두 만족시키고, 표면 5–30 ℃면 보너스!</div>
+        </div>
+      </div>
+      <div class="sim-note">※ 교육용 단순 모형: 광도 ∝ 질량⁴, 생명 가능 지대 0.95–1.67 AU × √광도, 복사 평형 온도 + 대기압에 따른 온실 효과로 계산했어요.</div>
+    </div>
   </div>
-
-  <section class="panel game" aria-label="미션">
-    <div class="gh"><h2>🪐 미션: 이주 가능한 행성 설계 의뢰</h2><div class="score"><span>의뢰 <b id="qn">–</b>/3</span><span>점수 <b id="pts">0</b></span><span>최고 기록 <b id="stBest">☆☆☆</b></span></div></div>
-    <p class="mission">우주 이주 본부가 별을 정해 줍니다(별의 질량은 고정). 궤도 반지름과 대기, 보호 장치를 정해 다섯 가지 조건을 모두 만족시키세요. 표면 온도가 5–30 ℃로 쾌적하면 보너스 점수!</p>
-    <div class="row"><button id="gStart" type="button" class="primary">📨 의뢰 받기</button><button id="gCheck" type="button">✅ 설계 제출</button><b id="gQ"></b></div>
-    <div class="feedback" id="fb">‘의뢰 받기’를 누르세요.</div>
-  </section>
-
-  <section class="panel">
-    <h2>수업용 질문</h2>
-    <ol class="qs">
-      <li>지구가 태양으로부터 화성만큼 떨어져 있었다면 지구의 환경은 어땠을까요?</li>
-      <li>지구의 대기압이 0.01기압이라면 물은 어떤 상태로 존재할까요? 생명체가 살기 적절할까요?</li>
-      <li>태양보다 광도가 큰 별 주위의 생명 가능 지대는 태양의 생명 가능 지대와 어떻게 다른가요?</li>
-      <li>금성은 생명 가능 지대 안쪽 가장자리 근처에 있는데도 표면 온도가 약 460 ℃입니다. 그 까닭은?</li>
-    </ol>
-  </section>
-  <p class="foot">교육용 단순 모델입니다. 주계열성의 광도는 질량의 약 4제곱에 비례한다고 보고, 생명 가능 지대는 태양계 기준 약 0.95–1.67 AU에 광도의 제곱근을 곱해 정했습니다. 표면 온도는 반사율 0.3의 복사 평형 온도에 대기압에 따른 온실 효과를 더했고, 물의 끓는점은 대기압에 따라 계산했습니다.</p>
 </div>
+</div>
+<script id="sim-kit">
+/* ===== sim-kit 공통 도구 (tools/sim-kit/kit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   SIM.loop / SIM.pos / SIM.font ...  : 그리기 도우미 (행성우주과학 시뮬레이션과 같음)
+   SIM.tabs()                          : ① 예측 ② 실험 ③ 미션 탭
+   SIM.predict({...})                  : 예측하고 확인
+   SIM.missions({...})                 : 도전 미션 (조건을 자동으로 확인)
+   SIM.toast(글, 'info'|'warn')        : 그림 위에 잠깐 뜨는 알림
+*/
+window.SIM = {
+  FONT: "'Gowun Dodum', sans-serif",
+  // 해당 슬라이드가 화면에 보일 때만 그리기
+  loop(slideId, fn) {
+    const el = document.getElementById(slideId);
+    let last = performance.now();
+    function f(t) {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!el || el.classList.contains('active')) fn(t, dt);
+      requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  },
+  rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+  pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+  font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  fmtExp(v, digits) {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+    const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+    return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+  },
+
+  // ---- 고해상도 캔버스 (W×H 좌표로 그리면 됨) ----
+  // const S = SIM.stage({ canvas, W: 1000, H: 620 });  S.begin(); 그리기…  S.pt(이벤트) → {x,y}
+  // 1920 화면이 줄었다 늘었다 해도 그림이 흐려지지 않게 내부 해상도를 고정(기본 2배)으로 둠
+  stage(o) {
+    const cvs = o.canvas, W = o.W, H = o.H, k = o.scale || 2;
+    cvs.width = Math.round(W * k); cvs.height = Math.round(H * k);
+    cvs.style.aspectRatio = W + '/' + H;
+    const ctx = cvs.getContext('2d');
+    return {
+      ctx, W, H,
+      begin() { ctx.setTransform(k, 0, 0, k, 0, 0); },
+      pt(e) { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; },
+      resize() {},
+    };
+  },
+
+  // ---- 알림 ----
+  toast(text, kind, ms) {
+    const stage = document.querySelector('.slide.active .sim-stage') || document.getElementById('presentation-wrapper');
+    let t = stage.querySelector(':scope > .sim-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'sim-toast'; stage.appendChild(t); }
+    t.textContent = text; t.className = 'sim-toast ' + (kind || '');
+    void t.offsetWidth; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms || 2600);
+  },
+  burst() {
+    const stage = document.querySelector('.slide.active .sim-stage');
+    if (!stage) return;
+    const cols = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement('i'); b.className = 'sim-burst';
+      b.style.left = '50%'; b.style.top = '60px'; b.style.background = cols[i % cols.length];
+      const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 220;
+      b.style.setProperty('--dx', Math.cos(a) * r + 'px'); b.style.setProperty('--dy', Math.sin(a) * r * 0.7 + 120 + 'px');
+      stage.appendChild(b); setTimeout(() => b.remove(), 1200);
+    }
+  },
+
+  // ---- ① 예측 ② 실험 ③ 미션 탭 ----
+  // 패널 안의 .sim-tabs > .sim-tab[data-tab] 와 .sim-tabpage[data-page] 를 이어 줌
+  tabs(root) {
+    root = root || document;
+    const tabs = [...root.querySelectorAll('.sim-tab')], pages = [...root.querySelectorAll('.sim-tabpage')];
+    const show = name => {
+      tabs.forEach(t => { t.classList.toggle('on', t.dataset.tab === name); t.setAttribute('aria-selected', t.dataset.tab === name); });
+      pages.forEach(p => p.classList.toggle('on', p.dataset.page === name));
+    };
+    tabs.forEach(t => { t.setAttribute('role', 'tab'); t.onclick = () => { t.classList.remove('nudge'); show(t.dataset.tab); }; });
+    const first = tabs.find(t => t.classList.contains('on')) || tabs[0];
+    if (first) show(first.dataset.tab);
+    SIM.showTab = show;
+    return show;
+  },
+
+  // ---- 예측하고 확인 ----
+  // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
+  //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  predict(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    let picked = -1, revealed = false;
+    el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
+      <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
+      <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+      <div class="predict-result" hidden></div>`;
+    const opts = [...el.querySelectorAll('.predict-opt')];
+    const reveal = () => {
+      if (revealed || picked < 0) return; revealed = true;
+      opts.forEach((b, i) => { b.disabled = true; b.classList.toggle('right', i === o.answer); b.classList.toggle('wrong', i === picked && i !== o.answer); });
+      const ok = picked === o.answer, r = el.querySelector('.predict-result');
+      r.hidden = false; r.classList.toggle('miss', !ok);
+      r.innerHTML = (ok ? '<b>예측 성공!</b> ' : `<b>정답은 ${'ABCDEF'[o.answer]}</b> — `) + (o.why || '');
+      el.querySelector('.predict-go').hidden = true;
+      SIM.toast(ok ? '예측 성공!' : '예측과 결과가 달라요. 까닭을 확인해 봐요', ok ? '' : 'warn');
+      if (ok) SIM.burst();
+      const tab = document.querySelector('.sim-tab[data-tab="predict"]');
+      if (tab) { tab.classList.add('nudge'); const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge ' + (ok ? 'done' : ''); b.textContent = ok ? '✓' : '!'; }
+      o.onReveal && o.onReveal(ok);
+    };
+    opts.forEach((b, i) => b.onclick = () => {
+      if (revealed) return;
+      picked = i; opts.forEach(x => x.classList.toggle('picked', x === b));
+      el.querySelector('.predict-go').hidden = false;
+    });
+    el.querySelector('[data-act="go"]').onclick = () => { o.setup && o.setup(); SIM.showTab && SIM.showTab('lab'); };
+    const sb = el.querySelector('[data-act="show"]'); if (sb) sb.onclick = reveal;
+    // 고른 뒤, 실험 상태가 '확인할 상태'에서 한 번 벗어났다가 다시 들어오면 결과를 보여 줌
+    // (처음부터 그 상태였다면 학생이 직접 조작해 만들 때까지 기다림)
+    let armed = false;
+    if (o.reached) SIM._checks.push(() => {
+      if (picked < 0 || revealed) return;
+      const r = o.reached();
+      if (!r) armed = true; else if (armed) reveal();
+    });
+    return { reveal, get picked() { return picked; } };
+  },
+
+  // ---- 도전 미션 ----
+  // SIM.missions({ el: 상자, items: [{ t: '할 일', hint: '도움말(선택)', test: () => true/false }] })
+  // test는 0.25초마다 자동으로 확인. 한 번 달성하면 계속 달성으로 남음.
+  // 처음부터 맞아 있던 조건은 세지 않음 (조건이 거짓이 된 적이 있어야 함).
+  missions(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    const done = o.items.map(() => false);
+    el.innerHTML = `<div class="mission-bar"><i></i></div>
+      <ul class="mission-list">${o.items.map(m => `<li><span class="ck">✓</span><span>${m.t}${m.hint ? `<span class="hint">${m.hint}</span>` : ''}</span></li>`).join('')}</ul>
+      <div class="mission-all" hidden>모든 미션 달성!</div>`;
+    const lis = [...el.querySelectorAll('li')], tab = document.querySelector('.sim-tab[data-tab="mission"]');
+    const badge = () => {
+      const n = done.filter(Boolean).length;
+      el.querySelector('.mission-bar i').style.width = (n / done.length * 100) + '%';
+      el.querySelector('.mission-all').hidden = n < done.length;
+      if (tab) { const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge' + (n === done.length ? ' done' : ''); b.textContent = n + '/' + done.length; }
+    };
+    const mark = i => {
+      if (done[i]) return; done[i] = true; lis[i].classList.add('done');
+      badge(); SIM.burst();
+      const txt = lis[i].querySelector('span:not(.ck)').cloneNode(true); txt.querySelectorAll('.hint').forEach(h => h.remove());
+      const t = txt.textContent.trim();
+      SIM.toast(done.every(Boolean) ? '모든 미션 달성!' : '미션 달성! ' + (t.length > 24 ? t.slice(0, 23) + '…' : t));
+      if (tab && !tab.classList.contains('on')) tab.classList.add('nudge');
+    };
+    // 처음 열었을 때 이미 조건이 맞아 있으면 달성으로 치지 않음: 한 번 조건에서 벗어났다가 학생이 다시 맞춰야 달성
+    const armed = o.items.map(() => false);
+    SIM._checks.push(() => o.items.forEach((m, i) => {
+      if (done[i]) return;
+      let ok = false; try { ok = !!m.test(); } catch (e) {}
+      if (!ok) armed[i] = true; else if (armed[i]) mark(i);
+    }));
+    badge();
+    return { mark, done };
+  },
+  _checks: [],
+};
+setInterval(() => SIM._checks.forEach(f => f()), 250);
+// 슬라이더·입력칸 조작 중에는 키 입력이 다른 곳으로 새지 않게
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.type === 'range') a.blur(); });
+</script>
 <script>const Lab=(function(){
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -210,14 +396,12 @@ const NAMES=['bg','surface','fg','muted','line','accent','accent-soft','warm','c
 const hooks=[];
 function readTok(){const cs=getComputedStyle(document.documentElement);NAMES.forEach(k=>tok[k]=cs.getPropertyValue('--'+k).trim());hooks.forEach(f=>f());}
 readTok();
-try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTok);}catch(e){}
-new MutationObserver(readTok).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
-const isDark=()=>{const c=tok.bg||'#fff';const n=parseInt(c.replace('#','').slice(0,2),16);return n<80;};
-const FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const isDark=()=>false;
+const FONT="'Gowun Dodum',sans-serif";
 const MONO='"IBM Plex Mono",ui-monospace,Consolas,monospace';
 function label(ctx,t,x,y,o={}){
-  const size=o.size||14,align=o.align||'center';
-  ctx.font=`${o.weight||600} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
+  const size=o.size||18,align=o.align||'center';
+  ctx.font=`${o.weight||700} ${size}px ${o.mono?MONO:FONT}`;ctx.textAlign=align;ctx.textBaseline=o.base||'middle';
   if((o.hw??4)>0){ctx.lineJoin='round';ctx.lineWidth=o.hw??4;ctx.strokeStyle=o.halo||tok.halo;ctx.strokeText(t,x,y);}
   ctx.fillStyle=o.color||tok.fg;ctx.fillText(t,x,y);
 }
@@ -230,37 +414,8 @@ function arrow(ctx,x0,y0,x1,y1,o={}){
   ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-Math.cos(a-.42)*h,y1-Math.sin(a-.42)*h);ctx.lineTo(x1-Math.cos(a+.42)*h,y1-Math.sin(a+.42)*h);ctx.closePath();ctx.fill();
   ctx.restore();
 }
-/* 캔버스 + 전체화면 */
-function stage(opt){
-  const st=opt.stage,cvs=opt.canvas,W=opt.W,H=opt.H,btn=opt.fsBtn;
-  cvs.style.aspectRatio=W+'/'+H;
-  const isFs=()=>document.fullscreenElement===st||document.webkitFullscreenElement===st||st.classList.contains('fs');
-  function resize(){
-    const dpr=Math.min(2,window.devicePixelRatio||1);let w;
-    if(isFs()){const r=cvs.parentElement.getBoundingClientRect();w=Math.max(200,Math.min(r.width,r.height*W/H));cvs.style.width=w+'px';cvs.style.height=(w*H/W)+'px';}
-    else{cvs.style.width='';cvs.style.height='';w=cvs.getBoundingClientRect().width||W;}
-    cvs.width=Math.max(300,Math.round(w*dpr));cvs.height=Math.round(cvs.width*H/W);
-    if(opt.onResize)opt.onResize();
-  }
-  function sync(){const on=isFs();if(btn){btn.setAttribute('aria-pressed',on);btn.textContent=on?'✕ 전체화면 끝내기':'⛶ 전체화면';}document.body.classList.toggle('lock',on);requestAnimationFrame(resize);}
-  async function toggle(){
-    if(isFs()){
-      if(st.classList.contains('fs'))st.classList.remove('fs');
-      else{try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
-      sync();return;
-    }
-    const req=st.requestFullscreen||st.webkitRequestFullscreen;
-    try{if(!req)throw 0;await req.call(st);}catch(e){st.classList.add('fs');}
-    sync();
-  }
-  if(btn)btn.onclick=toggle;
-  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.classList.contains('fs')){st.classList.remove('fs');sync();}});
-  window.addEventListener('resize',resize);resize();
-  const ctx=cvs.getContext('2d');
-  return {ctx,begin(){ctx.setTransform(cvs.width/W,0,0,cvs.height/H,0,0);},
-    pt(e){const r=cvs.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};},resize};
-}
+/* 캔버스: sim-kit의 고해상도 캔버스 사용 */
+function stage(opt){return SIM.stage({canvas:opt.canvas,W:opt.W,H:opt.H});}
 function rng(seed){let s=seed>>>0||1;return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e9)/1e9;};}
 function loop(fn){let last=performance.now();function f(t){const dt=Math.max(0,Math.min(0.05,(t-last)/1000));last=t;fn(dt,t);requestAnimationFrame(f);}requestAnimationFrame(f);}
 const $=id=>document.getElementById(id);
@@ -275,16 +430,17 @@ return {clamp,lerp,reduce,MOTION,tok,onTheme:f=>hooks.push(f),isDark,FONT,MONO,l
 <script>
 (function(){
 const {clamp,lerp,tok,label,darkLabel,$,MOTION}=Lab;
-const W=1000,H=580;
-const S=Lab.stage({stage:document.querySelector('.stage'),canvas:$('sim'),W,H,fsBtn:$('fsBtn')});
+const W=1160,H=860;
+const S=Lab.stage({canvas:$('sim'),W,H});
 const ctx=S.ctx;
-const P={M:1,a:1,p:1,o3:true,mag:true,moon:true,water:true,lockM:false};
+const P={M:1,a:1,p:1,A:0.3,o3:true,mag:true,moon:true,water:true,lockM:false};
 const AMIN=0.1,AMAX=40;
 const aFromS=v=>AMIN*Math.pow(AMAX/AMIN,v/1000),sFromA=a=>Math.log(a/AMIN)/Math.log(AMAX/AMIN)*1000;
 const L=M=>Math.pow(M,4);
 const hz=M=>[0.95*Math.sqrt(L(M)),1.67*Math.sqrt(L(M))];
 function model(){
-  const Te=278*Math.pow(L(P.M),0.25)/Math.sqrt(P.a)*Math.pow(0.7,0.25);
+  // 반사율 A(기본 0.3)를 바꿀 수 있게 함: (1 − A)^0.25
+  const Te=278*Math.pow(L(P.M),0.25)/Math.sqrt(P.a)*Math.pow(1-P.A,0.25);
   const gh=P.p<=0?0:33*Math.pow(P.p,0.35)*(P.p>20?1+Math.log10(P.p/20)*2.5:1);
   const T=Te+gh;
   const Tb=1/(1/373.15-8.314/40700*Math.log(Math.max(P.p,1e-4)));
@@ -293,8 +449,12 @@ function model(){
   return {Te,T,Tb,water,gh};
 }
 const PLANETS=[['수성',0.39],['금성',0.72],['지구',1],['화성',1.52],['목성',5.2],['토성',9.5],['천왕성',19.2],['해왕성',30]];
-const GX0=70,GX1=600,GY0=40,GY1=500;
+// 위 왼쪽: 생명 가능 지대 그래프
+const GX0=100,GX1=610,GY0=100,GY1=500;
 const gx=a=>GX0+Math.log(a/AMIN)/Math.log(AMAX/AMIN)*(GX1-GX0),gy=M=>GY1-(M-0.5)/1.5*(GY1-GY0);
+// 아래: 궤도 그림 (가로는 로그 눈금)
+const OY0=600,OY1=850,OSX=46,OCY=740,OX0=130,OX1=1130;
+const ox=a=>OX0+Math.log(a/AMIN)/Math.log(AMAX/AMIN)*(OX1-OX0),oa=x=>AMIN*Math.pow(AMAX/AMIN,clamp((x-OX0)/(OX1-OX0),0,1));
 let t=0;
 function draw(dt){
   t+=dt*MOTION;
@@ -303,52 +463,61 @@ function draw(dt){
   ctx.fillStyle=tok.bg;ctx.fillRect(GX0,GY0,GX1-GX0,GY1-GY0);
   ctx.fillStyle='rgba(63,159,106,.45)';ctx.beginPath();
   for(let M=0.5;M<=2.0001;M+=0.02)ctx.lineTo(gx(hz(M)[0]),gy(M));for(let M=2;M>=0.4999;M-=0.02)ctx.lineTo(gx(hz(M)[1]),gy(M));ctx.closePath();ctx.fill();
-  label(ctx,'생명 가능 지대',gx(hz(1.6)[0])+4,gy(1.6),{size:12,align:'left',color:'#2d6b48'});
-  label(ctx,'너무 뜨거움',gx(0.13),gy(0.6),{size:11.5,align:'left',color:tok.warm,hw:0});label(ctx,'너무 차가움',gx(25),gy(1.9),{size:11.5,align:'right',color:tok.cool,hw:0});
-  // 태양계 행성
-  ctx.strokeStyle=tok.line;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(GX0,gy(1));ctx.lineTo(GX1,gy(1));ctx.stroke();ctx.setLineDash([]);
-  PLANETS.forEach(([n,a],i)=>{ctx.fillStyle=n==='지구'?'#2a64c9':tok.muted;ctx.beginPath();ctx.arc(gx(a),gy(1),4,0,7);ctx.fill();label(ctx,n,gx(a),gy(1)+(i%2?16:-14),{size:10.5,color:tok.muted,hw:2});});
-  label(ctx,'태양',GX0+6,gy(1)-12,{size:11,align:'left',color:tok.muted,hw:0});
-  // 축
-  [0.1,0.3,1,3,10,40].forEach(a=>label(ctx,a+'',gx(a),GY1+14,{size:10.5,hw:0,color:tok.muted,mono:true}));label(ctx,'공전 궤도 반지름 (지구 = 1, AU)',(GX0+GX1)/2,GY1+32,{size:11,hw:0,color:tok.muted});
-  [0.5,1,1.5,2].forEach(M=>label(ctx,M+'',GX0-8,gy(M),{size:10.5,align:'right',hw:0,color:tok.muted,mono:true}));label(ctx,'별의 질량 (태양 = 1)',GX0-50,GY0-14,{size:11,align:'left',hw:0,color:tok.muted});
-  // 내 행성
-  const x=gx(P.a),y=gy(P.M);ctx.strokeStyle='#e5533b';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,9,0,7);ctx.stroke();ctx.beginPath();ctx.moveTo(x-14,y);ctx.lineTo(x+14,y);ctx.moveTo(x,y-14);ctx.lineTo(x,y+14);ctx.stroke();
-  label(ctx,'내 행성',x+10,y-30,{size:12,align:'left',color:'#e5533b'});
-  // 행성 그림
+  label(ctx,'생명 가능 지대',gx(hz(1.75)[0])+6,gy(1.75),{size:19,align:'left',color:'#2d6b48'});
+  label(ctx,'너무 뜨거움',gx(0.12),gy(0.62),{size:19,align:'left',color:tok.warm,hw:0});label(ctx,'너무 차가움',gx(36),gy(1.9),{size:19,align:'right',color:tok.cool,hw:0});
+  ctx.strokeStyle=tok.line;ctx.setLineDash([3,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(GX0,gy(1));ctx.lineTo(GX1,gy(1));ctx.stroke();ctx.setLineDash([]);
+  PLANETS.forEach(([n,a],i)=>{ctx.fillStyle=n==='지구'?'#2a64c9':tok.muted;ctx.beginPath();ctx.arc(gx(a),gy(1),5,0,7);ctx.fill();if(i<4||i%2===0)label(ctx,n,gx(a),gy(1)+(i%2?22:-20),{size:18,color:tok.muted,hw:3});});
+  label(ctx,'태양',GX0+6,gy(1)-20,{size:18,align:'left',color:tok.muted,hw:0});
+  [0.1,0.3,1,3,10,40].forEach(a=>label(ctx,a+'',gx(a),GY1+18,{size:18,hw:0,color:tok.muted}));label(ctx,'공전 궤도 반지름 (AU, 로그 눈금)',(GX0+GX1)/2,GY1+46,{size:19,hw:0,color:tok.muted});
+  [0.5,1,1.5,2].forEach(M=>label(ctx,M+'',GX0-10,gy(M),{size:18,align:'right',hw:0,color:tok.muted}));label(ctx,'별의 질량 (태양 = 1)',GX0-60,GY0-26,{size:19,align:'left',hw:0,color:tok.muted});
+  const x=gx(P.a),y=gy(P.M);ctx.strokeStyle='#e5533b';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,11,0,7);ctx.stroke();ctx.beginPath();ctx.moveTo(x-17,y);ctx.lineTo(x+17,y);ctx.moveTo(x,y-17);ctx.lineTo(x,y+17);ctx.stroke();
+  label(ctx,'내 행성',x+12,y-30,{size:19,align:'left',color:'#e5533b'});
   drawPlanet();
+  drawOrbit();
 }
 function drawPlanet(){
-  const m=model();const cx=830,cy=215,R=72;
-  ctx.fillStyle=tok.space;ctx.beginPath();ctx.roundRect(630,20,360,540,12);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.roundRect(630,20,360,540,12);ctx.clip();
-  // 별
-  const sc=Math.min(60,22*P.M);const col=P.M<0.8?'#ff9a5a':P.M>1.4?'#cfe3ff':'#ffe08a';
-  const sg=ctx.createRadialGradient(660,70,2,660,70,sc*1.6);sg.addColorStop(0,col);sg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.arc(660,70,sc*1.6,0,7);ctx.fill();
-  darkLabel(ctx,`별 광도 ${L(P.M).toFixed(2)}배`,660,70+sc*1.2+10,{size:11,align:'left'});
-  // 자기장
-  if(P.mag){ctx.strokeStyle='rgba(120,200,255,.35)';ctx.lineWidth=1.5;for(let k=1;k<=4;k++){ctx.beginPath();ctx.ellipse(cx+k*12,cy,R+k*16,R*0.7+k*12,0,0,7);ctx.stroke();}}
-  // 태양풍
-  for(let i=0;i<7;i++){if(i>=2&&i<=4)continue;const yy=cy-90+i*30;const x0=650+((t*120+i*50)%60);const stop=P.mag?cx-R-30:cx-R;Lab.arrow(ctx,x0,yy,Math.min(x0+40,stop),yy,{color:'rgba(255,200,120,.6)',w:1.5,head:5});}
-  // 대기
-  const at=clamp(Math.log10(Math.max(P.p,1e-3))+3,0,6);if(P.p>0.005){ctx.fillStyle=`rgba(${P.p>20?'230,200,140':'140,190,255'},${0.15+at*0.08})`;ctx.beginPath();ctx.arc(cx,cy,R+4+at*5,0,7);ctx.fill();}
-  // 표면
+  const m=model();const cx=905,cy=240,R=96,PX=650,PY=20,PW=490,PH=550;
+  ctx.fillStyle=tok.space;ctx.beginPath();ctx.roundRect(PX,PY,PW,PH,14);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.roundRect(PX,PY,PW,PH,14);ctx.clip();
+  const sc=Math.min(70,26*P.M);const col=P.M<0.8?'#ff9a5a':P.M>1.4?'#cfe3ff':'#ffe08a';
+  const sg=ctx.createRadialGradient(PX+30,PY+60,2,PX+30,PY+60,sc*1.6);sg.addColorStop(0,col);sg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.arc(PX+30,PY+60,sc*1.6,0,7);ctx.fill();
+  darkLabel(ctx,`별 광도 ${L(P.M).toFixed(2)}배`,PX+24,PY+60+sc*1.2+16,{size:18,align:'left'});
+  if(P.mag){ctx.strokeStyle='rgba(120,200,255,.35)';ctx.lineWidth=2;for(let k=1;k<=4;k++){ctx.beginPath();ctx.ellipse(cx+k*15,cy,R+k*20,R*0.7+k*15,0,0,7);ctx.stroke();}}
+  for(let i=0;i<7;i++){if(i>=2&&i<=4)continue;const yy=cy-120+i*40;const x0=PX+20+((t*140+i*60)%70);const stop=P.mag?cx-R-40:cx-R;Lab.arrow(ctx,x0,yy,Math.min(x0+50,stop),yy,{color:'rgba(255,200,120,.6)',w:2,head:7});}
+  const at=clamp(Math.log10(Math.max(P.p,1e-3))+3,0,6);if(P.p>0.005){ctx.fillStyle=`rgba(${P.p>20?'230,200,140':'140,190,255'},${0.15+at*0.08})`;ctx.beginPath();ctx.arc(cx,cy,R+5+at*6,0,7);ctx.fill();}
   const T=m.T-273.15;
-  const g=ctx.createRadialGradient(cx-30,cy-30,8,cx,cy,R);
+  const g=ctx.createRadialGradient(cx-40,cy-40,10,cx,cy,R);
   let c1,c2;if(!P.water){c1='#c9a27a';c2='#7a5a3a';}else if(m.water==='얼음'){c1='#f2f7fb';c2='#9fb6c8';}else if(m.water==='수증기'){c1='#e8d2a0';c2='#9a6a3a';}else{c1='#6fb3e0';c2='#1e5f8f';}
   g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
-  if(m.water==='액체'){ctx.fillStyle='rgba(90,150,80,.85)';[[cx-30,cy-20,26,18],[cx+28,cy+22,30,16],[cx+5,cy-50,18,12]].forEach(([x,y,a,b])=>{ctx.beginPath();ctx.ellipse(x,y,a,b,0.4,0,7);ctx.fill();});
-    if(T<15){ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.ellipse(cx,cy-R+12,40,12,0,0,7);ctx.fill();}}
-  // 오존층
-  if(P.o3&&P.p>0.005){ctx.strokeStyle='rgba(160,140,255,.8)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,R+4+at*5+4,0,7);ctx.stroke();}
-  // 자외선
-  for(let i=0;i<4;i++){const yy=cy-30+i*20;const stop=P.o3&&P.p>0.005?cx-R-at*5-10:cx-R*0.8;ctx.strokeStyle='rgba(170,120,255,.8)';ctx.lineWidth=1.8;ctx.beginPath();for(let x=650;x<stop;x+=3)ctx.lineTo(x,yy+Math.sin(x*0.5)*3);ctx.stroke();}
-  // 달
-  if(P.moon){const a=t*0.6;ctx.fillStyle='#cfd3d8';ctx.beginPath();ctx.arc(cx+Math.cos(a)*(R+45),cy+Math.sin(a)*22,9,0,7);ctx.fill();}
-  // 상태표
-  const C=checks();const rows=[['액체 상태의 물',C.water],['적절한 대기',C.atm],['오존층 (자외선 차단)',C.o3],['자기장 (태양풍 차단)',C.mag],['큰 위성 (자전축 안정)',C.moon]];
-  rows.forEach(([n,ok],i)=>{const y=395+i*30;darkLabel(ctx,(ok?'✔ ':'✘ ')+n,650,y,{size:13,align:'left',color:ok?'#9ff0c0':'#ffb0a0'});});
-  darkLabel(ctx,`${T.toFixed(0)} ℃ · 물: ${m.water}`,810,cy+R+60,{size:15});
+  if(m.water==='액체'){ctx.fillStyle='rgba(90,150,80,.85)';[[cx-40,cy-26,34,24],[cx+38,cy+30,40,21],[cx+7,cy-66,24,16]].forEach(([x,y,a,b])=>{ctx.beginPath();ctx.ellipse(x,y,a,b,0.4,0,7);ctx.fill();});
+    if(T<15){ctx.fillStyle='rgba(255,255,255,.85)';ctx.beginPath();ctx.ellipse(cx,cy-R+16,54,16,0,0,7);ctx.fill();}}
+  // 반사율이 높으면 구름이 많아 보이게
+  if(P.A>0.45){ctx.fillStyle=`rgba(255,255,255,${clamp((P.A-0.4)*1.4,0,0.7)})`;[[cx-30,cy+10,50,14],[cx+30,cy-30,44,12],[cx-10,cy+52,40,11]].forEach(([x,y,a,b])=>{ctx.beginPath();ctx.ellipse(x,y,a,b,-0.2,0,7);ctx.fill();});}
+  if(P.o3&&P.p>0.005){ctx.strokeStyle='rgba(160,140,255,.8)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(cx,cy,R+5+at*6+5,0,7);ctx.stroke();}
+  for(let i=0;i<4;i++){const yy=cy-40+i*26;const stop=P.o3&&P.p>0.005?cx-R-at*6-14:cx-R*0.8;ctx.strokeStyle='rgba(170,120,255,.8)';ctx.lineWidth=2.2;ctx.beginPath();for(let x=PX+20;x<stop;x+=3)ctx.lineTo(x,yy+Math.sin(x*0.5)*4);ctx.stroke();}
+  if(P.moon){const a=t*0.6;ctx.fillStyle='#cfd3d8';ctx.beginPath();ctx.arc(cx+Math.cos(a)*(R+60),cy+Math.sin(a)*28,12,0,7);ctx.fill();}
+  darkLabel(ctx,`${T.toFixed(0)} ℃ · 물: ${m.water}`,cx,cy+R+44,{size:24});
+  const C=checks();const rows=[['액체 상태의 물',C.water],['적절한 대기 (0.3–10기압)',C.atm],['오존층 (자외선 차단)',C.o3],['자기장 (태양풍 차단)',C.mag],['큰 위성 (자전축 안정)',C.moon]];
+  rows.forEach(([n,ok],i)=>{const y=PY+PH-158+i*31;darkLabel(ctx,(ok?'✔ ':'✘ ')+n,PX+30,y,{size:20,align:'left',color:ok?'#9ff0c0':'#ffb0a0'});});
+  ctx.restore();
+}
+function drawOrbit(){
+  ctx.fillStyle=tok.space;ctx.beginPath();ctx.roundRect(10,OY0,W-20,OY1-OY0,14);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.roundRect(10,OY0,W-20,OY1-OY0,14);ctx.clip();
+  const [h0,h1]=hz(P.M);
+  // 생명 가능 지대 띠 (별을 중심으로 한 고리의 일부)
+  ctx.fillStyle='rgba(63,159,106,.45)';ctx.beginPath();ctx.arc(OSX,OCY,ox(h1)-OSX,-0.9,0.9);ctx.arc(OSX,OCY,ox(h0)-OSX,0.9,-0.9,true);ctx.closePath();ctx.fill();
+  darkLabel(ctx,'생명 가능 지대',(ox(h0)+ox(h1))/2,OY0+24,{size:18,color:'#a7f3c4'});
+  ctx.strokeStyle='rgba(148,163,184,.35)';ctx.lineWidth=1.5;
+  PLANETS.forEach(([n,a])=>{const r=ox(a)-OSX;ctx.beginPath();ctx.arc(OSX,OCY,r,-0.9,0.9);ctx.stroke();});
+  PLANETS.forEach(([n,a],i)=>{const x=ox(a);ctx.fillStyle=n==='지구'?'#60a5fa':'#94a3b8';ctx.beginPath();ctx.arc(x,OCY,6,0,7);ctx.fill();darkLabel(ctx,n,x,OCY+(i%2?34:-30),{size:18,color:'#cbd5e1'});});
+  const sc=Math.min(46,20*P.M),col=P.M<0.8?'#ff9a5a':P.M>1.4?'#cfe3ff':'#ffe08a';
+  const sg=ctx.createRadialGradient(OSX,OCY,2,OSX,OCY,sc*1.8);sg.addColorStop(0,col);sg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sg;ctx.beginPath();ctx.arc(OSX,OCY,sc*1.8,0,7);ctx.fill();
+  // 내 행성
+  const x=ox(P.a);ctx.strokeStyle=orbDrag?'#facc15':'#fb7185';ctx.lineWidth=2.5;ctx.setLineDash([5,5]);ctx.beginPath();ctx.arc(OSX,OCY,x-OSX,-0.9,0.9);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#e5533b';ctx.beginPath();ctx.arc(x,OCY,13,0,7);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+  darkLabel(ctx,'◀ 내 행성 ▶',x,OCY+62,{size:19,color:'#fecaca'});
+  darkLabel(ctx,'궤도 그림 (위에서 본 모습, 거리는 로그 눈금)',W-30,OY0+24,{size:18,align:'right',color:'#94a3b8'});
   ctx.restore();
 }
 function checks(){const m=model();return {water:m.water==='액체',atm:P.p>=0.3&&P.p<=10,o3:P.o3&&P.p>0.005,mag:P.mag,moon:P.moon};}
@@ -356,57 +525,127 @@ function checks(){const m=model();return {water:m.water==='액체',atm:P.p>=0.3&
 const metric=(k,v,d)=>`<div class="m"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d||''}</span></div>`;
 function text(){
   const m=model(),T=m.T-273.15,[h0,h1]=hz(P.M);
-  $('msOut').textContent=P.M.toFixed(2)+' 태양';$('arOut').textContent=P.a.toFixed(2)+' AU';$('prOut').textContent=(P.p<0.1?P.p.toFixed(3):P.p<10?P.p.toFixed(2):P.p.toFixed(0))+' 기압';
-  $('bigT').textContent=T.toFixed(0)+' ℃';$('bigT').className='v '+(T>40?'up':T<0?'dn':'');
+  $('msOut').textContent=P.M.toFixed(2)+' 태양';$('arOut').textContent=P.a.toFixed(2)+' AU';$('prOut').textContent=(P.p<0.1?P.p.toFixed(3):P.p<10?P.p.toFixed(2):P.p.toFixed(0))+' 기압';$('alOut').textContent=P.A.toFixed(2);
+  $('bigT').textContent=T.toFixed(0)+' ℃';$('bigT').className='sim-big '+(T>40?'up':T<0?'dn':'');
   const C=checks();const n=Object.values(C).filter(Boolean).length;
   $('stateName').textContent=n===5?'생명체 존재 가능':`조건 ${n}/5 만족`;$('chip').dataset.s=n===5?'cool':'warm';
   $('metrics').innerHTML=metric('생명 가능 지대',`${h0.toFixed(2)} – ${h1.toFixed(2)} AU`,P.a<h0?'행성이 너무 안쪽':P.a>h1?'행성이 너무 바깥쪽':'행성이 생명 가능 지대 안')+
     metric('복사 평형 온도',(m.Te-273.15).toFixed(0)+' ℃','대기가 없을 때')+metric('온실 효과',`+${m.gh.toFixed(0)} ℃`,'대기가 두꺼울수록 큼')+metric('물의 끓는점',(m.Tb-273.15).toFixed(0)+' ℃',`대기압 ${P.p<0.1?P.p.toFixed(3):P.p.toFixed(2)}기압에서`);
-  $('fsInfo').textContent=`별 ${P.M.toFixed(2)} · 궤도 ${P.a.toFixed(2)} AU · ${P.p.toFixed(2)}기압 · ${T.toFixed(0)}℃ · 물 ${m.water}`;
 }
 /* 조작 */
-function sync(){$('ms').value=P.M*100;$('ar').value=sFromA(P.a);$('pr').value=Math.log10(P.p)*100;['tO3','tMag','tMoon','tWater'].forEach((id,i)=>$(id).checked=[P.o3,P.mag,P.moon,P.water][i]);}
-$('ms').addEventListener('input',()=>{if(P.lockM){$('ms').value=P.M*100;return;}P.M=$('ms').value/100;});
+function sync(){$('ms').value=P.M*100;$('ar').value=sFromA(P.a);$('pr').value=Math.log10(P.p)*100;$('al').value=P.A*100;['tO3','tMag','tMoon','tWater'].forEach((id,i)=>$(id).checked=[P.o3,P.mag,P.moon,P.water][i]);}
+$('ms').addEventListener('input',()=>{if(P.lockM){$('ms').value=P.M*100;SIM.toast('의뢰 중에는 별의 질량을 바꿀 수 없어요','warn');return;}P.M=$('ms').value/100;});
 $('ar').addEventListener('input',()=>P.a=aFromS(+$('ar').value));$('pr').addEventListener('input',()=>P.p=Math.pow(10,$('pr').value/100));
+$('al').addEventListener('input',()=>P.A=$('al').value/100);
 $('tO3').onchange=e=>P.o3=e.target.checked;$('tMag').onchange=e=>P.mag=e.target.checked;$('tMoon').onchange=e=>P.moon=e.target.checked;$('tWater').onchange=e=>P.water=e.target.checked;
-const preset=o=>{if(P.lockM)delete o.M;Object.assign(P,{o3:true,mag:true,moon:true,water:true},o);sync();};
+const preset=o=>{if(P.lockM)delete o.M;Object.assign(P,{o3:true,mag:true,moon:true,water:true,A:0.3},o);sync();};
 $('pE').onclick=()=>preset({M:1,a:1,p:1});$('pM').onclick=()=>preset({M:1,a:1.52,p:1});$('pL').onclick=()=>preset({M:1,a:1,p:0.01});$('pV').onclick=()=>preset({M:1,a:0.72,p:92,o3:false,mag:false,moon:false});
-$('sim').addEventListener('pointerdown',e=>{const q=S.pt(e);if(q.x<GX0||q.x>GX1||q.y<GY0||q.y>GY1)return;P.a=AMIN*Math.pow(AMAX/AMIN,(q.x-GX0)/(GX1-GX0));if(!P.lockM)P.M=clamp(0.5+(GY1-q.y)/(GY1-GY0)*1.5,0.5,2);sync();});
+let orbDrag=false;
+const cvs=$('sim');
+cvs.addEventListener('pointerdown',e=>{const q=S.pt(e);
+  if(q.y>OY0&&q.y<OY1){orbDrag=true;cvs.setPointerCapture(e.pointerId);P.a=oa(q.x);sync();return;}
+  if(q.x<GX0||q.x>GX1||q.y<GY0||q.y>GY1)return;P.a=AMIN*Math.pow(AMAX/AMIN,(q.x-GX0)/(GX1-GX0));if(!P.lockM)P.M=clamp(0.5+(GY1-q.y)/(GY1-GY0)*1.5,0.5,2);sync();});
+cvs.addEventListener('pointermove',e=>{if(!orbDrag)return;P.a=oa(S.pt(e).x);sync();});
+cvs.addEventListener('pointerup',()=>orbDrag=false);cvs.addEventListener('pointercancel',()=>orbDrag=false);
 /* 게임 */
-const G={q:0,pts:0,cur:null};
+const G={q:0,pts:0,cur:null,final:-1};
 $('gStart').onclick=()=>{
   if(G.q>=3){G.q=0;G.pts=0;$('pts').textContent=0;}
   G.q++;$('qn').textContent=G.q;const M=[0.6,0.75,1.3,1.6,1.9][Math.floor(Math.random()*5)];
-  P.lockM=false;Object.assign(P,{M,a:[0.2,5,15][Math.floor(Math.random()*3)],p:0.02,o3:false,mag:false,moon:false,water:true});P.lockM=true;sync();
+  P.lockM=false;Object.assign(P,{M,a:[0.2,5,15][Math.floor(Math.random()*3)],p:0.02,A:0.3,o3:false,mag:false,moon:false,water:true});P.lockM=true;sync();
   G.cur={M};$('gQ').textContent=`별의 질량 ${M}배 태양 · 생명 가능 지대를 찾아라!`;
-  $('fb').textContent=`이 별의 광도는 태양의 ${L(M).toFixed(2)}배입니다. 생명 가능 지대는 태양계보다 ${M>1?'멀고 넓습니다':'가깝고 좁습니다'}. 궤도와 대기를 조절하고 장치를 켜세요.`;$('fb').className='feedback';
+  $('fb').textContent=`이 별의 광도는 태양의 ${L(M).toFixed(2)}배예요. 생명 가능 지대는 태양계보다 ${M>1?'멀고 넓어요':'가깝고 좁아요'}. 궤도와 대기를 조절하고 장치를 켜세요.`;$('fb').className='fb';
 };
 $('gCheck').onclick=()=>{
   if(!G.cur){$('fb').textContent='먼저 의뢰를 받으세요.';return;}
   const C=checks();const n=Object.values(C).filter(Boolean).length;const T=model().T-273.15;
   let p=n*6+(n===5&&T>=5&&T<=30?5:0);G.pts+=p;$('pts').textContent=G.pts;
   const miss=[!C.water&&'액체 물',!C.atm&&'적절한 대기(0.3–10기압)',!C.o3&&'오존층',!C.mag&&'자기장',!C.moon&&'위성'].filter(Boolean);
-  $('fb').textContent=`조건 ${n}/5 만족, 표면 ${T.toFixed(0)}℃ → +${p}점.`+(miss.length?` 부족: ${miss.join(', ')}.`:' 이주 성공! 🎉')+(n===5&&T>=5&&T<=30?' 쾌적 보너스 +5':'')+(G.q>=3?` 최종 ${G.pts}/105점`:'');
-  $('fb').className='feedback '+(n===5?'good':'bad');
-  if(G.q>=3){const s=G.pts>=100?3:G.pts>=80?2:G.pts>=50?1:0;$('stBest').textContent=Lab.stars(Lab.best('hz',s));P.lockM=false;}
+  $('fb').textContent=`조건 ${n}/5 만족, 표면 ${T.toFixed(0)}℃ → +${p}점.`+(miss.length?` 부족: ${miss.join(', ')}.`:' 이주 성공!')+(n===5&&T>=5&&T<=30?' 쾌적 보너스 +5':'')+(G.q>=3?` 최종 ${G.pts}/105점`:'');
+  $('fb').className='fb '+(n===5?'good':'bad');
+  if(G.q>=3){const s=G.pts>=100?3:G.pts>=80?2:G.pts>=50?1:0;$('stBest').textContent=Lab.stars(Lab.best('hz',s));P.lockM=false;G.final=G.pts;}
   G.cur=null;
 };
 $('stBest').textContent=Lab.stars(Lab.best('hz',0));
+/* 실제 외계 행성: 공전 주기 P(일)와 별 질량 M으로 a³ = M·P²(년) */
+const REAL=[
+  {n:'케플러-452b',M:1.04,P:384.8,t:'태양과 비슷한 별을 약 385일에 도는 행성. ‘지구의 사촌’이라 불렸어요.'},
+  {n:'케플러-62f',M:0.69,P:267.3,t:'태양보다 작고 어두운 별을 도는 행성. 지구보다 조금 커요.'},
+  {n:'케플러-186f',M:0.544,P:129.9,t:'적색 왜성 둘레의 생명 가능 지대에서 처음 찾은 지구 크기 행성이에요.'},
+];
+const seen=new Set();
+document.querySelectorAll('[data-real]').forEach(b=>b.onclick=()=>{
+  const d=REAL[+b.dataset.real];seen.add(+b.dataset.real);
+  const a=Math.cbrt(d.M*Math.pow(d.P/365.25,2));
+  P.lockM=false;G.cur=null;Object.assign(P,{M:d.M,a});sync();
+  document.querySelectorAll('[data-real]').forEach(x=>x.classList.toggle('on',x===b));
+  const [h0,h1]=hz(d.M);
+  $('realOut').innerHTML=`<b>${d.n}</b>: 별 질량 ${d.M}배 태양, 공전 주기 ${d.P}일 → 궤도 반지름 약 <b>${a.toFixed(2)} AU</b> (모형의 생명 가능 지대 ${h0.toFixed(2)}–${h1.toFixed(2)} AU). ${d.t} 대기·자기장은 아직 몰라요 — 직접 정해 보세요.`;
+});
 sync();
 let fr=0;Lab.loop(dt=>{fr++;S.begin();draw(dt);if(fr%6===0)text();});
+text();
+
+/* ---- 탭 · 예측 · 미션 ---- */
+SIM.tabs();
+SIM.predict({el:'#predictBox',
+  q:'대기는 지금과 같은데, 지구가 <b>화성 궤도(1.52 AU)</b>에 있다면 지구의 바다는 어떻게 될까요?',
+  options:['지금처럼 액체 상태로 남는다','얼어붙는다','모두 끓어 수증기가 된다'],
+  answer:1,
+  why:'태양에서 멀어지면 받는 에너지가 줄어 복사 평형 온도가 크게 낮아져요. 지금의 온실 효과만으로는 0 ℃를 넘지 못해 <b>바다가 얼어요</b>. 화성 궤도는 이 모형의 생명 가능 지대 바깥쪽 가장자리 근처예요.',
+  setup:()=>{P.lockM=false;G.cur=null;preset({M:1,a:1,p:1});},
+  reached:()=>Math.abs(P.M-1)<0.03&&P.a>=1.45&&P.a<=1.6&&Math.abs(Math.log10(P.p))<0.05&&P.water&&Math.abs(P.A-0.3)<0.01});
+SIM.missions({el:'#missionBox',items:[
+  {t:'질량이 태양의 <b>1.5배 이상</b>인 별 둘레에 바다(액체 물)가 있는 행성을 만들어 보세요.',hint:'생명 가능 지대가 어디로 옮겨 가나요?',test:()=>P.M>=1.5&&model().water==='액체'},
+  {t:'지구 궤도(0.9–1.1 AU)에서 대기압만 바꿔 물이 <b>끓어 수증기</b>가 되게 해 보세요.',test:()=>P.a>=0.9&&P.a<=1.1&&P.water&&model().water==='수증기'},
+  {t:'태양 둘레 <b>1.5 AU 이상</b>(화성 궤도 바깥)에서도 바다가 있는 행성을 설계해 보세요.',hint:'대기압과 반사율을 함께 조절해 봐요',test:()=>P.M<=1.05&&P.a>=1.5&&model().water==='액체'},
+  {t:'이주 의뢰 3개를 모두 해결해 <b>80점 이상</b> 받아 보세요.',hint:'아래 의뢰 받기 → 설계 → 제출',test:()=>G.final>=80},
+]});
 })();
 </script>
-
-
-<script>
-// ---- 사이트 연동: 사이트 안에서는 '목록' 링크를 숨기고, 높이를 사이트에 알림 ----
+<script id="sim-kit-fit">
+/* ===== sim-kit 화면 맞춤 · 전체화면 (tools/sim-kit/kit-fit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   - 사이트 안(iframe)에서는 폭에 맞춰 1920×1080 화면을 줄이고, 높이를 사이트에 알려 줌(sim-height)
+   - 새 창·전체화면에서는 화면 안에 16:9로 꽉 차게 가운데 정렬
+   - 전체화면을 켜면 휴대폰·태블릿은 가로 화면으로 돌림(지원하는 기기만) */
 (function () {
-  var inFrame = window.self !== window.top;
-  if (inFrame) document.documentElement.classList.add('in-frame');
-  var st = document.createElement('style'); st.textContent = '.in-frame .back{display:none!important}';
-  document.head.appendChild(st);
-  var post = function () { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
-  if (inFrame) { addEventListener('load', post); addEventListener('resize', post); }
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self, de = document.documentElement;
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function fit() {
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || isFs();
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    de.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920 * s) / 2; y = Math.max(0, (window.innerHeight - h * s) / 2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h * s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h * s) }, '*'); } catch (e) {} }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+
+  var btn = document.getElementById('fsBtn');
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
+  }
+  function unlock() { try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} }
+  function sync() { if (btn) btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; if (!isFs()) unlock(); fit(); setTimeout(fit, 120); }
+  if (btn) btn.onclick = function () {
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function () { de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(function () { lockLandscape(); sync(); }, fallback); else { lockLandscape(); sync(); } } catch (e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 </script>
-</body></html>
+</body>
+</html>
