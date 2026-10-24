@@ -51,6 +51,7 @@ if (!sim) {
       ${ready ? `<div class="sim-tools">
         <button class="btn" id="fsBtn">⛶ 수업 모드</button>
         <a class="btn ghost" href="${url.file(sim.file)}" target="_blank">새 창으로 ↗</a>
+        <button class="btn ghost" id="dlBtn" title="HTML 파일 하나로 저장되어 인터넷 없이도 열립니다">↓ HTML 다운로드</button>
       </div>` : ''}
     </div>
     ${ready ? `<div class="sim-frame" id="frameBox"><iframe id="frame" src="${url.file(sim.file)}" title="${esc(sim.title)}" allow="fullscreen"></iframe><button class="fs-exit" id="fsExit">✕ 수업 모드 끝내기 (Esc)</button></div>`
@@ -85,6 +86,14 @@ function setupFrame() {
       measure(); new ResizeObserver(measure).observe(body);
     } catch (err) { /* 재지 못하면 기본 높이(600px) 유지 */ }
   });
+
+  // HTML 다운로드
+  const dl = document.getElementById('dlBtn');
+  dl.onclick = async () => {
+    dl.disabled = true; dl.textContent = '저장 중…';
+    await App.download(sim);
+    dl.disabled = false; dl.textContent = '↓ HTML 다운로드';
+  };
 
   // 수업 모드 (전체 화면)
   document.getElementById('fsBtn').onclick = () => {

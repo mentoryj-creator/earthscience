@@ -58,6 +58,33 @@
     file: f => ROOT + f,
   };
 
+  // ---- 시뮬레이션 HTML 내려받기 ----
+  // 파일을 받아 '제목.html'로 저장합니다. 파일 안의 상대 주소(../../course.html 등)는
+  // 사이트 전체 주소로 바꿔 두어, 내려받은 파일에서도 링크가 사이트로 이어집니다.
+  async function download(sim) {
+    const src = url.file(sim.file);
+    const name = String(sim.title || sim.id).replace(/[\\/:*?"<>|]+/g, ' ').trim() + '.html';
+    try {
+      const res = await fetch(src);
+      if (!res.ok) throw new Error(res.status);
+      const abs = new URL(src, location.href);
+      const html = (await res.text()).replace(/\b(href|src)="(\.\.?\/[^"]*)"/g,
+        (m, attr, p) => `${attr}="${new URL(p, abs).href}"`);
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch (e) {
+      // 내 컴퓨터(file://)에서 열었을 때처럼 fetch가 막히면 원본 파일을 그대로 저장
+      const a = document.createElement('a');
+      a.href = src; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    if (window.goatcounter && window.goatcounter.count)
+      window.goatcounter.count({ path: '/download/' + sim.id, title: sim.title, event: true });
+  }
+
   // 시뮬레이션 카드 HTML
   function card(sim, opts = {}) {
     const t = topic(sim.topic) || {};
@@ -134,6 +161,6 @@
     update(true);
   }
 
-  window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card, GC };
+  window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card, download, GC };
   document.addEventListener('DOMContentLoaded', () => { header(); footer(); tocSpy(); });
 })();
