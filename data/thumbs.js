@@ -212,7 +212,7 @@ window.THUMBS = {
 "unconformity": "f9d5dbdd8f",
 "universe-scale-models": "d39e7af6e5",
 "variable-star-quiz": "f397b4fab1",
-"wegener-puzzle": "68c4d8dbbd",
+"wegener-puzzle": "6e5786121e",
 "westerly-waves-jet": "0bec8222e0",
 "wind-force-balance": "937990a0fe",
 "yanggan-wind": "4d7aea3b2f",
