@@ -114,12 +114,28 @@ a.chip:hover { text-decoration: none; filter: brightness(.95); }
   padding: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--text);
   transition: transform .15s, box-shadow .15s;
 }
-a.card:hover { text-decoration: none; transform: translateY(-3px); box-shadow: var(--shadow); }
+a.card, a.card:hover { text-decoration: none; }
+a.card:hover, .sim-card.ready:hover { text-decoration: none; transform: translateY(-3px); box-shadow: var(--shadow); }
 .card .tag { font-size: .78rem; font-weight: 700; color: var(--c, var(--accent)); }
 .card h3 { margin: 0; font-size: 1.06rem; line-height: 1.45; }
 .card p { margin: 0; color: var(--muted); font-size: .9rem; flex: 1; }
 .card .chips { margin-top: 6px; }
 .card.soon { opacity: .6; border-style: dashed; }
+/* 시뮬레이션 카드: 제목 링크를 카드 전체로 펼치고, [HTML 받기] 버튼만 그 위에 */
+.sim-card { position: relative; }
+.card-link { color: inherit; }
+.card-link:hover { text-decoration: none; }
+.card-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.card-link:focus-visible { outline: none; }
+.sim-card:has(.card-link:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.card-dl {
+  position: relative; z-index: 1; align-self: flex-start; margin-top: 8px;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); color: var(--text);
+  font-size: .84rem; font-weight: 700; cursor: pointer;
+}
+.card-dl:hover { border-color: var(--accent); color: var(--accent); }
+.card-dl:disabled { opacity: .6; cursor: progress; }
 .card.soon .tag::after { content: " · 준비 중"; color: var(--muted); font-weight: 400; }
 
 .big-card { padding: 22px; border-top: 5px solid var(--c, var(--accent)); }
@@ -139,7 +155,7 @@ a.card:hover { text-decoration: none; transform: translateY(-3px); box-shadow: v
   margin-top: 22px; display: flex; align-items: center; gap: 10px; max-width: 560px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 14px;
 }
-.search input { flex: 1; border: none; outline: none; background: none; padding: 13px 0; font-size: 1rem; }
+.search input { min-width: 0; flex: 1; border: none; outline: none; background: none; padding: 13px 0; font-size: 1rem; }
 .search:focus-within { border-color: var(--accent); }
 
 /* ---------- 과목 페이지 (목차 + 본문) ---------- */

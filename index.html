@@ -43,6 +43,14 @@
 <script>
 const { S, esc, card, url } = App;
 const ready = S.sims.filter(s => s.status === 'ready');
+// 첫 화면 그림 칸에 시뮬레이션 수를 넘겨 둠 (디자인 테마가 data-n으로 표시)
+{
+  const art = document.querySelector('.hero-art');
+  art.dataset.n = ready.length;
+  // 흐르는 띠를 쓰는 디자인용: 최근 시뮬레이션 제목 8개 (앞 번호 '3.05 ' 등은 뺌)
+  const names = ready.slice(-8).reverse().map(s => s.title.replace(/^[\d.]+\s+/, ''));
+  art.dataset.ticker = (names.join(' ✺ ') + ' ✺ ').repeat(2);
+}
 
 // 과목 카드
 // 대단원은 한 줄에 하나씩 표시합니다.

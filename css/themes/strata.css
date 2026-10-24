@@ -45,7 +45,7 @@ body { font-family: "Gothic A1", "Noto Sans KR", system-ui, sans-serif; backgrou
 
 /* ---- 카드: 과목은 층 색 ---- */
 .card { border-radius: var(--radius); border: 1px solid var(--line); }
-a.card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+a.card:hover, .sim-card.ready:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .big-card { border-top: none; padding: 24px; }
 .big-card h3 { font-size: 1.65rem; }
 #courseCards .big-card { border: none; }

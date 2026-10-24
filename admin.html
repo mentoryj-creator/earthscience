@@ -39,6 +39,18 @@
     .field textarea { min-height: 96px; resize: vertical; line-height: 1.6; }
     .field input:focus, .field select:focus, .field textarea:focus, .inline-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
     .hint { font-size: .8rem; color: var(--muted); }
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+    .theme-opt { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--bg); border: 2px solid var(--line); border-radius: 12px; }
+    .theme-opt.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+    .theme-opt label { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 2px; align-items: center; cursor: pointer; }
+    .theme-opt input { grid-row: 1 / span 3; width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
+    .theme-opt .sw { display: flex; height: 26px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+    .theme-opt .sw i { flex: 1; }
+    .theme-opt b { font-size: .92rem; }
+    .theme-opt small { color: var(--muted); font-size: .8rem; }
+    .theme-opt .btn { align-self: flex-start; }
+    .theme-old { margin-top: 12px; }
+    .theme-old summary { cursor: pointer; color: var(--muted); font-size: .9rem; margin-bottom: 10px; }
     .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
     details { margin-top: 12px; font-size: .9rem; }
     details summary { cursor: pointer; color: var(--accent); }
@@ -144,12 +156,13 @@
 
   <!-- ===== 디자인 ===== -->
   <section class="admin-box">
-    <h2>사이트 디자인</h2>
-    <div class="row-btns" style="margin-top:0">
-      <select class="inline-input" id="themeSel"></select>
-      <a class="btn ghost small" id="themePreview" target="_blank">새 창에서 미리 보기</a>
-    </div>
-    <p class="hint" style="margin:8px 0 0">고른 뒤 아래 [GitHub에 저장]을 누르면 모든 방문자에게 적용됩니다.</p>
+    <h2>사이트 디자인 <span class="pill" id="themeNow"></span></h2>
+    <p class="hint" style="margin:0 0 12px">시안을 고른 뒤 아래 [GitHub에 저장]을 누르면 모든 방문자에게 적용됩니다. [미리 보기]는 새 창에서 이 디자인으로 사이트를 보여 줍니다(저장 전에도 볼 수 있어요).</p>
+    <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="사이트 디자인"></div>
+    <details class="theme-old">
+      <summary>이전 디자인</summary>
+      <div class="theme-grid" id="themeGridOld" role="radiogroup" aria-label="이전 디자인"></div>
+    </details>
   </section>
 
   <!-- ===== 탭 ===== -->
@@ -624,13 +637,29 @@ $('copyPrompt').onclick = () => {
     () => { $('promptText').select(); document.execCommand('copy'); $('copyPrompt').textContent = '복사됨 ✓'; });
 };
 
+// 디자인 고르기: 시안마다 색 견본 + 이름 + [미리 보기]
 function renderTheme() {
-  const sel = $('themeSel');
-  sel.innerHTML = Object.entries(App.THEMES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
-  sel.value = App.THEMES[data.theme] ? data.theme : 'basic';
-  $('themePreview').href = 'index.html?theme=' + sel.value;
+  const cur = App.THEMES[data.theme] ? data.theme : 'basic';
+  const opt = ([k, t]) => `<div class="theme-opt${k === cur ? ' on' : ''}">
+      <label>
+        <input type="radio" name="siteTheme" value="${k}"${k === cur ? ' checked' : ''}>
+        <span class="sw" aria-hidden="true">${t.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>
+        <b>${esc(t.name)}</b><small>${esc(t.desc)}</small>
+      </label>
+      <a class="btn ghost small" href="index.html?theme=${k}" target="_blank">미리 보기 ↗</a>
+    </div>`;
+  const all = Object.entries(App.THEME_INFO);
+  $('themeGrid').innerHTML = all.filter(([, t]) => !t.old).map(opt).join('');
+  $('themeGridOld').innerHTML = all.filter(([, t]) => t.old).map(opt).join('');
+  if (App.THEME_INFO[cur].old) document.querySelector('.theme-old').open = true;
+  $('themeNow').textContent = '지금: ' + App.THEME_INFO[cur].name;
 }
-$('themeSel').onchange = () => { data.theme = $('themeSel').value; $('themePreview').href = 'index.html?theme=' + data.theme; markDirty(); };
+document.addEventListener('change', e => {
+  if (e.target.name !== 'siteTheme') return;
+  data.theme = e.target.value;
+  renderTheme();
+  markDirty();
+});
 
 // =====================================================================
 //  통계

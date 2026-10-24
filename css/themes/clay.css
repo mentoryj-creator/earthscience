@@ -1,0 +1,133 @@
+/* =========================================================
+   디자인 · 시안 09 소프트 클레이
+   연보라 바탕에 말랑한 입체 카드, 파스텔 색, 둥근 글꼴.
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Jua&family=Gothic+A1:wght@400;500;700&display=swap");
+
+:root, :root:root {
+  --bg: #EEF0FB;
+  --surface: #FFFFFF;
+  --surface-2: #EEF0FB;
+  --text: #2A2C45;
+  --muted: #4A4C6A;
+  --line: #DCDFF2;
+  --accent: #3B3FB6;
+  --accent-soft: #E3E4FB;
+  --mint: #BFF0DC;
+  --sky: #CFE4FF;
+  --peach: #FFD8C2;
+  --lilac: #E4DAFF;
+  --lemon: #FFF1A8;
+  --danger: #D93B5B;
+  --ok: #1F8A5B;
+  --sim-bg: #DCEBFF;
+  --radius: 28px;
+  --shadow: 0 18px 36px rgba(70, 76, 140, .16), inset 0 -6px 12px rgba(70, 76, 140, .10), inset 0 6px 10px rgba(255, 255, 255, .8);
+  --round: "Jua", "Gothic A1", sans-serif;
+}
+html { background: var(--bg); }
+body { font-family: "Gothic A1", "Noto Sans KR", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+a { color: var(--accent); }
+a:hover { color: #1F2280; }
+
+/* ---- 머리말 ---- */
+.site-header { background: transparent; border-bottom: none; padding: 16px 16px 0; }
+.site-header .inner { height: 64px; background: #FFFFFF; border-radius: 26px; box-shadow: var(--shadow); padding: 0 10px 0 20px; }
+.logo { font-family: var(--round); font-weight: 400; font-size: 1.3rem; color: var(--text); display: flex; align-items: center; gap: 10px; }
+.logo::before { content: ""; width: 32px; height: 32px; flex: none; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #A8F0D2, #3FB98A); }
+.logo span { color: inherit; }
+.nav { gap: 6px; align-items: center; }
+.nav-link { border-radius: 16px; font-weight: 700; background: var(--surface-2); padding: 8px 14px; }
+.nav-link:hover { background: var(--accent-soft); }
+.nav-link.disabled { background: transparent; }
+.dropdown { border: none; border-radius: 22px; box-shadow: var(--shadow); padding: 8px; top: calc(100% + 6px); }
+.dropdown a { border-radius: 14px; }
+.menu-btn { border: none; border-radius: 16px; background: var(--surface-2); }
+
+/* ---- 첫 화면 ---- */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) 380px; column-gap: 24px; align-items: center; padding: 56px 0 24px; }
+.hero > *:not(.hero-art) { grid-column: 1; }
+.hero-art {
+  display: block; grid-column: 2; grid-row: 1 / span 4; height: 360px; position: relative;
+  background:
+    radial-gradient(circle at 34% 30%, #BFE6FF 0%, #6BB4F0 22%, #3B7FCF 34%, transparent 35%) 0 0 / 100% 100% no-repeat,
+    radial-gradient(circle at 86% 12%, #FFF6C7 0%, #FFC94D 9%, transparent 10%) 0 0 / 100% 100% no-repeat,
+    radial-gradient(circle at 76% 80%, #FFD9C8 0%, #F08A6A 12%, transparent 13%) 0 0 / 100% 100% no-repeat,
+    radial-gradient(circle at 10% 86%, #FFFFFF 0%, #C9C9DE 8%, transparent 9%) 0 0 / 100% 100% no-repeat;
+  filter: drop-shadow(0 24px 30px rgba(59, 127, 207, .25));
+}
+.eyebrow { display: inline-block; justify-self: start; margin: 0 0 16px; padding: 6px 14px; border-radius: 999px; background: var(--lemon); font-weight: 700; font-size: .85rem; color: var(--text); }
+.hero h1 { font-family: var(--round); font-weight: 400; font-size: clamp(2.2rem, 5.5vw, 4.2rem); line-height: 1.18; margin: 0; }
+.hero .lead { font-size: 1.12rem; margin-top: 14px; }
+.search { max-width: none; margin-top: 28px; height: 64px; border: none; border-radius: 24px; background: #FFFFFF; box-shadow: var(--shadow); padding: 0 22px; }
+.search svg { color: var(--accent); }
+.search input { font-size: 1.05rem; }
+.search:focus-within { box-shadow: var(--shadow), 0 0 0 3px var(--accent); }
+
+/* ---- 섹션 제목 ---- */
+.section-title { font-family: var(--round); font-weight: 400; font-size: clamp(1.5rem, 3vw, 2rem); border-left: none; padding-left: 4px; margin: 52px 0 18px; }
+.unit-block .section-title, .with-toc .section-title {
+  display: inline-block; padding: 6px 18px; border-radius: 999px; background: color-mix(in srgb, var(--c, var(--accent)) 18%, white); box-shadow: var(--shadow); font-size: 1.4rem;
+}
+
+/* ---- 카드 ---- */
+.cards { gap: 24px; }
+.card { border: none; border-radius: var(--radius); background: #FFFFFF; box-shadow: var(--shadow); padding: 24px; }
+a.card:hover, .sim-card.ready:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 26px 44px rgba(70, 76, 140, .22), inset 0 -6px 12px rgba(70, 76, 140, .10), inset 0 6px 10px rgba(255, 255, 255, .8); }
+.card .tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--c, var(--accent)) 16%, white); color: var(--text); }
+.card h3 { font-family: var(--round); font-weight: 400; font-size: 1.35rem; }
+.card.soon { box-shadow: none; background: rgba(255, 255, 255, .5); }
+.chip { background: var(--surface-2); color: var(--text); font-weight: 700; }
+.card-dl { align-self: stretch; justify-content: center; min-height: 46px; border: none; border-radius: 16px; background: var(--surface-2); color: var(--accent); }
+.card-dl:hover { background: var(--accent); color: #FFFFFF; }
+.big-card { border-top: none; min-height: 200px; }
+.big-card h3 { font-size: 1.7rem; }
+.big-card .units span { font-size: .9rem; color: #3D3F5C; }
+.big-card .count { margin-top: auto; align-self: flex-start; padding: 6px 14px; border-radius: 999px; background: #FFFFFF; font-weight: 700; color: var(--text); }
+#courseCards .big-card:nth-child(3) { background: var(--sky); }
+#courseCards .big-card:nth-child(4) { background: var(--mint); }
+#courseCards .big-card:nth-child(5) { background: var(--lilac); }
+#topicCards .big-card { display: grid; grid-template-columns: 56px 1fr; column-gap: 16px; align-items: center; min-height: 0; }
+#topicCards .big-card::before { content: ""; grid-row: 1 / span 3; width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 25%, white), var(--c)); }
+#topicCards .big-card .count { background: var(--surface-2); }
+
+/* ---- 과목 · 주제 페이지 ---- */
+.page-title { font-family: var(--round); font-weight: 400; font-size: clamp(2rem, 5vw, 3.2rem); }
+.toc { background: #FFFFFF; border-radius: 26px; box-shadow: var(--shadow); padding: 18px; }
+.toc h4 { font-family: var(--round); font-weight: 400; font-size: 1.15rem; color: var(--text); }
+.toc a { border-radius: 14px; }
+.toc a.on { background: var(--accent-soft); color: var(--accent); box-shadow: none; }
+
+/* ---- 시뮬레이션 페이지 ---- */
+.btn { border-radius: 18px; background: #FFFFFF; color: var(--text); box-shadow: var(--shadow); font-weight: 700; padding: 10px 20px; min-height: 52px; }
+.btn.ghost { background: #FFFFFF; color: var(--text); border: none; }
+#dlBtn { background: var(--text); color: #FFFFFF; }
+.btn.danger { background: var(--danger); color: #FFFFFF; }
+.btn.small { min-height: 0; padding: 4px 12px; border-radius: 12px; }
+.sim-frame { border-radius: 34px; padding: 12px; background: #FFFFFF; box-shadow: var(--shadow); }
+.sim-frame iframe { border-radius: 24px; }
+.panel { border: none; border-radius: 28px; box-shadow: var(--shadow); padding: 22px 24px; }
+.panel h2 { font-family: var(--round); font-weight: 400; font-size: 1.35rem; }
+.panel.full { background: var(--lemon); }
+.notice { border: none; border-radius: 28px; box-shadow: var(--shadow); }
+
+/* ---- 관리 페이지 ---- */
+.admin-box, .item, .course-card, .savebar { border: none !important; border-radius: 22px !important; box-shadow: var(--shadow); }
+dialog { border: none; border-radius: 26px; box-shadow: var(--shadow); }
+.tab.on { border-bottom-color: var(--accent); }
+
+.site-footer { border-top: none; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-art { display: none; }
+}
+@media (max-width: 760px) {
+  .site-header { padding: 10px 10px 0; }
+  .logo { font-size: 1.1rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .menu-btn { flex: none; min-width: 44px; min-height: 44px; }
+  .nav { top: 76px; left: 10px; right: 10px; border-radius: 24px; border: none; align-items: stretch; }
+  .nav-link { background: transparent; }
+  .toc { box-shadow: none; }
+  .toc a { background: #FFFFFF; border: none; }
+}

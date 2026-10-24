@@ -10,13 +10,32 @@
   // ---- 디자인 테마 ----
   // 사이트 기본값은 sims.js의 "theme" (관리 페이지에서 고름).
   // 주소 뒤에 ?theme=observatory 처럼 붙이면 이 창에서만 미리 볼 수 있습니다. (?theme=reset 으로 원래대로)
-  const THEMES = { basic: '기본', nightsky: '밤하늘 관측소', observatory: '관측소', contour: '지형도', strata: '지구 단면' };
+  // THEME_INFO: 관리 페이지의 디자인 고르기 칸에 보이는 이름·설명·색 견본
+  const THEME_INFO = {
+    bento:     { name: '시안 01 · 벤토 그리드',      desc: '밝은 타일형, 깔끔한 정보 전달',   sw: ['#F2F2EE', '#FFFFFF', '#1E46E0', '#FF6A2B'] },
+    editorial: { name: '시안 02 · 에디토리얼 매거진', desc: '명조 제목, 잡지 같은 지면',      sw: ['#F3EEE3', '#1B1813', '#B2301C', '#CDBFA5'] },
+    brutal:    { name: '시안 03 · 네오 브루탈리즘',  desc: '굵은 테두리와 원색, 눈에 확',    sw: ['#FFF3D1', '#000000', '#FFCE3A', '#2B3BD9'] },
+    aurora:    { name: '시안 04 · 오로라 글래스',    desc: '어두운 배경에 유리 패널',        sw: ['#06070D', '#2DD4BF', '#8B5CF6', '#FFFFFF'] },
+    swiss:     { name: '시안 05 · 스위스 그리드',    desc: '흑백과 빨강, 큰 숫자',          sw: ['#FFFFFF', '#000000', '#D40511', '#EDEDED'] },
+    notebook:  { name: '시안 06 · 실험 노트',        desc: '모눈종이와 손글씨 메모',        sw: ['#FBFAF4', '#1D2B4F', '#FFE45C', '#C8233A'] },
+    console:   { name: '시안 07 · 미션 콘솔',        desc: '터미널 관제실, 정보량 많음',     sw: ['#0A0E0C', '#4CFF9A', '#FFB84A', '#1E2A24'] },
+    megatype:  { name: '시안 08 · 메가 타이포',      desc: '초대형 글자, 과감한 대비',       sw: ['#0B0B0B', '#F2F2F2', '#D6FF3D', '#1A1A1A'] },
+    clay:      { name: '시안 09 · 소프트 클레이',    desc: '파스텔 입체 카드, 친근함',       sw: ['#EEF0FB', '#FFFFFF', '#3B3FB6', '#BFF0DC'] },
+    retro:     { name: '시안 10 · 레트로 OS',        desc: '옛날 윈도 창 콘셉트',           sw: ['#2F7F7A', '#D4D0C8', '#0A246A', '#FFFFFF'] },
+    basic:       { name: '기본',          desc: '이전 디자인', old: true, sw: ['#F6F7F9', '#FFFFFF', '#2563EB', '#1D2330'] },
+    nightsky:    { name: '밤하늘 관측소', desc: '이전 디자인', old: true, sw: ['#070B1A', '#0E1530', '#FFCF6B', '#E6EBF7'] },
+    observatory: { name: '관측소',        desc: '이전 디자인', old: true, sw: ['#0E1530', '#151D3D', '#F2C94C', '#E6E9F5'] },
+    contour:     { name: '지형도',        desc: '이전 디자인', old: true, sw: ['#EEF1E8', '#FBFCF8', '#2F6F94', '#22302A'] },
+    strata:      { name: '지구 단면',     desc: '이전 디자인', old: true, sw: ['#F6F8FC', '#FFFFFF', '#1F4FD1', '#14213D'] },
+  };
+  const THEMES = Object.fromEntries(Object.entries(THEME_INFO).map(([k, v]) => [k, v.name]));
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
                set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
   const qTheme = new URLSearchParams(location.search).get('theme');
   if (qTheme === 'reset') ss.set('previewTheme', null);
   else if (qTheme && THEMES[qTheme]) ss.set('previewTheme', qTheme);
   const theme = ss.get('previewTheme') || (THEMES[S.theme] ? S.theme : 'basic');
+  document.documentElement.dataset.theme = theme;
   if (theme !== 'basic') {
     const link = document.createElement('link');
     link.rel = 'stylesheet'; link.href = ROOT + 'css/themes/' + theme + '.css';
@@ -91,13 +110,29 @@
     const chips = opts.noChips ? '' : '<div class="chips">' + (sim.links || [])
       .map(l => course(l.course)).filter(Boolean)
       .map(c => `<span class="chip">${esc(c.name)}</span>`).join('') + '</div>';
-    const inner = `<span class="tag">${[t.name, sim.sub].filter(Boolean).map(esc).join(' · ')}</span>
-      <h3>${esc(sim.title)}</h3><p>${esc(sim.desc)}</p>${chips}`;
+    const tag = `<span class="tag">${[t.name, sim.sub].filter(Boolean).map(esc).join(' · ')}</span>`;
     const style = `style="--c:${t.color || 'var(--accent)'}"`;
-    return sim.status === 'ready'
-      ? `<a class="card" ${style} href="${url.sim(sim.id)}" data-goatcounter-click="/click/${esc(sim.id)}" data-goatcounter-title="${esc(sim.title)}">${inner}</a>`
-      : `<div class="card soon" ${style}>${inner}</div>`;
+    if (sim.status !== 'ready')
+      return `<div class="card sim-card soon" ${style}>${tag}<h3>${esc(sim.title)}</h3><p>${esc(sim.desc)}</p>${chips}</div>`;
+    // 카드 전체가 눌리도록 제목 링크를 카드 크기로 펼치고(.card-link::after), 내려받기 버튼만 그 위에 둡니다.
+    return `<article class="card sim-card ready" ${style}>${tag}
+      <h3><a class="card-link" href="${url.sim(sim.id)}" data-goatcounter-click="/click/${esc(sim.id)}" data-goatcounter-title="${esc(sim.title)}">${esc(sim.title)}</a></h3>
+      <p>${esc(sim.desc)}</p>${chips}
+      <button type="button" class="card-dl" data-dl="${esc(sim.id)}" aria-label="${esc(sim.title)} HTML 파일 내려받기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"/></svg><span>HTML 받기</span></button>
+    </article>`;
   }
+
+  // 카드의 [HTML 받기] 버튼 (어느 페이지에서든)
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-dl]');
+    if (!b) return;
+    const sim = S.sims.find(s => s.id === b.dataset.dl);
+    if (!sim || b.disabled) return;
+    const label = b.querySelector('span');
+    b.disabled = true; if (label) label.textContent = '저장 중…';
+    await download(sim);
+    b.disabled = false; if (label) label.textContent = 'HTML 받기';
+  });
 
   // 머리말(메뉴) 그리기
   function header() {
@@ -161,6 +196,6 @@
     update(true);
   }
 
-  window.App = { S, ROOT, THEMES, theme, esc, fmt, lines, course, topic, unit, param, url, card, download, GC };
+  window.App = { S, ROOT, THEMES, THEME_INFO, theme, esc, fmt, lines, course, topic, unit, param, url, card, download, GC };
   document.addEventListener('DOMContentLoaded', () => { header(); footer(); tocSpy(); });
 })();

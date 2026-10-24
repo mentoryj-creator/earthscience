@@ -1,0 +1,121 @@
+/* =========================================================
+   디자인 · 시안 06 실험 노트
+   모눈종이 바탕, 손글씨 메모, 형광펜 밑줄, 테이프 붙인 카드.
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap");
+
+:root, :root:root {
+  --bg: #FBFAF4;
+  --surface: #FFFFFF;
+  --surface-2: #F1F3F8;
+  --text: #1D2B4F;
+  --muted: #4A5578;
+  --line: #C9D2E6;
+  --accent: #C8233A;
+  --accent-soft: #FDE7EA;
+  --marker: #FFE45C;
+  --danger: #C8233A;
+  --ok: #2F7A3E;
+  --sim-bg: #FFFFFF;
+  --radius: 4px;
+  --shadow: 0 8px 22px rgba(29, 43, 79, .12);
+  --hand: "Gaegu", "Nanum Pen Script", cursive;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+html { background: var(--bg); }
+body {
+  font-family: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif; color: var(--text);
+  background-color: var(--bg);
+  background-image: linear-gradient(#E3E8F2 1px, transparent 1px), linear-gradient(90deg, #E3E8F2 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+a { color: var(--text); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent); }
+
+/* ---- 머리말 ---- */
+.site-header { background: rgba(251, 250, 244, .94); border-bottom: 2px solid var(--text); }
+.logo { font-family: var(--hand); font-weight: 700; font-size: 1.7rem; color: var(--text); text-decoration: none; }
+.logo span { color: var(--accent); }
+.nav-link { font-weight: 500; }
+.nav-link:hover { background: var(--marker); }
+.dropdown { border: 2px solid var(--text); border-radius: 4px; box-shadow: 4px 4px 0 var(--line); }
+.dropdown a { text-decoration: none; border-radius: 2px; }
+.dropdown a:hover { background: var(--marker); }
+
+/* ---- 첫 화면 ---- */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) 360px; column-gap: 40px; align-items: center; padding: 64px 0 40px; }
+.hero > *:not(.hero-art) { grid-column: 1; }
+.hero-art {
+  display: block; grid-column: 2; grid-row: 1 / span 4; aspect-ratio: 400 / 290; transform: rotate(-2deg);
+  background: #FFFFFF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 260'%3E%3Ccircle cx='170' cy='130' r='104' fill='none' stroke='%231D2B4F' stroke-width='2.5'/%3E%3Ccircle cx='170' cy='130' r='74' fill='none' stroke='%231D2B4F' stroke-width='2' stroke-dasharray='6 5'/%3E%3Ccircle cx='170' cy='130' r='42' fill='%23FFE45C' stroke='%231D2B4F' stroke-width='2'/%3E%3Ccircle cx='170' cy='130' r='18' fill='%23C8233A'/%3E%3Cpath d='M268 76 L330 46' stroke='%23C8233A' stroke-width='2'/%3E%3Cpath d='M204 150 L320 206' stroke='%231D2B4F' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center / 88%;
+  border: 1px solid var(--line); box-shadow: var(--shadow); position: relative;
+}
+.hero-art::before { content: ""; position: absolute; top: -12px; left: 38%; width: 96px; height: 26px; background: rgba(255, 228, 92, .8); transform: rotate(4deg); }
+.hero-art::after { content: "↑ 지진파로 알아낸 지구 내부!"; position: absolute; left: 14px; bottom: 8px; font-family: var(--hand); font-size: 1.2rem; color: var(--accent); }
+.eyebrow { display: block; margin: 0 0 12px; font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+.eyebrow::after { content: " · 관찰자 ________"; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.22; letter-spacing: -0.03em; margin: 0; }
+.hero .lead { font-size: 1.1rem; color: #3A4566; margin-top: 14px; }
+.search { max-width: 600px; margin-top: 26px; height: 58px; border: 2px solid var(--text); border-radius: 6px; box-shadow: 4px 4px 0 var(--line); padding: 0 16px; }
+.search svg { color: var(--text); }
+.search:focus-within { border-color: var(--text); box-shadow: 4px 4px 0 var(--marker); }
+
+/* ---- 섹션 제목: 형광펜 ---- */
+.section-title { border-left: none; padding: 0 4px; font-size: 1.55rem; display: inline-block; margin: 52px 0 18px; background: linear-gradient(transparent 58%, var(--marker) 58%); }
+.unit-block .section-title, .with-toc .section-title { background: linear-gradient(transparent 58%, color-mix(in srgb, var(--c, var(--marker)) 30%, white) 58%); }
+
+/* ---- 카드: 인덱스카드 ---- */
+.cards { gap: 24px; }
+.card { background: #FFFFFF; border: 1px solid var(--line); border-top: 6px solid var(--text); border-radius: 2px; padding: 20px; box-shadow: 0 6px 16px rgba(29, 43, 79, .08); }
+.sim-card { border-top: 1px solid var(--line); }
+.cards .sim-card:nth-child(odd) { transform: rotate(-.6deg); }
+.cards .sim-card:nth-child(even) { transform: rotate(.6deg); }
+a.card:hover, .sim-card.ready:hover { transform: rotate(0) translateY(-3px); box-shadow: var(--shadow); }
+.card .tag { font-family: var(--mono); font-size: .75rem; color: var(--muted); font-weight: 500; }
+.card h3 { font-size: 1.12rem; }
+.card-link { text-decoration: none; }
+.chip { background: var(--surface-2); color: var(--text); border-radius: 2px; }
+.card-dl { border: 2px dashed var(--text); border-radius: 4px; background: transparent; color: var(--text); min-height: 44px; }
+.card-dl:hover { background: var(--marker); color: var(--text); border-color: var(--text); }
+.big-card .no { display: block; font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+.big-card .no::before { content: "TAB "; }
+.big-card .count { margin-top: auto; font-family: var(--hand); font-size: 1.4rem; color: var(--accent); }
+#topicCards .big-card { border-top: 6px solid var(--c); background: color-mix(in srgb, var(--c) 10%, white); }
+
+/* ---- 과목 · 주제 페이지 ---- */
+.breadcrumb { font-family: var(--mono); font-size: .8rem; }
+.page-title { font-size: clamp(1.9rem, 4.5vw, 3rem); letter-spacing: -0.03em; }
+.lead { font-family: var(--hand); font-size: 1.4rem; color: var(--accent); }
+.toc { background: #FFFFFF; border: 1px solid var(--line); padding: 14px; box-shadow: 0 6px 16px rgba(29, 43, 79, .08); }
+.toc h4 { font-family: var(--hand); font-size: 1.3rem; color: var(--text); }
+.toc a { text-decoration: none; border-radius: 2px; }
+.toc a.on { background: var(--marker); color: var(--text); box-shadow: inset 4px 0 0 var(--text); }
+.toc a.on .n { color: var(--text); }
+
+/* ---- 시뮬레이션 페이지 ---- */
+.btn { border-radius: 4px; background: var(--text); color: #FFFFFF; font-weight: 700; padding: 10px 18px; min-height: 48px; text-decoration: none; }
+.btn.ghost { background: #FFFFFF; color: var(--text); border: 2px solid var(--text); }
+#dlBtn { background: var(--marker); color: var(--text); border: 2px solid var(--text); box-shadow: 3px 3px 0 var(--text); }
+.btn.small { min-height: 0; padding: 4px 10px; }
+.sim-frame { border: 2px solid var(--text); border-radius: 4px; }
+.panel { background: #FFFFFF; border: 1px solid var(--line); border-radius: 2px; }
+.panel h2 { font-family: var(--hand); font-size: 1.5rem; }
+.panel.full { background: #FFF9D6; }
+.notice { border: 2px dashed var(--text); border-radius: 4px; }
+
+/* ---- 관리 페이지 ---- */
+.admin-box, .item, .course-card, .savebar { background: #FFFFFF; border-color: var(--line) !important; border-radius: 4px !important; }
+.tab.on { border-bottom-color: var(--accent); }
+
+.site-footer { border-top: 2px solid var(--text); color: var(--muted); }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-art { display: none; }
+}
+@media (max-width: 760px) {
+  .logo { font-size: 1.4rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .menu-btn { flex: none; min-width: 44px; min-height: 44px; border-color: var(--text); }
+  .nav { background: var(--bg); border-bottom: 2px solid var(--text); }
+  .cards .sim-card:nth-child(n) { transform: none; }
+}

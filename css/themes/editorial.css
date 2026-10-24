@@ -1,0 +1,130 @@
+/* =========================================================
+   디자인 · 시안 02 에디토리얼 매거진
+   종이색 바탕, 명조 대제목, 가는 괘선과 차례 같은 목록을 씁니다.
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=Gothic+A1:wght@400;500;700&display=swap");
+
+:root, :root:root {
+  --bg: #F3EEE3;
+  --surface: #F8F4EA;
+  --surface-2: #EAE2D2;
+  --text: #1B1813;
+  --muted: #5C5446;
+  --line: #CDBFA5;
+  --accent: #B2301C;
+  --accent-soft: #F1DDD4;
+  --danger: #B2301C;
+  --ok: #2F6B3A;
+  --sim-bg: #1B1813;
+  --radius: 0px;
+  --shadow: none;
+  --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+}
+html { background: var(--bg); }
+body { font-family: "Gothic A1", "Noto Sans KR", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+a { color: var(--text); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+/* ---- 머리말: 잡지 제호 ---- */
+.site-header { background: var(--bg); border-bottom: 4px double var(--text); position: static; }
+.site-header .inner { height: auto; padding: 22px 16px 16px; flex-wrap: wrap; }
+.logo { font-family: var(--serif); font-weight: 900; font-size: clamp(1.5rem, 3.5vw, 2.2rem); letter-spacing: -0.03em; color: var(--text); text-decoration: none; }
+.logo span { color: var(--accent); }
+.nav-link { font-size: .95rem; border-radius: 0; }
+.nav-link:hover { background: transparent; text-decoration: underline; }
+.dropdown { border-radius: 0; border: 1px solid var(--text); box-shadow: 4px 4px 0 var(--line); background: var(--surface); }
+.dropdown a { border-radius: 0; text-decoration: none; }
+.dropdown a:hover { background: var(--surface-2); }
+.menu-btn { border-radius: 0; border-color: var(--text); background: transparent; }
+
+/* ---- 첫 화면: 특집 기사 ---- */
+.hero { padding: 48px 0 36px; border-bottom: 1px solid var(--text); display: grid; grid-template-columns: minmax(0, 1fr) 380px; column-gap: 48px; }
+.hero > *:not(.hero-art) { grid-column: 1; }
+.hero-art {
+  display: block; grid-column: 2; grid-row: 1 / span 4; min-height: 300px; background-color: #E6DCC8;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 380'%3E%3Crect y='150' width='500' height='230' fill='%232C4A5A'/%3E%3Cpath d='M0 150 L500 150 L500 190 C380 184 240 206 0 256 Z' fill='%23C8562F'/%3E%3Cpath d='M0 256 C240 206 380 184 500 190' stroke='%23F3EEE3' stroke-width='2' stroke-dasharray='6 6' fill='none'/%3E%3Cpath d='M400 112 L140 112' stroke='%231B1813' stroke-width='3'/%3E%3Cpath d='M152 102 L138 112 L152 122' stroke='%231B1813' stroke-width='3' fill='none'/%3E%3Ccircle cx='420' cy='60' r='26' fill='%231B1813'/%3E%3C/svg%3E");
+  background-size: cover; background-position: center;
+}
+.eyebrow { display: block; margin: 0 0 14px; font-size: .8rem; font-weight: 700; letter-spacing: .25em; color: var(--accent); }
+.hero h1 { font-family: var(--serif); font-weight: 900; font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.2; letter-spacing: -0.03em; margin: 0; }
+.hero .lead { font-family: var(--serif); font-size: 1.15rem; color: #3B352B; margin-top: 16px; }
+.search { max-width: none; margin-top: 30px; border: none; border-bottom: 2px solid var(--text); border-radius: 0; background: transparent; padding: 0 2px; }
+.search input { font-family: var(--serif); font-size: 1.25rem; padding: 12px 0; }
+.search:focus-within { border-color: var(--accent); }
+
+/* ---- 섹션 제목 ---- */
+.section-title {
+  font-family: var(--serif); font-weight: 900; font-size: clamp(1.5rem, 3vw, 2rem); border-left: none; padding: 14px 0 0;
+  margin: 48px 0 18px; border-top: 1px solid var(--text);
+}
+.unit-block .section-title, .with-toc .section-title { border-top: 3px solid var(--c, var(--text)); font-size: 1.5rem; }
+
+/* ---- 카드: 기사 목록 ---- */
+.cards { gap: 0 32px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.card { background: transparent; border: none; border-top: 1px solid var(--line); border-radius: 0; padding: 18px 0 26px; }
+a.card:hover, .sim-card.ready:hover { transform: none; box-shadow: none; }
+.sim-card.ready:hover h3, a.card:hover h3 { color: var(--accent); }
+.card .tag { color: var(--accent); letter-spacing: .06em; }
+.card h3 { font-family: var(--serif); font-weight: 700; font-size: 1.3rem; line-height: 1.4; }
+.card p { color: #3B352B; }
+.card-link { text-decoration: none; }
+.chip { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 0; }
+.card-dl { background: transparent; border: none; border-radius: 0; padding: 0; min-height: 36px; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.card-dl:hover { color: var(--accent); }
+
+/* 과목 = 차례 */
+#courseCards { grid-template-columns: 1fr; gap: 0; }
+#courseCards .big-card {
+  display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; column-gap: 18px; align-items: baseline;
+  padding: 18px 0; border-top: none; border-bottom: 1px solid var(--line); text-decoration: none;
+}
+#courseCards .big-card .no { display: block; grid-row: span 2; font-family: var(--serif); color: var(--accent); font-size: 1rem; }
+#courseCards .big-card h3 { font-size: 1.7rem; grid-column: 2; }
+#courseCards .big-card .units { grid-column: 2; flex-direction: row; flex-wrap: wrap; gap: 0 14px; color: var(--muted); font-size: .92rem; }
+#courseCards .big-card .count { grid-column: 3; grid-row: 1; color: var(--text); font-weight: 700; }
+#topicCards .big-card { border-top: 6px solid var(--c); padding-top: 16px; }
+#topicCards .big-card h3 { font-size: 1.7rem; font-weight: 900; }
+.big-card .count { color: var(--text); font-weight: 700; }
+
+/* ---- 과목 · 주제 페이지 ---- */
+.breadcrumb { letter-spacing: .06em; }
+.page-title { font-family: var(--serif); font-weight: 900; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.03em; }
+.lead { font-family: var(--serif); }
+.toc { border-top: 3px solid var(--text); padding-top: 12px; }
+.toc h4 { font-family: var(--serif); color: var(--text); font-size: 1rem; }
+.toc a { border-radius: 0; text-decoration: none; border-bottom: 1px solid var(--line); }
+.toc a.on { background: transparent; color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+
+/* ---- 시뮬레이션 페이지 ---- */
+.btn { border-radius: 0; background: var(--text); color: #F3EEE3; padding: 10px 18px; min-height: 46px; font-weight: 700; text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--text); }
+#dlBtn { background: var(--accent); color: #FFFFFF; border-color: var(--accent); }
+.btn.small { min-height: 0; padding: 4px 10px; }
+.sim-frame { border-radius: 0; border: 1px solid var(--text); }
+.info-grid { gap: 0 40px; }
+.panel { background: transparent; border: none; border-top: 3px solid var(--text); border-radius: 0; padding: 14px 0; }
+.panel h2 { font-family: var(--serif); font-weight: 900; font-size: 1.3rem; }
+.notice { border-radius: 0; border-color: var(--text); background: transparent; }
+
+/* ---- 관리 페이지 ---- */
+.admin-box, .item, .course-card, .savebar { background: var(--surface); border-radius: 0 !important; border-color: var(--line) !important; }
+dialog { background: var(--surface); color: var(--text); border-radius: 0; }
+.tab.on { border-bottom-color: var(--accent); }
+.pill { border-radius: 0; }
+
+.site-footer { border-top: 4px double var(--text); text-align: left; max-width: 1180px; margin: 40px auto 0; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-art { display: none; }
+}
+@media (max-width: 760px) {
+  .site-header .inner { flex-wrap: nowrap; padding: 14px 12px; }
+  .logo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .menu-btn { flex: none; min-width: 44px; min-height: 44px; }
+  .nav { top: 70px; background: var(--bg); border-bottom: 1px solid var(--text); }
+  .site-header { position: relative; }
+  #courseCards .big-card { grid-template-columns: 40px minmax(0, 1fr) auto; }
+  #courseCards .big-card h3 { font-size: 1.35rem; }
+  .toc a { background: transparent; border: 1px solid var(--line); }
+}

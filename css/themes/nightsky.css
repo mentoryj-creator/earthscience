@@ -75,7 +75,7 @@ h1, h2, h3, .page-title { color: var(--title); }
 /* ---- 카드 ---- */
 .cards { gap: 16px; }
 .card { background: var(--surface); border-color: var(--line); border-radius: 16px; padding: 22px; color: var(--text); }
-a.card:hover { border-color: #3a4b85; box-shadow: var(--shadow); }
+a.card:hover, .sim-card.ready:hover { border-color: #3a4b85; box-shadow: var(--shadow); }
 .card h3 { color: #ffffff; }
 .card p { color: var(--muted); }
 .card .tag { color: color-mix(in srgb, var(--c, var(--accent)) 45%, white); font-weight: 500; }

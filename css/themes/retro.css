@@ -1,0 +1,151 @@
+/* =========================================================
+   디자인 · 시안 10 레트로 OS
+   청록 바탕화면 위에 회색 입체 창, 파란 제목 표시줄, 각진 버튼.
+   ========================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Orbit&family=Gothic+A1:wght@400;700&display=swap");
+
+:root, :root:root {
+  --bg: #2F7F7A;
+  --surface: #D4D0C8;
+  --surface-2: #E4E1DA;
+  --text: #000000;
+  --muted: #333333;
+  --line: #808080;
+  --accent: #0A246A;
+  --accent-soft: #C9D3EE;
+  --danger: #C00000;
+  --ok: #006400;
+  --sim-bg: #10284A;
+  --radius: 0px;
+  --shadow: 2px 2px 0 #000000;
+  --pixel: "Orbit", "Gothic A1", sans-serif;
+  --bevel: #FFFFFF #404040 #404040 #FFFFFF;
+  --inset: #808080 #FFFFFF #FFFFFF #808080;
+}
+html { background: var(--bg); }
+body { font-family: "Gothic A1", "Noto Sans KR", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+a { color: #00007A; }
+a:hover { color: #C00000; }
+
+/* 공통: 입체 창 */
+.site-header .inner, .hero, .card, .toc, .panel, .notice, .sim-frame, .dropdown,
+.admin-box, .item, .course-card, .savebar {
+  background: var(--surface); border: 2px solid; border-color: var(--bevel); border-radius: 0; box-shadow: var(--shadow);
+}
+
+/* ---- 머리말: 메뉴 막대 ---- */
+.site-header { background: transparent; border-bottom: none; padding: 12px 16px 0; }
+.site-header .inner { height: 52px; padding: 0 6px; }
+.logo { font-family: var(--pixel); font-weight: 400; color: var(--text); display: flex; align-items: center; gap: 8px; padding: 4px 10px; border: 2px solid; border-color: var(--bevel); }
+.logo::before { content: "◆"; color: var(--accent); }
+.logo span { color: inherit; }
+.nav-link { font-family: var(--pixel); color: var(--text); border-radius: 0; padding: 6px 12px; }
+.nav-link:hover { background: var(--accent); color: #FFFFFF; }
+.nav-link.disabled { color: var(--line); text-shadow: 1px 1px 0 #FFFFFF; }
+.dropdown { padding: 2px; top: calc(100% + 2px); }
+.dropdown a { font-family: var(--pixel); border-radius: 0; color: var(--text); }
+.dropdown a:hover { background: var(--accent); color: #FFFFFF; }
+.dropdown a:hover small { color: #FFFFFF; }
+.menu-btn { border: 2px solid; border-color: var(--bevel); border-radius: 0; background: var(--surface); font-family: var(--pixel); }
+
+/* ---- 첫 화면: 프로그램 창 ---- */
+.hero { margin-top: 12px; padding: 48px 32px 32px; }
+.hero::before {
+  content: "지구과학 시뮬레이션 실험실.exe"; position: absolute; left: 0; right: 0; top: 0; height: 30px; padding: 0 10px;
+  display: flex; align-items: center; background: var(--accent); color: #FFFFFF; font-family: var(--pixel); font-size: .9rem;
+}
+.hero::after {
+  content: "_  □  ×"; position: absolute; right: 8px; top: 5px; font-family: var(--pixel); font-size: .8rem; color: #000000;
+  background: var(--surface); padding: 0 6px; border: 2px solid; border-color: var(--bevel); line-height: 1.2;
+}
+.eyebrow { display: block; margin: 0 0 10px; font-family: var(--pixel); font-size: .85rem; color: var(--muted); }
+.hero h1 { font-family: var(--pixel); font-weight: 400; font-size: clamp(1.9rem, 5vw, 3.4rem); line-height: 1.2; margin: 0; }
+.hero .lead { color: #000000; margin-top: 12px; }
+.search { max-width: 620px; margin-top: 22px; background: #FFFFFF; border: 2px solid; border-color: var(--inset); border-radius: 0; padding: 0 10px; }
+.search svg { color: #000000; }
+.search::before { content: "찾을 내용:"; font-family: var(--pixel); white-space: nowrap; margin-right: 4px; }
+.search:focus-within { outline: 1px dotted #000000; outline-offset: 2px; }
+
+/* ---- 섹션 제목: 바탕화면 글자 ---- */
+.section-title { border-left: none; padding-left: 0; font-family: var(--pixel); font-weight: 400; color: #FFFFFF; font-size: 1.3rem; text-shadow: 1px 1px 0 #000000; margin: 44px 0 14px; }
+.section-title::before { content: "▣ "; }
+.unit-block .section-title, .with-toc .section-title { color: #FFFFFF; }
+
+/* ---- 카드: 작은 창, 태그가 제목 표시줄 ---- */
+.cards { gap: 20px; }
+.card { padding: 0 14px 14px; gap: 8px; color: var(--text); }
+a.card:hover, .sim-card.ready:hover { transform: none; box-shadow: 4px 4px 0 #000000; }
+.card .tag {
+  margin: 0 -14px 4px; padding: 4px 10px; font-family: var(--pixel); font-weight: 400; font-size: .8rem; color: #FFFFFF;
+  background: color-mix(in srgb, var(--c, var(--accent)) 70%, #0A246A);
+}
+.sim-card.ready:hover .tag { background: var(--accent); }
+.card h3 { font-size: 1.05rem; }
+.card p { color: var(--muted); }
+.card.soon { opacity: .75; }
+.card.soon .tag { background: var(--line); }
+.chip { background: #FFFFFF; color: #000000; border-radius: 0; border: 1px solid var(--line); }
+.card-dl { border: 2px solid; border-color: var(--bevel); border-radius: 0; background: var(--surface); color: #000000; font-family: var(--pixel); font-weight: 400; min-height: 44px; }
+.card-dl:hover { color: #000000; border-color: var(--bevel); background: var(--surface-2); }
+.card-dl:active { border-color: var(--inset); }
+.big-card { padding: 0 16px 16px; min-height: 180px; }
+.big-card .no { display: block; margin: 0 -16px 8px; padding: 4px 10px; background: var(--accent); color: #FFFFFF; font-family: var(--pixel); font-size: .8rem; }
+.big-card .no::after { content: " — 과목 폴더"; }
+.big-card h3 { font-family: var(--pixel); font-weight: 400; font-size: 1.35rem; }
+.big-card .count { margin-top: auto; font-family: var(--pixel); }
+#topicCards .big-card::before { content: ""; display: block; margin: 0 -16px 8px; height: 26px; background: color-mix(in srgb, var(--c) 70%, #000000); }
+
+/* ---- 과목 · 주제 페이지 ---- */
+.breadcrumb { color: #FFFFFF; }
+.breadcrumb a { color: #FFFFFF; text-decoration: underline; }
+.page-title { font-family: var(--pixel); font-weight: 400; color: #FFFFFF; text-shadow: 2px 2px 0 #000000; font-size: clamp(1.9rem, 4.5vw, 3rem); }
+.lead { color: #E8F4F3; }
+.toc { padding: 0 6px 6px; }
+.toc h4 { margin: 0 -6px 6px; padding: 4px 10px; background: var(--accent); color: #FFFFFF; font-family: var(--pixel); font-weight: 400; }
+.toc a { border-radius: 0; color: #000000; }
+.toc a:hover { background: var(--accent); color: #FFFFFF; }
+.toc a.on { background: var(--accent); color: #FFFFFF; box-shadow: none; }
+.toc a.on .n { color: #FFFFFF; }
+.empty { color: #FFFFFF; }
+.sim-head .chips .chip { background: var(--surface); }
+
+/* ---- 시뮬레이션 페이지 ---- */
+.btn { font-family: var(--pixel); border: 2px solid; border-color: var(--bevel); border-radius: 0; background: var(--surface); color: #000000; padding: 8px 16px; min-height: 46px; box-shadow: 1px 1px 0 #000000; }
+.btn:hover { filter: none; background: var(--surface-2); }
+.btn:active { border-color: var(--inset); }
+.btn.ghost { background: var(--surface); color: #000000; border: 2px solid; border-color: var(--bevel); }
+#dlBtn { font-weight: 700; outline: 1px dotted #000000; outline-offset: -6px; }
+.btn.danger { color: #C00000; }
+.btn.small { min-height: 0; padding: 2px 10px; }
+.sim-frame { padding: 30px 6px 6px; }
+.sim-frame::before { content: "시뮬레이션"; position: absolute; left: 0; right: 0; top: 0; height: 26px; padding: 0 10px; display: flex; align-items: center; background: var(--accent); color: #FFFFFF; font-family: var(--pixel); font-size: .85rem; }
+.sim-frame iframe { border: 2px solid; border-color: var(--inset); }
+.sim-frame:fullscreen { padding: 0; }
+.sim-frame:fullscreen::before { display: none; }
+.panel { padding: 0 16px 14px; }
+.panel h2 { margin: 0 -16px 10px; padding: 4px 10px; background: var(--accent); color: #FFFFFF; font-family: var(--pixel); font-weight: 400; font-size: .92rem; }
+.notice { color: #000000; }
+
+/* ---- 관리 페이지 ---- */
+dialog { background: var(--surface); border: 2px solid; border-color: var(--bevel); border-radius: 0; }
+input, select, textarea { background-color: #FFFFFF; border-radius: 0 !important; }
+.tab { color: #FFFFFF; }
+.tab.on { color: #000000; background: var(--surface); border-bottom-color: var(--accent); }
+.pill { border-radius: 0; background: #FFFFFF; color: #000000; }
+.admin-box h2, .hint { color: #000000; }
+
+/* ---- 바닥글: 작업 표시줄 ---- */
+.site-footer { background: var(--surface); border-top: 2px solid #FFFFFF; color: #000000; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.site-footer::before { content: "◆ 시작"; font-family: var(--pixel); font-weight: 700; padding: 2px 10px; border: 2px solid; border-color: var(--bevel); }
+.site-footer a { color: #00007A; }
+
+@media (max-width: 760px) {
+  .site-header { padding: 8px 8px 0; }
+  .logo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .menu-btn { flex: none; min-width: 44px; min-height: 44px; }
+  .nav { top: 66px; left: 8px; right: 8px; background: var(--surface); border: 2px solid; border-color: var(--bevel); box-shadow: var(--shadow); }
+  .dropdown { border: none; box-shadow: none; }
+  .hero { padding: 44px 18px 22px; }
+  .search::before { display: none; }
+  .toc a { background: var(--surface); border: 2px solid; border-color: var(--bevel); }
+}

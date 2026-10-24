@@ -53,7 +53,7 @@ body { background: var(--bg); color: var(--text); }
 
 /* ---- 카드 ---- */
 .card { border-radius: 4px; border-color: var(--line); background: var(--surface); }
-a.card:hover { transform: none; box-shadow: none; border-color: var(--text); background: #fff; }
+a.card:hover, .sim-card.ready:hover { transform: none; box-shadow: none; border-color: var(--text); background: #fff; }
 .card .tag { color: var(--c, var(--accent)); }
 .big-card { border-top: 1px solid var(--line); border-left: 6px solid var(--c, var(--accent)); }
 #courseCards .big-card:nth-child(5n+1) { --c: #4f7a5a; }

@@ -42,7 +42,7 @@ a { color: var(--accent); }
 /* ---- 섹션과 카드 ---- */
 .section-title { font-weight: 600; border-left-width: 3px; border-left-color: var(--c, var(--accent)); }
 .card { background: var(--surface); border-color: var(--line); }
-a.card:hover { border-color: color-mix(in srgb, var(--c, var(--accent)) 70%, white); box-shadow: var(--shadow); }
+a.card:hover, .sim-card.ready:hover { border-color: color-mix(in srgb, var(--c, var(--accent)) 70%, white); box-shadow: var(--shadow); }
 .card .tag { color: color-mix(in srgb, var(--c, var(--accent)) 45%, white); }
 .big-card { border-top-width: 3px; border-top-color: var(--c, var(--accent)); }
 .card.soon { background: transparent; }
