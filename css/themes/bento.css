@@ -122,3 +122,8 @@ a.card:hover, .sim-card.ready:hover { transform: translateY(-3px); box-shadow: v
   .menu-btn { flex: none; min-width: 44px; min-height: 44px; }
   .toc a { background: #FFFFFF; border: none; }
 }
+
+.new-badge { background: var(--orange); color: #111214; }
+.zip-btn { border: none; border-radius: 14px; background: #FFFFFF; min-height: 44px; }
+.zip-btn:hover { background: var(--accent); color: #FFFFFF; }
+.qr-dlg { border-radius: 28px; }

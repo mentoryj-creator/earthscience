@@ -149,3 +149,16 @@ input, select, textarea { background-color: #FFFFFF; border-radius: 0 !important
   .search::before { display: none; }
   .toc a { background: var(--surface); border: 2px solid; border-color: var(--bevel); }
 }
+
+/* 썸네일 · NEW · ZIP · QR */
+.sim-card .tag { order: -2; }
+.sim-card .thumb { order: -1; border-radius: 0; border: 2px solid; border-color: var(--inset); }
+.new-badge { border-radius: 0; background: #FFFF00; color: #000000; }
+.zip-btn { font-family: var(--pixel); font-weight: 400; border: 2px solid; border-color: var(--bevel); border-radius: 0; background: var(--surface); color: #000000; box-shadow: 1px 1px 0 #000000; min-height: 44px; }
+.zip-btn:hover { color: #000000; border-color: var(--bevel); background: var(--surface-2); }
+.qr-dlg { border: 2px solid; border-color: var(--bevel); border-radius: 0; background: var(--surface); }
+.qr-box { padding-top: 44px; position: relative; }
+.qr-box::before { content: "QR 코드"; position: absolute; left: 0; right: 0; top: 0; height: 28px; padding: 0 10px; display: flex; align-items: center; background: var(--accent); color: #FFFFFF; font-family: var(--pixel); font-size: .9rem; }
+.qr-box h2 { font-family: var(--pixel); font-weight: 400; }
+.sim-meta { color: #FFFFFF; }
+.sim-meta a { color: #FFFF66; }

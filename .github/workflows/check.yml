@@ -1,0 +1,62 @@
+# 사이트 자동 점검 + 썸네일 만들기
+# - 시뮬레이션 파일이나 목록(sims.js)이 바뀌어 올라올 때마다, 그리고 매주 월요일 아침에 실행합니다.
+# - 오류가 있으면 실패로 표시되고 GitHub가 메일로 알려 줍니다. 자세한 내용은 Actions 탭 → 실행 기록 → Summary.
+# - 바뀐 시뮬레이션만 썸네일을 다시 찍어 thumbs/ 와 data/thumbs.js, 점검 결과 data/health.json 을 저장소에 올립니다.
+name: 사이트 점검 · 썸네일
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sims/**'
+      - 'data/sims.js'
+      - 'tools/**'
+      - '.github/workflows/check.yml'
+  schedule:
+    - cron: '0 21 * * 0'   # 매주 월요일 06:00 (한국 시간)
+  workflow_dispatch:        # Actions 탭에서 [Run workflow]로 직접 실행
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 브라우저 준비
+        run: |
+          pip install playwright==1.48.0
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk >/dev/null
+
+      - name: 점검 + 썸네일
+        id: check
+        continue-on-error: true
+        run: python tools/check_site.py --thumbs
+
+      - name: 썸네일 · 점검 결과 올리기
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add thumbs data/thumbs.js data/health.json
+          if git diff --cached --quiet; then echo "바뀐 것 없음"; exit 0; fi
+          git commit -m "자동 점검: 썸네일 · 점검 결과 갱신"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+
+      - name: 오류가 있으면 실패로 표시
+        if: steps.check.outcome == 'failure'
+        run: |
+          echo "점검에서 오류가 발견되었습니다. 위 Summary 또는 관리 페이지 → 통계 탭에서 확인하세요."
+          exit 1

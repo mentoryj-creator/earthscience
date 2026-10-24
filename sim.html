@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script src="data/sims.js"></script>
+  <script src="data/thumbs.js"></script>
   <script src="js/site.js"></script>
 </head>
 <body>
@@ -51,12 +52,17 @@ if (!sim) {
       ${ready ? `<div class="sim-tools">
         <button class="btn" id="fsBtn">⛶ 수업 모드</button>
         <a class="btn ghost" href="${url.file(sim.file)}" target="_blank">새 창으로 ↗</a>
+        <button class="btn ghost" id="qrBtn" title="학생들이 휴대폰으로 바로 열 수 있게 QR 코드를 크게 띄웁니다">QR 코드</button>
         <button class="btn ghost" id="dlBtn" title="HTML 파일 하나로 저장되어 인터넷 없이도 열립니다">↓ HTML 다운로드</button>
       </div>` : ''}
     </div>
     ${ready ? `<div class="sim-frame" id="frameBox"><iframe id="frame" src="${url.file(sim.file)}" title="${esc(sim.title)}" allow="fullscreen"></iframe><button class="fs-exit" id="fsExit">✕ 수업 모드 끝내기 (Esc)</button></div>`
             : '<div class="notice">이 시뮬레이션은 준비 중입니다.</div>'}
     ${panels ? `<div class="info-grid">${panels}</div>` : ''}
+    <div class="sim-meta">
+      ${sim.added ? `<span>추가 ${esc(sim.added)}</span>` : ''}${sim.updated && sim.updated !== sim.added ? `<span>수정 ${esc(sim.updated)}</span>` : ''}
+      <a class="report-link" href="${App.feedbackUrl(sim)}" target="_blank" rel="noopener">이상한 점 알려 주기 ↗</a>
+    </div>
     ${related.length ? `<h2 class="section-title" style="--c:${t.color}">함께 보면 좋은 시뮬레이션</h2>
       <div class="cards">${related.map(s => card(s)).join('')}</div>` : ''}`;
 
@@ -86,6 +92,10 @@ function setupFrame() {
       measure(); new ResizeObserver(measure).observe(body);
     } catch (err) { /* 재지 못하면 기본 높이(600px) 유지 */ }
   });
+
+  // QR 코드 (지금 페이지 주소 그대로 — 도메인이 바뀌어도 그 주소로 만들어짐)
+  document.getElementById('qrBtn').onclick = () =>
+    App.showQr(location.origin + location.pathname + '?id=' + encodeURIComponent(sim.id), sim.title).catch(e => alert(e.message));
 
   // HTML 다운로드
   const dl = document.getElementById('dlBtn');

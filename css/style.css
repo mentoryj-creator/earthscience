@@ -235,3 +235,35 @@ a.card:hover, .sim-card.ready:hover { text-decoration: none; transform: translat
   padding: 24px 16px; border-top: 1px solid var(--line);
 }
 .site-footer a { color: var(--muted); }
+
+/* ---------- 썸네일 · NEW · 단원 ZIP · QR · 오류 신고 ---------- */
+.sim-card .thumb {
+  order: -1; display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top center;
+  border-radius: calc(var(--radius) * .6); background: var(--sim-bg); margin-bottom: 8px;
+}
+.new-badge {
+  display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; font-size: .7rem; font-weight: 800;
+  letter-spacing: .04em; background: var(--danger); color: #fff; vertical-align: 1px;
+}
+.section-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.section-head .section-title { margin-bottom: 14px; }
+.unit-block .section-head .section-title { margin-bottom: 14px; }
+.zip-btn {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; margin-bottom: 14px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font-size: .86rem; font-weight: 700;
+}
+.zip-btn:hover { border-color: var(--accent); color: var(--accent); }
+.zip-btn:disabled { opacity: .7; cursor: progress; }
+.sim-tools { flex-wrap: wrap; }
+.sim-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-top: 20px; font-size: .86rem; color: var(--muted); }
+.report-link { margin-left: auto; font-weight: 700; }
+.site-footer .fb { font-weight: 700; }
+.qr-dlg { border: none; padding: 0; border-radius: var(--radius); background: var(--surface); color: var(--text); max-width: min(560px, 94vw); box-shadow: var(--shadow); }
+.qr-dlg::backdrop { background: rgba(0, 0, 0, .6); }
+.qr-box { padding: 28px; text-align: center; }
+.qr-box h2 { margin: 0 0 16px; font-size: 1.4rem; }
+.qr-img { width: min(420px, 78vw); margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; }
+.qr-img svg { display: block; width: 100%; height: auto; }
+.qr-url { margin: 14px 0 2px; font-weight: 700; word-break: break-all; }
+.qr-help { margin: 0; color: var(--muted); font-size: .9rem; }
+.qr-btns { display: flex; justify-content: center; gap: 8px; margin-top: 18px; }

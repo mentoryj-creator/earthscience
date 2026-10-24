@@ -185,3 +185,14 @@ dialog { background: #FFFFFF; color: #000000; border: 3px solid #000000; border-
   .toc { box-shadow: none; }
   .toc a { background: #FFFFFF; border: 2px solid #000000; }
 }
+
+/* 썸네일 · NEW · ZIP · QR */
+.sim-card .thumb { border: 3px solid #000000; border-radius: 0; }
+.new-badge { background: var(--pink); color: #000000; border: 2px solid #000000; border-radius: 0; }
+.zip-btn { border: 3px solid #000000; border-radius: 0; background: #FFFFFF; color: #000000; font-weight: 800; box-shadow: 4px 4px 0 #000000; min-height: 44px; }
+.zip-btn:hover { background: var(--yellow); color: #000000; border-color: #000000; }
+.unit-block .section-head .section-title { margin-bottom: 18px; }
+.qr-dlg { border: 3px solid #000000; border-radius: 0; box-shadow: 10px 10px 0 #000000; }
+.qr-box h2 { font-family: var(--display); font-weight: 400; font-size: 1.8rem; }
+.qr-img { border: 3px solid #000000; border-radius: 0; }
+.sim-meta { color: #000000; font-weight: 700; }

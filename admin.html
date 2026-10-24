@@ -50,6 +50,12 @@
     .theme-opt small { color: var(--muted); font-size: .8rem; }
     .theme-opt .btn { align-self: flex-start; }
     .theme-old { margin-top: 12px; }
+    .badge.new { background: var(--danger); color: #fff; }
+    ul.health { margin: 6px 0 0; padding-left: 1.2em; font-size: .92rem; }
+    ul.health li { margin: 6px 0; }
+    ul.health li.err { color: var(--danger); }
+    ul.health li.err b { color: inherit; }
+    .item.hist .meta code { font-size: .8rem; }
     .theme-old summary { cursor: pointer; color: var(--muted); font-size: .9rem; margin-bottom: 10px; }
     .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
     details { margin-top: 12px; font-size: .9rem; }
@@ -165,18 +171,36 @@
     </details>
   </section>
 
+  <!-- ===== 오류 신고 받을 곳 ===== -->
+  <section class="admin-box">
+    <h2>오류 신고 받을 곳</h2>
+    <label class="field">신고 주소 (비워 두면 GitHub 이슈 쓰기 화면으로 연결)
+      <input id="fbUrl" placeholder="예: https://forms.gle/… 또는 https://docs.google.com/forms/d/e/…/viewform?entry.123={title}">
+    </label>
+    <p class="hint" style="margin:6px 0 0">시뮬레이션 페이지의 [이상한 점 알려 주기]와 바닥글의 [의견 · 오류 보내기]가 이 주소로 갑니다.
+      주소 안에 <code>{title}</code> <code>{id}</code> <code>{url}</code>을 넣으면 시뮬레이션 제목·id·주소로 바뀌어,
+      구글 폼의 "미리 채워진 링크"와 함께 쓰면 어떤 시뮬레이션인지 자동으로 적힙니다.
+      GitHub 이슈는 GitHub 계정이 있어야 쓸 수 있으니, 다른 선생님·학생에게도 받으려면 구글 폼을 권합니다.
+      <a href="#" id="fbTest">지금 설정으로 열어 보기 ↗</a></p>
+  </section>
+
   <!-- ===== 탭 ===== -->
   <div class="tabs">
     <button class="tab on" data-tab="sims">시뮬레이션</button>
     <button class="tab" data-tab="courses">과목 · 단원</button>
     <button class="tab" data-tab="topics">주제</button>
-    <button class="tab" data-tab="stats">통계</button>
+    <button class="tab" data-tab="stats">통계 · 점검</button>
+    <button class="tab" data-tab="history">저장 기록</button>
   </div>
 
   <section id="tab-sims">
     <div class="row-btns">
       <button class="btn" id="addSim">+ 새 시뮬레이션</button>
       <select class="inline-input" id="simFilter"></select>
+      <select class="inline-input" id="simSort" aria-label="정렬">
+        <option value="">목록 순서 (주제별)</option><option value="added">최근 추가 순</option>
+        <option value="updated">최근 수정 순</option><option value="title">제목 순</option>
+      </select>
     </div>
     <details>
       <summary>Claude에게 새 시뮬레이션을 부탁할 때 붙여 넣을 문구</summary>
@@ -199,6 +223,11 @@
   </section>
 
   <section id="tab-stats" hidden>
+    <div class="admin-box" id="healthBox"><h2>자동 점검 <span class="pill" id="healthStatus">불러오는 중</span></h2>
+      <div id="healthBody"></div>
+      <p class="hint">저장소에 시뮬레이션이나 목록이 올라올 때마다, 그리고 매주 월요일 아침에 GitHub가 모든 시뮬레이션을 열어 보고
+        깨진 파일·스크립트 오류·빠진 연결을 찾습니다(썸네일도 이때 만들어요). 오류가 있으면 GitHub 계정 메일로도 알림이 갑니다.
+        <a href="https://github.com/mentoryj-creator/earthscience/actions" target="_blank" rel="noopener">GitHub에서 점검 기록 보기 ↗</a></p></div>
     <div class="stat-cards" id="statCards"></div>
     <div class="admin-box"><h2>방문 · 열람 수 <span class="pill" id="gcStatus">GoatCounter</span></h2>
       <div class="row-btns" style="margin-top:0"><button class="btn small" id="gcLoad">숫자 불러오기</button>
@@ -209,6 +238,15 @@
     <div class="admin-box"><h2>과목 · 단원별</h2><div id="statCourses"></div></div>
     <div class="admin-box"><h2>주제별</h2><div id="statTopics"></div></div>
     <p class="hint">공개 = 사이트에 보이는 시뮬레이션, 준비 중 = 목록에는 있지만 아직 공개하지 않은 것. 한 시뮬레이션이 여러 단원에 연결되면 단원마다 한 번씩 셉니다.</p>
+  </section>
+
+  <section id="tab-history" hidden>
+    <div class="admin-box"><h2>목록(sims.js) 저장 기록 <span class="pill" id="histStatus"></span></h2>
+      <p class="hint" style="margin:0 0 10px">관리 페이지나 GitHub에서 목록을 저장할 때마다 기록이 남습니다.
+        [이 버전 불러오기]를 누르면 그때의 목록이 편집 화면에 들어오고, 확인한 뒤 [GitHub에 저장]을 눌러야 실제로 되돌아갑니다.
+        시뮬레이션 파일 자체는 지워지지 않습니다.</p>
+      <div id="histList"></div>
+    </div>
   </section>
 
   <!-- ===== 저장 막대 ===== -->
@@ -290,8 +328,9 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 // ---------- 탭 ----------
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
-  ['sims', 'courses', 'topics', 'stats'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
-  if (b.dataset.tab === 'stats') renderStats();
+  ['sims', 'courses', 'topics', 'stats', 'history'].forEach(t => $('tab-' + t).hidden = t !== b.dataset.tab);
+  if (b.dataset.tab === 'stats') { renderStats(); loadHealth(); }
+  if (b.dataset.tab === 'history') loadHistory();
 });
 
 // =====================================================================
@@ -308,13 +347,23 @@ function renderFilter() {
   f.value = cur;
 }
 $('simFilter').onchange = renderSims;
+$('simSort').onchange = renderSims;
 
 function renderSims() {
-  const f = $('simFilter').value;
+  const f = $('simFilter').value, sort = $('simSort').value;
   const pass = s => !f || (f.startsWith('t:') ? s.topic === f.slice(2) : (s.links || []).some(l => l.course === f.slice(2)));
-  const groups = data.topics.map(t => ({ t, list: data.sims.filter(s => s.topic === t.id && pass(s)) }));
-  const orphan = data.sims.filter(s => !topicOf(s.topic) && pass(s));
-  if (orphan.length) groups.push({ t: { name: '주제 없음' }, list: orphan });
+  let groups;
+  if (sort) {
+    // 정렬해서 볼 때는 주제로 묶지 않고 한 줄로 (순서 바꾸기 ▲▼는 '목록 순서'에서만)
+    let list = data.sims.filter(pass);
+    if (sort === 'title') list = [...list].sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+    else list = list.map((s, i) => [s, i]).sort((a, b) => String(b[0][sort] || '').localeCompare(String(a[0][sort] || '')) || b[1] - a[1]).map(x => x[0]);
+    groups = [{ t: { name: { added: '최근 추가 순', updated: '최근 수정 순', title: '제목 순' }[sort] }, list }];
+  } else {
+    groups = data.topics.map(t => ({ t, list: data.sims.filter(s => s.topic === t.id && pass(s)) }));
+    const orphan = data.sims.filter(s => !topicOf(s.topic) && pass(s));
+    if (orphan.length) groups.push({ t: { name: '주제 없음' }, list: orphan });
+  }
 
   $('simList').innerHTML = groups.filter(g => g.list.length).map(g =>
     `<div class="group-title">${esc(g.t.name)}</div>` + g.list.map(s => {
@@ -325,13 +374,14 @@ function renderSims() {
       }).join('');
       return `<div class="item">
         <div>
-          <div class="t">${esc(s.title)}<span class="badge ${s.status}">${s.status === 'ready' ? '공개' : '준비 중'}</span></div>
+          <div class="t">${esc(s.title)}<span class="badge ${s.status}">${s.status === 'ready' ? '공개' : '준비 중'}</span>${App.isNew(s) ? '<span class="badge new">NEW</span>' : ''}</div>
           <div class="meta">${esc(s.sub || '')}${s.file ? ' · ' + esc(s.file) : ' · 파일 없음'}${pending[s.file] ? ' (저장 시 업로드)' : ''}</div>
+          <div class="meta">${s.added ? '추가 ' + esc(s.added) : '추가일 없음'}${s.updated && s.updated !== s.added ? ' · 수정 ' + esc(s.updated) : ''}</div>
           <div class="chips">${chips || '<span class="hint">연결된 과목 없음</span>'}</div>
         </div>
         <div class="btns">
-          <button class="btn ghost small" onclick="moveSim(${i},-1)" title="앞으로">▲</button>
-          <button class="btn ghost small" onclick="moveSim(${i},1)" title="뒤로">▼</button>
+          ${sort ? '' : `<button class="btn ghost small" onclick="moveSim(${i},-1)" title="앞으로">▲</button>
+          <button class="btn ghost small" onclick="moveSim(${i},1)" title="뒤로">▼</button>`}
           <button class="btn ghost small" onclick="openEditor(${i})">수정</button>
           <button class="btn danger small" onclick="deleteSim(${i})">삭제</button>
         </div></div>`;
@@ -403,16 +453,21 @@ $('simForm').addEventListener('submit', e => {
   if (!title) { e.preventDefault(); $('fTitle').focus(); return; }
   const file = $('fFile').value.trim();
   const s = editing || {};
+  const before = JSON.stringify(s);
   Object.assign(s, {
     title, desc: $('fDesc').value.trim(), topic: $('fTopic').value, sub: $('fSub').value,
     status: $('fStatus').value, height: Number($('fHeight').value) || 0, file,
     links: [...$('fLinks').querySelectorAll('select')].filter(x => x.value).map(x => ({ course: x.dataset.course, unit: x.value })),
     howto: $('fHowto').value.trim(), concept: $('fConcept').value.trim(), inquiry: $('fInquiry').value.trim(),
   });
+  // 날짜 자동 기록: 새로 만들면 추가일, 내용이나 파일이 바뀌면 수정일
   if (!editing) {
     let id = (file.split('/').pop() || '').replace(/\.html?$/, '') || 'sim-' + Date.now().toString(36);
     while (data.sims.some(x => x.id === id)) id += '-2';
-    s.id = id; data.sims.push(s);
+    s.id = id; s.added = s.updated = App.today(); data.sims.push(s);
+  } else if (JSON.stringify(s) !== before || chosenFile) {
+    s.updated = App.today();
+    if (!s.added) s.added = s.updated;
   }
   if (chosenFile && file) pending[file] = chosenFile;
   chosenFile = null; markDirty(); renderSims();
@@ -602,6 +657,9 @@ $('save').onclick = async () => {
     const seg = location.pathname.split('/')[1];
     $('ghOwner').value = owner;
     $('ghRepo').value = seg && !seg.endsWith('.html') ? seg : location.hostname;
+  } else {
+    // 내 도메인으로 옮긴 뒤에도 저장소 이름을 미리 채워 둠
+    $('ghOwner').value = 'mentoryj-creator'; $('ghRepo').value = 'earthscience';
   }
 })();
 
@@ -689,7 +747,7 @@ function renderStats() {
 }
 
 // ---- GoatCounter 숫자 (공개 카운터 주소, 토큰 필요 없음) ----
-let gcViews = null;
+let gcViews = null, gcDl = null;
 async function gcCount(path) {
   try { const r = await fetch(App.GC + '/counter/' + encodeURIComponent(path) + '.json'); if (!r.ok) return 0;
         const j = await r.json(); return +String(j.count || '0').replace(/[^0-9]/g, '') || 0; } catch (e) { return 0; }
@@ -697,26 +755,102 @@ async function gcCount(path) {
 $('gcLoad').onclick = async () => {
   const b = $('gcLoad'); b.disabled = true; const st = $('gcStatus');
   const ids = data.sims.filter(x => x.status === 'ready').map(x => x.id);
-  const views = {}; let done = 0;
+  const views = {}, dls = {}; let done = 0;
   const total = await gcCount('TOTAL');
-  async function worker() { while (ids.length) { const id = ids.shift(); views[id] = await gcCount('/sim/' + id); st.textContent = '불러오는 중 ' + (++done); } }
+  // 다운로드는 이벤트로 기록 ('download/<id>'). 초기 버전에서 '/download/<id>'로 남은 것도 함께 셈
+  async function worker() { while (ids.length) { const id = ids.shift();
+    const [v, d1, d2] = await Promise.all([gcCount('/sim/' + id), gcCount('download/' + id), gcCount('/download/' + id)]);
+    views[id] = v; dls[id] = d1 + d2; st.textContent = '불러오는 중 ' + (++done); } }
   await Promise.all([worker(), worker(), worker(), worker()]);
-  gcViews = views; st.textContent = '불러옴'; st.className = 'pill ok'; b.disabled = false; renderGc(total);
+  gcViews = views; gcDl = dls; st.textContent = '불러옴'; st.className = 'pill ok'; b.disabled = false; renderGc(total);
 };
 function renderGc(total) {
   if (!gcViews) return;
   const sum = Object.values(gcViews).reduce((a, b) => a + b, 0);
   const card = (n, l) => `<div class="stat"><div class="n">${n.toLocaleString()}</div><div class="l">${l}</div></div>`;
+  const dlSum = Object.values(gcDl || {}).reduce((a, b) => a + b, 0);
   if (total != null) $('gcCards').innerHTML = card(total, '사이트 전체 방문') + card(sum, '시뮬레이션 열람 합계') +
-    card(Object.values(gcViews).filter(v => v > 0).length, '한 번 이상 열린 시뮬레이션');
-  const top = data.sims.filter(x => gcViews[x.id] != null).sort((a, b) => gcViews[b.id] - gcViews[a.id]).slice(0, 20);
-  const max = Math.max(1, ...top.map(x => gcViews[x.id]));
-  $('gcTop').innerHTML = '<div class="stat-row head"><span>많이 열어 본 시뮬레이션 (상위 20)</span><b>열람</b><span></span><span></span></div>' +
-    top.map((x, i) => `<div class="stat-row"><span>${i + 1}. ${esc(x.title)}</span><b>${gcViews[x.id].toLocaleString()}</b><span></span><span class="sbar"><i style="width:${Math.round(gcViews[x.id] / max * 100)}%"></i></span></div>`).join('');
+    card(dlSum, 'HTML 다운로드 합계') + card(Object.values(gcViews).filter(v => v > 0).length, '한 번 이상 열린 시뮬레이션');
+  const table = (title, src, unit) => {
+    const top = data.sims.filter(x => src[x.id]).sort((a, b) => src[b.id] - src[a.id]).slice(0, 20);
+    const max = Math.max(1, ...top.map(x => src[x.id]));
+    return `<div class="stat-row head"><span>${title}</span><b>${unit}</b><span></span><span></span></div>` +
+      (top.map((x, i) => `<div class="stat-row"><span>${i + 1}. ${esc(x.title)}</span><b>${src[x.id].toLocaleString()}</b><span></span><span class="sbar"><i style="width:${Math.round(src[x.id] / max * 100)}%"></i></span></div>`).join('') || '<p class="hint">아직 기록이 없습니다.</p>');
+  };
+  $('gcTop').innerHTML = table('많이 열어 본 시뮬레이션 (상위 20)', gcViews, '열람') +
+    '<div style="height:18px"></div>' + table('많이 내려받은 시뮬레이션 (상위 20)', gcDl || {}, '받기');
   renderStats();
 }
 
-function renderAll() { renderTheme(); renderFilter(); renderSims(); renderCourses(); renderTopics(); if (!$('tab-stats').hidden) renderStats(); }
+// ---- 오류 신고 받을 곳 ----
+$('fbUrl').oninput = () => { data.feedback = $('fbUrl').value.trim(); markDirty(); };
+$('fbTest').onclick = e => {
+  e.preventDefault();
+  App.S.feedback = data.feedback || '';
+  window.open(App.feedbackUrl(data.sims.find(x => x.status === 'ready')), '_blank', 'noopener');
+};
+
+// =====================================================================
+//  자동 점검 결과 (data/health.json — GitHub Actions가 만듦)
+// =====================================================================
+async function loadHealth() {
+  const st = $('healthStatus'), body = $('healthBody');
+  let h = null;
+  try {
+    if (gh.ok) { const f = await getFile('data/health.json'); if (f) h = JSON.parse(fromB64(f.content)); }
+    if (!h) { const r = await fetch('data/health.json?' + Date.now(), { cache: 'no-store' }); if (r.ok) h = await r.json(); }
+  } catch (e) { h = null; }
+  if (!h) { st.textContent = '아직 점검 기록 없음'; st.className = 'pill'; body.innerHTML = '<p class="hint">첫 점검이 끝나면 여기에 결과가 보입니다.</p>'; return; }
+  const title = id => (data.sims.find(x => x.id === id) || {}).title || id;
+  st.textContent = h.errors.length ? `오류 ${h.errors.length}` : '이상 없음';
+  st.className = 'pill ' + (h.errors.length ? 'err' : 'ok');
+  const row = (x, cls) => `<li class="${cls}">${x.id ? `<b>${esc(title(x.id))}</b> <span class="hint">(${esc(x.id)})</span> — ` : ''}${esc(x.msg)}${x.id && data.sims.some(s => s.id === x.id) ? ` <button class="btn ghost small" onclick="openEditor(${data.sims.findIndex(s => s.id === x.id)})">수정</button>` : ''}</li>`;
+  body.innerHTML = `<p style="margin:0 0 8px">마지막 점검 <b>${esc(h.checkedAt)}</b>${h.commit ? ` <span class="hint">(${esc(h.commit)})</span>` : ''} · 시뮬레이션 ${h.total}개 · 오류 ${h.errors.length} · 주의 ${h.warnings.length}</p>` +
+    (h.errors.length ? `<ul class="health err">${h.errors.map(x => row(x, 'err')).join('')}</ul>` : '') +
+    (h.warnings.length ? `<details${h.errors.length ? '' : ' open'}><summary>주의 ${h.warnings.length}개 (작동에는 문제없음)</summary><ul class="health">${h.warnings.map(x => row(x, 'warn')).join('')}</ul></details>` : '');
+}
+
+// =====================================================================
+//  저장 기록 (GitHub 커밋 기록) · 되돌리기
+// =====================================================================
+async function loadHistory() {
+  const st = $('histStatus'), box = $('histList');
+  if (!gh.ok) { st.textContent = 'GitHub 연결 필요'; st.className = 'pill'; box.innerHTML = '<p class="hint">위의 GitHub 연결을 먼저 해 주세요. 연결하면 저장 기록을 볼 수 있습니다.</p>'; return; }
+  st.textContent = '불러오는 중…'; st.className = 'pill';
+  try {
+    const res = await api(`/commits?path=data/sims.js&sha=${encodeURIComponent(ghFields().branch)}&per_page=40`);
+    if (!res.ok) throw new Error('기록을 읽지 못했습니다 (' + res.status + ')');
+    const list = await res.json();
+    st.textContent = `최근 ${list.length}개`; st.className = 'pill ok';
+    box.innerHTML = list.map((c, i) => {
+      const d = new Date(c.commit.author.date);
+      const when = d.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      return `<div class="item hist">
+        <div><div class="t">${esc(c.commit.message.split('\n')[0])}${i === 0 ? '<span class="badge ready">지금 사이트</span>' : ''}</div>
+          <div class="meta">${esc(when)} · ${esc(c.commit.author.name)} · <code>${c.sha.slice(0, 7)}</code></div></div>
+        <div class="btns">
+          ${i === 0 ? '' : `<button class="btn ghost small" onclick="loadVersion('${c.sha}', '${esc(when)}')">이 버전 불러오기</button>`}
+          <a class="btn ghost small" href="${c.html_url}" target="_blank" rel="noopener">바뀐 내용 ↗</a>
+        </div></div>`;
+    }).join('') || '<p class="empty">기록이 없습니다.</p>';
+  } catch (e) { st.textContent = e.message; st.className = 'pill err'; }
+}
+async function loadVersion(sha, when) {
+  if (dirty && !confirm('저장하지 않은 변경 사항이 사라집니다. 계속할까요?')) return;
+  try {
+    const res = await api(`/contents/data/sims.js?ref=${sha}`);
+    if (!res.ok) throw new Error('그 버전을 읽지 못했습니다 (' + res.status + ')');
+    const m = fromB64((await res.json()).content).match(/\/\*DATA-START\*\/([\s\S]*)\/\*DATA-END\*\//);
+    if (!m) throw new Error('목록 형식을 알아볼 수 없습니다');
+    const old = JSON.parse(m[1]);
+    const diff = old.sims.length - data.sims.length;
+    data = old; pending = {}; renderAll(); markDirty();
+    updateSaveBar(`${when} 버전을 불러왔습니다 (시뮬레이션 ${old.sims.length}개${diff ? `, 지금보다 ${diff > 0 ? diff + '개 많음' : -diff + '개 적음'}` : ''}). 확인 후 [GitHub에 저장]을 누르면 되돌아갑니다.`, 'dirty');
+    document.querySelector('.tab[data-tab="sims"]').click();
+  } catch (e) { alert(e.message); }
+}
+
+function renderAll() { renderTheme(); renderFilter(); renderSims(); renderCourses(); renderTopics(); $('fbUrl').value = data.feedback || ''; if (!$('tab-stats').hidden) renderStats(); }
 renderAll();
 </script>
 <script>

@@ -129,3 +129,8 @@ input, select, textarea { background-color: var(--solid); color: var(--text); }
   .hero { padding: 56px 0 40px; }
   .toc a { background: var(--surface); border-color: var(--line); }
 }
+
+.new-badge { background: var(--accent); color: var(--bg); }
+.zip-btn { border-radius: 12px; background: var(--surface); border-color: var(--line); color: #FFFFFF; min-height: 44px; }
+.zip-btn:hover { background: #FFFFFF; color: var(--bg); border-color: #FFFFFF; }
+.qr-dlg { background: var(--solid); border: 1px solid var(--line); }

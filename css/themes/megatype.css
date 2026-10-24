@@ -142,3 +142,14 @@ input, select, textarea { background-color: var(--bg); color: var(--text); }
   .hero-art::before { font-size: 26px; }
   .toc a { background: transparent; border-color: var(--line); }
 }
+
+.sim-card .thumb { border-radius: 0; }
+.new-badge { border-radius: 0; background: var(--accent); color: var(--bg); }
+.zip-btn { border: 2px solid var(--text); border-radius: 0; background: transparent; color: var(--text); font-weight: 800; min-height: 44px; }
+.zip-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.unit-block .section-head { border-bottom: 1px solid var(--c, var(--line)); margin-bottom: 18px; }
+.unit-block .section-head .section-title { border-bottom: none; margin-bottom: 8px; }
+.unit-block .section-head .zip-btn { margin-bottom: 8px; }
+.qr-dlg { border: 2px solid var(--text); border-radius: 0; background: var(--bg); }
+.qr-box h2 { font-family: var(--display); font-weight: 400; font-size: 2.2rem; }
+.qr-img { border-radius: 0; }

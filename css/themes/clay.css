@@ -131,3 +131,10 @@ dialog { border: none; border-radius: 26px; box-shadow: var(--shadow); }
   .toc { box-shadow: none; }
   .toc a { background: #FFFFFF; border: none; }
 }
+
+.new-badge { background: #FF8FA3; color: var(--text); border-radius: 999px; padding: 0 8px; }
+.zip-btn { border: none; border-radius: 16px; background: #FFFFFF; color: var(--accent); box-shadow: var(--shadow); min-height: 46px; }
+.zip-btn:hover { background: var(--accent); color: #FFFFFF; }
+.qr-dlg { border-radius: 32px; }
+.qr-box h2 { font-family: var(--round); font-weight: 400; font-size: 1.8rem; }
+.qr-img { border-radius: 20px; }

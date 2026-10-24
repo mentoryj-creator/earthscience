@@ -142,3 +142,11 @@ dialog { border-radius: 0; border: 2px solid #000000; }
   .nav { border-bottom: 2px solid #000000; box-shadow: none; }
   .toc a { background: #FFFFFF; border: 1px solid #000000; }
 }
+
+.sim-card .thumb { border-radius: 0; }
+.new-badge { border-radius: 0; background: var(--accent); }
+.zip-btn { border: 2px solid #000000; border-radius: 0; background: #FFFFFF; color: #000000; font-weight: 900; min-height: 44px; }
+.zip-btn:hover { background: #000000; color: #FFFFFF; border-color: #000000; }
+.qr-dlg { border: 2px solid #000000; border-radius: 0; }
+.qr-box h2 { font-weight: 900; font-size: 1.8rem; letter-spacing: -0.03em; }
+.qr-img { border-radius: 0; }

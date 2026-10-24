@@ -128,3 +128,15 @@ dialog { background: var(--surface); color: var(--text); border-radius: 0; }
   #courseCards .big-card h3 { font-size: 1.35rem; }
   .toc a { background: transparent; border: 1px solid var(--line); }
 }
+
+.sim-card .thumb { border-radius: 0; filter: saturate(.85); }
+.new-badge { border-radius: 0; background: var(--accent); }
+.zip-btn { border: 1px solid var(--text); border-radius: 0; background: transparent; color: var(--text); min-height: 42px; }
+.zip-btn:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+.section-head { border-top: 1px solid var(--text); }
+.section-head .section-title { border-top: none; }
+.unit-block .section-head { border-top: 3px solid var(--c, var(--text)); }
+.unit-block .section-head .section-title { border-top: none; }
+.qr-dlg { border-radius: 0; border: 1px solid var(--text); }
+.qr-box h2 { font-family: var(--serif); font-weight: 900; font-size: 1.7rem; }
+.qr-img { border-radius: 0; }

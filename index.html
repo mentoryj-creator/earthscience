@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script src="data/sims.js"></script>
+  <script src="data/thumbs.js"></script>
   <script src="js/site.js"></script>
 </head>
 <body>
@@ -72,7 +73,7 @@ document.getElementById('topicCards').innerHTML = S.topics.map(t => {
 }).join('');
 
 // 최근 추가 (목록의 뒤쪽이 최신)
-document.getElementById('recent').innerHTML = ready.slice(-6).reverse().map(s => card(s)).join('');
+document.getElementById('recent').innerHTML = App.byNewest(ready).slice(0, 8).map(s => card(s)).join('');
 
 // 검색
 const q = document.getElementById('q'), results = document.getElementById('results'), browse = document.getElementById('browse');

@@ -119,3 +119,11 @@ a.card:hover, .sim-card.ready:hover { transform: rotate(0) translateY(-3px); box
   .nav { background: var(--bg); border-bottom: 2px solid var(--text); }
   .cards .sim-card:nth-child(n) { transform: none; }
 }
+
+.sim-card .thumb { border-radius: 2px; border: 1px solid var(--line); }
+.new-badge { background: var(--accent); border-radius: 2px; }
+.zip-btn { border: 2px dashed var(--text); border-radius: 4px; background: #FFFFFF; color: var(--text); min-height: 44px; }
+.zip-btn:hover { background: var(--marker); color: var(--text); border-color: var(--text); }
+.qr-dlg { border: 2px solid var(--text); border-radius: 4px; }
+.qr-box h2 { font-family: var(--hand); font-size: 2rem; }
+.qr-help { font-family: var(--hand); font-size: 1.2rem; color: var(--accent); }

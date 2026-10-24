@@ -130,3 +130,12 @@ input, select, textarea { background-color: var(--bg); color: var(--text); }
   .dropdown { background: transparent; border: none; }
   .toc a { background: var(--bg); border-color: var(--line); }
 }
+
+.sim-card .thumb { border-radius: 0; border: 1px solid var(--line); }
+.new-badge { border-radius: 0; background: var(--amber); color: var(--bg); font-family: var(--mono); }
+.zip-btn { font-family: var(--mono); border: 1px solid #2E3D35; border-radius: 0; background: transparent; color: var(--text); font-weight: 500; min-height: 44px; }
+.zip-btn::before { content: "$ "; color: var(--accent); }
+.zip-btn:hover { border-color: var(--accent); color: var(--accent); }
+.qr-dlg { border: 1px solid var(--accent); border-radius: 0; background: var(--surface); }
+.qr-box h2 { font-family: var(--mono); font-size: 1.1rem; color: var(--accent); }
+.qr-img { border-radius: 0; }
