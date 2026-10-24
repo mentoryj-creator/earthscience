@@ -134,17 +134,18 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
   .ev-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font-size: 24px; }
   .ev-toggles label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
   .ev-toggles input { width: 24px; height: 24px; accent-color: #3b82f6; }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-size: 20px; color: #475569; }
+  .legend { display: flex; flex-wrap: wrap; gap: 0 14px; margin-top: 6px; font-size: 18px; color: #475569; }
   .legend i { display: inline-block; width: 18px; height: 18px; border-radius: 4px; margin-right: 6px; vertical-align: -2px; }
   .status { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; white-space: nowrap; }
   .status .sim-big { font-size: 34px; }
   .sim-box.key.good { background: #f0fdf4; border-color: #86efac; }
+  .stage-msg { position: absolute; left: 24px; right: 24px; bottom: 20px; font-size: 24px; padding: 10px 22px; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
   .state { font-size: 24px; font-weight: bold; padding: 4px 14px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; }
   .state[data-s="gold"] { background: #fef3c7; color: #b45309; }
-  .metrics { display: flex; flex-direction: column; gap: 4px; }
-  .metrics .m { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; font-size: 21px; border-top: 1px solid #e2e8f0; padding-top: 4px; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .metrics .m { display: flex; flex-direction: column; font-size: 20px; border-top: 1px solid #e2e8f0; padding-top: 2px; line-height: 1.35; }
   .metrics .k { font-weight: bold; color: #334155; }
-  .metrics .v { color: #ea580c; font-weight: bold; text-align: right; }
+  .metrics .v { color: #ea580c; font-weight: bold; }
   .metrics .d { grid-column: 1 / -1; color: #64748b; font-size: 18px; }
   .score { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 24px; }
   .score b { color: #ea580c; }
@@ -157,14 +158,21 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
   <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>베게너의 대륙 퍼즐</div>
   <div class="ppt-subtitle">대륙 조각을 아프리카에 맞춰 <span class="or">해안선 · 화석 · 빙하 · 산맥</span>이 이어지는지 확인해 봐요.</div>
   <div class="sim-wrap">
-    <div class="sim-stage"><canvas id="sim" width="1000" height="620" role="img" aria-label="대륙 조각을 맞추는 퍼즐"></canvas><div class="sim-hint">조각을 끌어 옮기고 · 휠이나 Q/E 키로 회전 · 아프리카는 고정</div></div>
+    <div class="sim-stage"><canvas id="sim" width="1000" height="620" role="img" aria-label="대륙 조각을 맞추는 퍼즐"></canvas><div class="sim-hint">조각을 끌어 옮기고 · 휠이나 Q/E 키로 회전 · 아프리카는 고정</div><div class="sim-box key stage-msg" id="fb">조각을 끌어 아프리카 주변에 붙여 보세요.</div></div>
     <div class="sim-panel">
       <div class="sim-tabs">
         <button class="sim-tab on" data-tab="predict">① 예측</button>
         <button class="sim-tab" data-tab="lab">② 실험</button>
         <button class="sim-tab" data-tab="mission">③ 미션</button>
       </div>
-      <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div></div>
+      <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div>
+        <div class="sim-box">
+          <h4>실제로 발견된 증거</h4>
+          <div class="sim-btns"><button class="sim-btn orange" data-real="scott" type="button">남극의 고사리 화석</button><button class="sim-btn orange" data-real="lystro" type="button">남극의 파충류 화석</button><button class="sim-btn orange" data-real="now" type="button">지금도 움직이는 대륙</button><button class="sim-btn" id="drift" type="button">▶ 곤드와나가 갈라지는 모습</button></div>
+          <div id="realOut" class="sim-note" style="margin-top:8px;font-size:22px;color:#334155">버튼을 눌러 실제 이야기를 확인해 보세요.</div>
+          <div class="real-src">고생물 화석 발견 기록(스콧 탐험대 1912, 남극 횡단 산맥 1969), 대서양 확장 속도</div>
+        </div>
+      </div>
 
       <div class="sim-tabpage" data-page="lab">
         <div class="sim-box blue">
@@ -189,12 +197,6 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
         <div class="sim-box">
           <div class="status"><span class="state" id="chip" data-s="cool"><span id="stateName">흩어진 대륙</span></span><span>맞춘 조각 <b class="sim-big" id="bigN">0 / 4</b></span></div>
           <div class="metrics" id="metrics"></div>
-        </div>
-        <div class="sim-box key" id="fb" style="font-size:23px">조각을 끌어 아프리카 주변에 붙여 보세요.</div>
-        <div class="sim-box">
-          <h4>실제로 발견된 증거</h4>
-          <div class="sim-btns"><button class="sim-btn orange" data-real="scott" type="button">남극의 고사리 화석</button><button class="sim-btn orange" data-real="lystro" type="button">남극의 파충류 화석</button><button class="sim-btn orange" data-real="now" type="button">지금도 움직이는 대륙</button><button class="sim-btn" id="drift" type="button">▶ 곤드와나가 갈라지는 모습</button></div>
-          <div id="realOut" class="sim-note" style="margin-top:8px;font-size:22px;color:#334155">버튼을 눌러 실제 이야기를 확인해 보세요.</div>
         </div>
       </div>
 
