@@ -4,193 +4,550 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>달의 위상 변화</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style id="sim-kit">
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
+
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
+
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
+
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
+
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
+
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
+
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
+
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
+
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
+</style>
 <style>
-  /* ---- 단독 시뮬레이션 공통 규칙 (사이트 안 틀과 수업 모드에 맞춤) ---- */
-  html, body { margin: 0; background: #0b1020; color: #e8ebf1;
-    font-family: "Noto Sans KR", system-ui, -apple-system, sans-serif; }
-  .wrap { padding: 12px; }
-  canvas { display: block; width: 100%; height: auto; border-radius: 10px; touch-action: none; }
-  .fs body { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-  .fs canvas { height: calc(100vh - 90px); object-fit: contain; }
-  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: center; padding: 12px 4px 2px; font-size: 15px; }
-  .controls label { display: flex; align-items: center; gap: 8px; }
-  input[type=range] { width: 170px; accent-color: #6c9bff; }
-  .readout { color: #9fc0ff; min-width: 3.5em; font-variant-numeric: tabular-nums; }
-  .btn { font: inherit; cursor: pointer; border: none; background: #2563eb; color: #fff; padding: 7px 16px; border-radius: 8px; }
-  .btn.ghost { background: transparent; color: #cfd8ea; border: 1px solid #3a4560; }
+  /* 이 시뮬레이션만의 스타일 */
+  .read { display: grid; grid-template-columns: auto 1fr; gap: 2px 16px; font-size: 24px; }
+  .read span:nth-child(odd) { color: #64748b; }
+  .read b { color: #ea580c; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <canvas id="sim" width="900" height="460"></canvas>
-  <div class="controls">
-    <button class="btn" id="playBtn">▶ 재생</button>
-    <label>음력 날짜
-      <input type="range" id="daySlider" min="0" max="29.5" step="0.1" value="7.4">
-      <span class="readout" id="dayOut"></span>
-    </label>
-    <button class="btn ghost" data-day="0">삭</button>
-    <button class="btn ghost" data-day="7.4">상현</button>
-    <button class="btn ghost" data-day="14.8">망</button>
-    <button class="btn ghost" data-day="22.1">하현</button>
+<div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="slide sim-slide active" id="slideMain">
+  <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>달의 위상 변화</div>
+  <div class="ppt-subtitle">달을 공전시키며 <span class="or">모양</span>과 <span class="or">하늘에 보이는 위치·시각</span>이 어떻게 바뀌는지 봐요.</div>
+  <div class="sim-wrap">
+    <div class="sim-stage"><canvas id="cv" width="1160" height="880" role="img" aria-label="달의 공전 위치, 지구에서 본 달 모양, 관측 시각의 하늘"></canvas><div class="sim-hint">위 그림의 달을 끌어 공전시킬 수 있어요</div></div>
+    <div class="sim-panel">
+      <div class="sim-tabs">
+        <button class="sim-tab on" data-tab="predict">① 예측</button>
+        <button class="sim-tab" data-tab="lab">② 실험</button>
+        <button class="sim-tab" data-tab="mission">③ 미션</button>
+      </div>
+      <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div></div>
+
+      <div class="sim-tabpage" data-page="lab">
+        <div class="sim-box blue">
+          <h4>달의 나이 (음력 날짜)</h4>
+          <div class="sim-row"><input type="range" class="sim-range" id="rDay" min="0" max="29.5" step="0.1" value="3.5" aria-label="음력 날짜"><span class="sim-val" id="vDay"></span></div>
+          <div class="sim-btns"><button class="sim-btn" id="bPlay" type="button">▶ 재생</button><button class="sim-btn" data-day="0" type="button">삭</button><button class="sim-btn" data-day="7.4" type="button">상현</button><button class="sim-btn" data-day="14.8" type="button">망</button><button class="sim-btn" data-day="22.1" type="button">하현</button></div>
+        </div>
+        <div class="sim-box blue">
+          <h4>관측 시각 (남쪽 하늘을 볼 때)</h4>
+          <div class="sim-row"><input type="range" class="sim-range" id="rHour" min="0" max="24" step="0.25" value="20" aria-label="관측 시각"><span class="sim-val" id="vHour"></span></div>
+          <div class="sim-btns"><button class="sim-btn" data-hour="18" type="button">저녁 6시</button><button class="sim-btn" data-hour="0" type="button">자정</button><button class="sim-btn" data-hour="6" type="button">새벽 6시</button><button class="sim-btn" data-hour="12" type="button">정오</button></div>
+        </div>
+        <div class="sim-box"><div class="read" id="read"></div></div>
+        <div class="sim-box">
+          <h4>실제 달력으로 맞추기</h4>
+          <div class="sim-btns"><button class="sim-btn orange" data-real="today" type="button">오늘 밤의 달</button><button class="sim-btn orange" data-real="chuseok" type="button">2026 추석</button><button class="sim-btn orange" data-real="boreum" type="button">2026 정월 대보름</button></div>
+          <div class="sim-note" id="realOut" style="margin-top:8px;font-size:22px;color:#334155">버튼을 누르면 그날의 달의 나이를 계산해 맞춰요.</div>
+          <div class="real-src">2000년 1월 6일 삭을 기준으로 삭망월 29.53일로 계산 (실제 달력과 하루 정도 차이 날 수 있음)</div>
+        </div>
+      </div>
+
+      <div class="sim-tabpage" data-page="mission"><div class="sim-box" id="missionBox"></div></div>
+      <div class="sim-note">※ 북반구 중위도에서 남쪽을 바라본 단순 모형이에요. 달의 실제 고도는 계절·위도에 따라 달라요.</div>
+    </div>
   </div>
 </div>
+</div>
 
+<script id="sim-kit">
+/* ===== sim-kit 공통 도구 (tools/sim-kit/kit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   SIM.loop / SIM.pos / SIM.font ...  : 그리기 도우미 (행성우주과학 시뮬레이션과 같음)
+   SIM.tabs()                          : ① 예측 ② 실험 ③ 미션 탭
+   SIM.predict({...})                  : 예측하고 확인
+   SIM.missions({...})                 : 도전 미션 (조건을 자동으로 확인)
+   SIM.toast(글, 'info'|'warn')        : 그림 위에 잠깐 뜨는 알림
+*/
+window.SIM = {
+  FONT: "'Gowun Dodum', sans-serif",
+  // 해당 슬라이드가 화면에 보일 때만 그리기
+  loop(slideId, fn) {
+    const el = document.getElementById(slideId);
+    let last = performance.now();
+    function f(t) {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!el || el.classList.contains('active')) fn(t, dt);
+      requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  },
+  rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+  pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+  font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  fmtExp(v, digits) {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+    const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+    return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+  },
+
+  // ---- 고해상도 캔버스 (W×H 좌표로 그리면 됨) ----
+  // const S = SIM.stage({ canvas, W: 1000, H: 620 });  S.begin(); 그리기…  S.pt(이벤트) → {x,y}
+  // 1920 화면이 줄었다 늘었다 해도 그림이 흐려지지 않게 내부 해상도를 고정(기본 2배)으로 둠
+  stage(o) {
+    const cvs = o.canvas, W = o.W, H = o.H, k = o.scale || 2;
+    cvs.width = Math.round(W * k); cvs.height = Math.round(H * k);
+    cvs.style.aspectRatio = W + '/' + H;
+    const ctx = cvs.getContext('2d');
+    return {
+      ctx, W, H,
+      begin() { ctx.setTransform(k, 0, 0, k, 0, 0); },
+      pt(e) { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; },
+      resize() {},
+    };
+  },
+
+  // ---- 알림 ----
+  toast(text, kind, ms) {
+    const stage = document.querySelector('.slide.active .sim-stage') || document.getElementById('presentation-wrapper');
+    let t = stage.querySelector(':scope > .sim-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'sim-toast'; stage.appendChild(t); }
+    t.textContent = text; t.className = 'sim-toast ' + (kind || '');
+    void t.offsetWidth; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms || 2600);
+  },
+  burst() {
+    const stage = document.querySelector('.slide.active .sim-stage');
+    if (!stage) return;
+    const cols = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement('i'); b.className = 'sim-burst';
+      b.style.left = '50%'; b.style.top = '60px'; b.style.background = cols[i % cols.length];
+      const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 220;
+      b.style.setProperty('--dx', Math.cos(a) * r + 'px'); b.style.setProperty('--dy', Math.sin(a) * r * 0.7 + 120 + 'px');
+      stage.appendChild(b); setTimeout(() => b.remove(), 1200);
+    }
+  },
+
+  // ---- ① 예측 ② 실험 ③ 미션 탭 ----
+  // 패널 안의 .sim-tabs > .sim-tab[data-tab] 와 .sim-tabpage[data-page] 를 이어 줌
+  tabs(root) {
+    root = root || document;
+    const tabs = [...root.querySelectorAll('.sim-tab')], pages = [...root.querySelectorAll('.sim-tabpage')];
+    const show = name => {
+      tabs.forEach(t => { t.classList.toggle('on', t.dataset.tab === name); t.setAttribute('aria-selected', t.dataset.tab === name); });
+      pages.forEach(p => p.classList.toggle('on', p.dataset.page === name));
+    };
+    tabs.forEach(t => { t.setAttribute('role', 'tab'); t.onclick = () => { t.classList.remove('nudge'); show(t.dataset.tab); }; });
+    const first = tabs.find(t => t.classList.contains('on')) || tabs[0];
+    if (first) show(first.dataset.tab);
+    SIM.showTab = show;
+    return show;
+  },
+
+  // ---- 예측하고 확인 ----
+  // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
+  //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  predict(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    let picked = -1, revealed = false;
+    el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
+      <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
+      <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+      <div class="predict-result" hidden></div>`;
+    const opts = [...el.querySelectorAll('.predict-opt')];
+    const reveal = () => {
+      if (revealed || picked < 0) return; revealed = true;
+      opts.forEach((b, i) => { b.disabled = true; b.classList.toggle('right', i === o.answer); b.classList.toggle('wrong', i === picked && i !== o.answer); });
+      const ok = picked === o.answer, r = el.querySelector('.predict-result');
+      r.hidden = false; r.classList.toggle('miss', !ok);
+      r.innerHTML = (ok ? '<b>예측 성공!</b> ' : `<b>정답은 ${'ABCDEF'[o.answer]}</b> — `) + (o.why || '');
+      el.querySelector('.predict-go').hidden = true;
+      SIM.toast(ok ? '예측 성공!' : '예측과 결과가 달라요. 까닭을 확인해 봐요', ok ? '' : 'warn');
+      if (ok) SIM.burst();
+      const tab = document.querySelector('.sim-tab[data-tab="predict"]');
+      if (tab) { tab.classList.add('nudge'); const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge ' + (ok ? 'done' : ''); b.textContent = ok ? '✓' : '!'; }
+      o.onReveal && o.onReveal(ok);
+    };
+    opts.forEach((b, i) => b.onclick = () => {
+      if (revealed) return;
+      picked = i; opts.forEach(x => x.classList.toggle('picked', x === b));
+      el.querySelector('.predict-go').hidden = false;
+    });
+    el.querySelector('[data-act="go"]').onclick = () => { o.setup && o.setup(); SIM.showTab && SIM.showTab('lab'); };
+    const sb = el.querySelector('[data-act="show"]'); if (sb) sb.onclick = reveal;
+    // 고른 뒤, 실험 상태가 '확인할 상태'에서 한 번 벗어났다가 다시 들어오면 결과를 보여 줌
+    // (처음부터 그 상태였다면 학생이 직접 조작해 만들 때까지 기다림)
+    let armed = false;
+    if (o.reached) SIM._checks.push(() => {
+      if (picked < 0 || revealed) return;
+      const r = o.reached();
+      if (!r) armed = true; else if (armed) reveal();
+    });
+    return { reveal, get picked() { return picked; } };
+  },
+
+  // ---- 도전 미션 ----
+  // SIM.missions({ el: 상자, items: [{ t: '할 일', hint: '도움말(선택)', test: () => true/false }] })
+  // test는 0.25초마다 자동으로 확인. 한 번 달성하면 계속 달성으로 남음.
+  // 처음부터 맞아 있던 조건은 세지 않음 (조건이 거짓이 된 적이 있어야 함).
+  missions(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    const done = o.items.map(() => false);
+    el.innerHTML = `<div class="mission-bar"><i></i></div>
+      <ul class="mission-list">${o.items.map(m => `<li><span class="ck">✓</span><span>${m.t}${m.hint ? `<span class="hint">${m.hint}</span>` : ''}</span></li>`).join('')}</ul>
+      <div class="mission-all" hidden>모든 미션 달성!</div>`;
+    const lis = [...el.querySelectorAll('li')], tab = document.querySelector('.sim-tab[data-tab="mission"]');
+    const badge = () => {
+      const n = done.filter(Boolean).length;
+      el.querySelector('.mission-bar i').style.width = (n / done.length * 100) + '%';
+      el.querySelector('.mission-all').hidden = n < done.length;
+      if (tab) { const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge' + (n === done.length ? ' done' : ''); b.textContent = n + '/' + done.length; }
+    };
+    const mark = i => {
+      if (done[i]) return; done[i] = true; lis[i].classList.add('done');
+      badge(); SIM.burst();
+      const txt = lis[i].querySelector('span:not(.ck)').cloneNode(true); txt.querySelectorAll('.hint').forEach(h => h.remove());
+      const t = txt.textContent.trim();
+      SIM.toast(done.every(Boolean) ? '모든 미션 달성!' : '미션 달성! ' + (t.length > 24 ? t.slice(0, 23) + '…' : t));
+      if (tab && !tab.classList.contains('on')) tab.classList.add('nudge');
+    };
+    // 처음 열었을 때 이미 조건이 맞아 있으면 달성으로 치지 않음: 한 번 조건에서 벗어났다가 학생이 다시 맞춰야 달성
+    const armed = o.items.map(() => false);
+    SIM._checks.push(() => o.items.forEach((m, i) => {
+      if (done[i]) return;
+      let ok = false; try { ok = !!m.test(); } catch (e) {}
+      if (!ok) armed[i] = true; else if (armed[i]) mark(i);
+    }));
+    badge();
+    return { mark, done };
+  },
+  _checks: [],
+};
+setInterval(() => SIM._checks.forEach(f => f()), 250);
+// 슬라이더·입력칸 조작 중에는 키 입력이 다른 곳으로 새지 않게
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.type === 'range') a.blur(); });
+</script>
 <script>
-// ============================================================
-//  달의 위상 시뮬레이션
-//  theta: 태양 방향에서 잰 달의 공전 각 (0 = 삭, 180° = 망)
-// ============================================================
-const SYNODIC = 29.53;
-const canvas = document.getElementById('sim');
-const ctx = canvas.getContext('2d');
-const slider = document.getElementById('daySlider');
-const dayOut = document.getElementById('dayOut');
-const playBtn = document.getElementById('playBtn');
-const FONT = '"Noto Sans KR", system-ui, sans-serif';
+(function(){
+  const SYN = 29.53;
+  const cv = document.getElementById('cv'), g = cv.getContext('2d'), W = 1160, H = 880;
+  const rDay = document.getElementById('rDay'), rHour = document.getElementById('rHour');
+  const ORBIT = { x: 300, y: 300, r: 210 }, VIEW = { x: 860, y: 270, r: 150 };
+  const SKY = { x: 40, y: 560, w: 1080, h: 290 };   // 아래쪽 하늘 그림
+  let theta = 3.5 / SYN * Math.PI * 2, hour = 20, playing = false, dragging = false, realUsed = false;
 
-const ORBIT = { x: 270, y: 230, r: 160 };
-const VIEW  = { x: 700, y: 190, r: 95 };
-
-let theta = dayToTheta(parseFloat(slider.value));
-let playing = false, dragging = false;
-
-function dayToTheta(d) { return (d / SYNODIC) * Math.PI * 2; }
-function thetaToDay(t) { return (t / (Math.PI * 2)) * SYNODIC; }
-
-function phaseName(deg) {
-  if (deg < 6 || deg >= 354) return '삭 (신월)';
-  if (deg < 84)  return '초승달';
-  if (deg < 96)  return '상현달';
-  if (deg < 174) return '상현과 망 사이 (볼록한 달)';
-  if (deg < 186) return '망 (보름달)';
-  if (deg < 264) return '망과 하현 사이 (볼록한 달)';
-  if (deg < 276) return '하현달';
-  return '그믐달';
-}
-
-// 지구에서 본 달 모양 (북반구: 차는 달은 오른쪽이 밝음)
-function drawPhase(x, y, r, t) {
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = '#262b36'; ctx.fill();
-  const c = Math.cos(t), waxing = Math.sin(t) >= 0;
-  ctx.beginPath();
-  if (waxing) { ctx.arc(x, y, r, -Math.PI / 2, Math.PI / 2, false);
-                ctx.ellipse(x, y, Math.abs(c) * r, r, 0, Math.PI / 2, -Math.PI / 2, c > 0); }
-  else        { ctx.arc(x, y, r, Math.PI / 2, Math.PI * 1.5, false);
-                ctx.ellipse(x, y, Math.abs(c) * r, r, 0, Math.PI * 1.5, Math.PI / 2, c > 0); }
-  ctx.closePath(); ctx.fillStyle = '#f3ecd2'; ctx.fill();
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 햇빛
-  ctx.strokeStyle = 'rgba(255,214,90,.55)'; ctx.fillStyle = 'rgba(255,214,90,.9)'; ctx.lineWidth = 2;
-  for (let i = 0; i < 5; i++) {
-    const y = 70 + i * 80;
-    ctx.beginPath(); ctx.moveTo(560, y); ctx.lineTo(522, y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(518, y); ctx.lineTo(528, y - 5); ctx.lineTo(528, y + 5); ctx.fill();
+  const deg = () => ((theta * 180 / Math.PI) % 360 + 360) % 360;
+  const day = () => deg() / 360 * SYN;
+  function phaseName(d) {
+    if (d < 6 || d >= 354) return '삭 (신월)';
+    if (d < 84) return '초승달'; if (d < 96) return '상현달'; if (d < 174) return '볼록한 달 (상현~망)';
+    if (d < 186) return '망 (보름달)'; if (d < 264) return '볼록한 달 (망~하현)'; if (d < 276) return '하현달';
+    return '그믐달';
   }
-  ctx.font = '15px ' + FONT; ctx.textAlign = 'center';
-  ctx.fillText('햇빛', 540, 30);
+  const transit = () => (12 + deg() / 15) % 24;                // 달의 남중 시각
+  const hourAngle = (h, t) => { let a = (h - t) * 15; a = ((a + 180) % 360 + 360) % 360 - 180; return a; }; // −180~180, 0 = 남중
+  const moonHA = () => hourAngle(hour, transit()), sunHA = () => hourAngle(hour, 12);
+  const fmtH = h => { h = ((h % 24) + 24) % 24; let hh = Math.floor(h), mm = Math.round((h - hh) * 60); if (mm === 60) { mm = 0; hh = (hh + 1) % 24; } return (hh < 12 ? '오전 ' : '오후 ') + ((hh % 12) || 12) + '시' + (mm ? ' ' + String(mm).padStart(2, '0') + '분' : ''); };
 
-  // 공전 궤도와 위치 이름
-  ctx.setLineDash([4, 6]); ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, ORBIT.r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = '13px ' + FONT;
-  for (const [d, s] of [[0,'삭'],[90,'상현'],[180,'망'],[270,'하현']]) {
-    const a = d * Math.PI / 180;
-    ctx.fillText(s, ORBIT.x + (ORBIT.r + 32) * Math.cos(a), ORBIT.y - (ORBIT.r + 32) * Math.sin(a) + 5);
+  function drawPhase(x, y, r, t) {
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = '#262b36'; g.fill();
+    const c = Math.cos(t), wax = Math.sin(t) >= 0;
+    g.beginPath();
+    if (wax) { g.arc(x, y, r, -Math.PI / 2, Math.PI / 2, false); g.ellipse(x, y, Math.abs(c) * r, r, 0, Math.PI / 2, -Math.PI / 2, c > 0); }
+    else { g.arc(x, y, r, Math.PI / 2, Math.PI * 1.5, false); g.ellipse(x, y, Math.abs(c) * r, r, 0, Math.PI * 1.5, Math.PI / 2, c > 0); }
+    g.closePath(); g.fillStyle = '#f3ecd2'; g.fill();
   }
 
-  // 지구 (오른쪽 반은 낮)
-  const er = 26;
-  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, er, 0, Math.PI * 2); ctx.fillStyle = '#1b2a4a'; ctx.fill();
-  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, er, -Math.PI / 2, Math.PI / 2); ctx.fillStyle = '#3b82f6'; ctx.fill();
-  ctx.fillStyle = '#cfe0ff'; ctx.fillText('지구', ORBIT.x, ORBIT.y + er + 18);
+  function draw() {
+    g.clearRect(0, 0, W, H);
+    g.textAlign = 'center';
+    // ---- 위: 공전 모습 ----
+    g.fillStyle = '#facc15'; g.font = SIM.font(22); g.fillText('햇빛', 600, 46);
+    g.strokeStyle = 'rgba(250,204,21,.6)'; g.fillStyle = 'rgba(250,204,21,.9)'; g.lineWidth = 3;
+    for (let i = 0; i < 5; i++) { const y = 110 + i * 85; g.beginPath(); g.moveTo(640, y); g.lineTo(575, y); g.stroke(); g.beginPath(); g.moveTo(568, y); g.lineTo(582, y - 8); g.lineTo(582, y + 8); g.fill(); }
+    g.setLineDash([6, 8]); g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 2;
+    g.beginPath(); g.arc(ORBIT.x, ORBIT.y, ORBIT.r, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(255,255,255,.45)'; g.font = SIM.font(20);
+    for (const [d, s] of [[0, '삭'], [90, '상현'], [180, '망'], [270, '하현']]) { const a = d * Math.PI / 180; g.fillText(s, ORBIT.x + (ORBIT.r + 40) * Math.cos(a), ORBIT.y - (ORBIT.r + 40) * Math.sin(a) + 7); }
+    // 지구 (오른쪽 반 낮) + 관측자 위치(시각에 따라 돎)
+    const er = 38;
+    g.beginPath(); g.arc(ORBIT.x, ORBIT.y, er, 0, Math.PI * 2); g.fillStyle = '#1b2a4a'; g.fill();
+    g.beginPath(); g.arc(ORBIT.x, ORBIT.y, er, -Math.PI / 2, Math.PI / 2); g.fillStyle = '#3b82f6'; g.fill();
+    const oa = (hour - 12) / 24 * Math.PI * 2;   // 정오에 태양 쪽(오른쪽), 반시계로 자전
+    const ox = ORBIT.x + Math.cos(oa) * er, oy = ORBIT.y - Math.sin(oa) * er;
+    g.fillStyle = '#f97316'; g.beginPath(); g.arc(ox, oy, 8, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#cfe0ff'; g.font = SIM.font(20); g.fillText('지구', ORBIT.x, ORBIT.y + er + 28);
+    g.fillStyle = '#fdba74'; g.font = SIM.font(17, false); g.fillText('● 관측자 (' + fmtH(hour) + ')', ORBIT.x, ORBIT.y + er + 52);
+    // 공전 방향
+    g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 2; const ar = ORBIT.r - 34, a1 = -0.35, a2 = -0.9;
+    g.beginPath(); g.arc(ORBIT.x, ORBIT.y, ar, a1, a2, true); g.stroke();
+    const ax = ORBIT.x + ar * Math.cos(a2), ay = ORBIT.y + ar * Math.sin(a2), tx = Math.sin(a2), ty = -Math.cos(a2);
+    g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.moveTo(ax + tx * 10, ay + ty * 10); g.lineTo(ax - ty * 7, ay + tx * 7); g.lineTo(ax + ty * 7, ay - tx * 7); g.fill();
+    // 달
+    const mx = ORBIT.x + ORBIT.r * Math.cos(theta), my = ORBIT.y - ORBIT.r * Math.sin(theta), mr = 24;
+    g.strokeStyle = 'rgba(159,192,255,.45)'; g.setLineDash([3, 5]); g.beginPath(); g.moveTo(ORBIT.x, ORBIT.y); g.lineTo(mx, my); g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fillStyle = '#3a3f4a'; g.fill();
+    g.beginPath(); g.arc(mx, my, mr, -Math.PI / 2, Math.PI / 2); g.fillStyle = '#f3ecd2'; g.fill();
+    g.beginPath(); g.arc(mx, my, mr + 7, 0, Math.PI * 2); g.strokeStyle = dragging ? '#facc15' : 'rgba(250,204,21,.55)'; g.lineWidth = 3; g.stroke();
+    // 지구에서 본 달
+    g.fillStyle = '#9fc0ff'; g.font = SIM.font(22); g.fillText('지구(북반구)에서 본 달', VIEW.x, 72);
+    drawPhase(VIEW.x, VIEW.y, VIEW.r, theta);
+    g.fillStyle = '#fff'; g.font = SIM.font(34); g.fillText(phaseName(deg()), VIEW.x, VIEW.y + VIEW.r + 54);
 
-  // 공전 방향 화살표
-  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.5;
-  const ar = ORBIT.r - 26, a1 = -0.35, a2 = -0.85;
-  ctx.beginPath(); ctx.arc(ORBIT.x, ORBIT.y, ar, a1, a2, true); ctx.stroke();
-  const ax = ORBIT.x + ar * Math.cos(a2), ay = ORBIT.y + ar * Math.sin(a2), tx = Math.sin(a2), ty = -Math.cos(a2);
-  ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath();
-  ctx.moveTo(ax + tx * 8, ay + ty * 8); ctx.lineTo(ax - ty * 5, ay + tx * 5); ctx.lineTo(ax + ty * 5, ay - tx * 5); ctx.fill();
-
-  // 달
-  const mx = ORBIT.x + ORBIT.r * Math.cos(theta), my = ORBIT.y - ORBIT.r * Math.sin(theta), mr = 16;
-  ctx.strokeStyle = 'rgba(159,192,255,.4)'; ctx.setLineDash([2, 4]);
-  ctx.beginPath(); ctx.moveTo(ORBIT.x, ORBIT.y); ctx.lineTo(mx, my); ctx.stroke(); ctx.setLineDash([]);
-  ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI * 2); ctx.fillStyle = '#3a3f4a'; ctx.fill();
-  ctx.beginPath(); ctx.arc(mx, my, mr, -Math.PI / 2, Math.PI / 2); ctx.fillStyle = '#f3ecd2'; ctx.fill();
-  ctx.beginPath(); ctx.arc(mx, my, mr + 5, 0, Math.PI * 2);
-  ctx.strokeStyle = dragging ? '#ffd65a' : 'rgba(255,214,90,.5)'; ctx.lineWidth = 2; ctx.stroke();
-
-  // 지구에서 본 달
-  ctx.fillStyle = '#9fc0ff'; ctx.font = '15px ' + FONT;
-  ctx.fillText('지구(북반구)에서 본 달', VIEW.x, 60);
-  drawPhase(VIEW.x, VIEW.y, VIEW.r, theta);
-
-  const deg = ((theta * 180 / Math.PI) % 360 + 360) % 360;
-  const lit = Math.round((1 - Math.cos(theta)) / 2 * 100);
-  const transit = (12 + deg / 15) % 24;
-  let hh = Math.floor(transit), mm = Math.round((transit - hh) * 60);
-  if (mm === 60) { mm = 0; hh = (hh + 1) % 24; }
-
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 22px ' + FONT;
-  ctx.fillText(phaseName(deg), VIEW.x, VIEW.y + VIEW.r + 46);
-  ctx.font = '15px ' + FONT; ctx.fillStyle = '#cfd8ea';
-  ctx.fillText(`태양-지구-달 사이각 ${Math.round(deg)}°  ·  밝게 보이는 부분 ${lit}%`, VIEW.x, VIEW.y + VIEW.r + 76);
-  ctx.fillText(`남중 시각 약 ${String(hh).padStart(2,'0')}시 ${String(mm).padStart(2,'0')}분`, VIEW.x, VIEW.y + VIEW.r + 100);
-
-  dayOut.textContent = thetaToDay(theta).toFixed(1) + '일';
-}
-
-function loop() {
-  if (playing && !dragging) {
-    theta = (theta + 0.012) % (Math.PI * 2);
-    slider.value = thetaToDay(theta).toFixed(1);
+    // ---- 아래: 관측 시각의 남쪽 하늘 ----
+    const sAlt = 90 - Math.abs(sunHA());                         // 태양 높이(단순 모형)
+    const night = SIM.clamp((-sAlt + 6) / 18, 0, 1);             // 0 낮 ~ 1 밤
+    const top = `rgb(${Math.round(SIM.lerp(125, 8, night))},${Math.round(SIM.lerp(185, 14, night))},${Math.round(SIM.lerp(240, 40, night))})`;
+    const bot = sAlt > -12 && sAlt < 12 ? '#fb923c' : `rgb(${Math.round(SIM.lerp(200, 20, night))},${Math.round(SIM.lerp(225, 30, night))},${Math.round(SIM.lerp(250, 60, night))})`;
+    const sky = g.createLinearGradient(0, SKY.y, 0, SKY.y + SKY.h); sky.addColorStop(0, top); sky.addColorStop(1, bot);
+    g.save(); g.beginPath(); g.roundRect(SKY.x, SKY.y, SKY.w, SKY.h, 18); g.clip();
+    g.fillStyle = sky; g.fillRect(SKY.x, SKY.y, SKY.w, SKY.h);
+    const cx = SKY.x + SKY.w / 2, hy = SKY.y + SKY.h - 46, rx = SKY.w / 2 - 70, ry = SKY.h - 80;
+    const at = ha => ({ x: cx + Math.sin(ha * Math.PI / 180) * rx, y: hy - Math.cos(ha * Math.PI / 180) * ry });
+    g.strokeStyle = 'rgba(255,255,255,.25)'; g.setLineDash([5, 7]); g.lineWidth = 2; g.beginPath(); g.ellipse(cx, hy, rx, ry, 0, Math.PI, 0); g.stroke(); g.setLineDash([]);
+    // 태양
+    if (Math.abs(sunHA()) < 92) { const p = at(sunHA()); g.fillStyle = '#facc15'; g.beginPath(); g.arc(p.x, p.y, 26, 0, Math.PI * 2); g.fill(); }
+    // 달
+    const mha = moonHA();
+    if (Math.abs(mha) < 92) { const p = at(mha); drawPhase(p.x, p.y, 30, theta); if (deg() < 6 || deg() > 354) { g.fillStyle = '#e2e8f0'; g.font = SIM.font(18); g.fillText('(햇빛에 묻혀 안 보여요)', p.x, p.y + 52); } }
+    // 땅
+    g.fillStyle = '#14532d'; g.fillRect(SKY.x, hy, SKY.w, SKY.h);
+    g.fillStyle = '#fff'; g.font = SIM.font(24);
+    g.fillText('동', SKY.x + 40, hy + 32); g.fillText('남', cx, hy + 32); g.fillText('서', SKY.x + SKY.w - 40, hy + 32);
+    g.restore();
+    g.textAlign = 'left'; g.fillStyle = '#e2e8f0'; g.font = SIM.font(22); g.fillText('관측 시각 ' + fmtH(hour) + '의 하늘', SKY.x + 16, SKY.y - 14);
+    g.textAlign = 'right'; g.fillText(Math.abs(mha) < 90 ? '달이 떠 있어요' : '달이 지평선 아래에 있어요', SKY.x + SKY.w - 16, SKY.y - 14);
   }
-  draw();
-  requestAnimationFrame(loop);
-}
 
-// 화면 좌표 → 캔버스 좌표 (수업 모드에서 그림이 가운데 정렬돼도 정확하게)
-function toCanvas(e) {
-  const r = canvas.getBoundingClientRect();
-  const s = Math.min(r.width / canvas.width, r.height / canvas.height);
-  const ox = (r.width - canvas.width * s) / 2, oy = (r.height - canvas.height * s) / 2;
-  return { px: (e.clientX - r.left - ox) / s, py: (e.clientY - r.top - oy) / s };
-}
-function setAngle(px, py) {
-  theta = (Math.atan2(-(py - ORBIT.y), px - ORBIT.x) + Math.PI * 2) % (Math.PI * 2);
-  slider.value = thetaToDay(theta).toFixed(1);
-}
-canvas.addEventListener('pointerdown', e => {
-  const { px, py } = toCanvas(e);
-  if (Math.hypot(px - ORBIT.x, py - ORBIT.y) < ORBIT.r + 50) {
-    dragging = true; canvas.setPointerCapture(e.pointerId); setAngle(px, py);
+  function out() {
+    rDay.value = day().toFixed(1); rHour.value = hour;
+    document.getElementById('vDay').textContent = day().toFixed(1) + '일';
+    document.getElementById('vHour').textContent = fmtH(hour);
+    const t = transit(), lit = Math.round((1 - Math.cos(theta)) / 2 * 100);
+    document.getElementById('read').innerHTML =
+      `<span>모양</span><b>${phaseName(deg())}</b><span>태양-지구-달 각</span><b>${Math.round(deg())}°</b><span>밝게 보이는 부분</span><b>${lit}%</b>` +
+      `<span>뜨는 시각</span><b>${fmtH(t - 6)}</b><span>남중 시각</span><b>${fmtH(t)}</b><span>지는 시각</span><b>${fmtH(t + 6)}</b>`;
+    document.querySelectorAll('[data-hour]').forEach(b => b.classList.toggle('on', +b.dataset.hour === hour % 24));
   }
-});
-canvas.addEventListener('pointermove', e => { if (dragging) { const p = toCanvas(e); setAngle(p.px, p.py); } });
-canvas.addEventListener('pointerup', () => dragging = false);
-canvas.addEventListener('pointercancel', () => dragging = false);
 
-slider.addEventListener('input', () => { theta = dayToTheta(parseFloat(slider.value)); });
-playBtn.addEventListener('click', () => { playing = !playing; playBtn.textContent = playing ? '⏸ 정지' : '▶ 재생'; });
-document.querySelectorAll('[data-day]').forEach(b => b.addEventListener('click', () => {
-  slider.value = b.dataset.day; theta = dayToTheta(parseFloat(b.dataset.day));
-}));
-loop();
+  // ---- 조작 ----
+  function toCv(e) { return SIM.pos(e, cv); }
+  function setAngle(p) { theta = (Math.atan2(-(p.y - ORBIT.y), p.x - ORBIT.x) + Math.PI * 2) % (Math.PI * 2); out(); }
+  cv.addEventListener('pointerdown', e => { const p = toCv(e); if (Math.hypot(p.x - ORBIT.x, p.y - ORBIT.y) < ORBIT.r + 60 && p.y < 540) { dragging = true; cv.setPointerCapture(e.pointerId); setAngle(p); } });
+  cv.addEventListener('pointermove', e => { if (dragging) setAngle(toCv(e)); });
+  cv.addEventListener('pointerup', () => dragging = false); cv.addEventListener('pointercancel', () => dragging = false);
+  rDay.oninput = () => { theta = +rDay.value / SYN * Math.PI * 2; out(); };
+  rHour.oninput = () => { hour = +rHour.value; out(); };
+  document.querySelectorAll('[data-day]').forEach(b => b.onclick = () => { theta = +b.dataset.day / SYN * Math.PI * 2; out(); });
+  document.querySelectorAll('[data-hour]').forEach(b => b.onclick = () => { hour = +b.dataset.hour; out(); });
+  const bPlay = document.getElementById('bPlay');
+  bPlay.onclick = () => { playing = !playing; bPlay.textContent = playing ? '❚❚ 정지' : '▶ 재생'; bPlay.classList.toggle('on', playing); };
 
-// ---- 사이트 연동: 높이 알리기 + 수업 모드(전체 화면) 감지 ----
-(function () {
-  const post = () => { try { parent.postMessage({ type: 'sim-height', h: document.body.offsetHeight }, '*'); } catch (e) {} };
-  const check = () => {
-    document.documentElement.classList.toggle('fs', window.innerHeight >= screen.height - 4);
-    if (!document.documentElement.classList.contains('fs')) post();
+  // ---- 실제 달력 ----
+  const NEW = Date.UTC(2000, 0, 6, 18, 14);   // 기준 삭
+  const age = d => ((((d.getTime() - NEW) / 864e5) % SYN) + SYN) % SYN;
+  const REAL = {
+    today: () => { const d = new Date(); d.setHours(21, 0, 0, 0); return { d, h: 21, t: '오늘 밤 9시' }; },
+    chuseok: () => ({ d: new Date(2026, 8, 25, 21), h: 21, t: '2026년 추석(9월 25일) 밤 9시 — 음력 8월 15일' }),
+    boreum: () => ({ d: new Date(2026, 2, 3, 21), h: 21, t: '2026년 정월 대보름(3월 3일) 밤 9시 — 음력 1월 15일' }),
   };
-  addEventListener('load', check); addEventListener('resize', check); check();
+  document.querySelectorAll('[data-real]').forEach(b => b.onclick = () => {
+    const r = REAL[b.dataset.real](), a = age(r.d);
+    theta = a / SYN * Math.PI * 2; hour = r.h; realUsed = true; playing = false; bPlay.textContent = '▶ 재생'; bPlay.classList.remove('on'); out();
+    document.querySelectorAll('[data-real]').forEach(x => x.classList.toggle('on', x === b));
+    document.getElementById('realOut').innerHTML = `<b>${r.t}</b> · 달의 나이 약 <b>${a.toFixed(1)}일</b> → <b>${phaseName(deg())}</b>. 실제 밤하늘과 비교해 보세요!`;
+  });
+
+  SIM.loop('slideMain', (t, dt) => {
+    if (playing && !dragging) { theta = (theta + dt * 0.7) % (Math.PI * 2); out(); }
+    draw();
+  });
+  out();
+
+  // ---- 탭 · 예측 · 미션 ----
+  SIM.tabs();
+  SIM.predict({ el: '#predictBox',
+    q: '<b>상현달</b>은 해가 진 직후(저녁 6시쯤) 하늘의 어디에서 보일까요?',
+    options: ['동쪽 하늘 낮은 곳', '남쪽 하늘 높은 곳', '서쪽 하늘 낮은 곳', '그 시각에는 보이지 않는다'],
+    answer: 1,
+    why: '상현달은 태양보다 90°(약 6시간) 늦게 움직여요. 그래서 정오에 떠서 <b>저녁 6시쯤 남중</b>하고 자정쯤 서쪽으로 져요.',
+    setup: () => { theta = 7.4 / SYN * Math.PI * 2; hour = 12; out(); },
+    reached: () => Math.abs(deg() - 90) < 8 && Math.abs(hour - 18) <= 0.5 });
+  const inSky = (lo, hi) => { const a = Math.abs(moonHA()); return a >= lo && a <= hi; };
+  SIM.missions({ el: '#missionBox', items: [
+    { t: '<b>보름달</b>이 남쪽 하늘 가장 높이 뜬 장면을 만들어 보세요.', hint: '보름달은 몇 시에 남중할까요?', test: () => Math.abs(deg() - 180) < 6 && inSky(0, 8) },
+    { t: '새벽 6시 무렵 남쪽 하늘에 뜬 <b>하현달</b>을 찾아보세요.', test: () => Math.abs(deg() - 270) < 6 && Math.abs(hour - 6) <= 0.5 && inSky(0, 10) },
+    { t: '해 진 직후 <b>서쪽 하늘 낮게</b> 뜬 초승달을 만들어 보세요.', hint: '저녁 7시쯤, 달의 나이 3~4일', test: () => deg() > 25 && deg() < 70 && hour >= 18.5 && hour <= 20 && moonHA() > 55 && moonHA() < 88 },
+    { t: '<b>실제 달력</b> 버튼으로 오늘 밤이나 명절의 달을 불러와 보세요.', test: () => realUsed },
+  ] });
+})();
+</script>
+<script id="sim-kit-fit">
+/* ===== sim-kit 화면 맞춤 · 전체화면 (tools/sim-kit/kit-fit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   - 사이트 안(iframe)에서는 폭에 맞춰 1920×1080 화면을 줄이고, 높이를 사이트에 알려 줌(sim-height)
+   - 새 창·전체화면에서는 화면 안에 16:9로 꽉 차게 가운데 정렬
+   - 전체화면을 켜면 휴대폰·태블릿은 가로 화면으로 돌림(지원하는 기기만) */
+(function () {
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self, de = document.documentElement;
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function fit() {
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || isFs();
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    de.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920 * s) / 2; y = Math.max(0, (window.innerHeight - h * s) / 2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h * s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h * s) }, '*'); } catch (e) {} }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+
+  var btn = document.getElementById('fsBtn');
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
+  }
+  function unlock() { try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} }
+  function sync() { if (btn) btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; if (!isFs()) unlock(); fit(); setTimeout(fit, 120); }
+  if (btn) btn.onclick = function () {
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function () { de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(function () { lockLandscape(); sync(); }, fallback); else { lockLandscape(); sync(); } } catch (e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
 </script>
 </body>

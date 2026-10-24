@@ -1,0 +1,120 @@
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
+
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
+
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
+
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
+
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
+
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
+
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
+
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
+
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
