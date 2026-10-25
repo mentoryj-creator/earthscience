@@ -132,7 +132,7 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
   #oC, #oD { font-size: 23px; }
   .meter { position: relative; height: 26px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin-top: 6px; }
   .meter i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #60a5fa, #2563eb); transition: width .2s; }
-  #realBox .sim-btn { font-size: 23px; padding: 7px 14px; }
+  #realBox .sim-btn { font-size: 22px; padding: 6px 12px; }
 </style>
 </head>
 <body>
@@ -154,7 +154,7 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
         <div class="sim-box" id="realBox">
           <h4>실제 관측과 비교하기</h4>
           <div class="sim-btns">
-            <button class="sim-btn orange" data-real="0" type="button">38만 년 (빛이 풀려남)</button>
+            <button class="sim-btn orange" data-real="0" type="button">38만 년</button>
             <button class="sim-btn orange" data-real="1" type="button">1965 펜지어스·윌슨</button>
             <button class="sim-btn orange" data-real="2" type="button">COBE</button>
           </div>
@@ -175,7 +175,7 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
         </div>
       </div>
       <div class="sim-tabpage" data-page="mission"><div class="sim-box" id="missionBox"></div></div>
-      <div class="sim-note">※ 플랑크 흑체 복사식으로 그린 곡선(최댓값을 같게 맞춤)이에요. 최대 복사 파장은 빈의 변위 법칙(λmax·T = 2.898×10⁻³ m·K)으로 계산했어요.</div>
+      <div class="sim-note">※ 플랑크 흑체 복사식 곡선(최댓값을 같게 맞춤). λmax는 빈의 변위 법칙(λmax·T = 2.898×10⁻³ m·K)으로 계산했어요.</div>
     </div>
   </div>
 </div>
@@ -411,7 +411,7 @@ document.addEventListener('pointerup', () => { const a = document.activeElement;
     g.strokeStyle = '#334155'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(L, B); g.lineTo(R, B); g.stroke();
     g.font = SIM.font(18, false); g.fillStyle = '#475569'; [[100, '100 nm'], [1000, '1 μm'], [1e4, '10 μm'], [1e5, '100 μm'], [1e6, '1 mm'], [1e7, '1 cm'], [1e8, '10 cm']].forEach(([l, t]) => g.fillText(t, SIM.clamp(X(l), L + 30, R - 30), B + 26));
     g.font = SIM.font(20); g.fillText('파장 (로그 눈금)', (L + R) / 2, B + 54);
-    g.fillStyle = 'rgba(234,88,12,.85)'; g.font = SIM.font(19); g.textAlign = 'left'; g.fillText('- - 3000 K (38만 년)', X(3000), B - 40);
+    g.fillStyle = 'rgba(234,88,12,.85)'; g.font = SIM.font(19); g.textAlign = 'left'; g.fillText('- - 3000 K (38만 년)', X(3e4), B - 40);
     // 늘어나는 빛 (개념 그림)
     const s = sc(); const lw = 30 * Math.pow(s, 0.42);
     g.fillStyle = '#f8fafc'; g.strokeStyle = '#e2e8f0'; g.lineWidth = 2; g.beginPath(); g.roundRect(40, 560, W - 80, 270, 16); g.fill(); g.stroke();
