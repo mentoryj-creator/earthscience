@@ -5,681 +5,354 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>부정합 만들기</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
-<style>
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #020617; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
-        button, input { font-family: 'Gowun Dodum', sans-serif; }
-        p, h3, figure { margin: 0; }
-        #presentation-wrapper { position: absolute; top: 50%; left: 50%; width: 1920px; height: 1080px; transform-origin: center center; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 20px; }
-        .slide { display: none; width: 100%; height: 100%; padding: 60px 80px 130px 80px; flex-direction: column; box-sizing: border-box; }
-        .slide.active { display: flex; }
+<style id="sim-kit">
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
 
-        /* 표지 (03~05단원과 동일) */
-        .slide.cover-slide { background-color: #1e293b; padding: 60px; }
-        .cover-card { background-color: white; width: 100%; height: 100%; border-radius: 20px; padding: 80px; display: flex; flex-direction: column; box-sizing: border-box; }
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
 
-        .ppt-title { font-size: 60px; font-weight: 800; border-bottom: 6px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; color: #1e293b; letter-spacing: -1px; line-height: 1.25; }
-        .ppt-subtitle { display: inline-block; font-size: 38px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 12px 32px; border-radius: 0 20px 20px 0; margin-bottom: 28px; align-self: flex-start; }
-        .ppt-text { font-size: 38px; color: #334155; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; }
-        .visual-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; border: 4px dashed #cbd5e1; border-radius: 20px; background-color: #f8fafc; position: relative; padding: 20px; min-height: 0; margin-top: 10px; }
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
 
-        .controls { position: absolute; bottom: 0; left: 0; height: 100px; width: 100%; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; padding: 0 60px; box-sizing: border-box; z-index: 50; }
-        .controls button { font-size: 28px; padding: 12px 35px; font-weight: bold; background-color: white; border: 2px solid #cbd5e1; border-radius: 15px; cursor: pointer; color: #475569; transition: all 0.2s; }
-        .controls button:hover:not(:disabled) { background-color: #e2e8f0; color: #0f172a; }
-        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .page-indicator { font-size: 32px; font-weight: bold; color: #64748b; }
-        #fullscreen-btn { position: absolute; top: 30px; right: 30px; font-size: 24px; padding: 10px 20px; background-color: #334155; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.2s; }
-        #fullscreen-btn:hover { background-color: #1e293b; }
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
 
-        .guide-label { position: absolute; bottom: 20px; right: 30px; font-size: 24px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 10px 20px; border-radius: 10px; font-weight: bold; z-index: 10; }
-        /* 06단원 본문 요소 (03~05단원 색·글꼴 체계에 맞춤) */
-        .main { flex: 1; min-height: 0; display: flex; gap: 40px; }
-        .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-        .grow { flex: 1; min-width: 0; }
-        .card { background: #fff; border: 2px solid #cbd5e1; border-radius: 20px; padding: 20px 28px; font-size: 31px; line-height: 1.55; color: #1e293b; word-break: keep-all; }
-        .card.soft { background: #f8fafc; border-color: #e2e8f0; }
-        .card.key { background: #fff7ed; border-color: #fdba74; }
-        .card h3 { font-size: 34px; font-weight: 800; color: #1d4ed8; margin: 0 0 6px 0; }
-        .card.goal { display: flex; align-items: center; gap: 24px; font-size: 36px; padding: 26px 32px; }
-        .gnum { flex: none; display: inline-flex; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; color: #fff; font-weight: 800; font-size: 34px; align-items: center; justify-content: center; }
-        .gnum.s { width: auto; height: auto; background: none; color: #ea580c; font-size: 34px; }
-        .hl { color: #2563eb; font-weight: bold; }
-        .or { color: #ea580c; font-weight: bold; }
-        .ppt-subtitle .or { color: #ea580c; }
-        .look { display: inline-block; background: #3b82f6; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 25px; font-weight: bold; margin-right: 10px; vertical-align: 3px; }
-        .look.o { background: #ea580c; }
-        .cap { font-size: 23px; color: #64748b; margin-top: 8px; }
-        figure { position: relative; }
-        figure img { display: block; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; }
-        .chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 18px; font-size: 27px; font-weight: bold; margin: 4px 8px 4px 0; background: #fff; color: #334155; }
-        .chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
-        .chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
-        .big { font-size: 64px; font-weight: 800; color: #ea580c; line-height: 1.1; }
-        .note { font-size: 24px; color: #64748b; line-height: 1.45; }
-        .gcard { flex: 1; border: 2px solid #cbd5e1; background: #f8fafc; border-radius: 20px; padding: 22px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 28px; line-height: 1.5; word-break: keep-all; }
-        .gcard.orange { border-color: #fdba74; background: #fff7ed; }
-        .gcard h3 { font-size: 44px; font-weight: 800; color: #1e293b; }
-        .gcard .kw { font-size: 32px; font-weight: bold; color: #2563eb; }
-        .ox { display: inline-block; width: 52px; height: 52px; border-radius: 50%; border: 3px solid #dc2626; color: #dc2626; text-align: center; font-size: 32px; line-height: 46px; font-weight: bold; margin-right: 8px; }
-        .blank { display: inline-block; min-width: 200px; border-bottom: 4px dashed #ea580c; text-align: center; color: transparent; cursor: pointer; font-weight: bold; transition: color .4s; user-select: none; }
-        .blank.on { color: #ea580c; border-bottom-style: solid; }
-        .barrow { display: flex; align-items: center; gap: 20px; height: 84px; }
-        .barrow .bl { width: 340px; }
-        .barrow .bt { position: relative; flex: 1; height: 44px; background: #e2e8f0; border-radius: 10px; }
-        .barrow .rb { position: absolute; top: 0; height: 100%; border-radius: 10px; transition: width .9s; }
-        .barrow .bv { width: 200px; font-size: 34px; font-weight: 800; }
-        .qrow { display: flex; align-items: center; gap: 16px; }
-        .q { font-size: 32px; padding: 18px 28px; }
-        .q .sim-btn { font-size: 32px; padding: 4px 26px; }
-        .q .res { width: 160px; font-size: 32px; font-weight: 800; }
-        .q .why { margin-top: 6px; font-size: 26px; }
-        .sim-btn.tool.on { background: var(--c); border-color: var(--c); color: #fff; }
-        .sim-btn.tool { border-color: var(--c); color: var(--c); }
-        .sim-row span { font-size: 26px; }
-        .pulse { animation: pulse 1.4s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
 
-        /* 단계별로 나타나기 (다음 ▶ 버튼으로 하나씩 보여 줌) */
-        [data-step] { opacity: 0; transform: translateY(14px); transition: opacity .55s, transform .55s; pointer-events: none; }
-        [data-step].on { opacity: 1; transform: none; pointer-events: auto; }
-        svg [data-step] { transform: none !important; }
-        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-        .slide.active .ppt-title { animation: rise .6s both; }
-        .slide.active .ppt-subtitle { animation: rise .6s .1s both; }
-        .slide.active .main { animation: rise .6s .2s both; }
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
 
-        /* ===== 시뮬레이션 공통 스타일 (추가) ===== */
-        .sim-slide .ppt-title { margin-bottom: 20px; padding-bottom: 14px; }
-        .sim-slide .ppt-subtitle { font-size: 34px; padding: 10px 30px; margin-bottom: 22px; }
-        .sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
-        .sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
-        .sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-        .sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: none; }
-        .sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .sim-stage canvas { display: block; }
-        .sim-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-        .sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px 26px; font-size: 28px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
-        .sim-box.key { background: #fff7ed; border-color: #fdba74; }
-        .sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
-        .sim-box h4 { font-size: 30px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
-        .sim-slide, .sim-slide button, .sim-slide table { font-family: 'Gowun Dodum', sans-serif; }
-        .sim-box p, .sim-box div { margin: 0; }
-        .sim-box.key h4 { color: #c2410c; }
-        .sim-row { display: flex; align-items: center; gap: 14px; font-size: 27px; margin: 6px 0; }
-        .sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
-        input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
-        .sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 29px; }
-        .sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
-        .sim-btn { font-family: 'Gowun Dodum', sans-serif; font-size: 26px; font-weight: bold; padding: 9px 22px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
-        .sim-btn:hover { background: #e2e8f0; }
-        .sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
-        .sim-btn.orange { border-color: #fdba74; color: #c2410c; }
-        .sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
-        .sim-table { width: 100%; border-collapse: collapse; font-size: 26px; }
-        .sim-table th { background: #3b82f6; color: #fff; padding: 8px 10px; font-weight: bold; }
-        .sim-table td { padding: 6px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
-        .sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
-        .sim-note { font-size: 22px; color: #64748b; line-height: 1.45; }
-        .sim-ok { color: #16a34a; font-weight: bold; }
-        .sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
-        .sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
 
-        /* ===== 3.01 / 3.02 추가 요소 ===== */
-        .ppt-table { width: 100%; border-collapse: collapse; font-size: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 15px; overflow: hidden; }
-        .ppt-table th { background-color: #2563eb; color: white; padding: 18px; border: 2px solid #93c5fd; font-weight: bold; }
-        .ppt-table td { padding: 16px 18px; border: 2px solid #cbd5e1; background-color: white; text-align: center; }
-        .ppt-table tr:nth-child(even) td { background-color: #f8fafc; }
-        .ppt-table td.rowh { background: #eff6ff; font-weight: bold; color: #1e3a8a; }
-        .video-frame { background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; }
-        .video-frame video { display: block; max-width: 100%; max-height: 100%; }
-        .imgbox { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; justify-content: center; }
-        .imgbox img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
-        .formula { font-size: 44px; font-weight: 800; background: #eff6ff; border-left: 8px solid #3b82f6; padding: 18px 30px; border-radius: 0 20px 20px 0; color: #1e293b; text-align: center; }
-        .flow { display: flex; flex-direction: column; gap: 14px; }
-        .flow .card { display: flex; align-items: center; gap: 20px; }
-        .arrow-down { text-align: center; color: #94a3b8; font-size: 30px; line-height: 1; margin: -6px 0; }
-        .ans { color: #dc2626; font-weight: 800; }
-        .filter-chip { display: flex; align-items: center; gap: 16px; border-radius: 14px; padding: 12px 20px; font-size: 30px; font-weight: bold; }
-        .filter-chip .dot { width: 46px; height: 46px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
-        /* ===== 1단원 추가 요소 ===== */
-        .controls .nav-center { display: flex; align-items: center; gap: 18px; }
-        #page-input { width: 110px; font-size: 32px; font-weight: bold; color: #1e293b; text-align: center; border: 2px solid #cbd5e1; border-radius: 12px; padding: 6px 4px; background: #fff; -moz-appearance: textfield; }
-        #page-input::-webkit-outer-spin-button, #page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        #page-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
-        .controls #toc-btn { font-size: 24px; padding: 10px 22px; }
-        .controls #go-btn { font-size: 24px; padding: 10px 20px; }
-        #toc { position: absolute; inset: 0 0 100px 0; background: rgba(15,23,42,.55); z-index: 120; display: none; align-items: center; justify-content: center; }
-        #toc.on { display: flex; }
-        #toc .toc-card { width: 1500px; max-height: 860px; background: #fff; border-radius: 24px; padding: 34px 44px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
-        #toc .toc-head { display: flex; justify-content: space-between; align-items: center; font-size: 40px; font-weight: 800; color: #1e293b; border-bottom: 5px solid #1e293b; padding-bottom: 14px; margin-bottom: 18px; }
-        #toc .toc-head button { font-size: 26px; padding: 8px 22px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold; color: #475569; }
-        #toc .toc-list { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; padding-right: 10px; }
-        #toc .toc-item { display: flex; gap: 16px; align-items: baseline; font-size: 26px; padding: 9px 14px; border-radius: 12px; cursor: pointer; color: #334155; line-height: 1.3; word-break: keep-all; }
-        #toc .toc-item:hover { background: #eff6ff; color: #1d4ed8; }
-        #toc .toc-item.cur { background: #fff7ed; color: #c2410c; font-weight: bold; }
-        #toc .toc-item b { flex: none; width: 48px; text-align: right; color: #3b82f6; }
-        #jump-toast { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); background: rgba(15,23,42,.88); color: #fff; font-size: 54px; font-weight: 800; padding: 26px 56px; border-radius: 26px; z-index: 130; display: none; }
-        #jump-toast small { display: block; font-size: 26px; font-weight: normal; color: #cbd5e1; margin-top: 6px; text-align: center; }
-        .imgbox.tight { padding: 6px; }
-        .fig { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
-        .fig img { display: block; max-width: 100%; object-fit: contain; border-radius: 12px; }
-        .tag { display: inline-block; background: #1e293b; color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; font-weight: bold; margin-right: 10px; vertical-align: 4px; }
-        .tag.b { background: #2563eb; } .tag.o { background: #ea580c; } .tag.g { background: #16a34a; } .tag.p { background: #7c3aed; } .tag.r { background: #dc2626; }
-        .qa { font-size: 29px; }
-        .qa .a { color: #c2410c; font-weight: bold; }
-        .cnt { font-size: 72px; font-weight: 800; color: #2563eb; line-height: 1; }
-        .stat { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; font-size: 27px; line-height: 1.4; word-break: keep-all; }
-        .row { display: flex; gap: 24px; }
-        svg text { font-family: 'Gowun Dodum', sans-serif; }
-        .draw { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
-        .slide.active .draw, .on .draw, .on.draw { animation: drawline 2.2s ease forwards; }
-        @keyframes drawline { to { stroke-dashoffset: 0; } }
-        .float { animation: floaty 3s ease-in-out infinite; }
-        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .stat .tag { align-self: flex-start; }
-        .stat { font-size: 30px; }
-        .stat .cnt { font-size: 96px; }
-        .sim-stage { align-self: flex-start; }
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
 
-        /* 그림 크게 보기 */
-        .slide img.zoomable { cursor: zoom-in; }
-        #zoom { position: absolute; inset: 0; z-index: 400; background: rgba(15,23,42,.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: zoom-out; }
-        #zoom.on { display: flex; animation: zin .2s ease; }
-        #zoom img { background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
-        #zoom .zoom-hint { color: #e2e8f0; font-size: 22px; }
-        @keyframes zin { from { opacity: 0; } to { opacity: 1; } }
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
 
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
 </style>
 <style>
-            .sorter{display:flex;flex-direction:column;gap:16px;width:100%}
-            .sort-pool{display:flex;flex-wrap:wrap;gap:12px;min-height:70px;padding:14px;border:2px dashed #cbd5e1;border-radius:18px;background:#f8fafc}
-            .sort-chip{border:2px solid #94a3b8;background:#fff;border-radius:14px;padding:8px 18px;font-size:26px;font-weight:bold;color:#334155;cursor:pointer;font-family:inherit;transition:transform .15s}
-            .sort-chip.sel{border-color:#ea580c;background:#fff7ed;color:#c2410c;transform:scale(1.06)}
-            .sort-chip.bad{animation:shake .4s}
-            .sort-chip.ok{cursor:default;border-color:#93c5fd;background:#eff6ff;color:#1d4ed8;font-size:23px;padding:6px 14px}
-            @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
-            .sort-bins{display:flex;gap:16px}
-            .sort-bin{flex:1;border:3px solid #cbd5e1;border-radius:18px;padding:12px 14px;min-height:250px;background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:8px}
-            .sort-bin h4{font-size:28px;font-weight:800;margin-bottom:4px}
-            .sort-bin .items{display:flex;flex-wrap:wrap;gap:8px}
-            .sort-bin.hl{border-color:#ea580c;background:#fffbf5}
-            .sort-msg{font-size:26px;font-weight:bold;min-height:36px;color:#334155}
-            .tree{display:flex;gap:20px;align-items:stretch}
-            .tree .br{flex:1;border:2px solid #cbd5e1;border-radius:18px;padding:14px 18px;background:#f8fafc}
-            .tree h4{font-size:30px;font-weight:800;margin-bottom:8px}
-            .tree li{font-size:26px;line-height:1.6;margin-left:28px}
-        </style><style>
-            .gmap{position:relative;flex:none}
-            .gmap img{display:block;height:640px;border-radius:14px;border:2px solid #e2e8f0}
-            .gmap .hot{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:4px solid transparent;background:transparent;cursor:pointer;padding:0}
-            .gmap .hot:hover{border-color:rgba(234,88,12,.6)}
-            .gmap .hot.on{border-color:#ea580c;box-shadow:0 0 0 6px rgba(234,88,12,.25);animation:pulse 1.2s infinite}
-            @keyframes pulse{50%{box-shadow:0 0 0 12px rgba(234,88,12,.1)}}
-            .pk-chips{display:flex;flex-wrap:wrap;gap:6px}
-            .pk-chips button{font-family:inherit;font-size:23px;font-weight:bold;border:2px solid #cbd5e1;background:#fff;border-radius:10px;padding:3px 8px;cursor:pointer;color:#334155}
-            .pk-chips button.on{background:#ea580c;border-color:#ea580c;color:#fff}
-            .order-cards{display:flex;flex-direction:column;gap:14px}
-            .ocard{border:3px solid #cbd5e1;border-radius:16px;padding:16px 20px;font-size:28px;background:#fff;cursor:pointer;display:flex;gap:16px;align-items:center;font-family:inherit;text-align:left;line-height:1.45}
-            .ocard .num{flex:none;width:52px;height:52px;border-radius:50%;background:#e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px}
-            .ocard.done{border-color:#93c5fd;background:#eff6ff;cursor:default}
-            .ocard.done .num{background:#2563eb;color:#fff}
-            .ocard.bad{animation:shake .4s;border-color:#fdba74}
-            .stepimg{display:flex;gap:18px;align-items:stretch}
-            .stepimg .st{flex:1;display:flex;flex-direction:column;gap:10px}
-            .stepimg .st .cap2{font-size:26px;line-height:1.5;background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:12px 16px}
-        </style><style>
-            .slide-x{display:none!important}
-            .src-badge{position:absolute;top:14px;left:80px;font-size:21px;font-weight:bold;color:#1d4ed8;background:#eff6ff;border:2px solid #bfdbfe;border-radius:999px;padding:2px 16px;z-index:5}
-        </style>
-<style id="standalone">
-  /* ---- 독립 실행용 (사이트 iframe·수업 모드·새 창에 맞춤) ---- */
-  html, body { margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important;
-    overflow: hidden !important; display: block !important; background: #ffffff; }
-  html.fit, html.fit body { height: 100% !important; background: #0f172a; }
-  #presentation-wrapper { position: relative !important; top: 0 !important; left: 0 !important;
-    width: 1920px !important; height: auto !important; transform-origin: 0 0 !important;
-    border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; background: #fff !important; }
-  #presentation-wrapper > .slide { display: flex !important; height: auto !important; min-height: 0 !important;
-    padding: 34px 60px 40px 60px !important; }
-  #presentation-wrapper > .slide > .ppt-title { display: none !important; }
-  #presentation-wrapper > .slide > .ppt-subtitle { margin-top: 0 !important; }
-  #presentation-wrapper [data-step] { opacity: 1 !important; visibility: visible !important; }
-  #presentation-wrapper .slide, #presentation-wrapper .slide * { animation: none !important; }
-  .slide-x { display: none !important; }
+.tag{display:inline-block;background:#1e293b;color:#fff;border-radius:10px;padding:2px 14px;font-size:22px;font-weight:bold;margin-right:10px;vertical-align:3px}
+.tag.b{background:#2563eb}.tag.o{background:#ea580c}.tag.g{background:#16a34a}.tag.p{background:#7c3aed}.tag.r{background:#dc2626}
+#realBox .sim-btn{font-size:20px;padding:6px 11px}
+.sim-panel .sim-box{padding:10px 18px}#oU1{font-size:21px}
+</style>
+<style id="mission-pop-css">
+  /* 미션 시작 버튼 + 팝업 */
+  .sim-tab.mission-open { background: #fff7ed; color: #c2410c; border: 2px solid #fdba74; }
+  .sim-tab.mission-open:hover { background: #ffedd5; }
+  .mission-pop { position: absolute; inset: 0; z-index: 80; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; }
+  .mission-card { width: 900px; max-height: 900px; overflow-y: auto; background: #fff; border-radius: 24px; padding: 28px 36px; box-shadow: 0 20px 50px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 16px; animation: rise .3s both; }
+  .mission-card h3 { font-size: 34px; font-weight: 800; color: #c2410c; display: flex; align-items: center; justify-content: space-between; }
+  .mission-card #missionBox { display: flex; flex-direction: column; gap: 12px; }
+  /* 모든 미션 완료 축하 */
+  .fw-msg { position: absolute; left: 50%; top: 50%; z-index: 91; pointer-events: none; transform: translate(-50%,-50%); text-align: center; font-size: 84px; font-weight: 800; color: #fff; background: linear-gradient(135deg,#f59e0b,#ec4899,#8b5cf6); padding: 30px 70px; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fwPop .7s cubic-bezier(.2,1.6,.4,1) both, fwGlow 1.2s ease-in-out .7s infinite alternate; transition: opacity .6s; }
+  .fw-msg small { display: block; font-size: 38px; margin-top: 6px; opacity: .95; }
+  .fw-msg.out { opacity: 0; }
+  @keyframes fwPop { from { transform: translate(-50%,-50%) scale(.2) rotate(-8deg); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+  @keyframes fwGlow { to { box-shadow: 0 0 80px rgba(250,204,21,.9); transform: translate(-50%,-50%) scale(1.04); } }
 </style>
 </head>
 <body>
 <div id="presentation-wrapper">
-<div class="slide sim-slide active" id="s23">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="mission-pop" id="missionPop" hidden>
+  <div class="mission-card" role="dialog" aria-label="미션">
+    <h3>🎯 미션 <button class="sim-btn" id="missionClose" type="button">✕ 닫기</button></h3>
+    <div id="missionBox"></div>
+    <div class="sim-btns" style="justify-content:center"><button class="sim-btn on" id="missionGo" type="button">실험하러 가기 →</button></div>
+  </div>
+</div>
+<div class="slide sim-slide active" id="slideMain">
             <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>부정합 만들기</div>
             <div class="ppt-subtitle">부정합의 종류를 고르고 <span class="or">다음 단계</span>를 눌러 지층이 변하는 과정을 관찰해요.</div>
             <div class="sim-wrap">
                 <div class="sim-stage light"><canvas id="cU1" width="1060" height="610"></canvas></div>
-                <div class="sim-panel">
+                <div class="sim-panel"><div class="sim-tabs"><button class="sim-tab on" data-tab="predict">① 예측</button><button class="sim-tab" data-tab="lab">② 실험</button><button class="sim-tab mission-open" data-tab="mission" type="button">🎯 미션 시작</button></div><div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div></div><div class="sim-tabpage" data-page="lab">
                     <div class="sim-box blue">
                         <h4>부정합의 종류</h4>
                         <div class="sim-btns"><button class="sim-btn on" data-ty="tilt">경사</button><button class="sim-btn" data-ty="para">평행</button><button class="sim-btn" data-ty="nonc">난정합</button></div>
                         <div class="sim-btns" style="margin-top:10px"><button class="sim-btn orange" id="uNext">▶ 다음 단계</button><button class="sim-btn" id="uReset">처음부터</button></div>
                     </div>
                     <div class="sim-box key" id="oU1" style="font-size:23px"></div>
-                    <div class="sim-note">※ 지도서 보충 자료의 그림을 바탕으로 한 개념 모형이에요.</div>
+                    <div class="sim-box" id="realBox"><h4>실제 부정합</h4><div class="sim-btns"><button class="sim-btn orange" data-real="0" type="button">시카 포인트</button><button class="sim-btn orange" data-real="1" type="button">그랜드 캐니언</button></div><div class="sim-note" id="realOut" style="margin-top:6px;font-size:19px;color:#334155">버튼을 눌러 실제 사례를 확인해 보세요.</div><div class="real-src">지질학사·미국 지질조사국(USGS) 자료(연대는 대략값)</div></div></div><div class="sim-note">※ 지도서 보충 자료의 그림을 바탕으로 한 개념 모형이에요.</div>
                 </div>
-            </div>
-        </div>
-        <div class="slide-x cover-slide" id="s1">
-            <div class="cover-card">
-                <div class="ppt-title" style="font-size: 70px;">한반도의 지질 명소를 어떻게 가꾸고 보존해야 할까?</div>
-                <div class="ppt-subtitle" style="font-size: 50px;">05. 한반도의 지질 명소와 국가지질공원</div>
-                <div class="visual-area" style="border:none; padding:0; overflow:hidden; border-radius:20px;">
-                    <img data-noimg="" style="width:100%;height:100%;object-fit:cover;object-position:50% 35%">
-                </div>
-                <p class="ppt-text" style="margin-top: 30px; font-size: 40px; font-weight: bold; color: #1e293b; text-align: center;">국가지질공원 · 두무진 · 채석강 · 서낭바위 · 지속가능한 발전</p>
-            </div>
-        </div>
-        <div class="slide-x" id="s2">
-            <div class="ppt-title">오늘의 학습 목표</div>
-            <div class="ppt-subtitle">우리 땅의 <span class="or">아름다운 지질 명소</span>는 어떻게 만들어졌을까?</div>
-            <div class="main">
-                <div class="col" style="width:1060px; justify-content:center">
-                    <div class="card goal" data-step="1"><span class="gnum">1</span><div>우리나라의 대표적인 지질공원의 <b>지질학적 형성 과정</b>을 추론할 수 있다.</div></div>
-                    <div class="card goal" data-step="2"><span class="gnum">2</span><div>지역사회와 함께하는 지질공원의 <b>지속가능한 발전 방안</b>을 제안할 수 있다.</div></div>
-                </div>
-                <div class="col grow" style="justify-content:center; align-items:center">
-                    <img data-noimg="" style="height:600px;border-radius:50%">
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s3">
-            <div class="ppt-title">생각 열기: 자연이 그린 그림 같은 절경</div>
-            <div class="ppt-subtitle">이런 절경은 어떤 <span class="or">지질학적 과정</span>을 거쳐 만들어졌을까?</div>
-            <div class="main">
-                <div class="imgbox tight" style="width:760px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
-                <div class="col grow" style="justify-content:center">
-                    <div class="card soft" data-step="1"><span class="look">Q</span>우리나라에는 어떤 <b>지질 명소</b>가 있을까?</div>
-                    <div class="card" data-step="2">지구시스템의 <b>상호작용</b>으로 생긴 절경에는 오랜 지질학적 이야기가 숨어 있어요.</div>
-                    <div class="card key" data-step="3">이런 지질 명소를 지역사회와 주민, 관광객이 <b>어떻게 함께 나눌지</b> 고민해 봐요.</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s4">
-            <div class="ppt-title">한반도는 지질학의 보고예요</div>
-            <div class="ppt-subtitle">화성암 · 퇴적암 · 변성암과 이 암석들이 만든 <span class="or">다양한 지형</span>이 있어요.</div>
-            <div class="main" style="flex-direction:column;gap:16px">
-                <img data-noimg="" style="width:100%;height:400px;object-fit:cover;border-radius:16px">
-                <div style="display:flex;gap:16px">
-                    <div class="card" data-step="1" style="flex:1;font-size:30px;text-align:center">🔥 마그마가 만든<br><b>화성암</b></div>
-                    <div class="card" data-step="2" style="flex:1;font-size:30px;text-align:center">🌊 깎이고 쌓여서 만들어진<br><b>퇴적암</b></div>
-                    <div class="card" data-step="3" style="flex:1;font-size:30px;text-align:center">🌡 열과 압력이 만든<br><b>변성암</b></div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s5">
-            <div class="ppt-title">국가지질공원: 지질학적 가치가 뛰어난 곳</div>
-            <div class="ppt-subtitle">아름답고 지질학적 가치가 뛰어난 지역을 <span class="or">국가지질공원</span>으로 지정하여 관리해요.</div>
-            <div class="main">
-                <div class="imgbox tight" style="width:640px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
-                <div class="col grow" style="justify-content:center;gap:14px">
-                    <div class="stat" data-step="1"><span class="tag b">2024년 2월 기준</span><span class="cnt">16<span style="font-size:44px">곳</span></span><span>우리나라의 국가지질공원</span></div>
-                    <div class="card soft" data-step="2" style="font-size:25px;line-height:1.7">백령·대청, 한탄강, 화성, 단양, 고군산군도, 전북서해안권, 진안·무주, 무등산권, 제주도, 부산, 의성, 청송, 울릉도·독도, 경북동해안권, 강원고생대, 강원평화지역</div>
-                    <div class="card key" data-step="3">다음 슬라이드에서 지도를 눌러 <b>한 곳씩 크게</b> 살펴봐요.</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x sim-slide" id="s6">
-            <div class="ppt-title"><span class="sim-tag">탐험</span>국가지질공원 지도 탐험</div>
-            <div class="ppt-subtitle">지도의 <span class="or">번호</span>나 아래 이름을 누르면 그 지질공원의 사진이 크게 나타나요.</div>
-            <div class="main" style="gap:24px">
-                <div class="gmap" id="gmap"><img data-noimg=""></div>
-                <div class="col grow" style="gap:12px;justify-content:flex-start">
-                    <div style="display:flex;justify-content:center;align-items:center;height:440px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px">
-                        <img id="pkimg" data-noimg="" style="max-height:420px;max-width:100%;border-radius:12px">
-                    </div>
-                    <div class="pk-chips" id="pkchips"></div>
-                </div>
-            </div>
-            <div style="display:none" id="pktiles">
-                <img data-n="1" data-noimg=""><img data-n="2" data-noimg=""><img data-n="3" data-noimg=""><img data-n="4" data-noimg=""><img data-n="5" data-noimg=""><img data-n="6" data-noimg=""><img data-n="7" data-noimg=""><img data-n="8" data-noimg=""><img data-n="9" data-noimg=""><img data-n="10" data-noimg=""><img data-n="11" data-noimg=""><img data-n="12" data-noimg=""><img data-n="13" data-noimg=""><img data-n="14" data-noimg=""><img data-n="15" data-noimg=""><img data-n="16" data-noimg="">
-            </div>
-        </div>
-        <div class="slide-x" id="s7">
-            <div class="ppt-title">세 암석으로 이루어진 세 지질 명소</div>
-            <div class="ppt-subtitle">어떤 <span class="or">암석</span>으로 이루어졌는지에 따라 명소를 살펴봐요.</div>
-            <div class="main">
-                <div class="imgbox tight" style="width:760px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
-                <div class="col grow" style="justify-content:center;gap:16px">
-                    <div class="card" data-step="1" style="font-size:32px"><span class="gnum" style="background:#16a34a;width:50px;height:50px;font-size:28px">1</span> <b>두무진</b> (인천 옹진군 백령도) → <span class="tag p">변성암</span></div>
-                    <div class="card" data-step="2" style="font-size:32px"><span class="gnum" style="width:50px;height:50px;font-size:28px">2</span> <b>채석강</b> (전북특별자치도 부안) → <span class="tag o">퇴적암</span></div>
-                    <div class="card" data-step="3" style="font-size:32px"><span class="gnum" style="background:#9f1239;width:50px;height:50px;font-size:28px">3</span> <b>서낭바위</b> (강원특별자치도 고성) → <span class="tag r">화성암</span></div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s8">
-            <div class="ppt-title">① 변성암으로 이루어진 지질 명소, 두무진</div>
-            <div class="ppt-subtitle">장군들이 머리를 맞대고 회의하는 것 같아 ‘두무진(頭武鎭)’, <span class="or">서해의 해금강</span>이라 불려요.</div>
-            <div class="main">
-                <img data-noimg="" style="height:640px;flex:none;border-radius:16px">
-                <div class="col grow" style="justify-content:center;gap:16px">
-                    <div class="card" data-step="1">약 <b>10억 년 전</b> 퇴적된 모래 → 퇴적암인 <b>사암</b></div>
-                    <div class="card" data-step="2">더 깊은 지하에서 <b>고온·고압</b> → 변성암인 <b>규암</b></div>
-                    <div class="card key" data-step="3">그런데도 퇴적 당시의 <b>퇴적 구조</b>를 고스란히 간직한 거대 <b>해식 기둥</b>과 <b>해식 절벽</b>을 볼 수 있어요.</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s9">
-            <div class="ppt-title">두무진은 이렇게 만들어졌어요</div>
-            <div class="ppt-subtitle">퇴적 → <span class="or">변성·단층</span> → 융기와 침식</div>
-            <div class="main" style="flex-direction:column;gap:16px">
-                <img data-noimg="" style="width:100%;max-height:470px;object-fit:contain;object-position:top">
-                <div class="stepimg">
-                    <div class="st" data-step="1"><div class="cap2"><b>① 퇴적</b> 선캄브리아시대 후기 <b>얕은 바다</b>에 퇴적물이 쌓였어요.</div></div>
-                    <div class="st" data-step="2"><div class="cap2"><b>② 변성</b> 퇴적암이 지하 깊은 곳에서 고온·고압 → <b>규암</b>, 몇 번의 <b>단층 작용</b></div></div>
-                    <div class="st" data-step="3"><div class="cap2"><b>③ 융기·침식</b> 물 위로 드러난 뒤, 파도와 비바람이 단층과 절리면을 깎았어요.</div></div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s10">
-            <div class="ppt-title">② 퇴적암으로 이루어진 지질 명소, 채석강</div>
-            <div class="ppt-subtitle">전북특별자치도 부안 · 중생대 백악기 <span class="or">호수 퇴적 환경</span>과 <span class="or">화산 활동</span>으로 형성</div>
-            <div class="main">
-                <img data-noimg="" style="height:600px;flex:none;align-self:center">
-                <div class="col grow" style="justify-content:center;gap:14px">
-                    <div class="card" data-step="1" style="font-size:27px">약 <b>7천만 년 전</b>(중생대 백악기)부터 쌓인 <b>격포리 퇴적층</b>: 역암, 역암과 사암, 사암과 이암의 교대층, 셰일, 화산회</div>
-                    <div class="card" data-step="2" style="font-size:27px">→ 과거 이곳은 <b>깊은 호수</b>였고, 호수 밑바닥에 <b>화산 분출물</b>이 퇴적되었어요.</div>
-                    <div class="card" data-step="3" style="font-size:27px">단층, 습곡, 관입 구조, 파식대를 쉽게 관찰할 수 있어요.</div>
-                    <div class="card key" data-step="4" style="font-size:27px">바닥에는 <b>돌개구멍</b>, 밀물 때 들어온 바닷물이 고인 <b>조수 웅덩이</b>도 있어요.</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s11">
-            <div class="ppt-title">채석강 해식 절벽은 이렇게 만들어졌어요</div>
-            <div class="ppt-subtitle">퇴적 → <span class="or">융기</span> → 해수면 변동과 침식</div>
-            <div class="main" style="flex-direction:column;gap:16px">
-                <img data-noimg="" style="width:100%;max-height:470px;object-fit:contain;object-position:top">
-                <div class="stepimg">
-                    <div class="st" data-step="1"><div class="cap2"><b>① 퇴적</b> 중생대 백악기 <b>호수</b>에 퇴적물이 쌓였어요.</div></div>
-                    <div class="st" data-step="2"><div class="cap2"><b>② 융기</b> 신생대에 퇴적층이 융기하여 지표면에 드러났어요.</div></div>
-                    <div class="st" data-step="3"><div class="cap2"><b>③ 침식</b> 여러 차례의 <b>해수면 변동</b>으로 침식 작용을 받았어요.</div></div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s12">
-            <div class="ppt-title">③ 화성암으로 이루어진 지질 명소, 서낭바위</div>
-            <div class="ppt-subtitle">강원특별자치도 고성 송지호 해변 남단 · <span class="or">화강암</span> 지대에 발달한 암석 해안</div>
-            <div class="main">
-                <img data-noimg="" style="height:560px;flex:none;align-self:center">
-                <div class="col grow" style="justify-content:center;gap:14px">
-                    <div class="card" data-step="1" style="font-size:27px">이름: 오호리 마을의 <b>서낭당(성황당)</b>이 위치하는 데서 유래</div>
-                    <div class="card" data-step="2" style="font-size:27px">화강암체에 발달한 <b>단층</b>과 <b>규장암</b>이 해수면의 침강·상승, 파도의 영향 → 여러 모양의 <b>풍화미지형</b></div>
-                    <div class="card key" data-step="3" style="font-size:27px">독특한 경관: 화강암층 사이로 <b>수평 방향의 두터운 암맥</b>이 관입하여 형성</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s13">
-            <div class="ppt-title">서낭바위는 이렇게 만들어졌어요</div>
-            <div class="ppt-subtitle">화강암 관입 → <span class="or">규장암 암맥</span> 관입 → 차별 풍화와 침식</div>
-            <div class="main" style="flex-direction:column;gap:16px">
-                <img data-noimg="" style="width:100%;max-height:470px;object-fit:contain;object-position:top">
-                <div class="stepimg">
-                    <div class="st" data-step="1"><div class="cap2"><b>① 관입</b> 중생대 쥐라기 화산 활동으로 <b>화강암</b>이 관입했어요.</div></div>
-                    <div class="st" data-step="2"><div class="cap2"><b>② 암맥</b> 지하에서 오랜 풍화 → 백악기 후기 또 다른 마그마 관입 → <b>규장암 암맥</b></div></div>
-                    <div class="st" data-step="3"><div class="cap2"><b>③ 침식</b> <b>차별 풍화</b>와 침식, 해수의 작용 등 복합적인 작용</div></div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x sim-slide" id="s14">
-            <div class="ppt-title"><span class="sim-tag">활동</span>형성 과정 순서 맞히기</div>
-            <div class="ppt-subtitle">명소를 고르고, 일어난 <span class="or">순서대로</span> 카드를 눌러 보세요.</div>
-            <div class="main" style="gap:24px">
-                <div class="col" style="width:520px;flex:none;gap:14px;justify-content:flex-start">
-                    <div class="sim-btns" id="ordsite"><button class="sim-btn on" data-s="D">두무진</button><button class="sim-btn" data-s="C">채석강</button><button class="sim-btn" data-s="S">서낭바위</button></div>
-                    <img id="ordimg" data-noimg="" style="height:430px;max-width:100%;object-fit:contain;border-radius:16px;align-self:center">
-                    <div class="sort-msg" id="ordmsg"></div>
-                </div>
-                <div class="col grow" style="justify-content:center"><div class="order-cards" id="ordcards"></div></div>
-            </div>
-            <div style="display:none"><img id="ordC" data-noimg=""><img id="ordS" data-noimg=""><img id="ordD" data-noimg=""></div>
-        </div>
-        <div class="slide-x sim-slide" id="s15">
-            <div class="ppt-title"><span class="sim-tag">활동</span>어느 명소의 이야기일까?</div>
-            <div class="ppt-subtitle">카드를 하나 누르고, 알맞은 <span class="or">명소</span> 상자를 눌러 보세요.</div>
-            <div class="main" style="flex-direction:column">
-                <div class="sorter" id="sortV5">
-                    <div class="sort-pool"></div>
-                    <div class="sort-bins">
-                        <div class="sort-bin" data-bin="d"><h4 style="color:#7c3aed">두무진 (변성암)</h4><div class="items"></div></div>
-                        <div class="sort-bin" data-bin="c"><h4 style="color:#ea580c">채석강 (퇴적암)</h4><div class="items"></div></div>
-                        <div class="sort-bin" data-bin="s"><h4 style="color:#dc2626">서낭바위 (화성암)</h4><div class="items"></div></div>
-                    </div>
-                    <div class="sort-msg"></div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s16">
-            <div class="ppt-title">탐구 활동) 한반도 지질 명소의 암석과 지질 구조 탐구하기</div>
-            <div class="ppt-subtitle">문제 인식: 관찰 가능한 내용과 이를 <span class="or">보존하고 발전</span>시키기 위한 방안은?</div>
-            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
-                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>국가지질공원 누리집(<b>koreageoparks.kr</b>)에 접속하여 지질 명소를 찾아봐요.</div></div>
-                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div>모둠별로 한 곳을 골라 <b>암석과 지질 구조, 형성 과정, 경제적·환경적 가치</b> 등을 나누어 조사해요.</div></div>
-                <div class="card" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum">3</span><div><b>온라인 문서 편집기</b>로 모둠원들이 조사한 내용을 하나로 모아 정리해요.</div></div>
-                <div class="card key" data-step="4" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">4</span><div>탐방 코스, 주요 지질 명소, 볼거리·먹을거리·얘깃거리를 엮은 <b>홍보 프로그램</b>을 만들어 발표해요.</div></div>
-            </div>
-        </div>
-        <div class="slide-x" id="s17">
-            <div class="ppt-title">지질공원으로 인증되면 우리 생활은 어떻게 달라질까?</div>
-            <div class="ppt-subtitle">탐구 정리: 여섯 가지 관점에서 생각해 봐요. (지도서 예시 답안)</div>
-            <div class="main" style="flex-direction:column;gap:12px;justify-content:center">
-                <div style="display:flex;gap:12px">
-                    <div class="card" data-step="1" style="flex:1;font-size:25px;background:#f0fdf4;border-color:#86efac"><b style="font-size:30px">🌿 환경</b><br>지질 유산 보호 강화, 서식지 보호와 생태계 보전</div>
-                    <div class="card" data-step="2" style="flex:1;font-size:25px;background:#fefce8;border-color:#fde047"><b style="font-size:30px">🧳 관광</b><br>국내외 관광객 유치, 지역 문화 체험, 관광 인프라 구축</div>
-                    <div class="card" data-step="3" style="flex:1;font-size:25px;background:#fff7ed;border-color:#fdba74"><b style="font-size:30px">💼 고용률</b><br>지질공원 관리·교육·연구·서비스 일자리, 전문 인력 양성</div>
-                </div>
-                <div style="display:flex;gap:12px">
-                    <div class="card" data-step="4" style="flex:1;font-size:25px;background:#ecfeff;border-color:#67e8f9"><b style="font-size:30px">🗑 쓰레기 문제</b><br>환경 교육으로 의식 개선, 관리 시스템·처리 시설 확충</div>
-                    <div class="card" data-step="5" style="flex:1;font-size:25px;background:#eff6ff;border-color:#93c5fd"><b style="font-size:30px">🔬 교육 및 연구</b><br>실외 교육장 활용, 주민의 지질학적 이해 증진, 연구 활성화</div>
-                    <div class="card" data-step="6" style="flex:1;font-size:25px;background:#f0fdf4;border-color:#4ade80"><b style="font-size:30px">💰 지역 경제</b><br>차별화된 관광 프로그램, 특산품·기념품 개발, 지역 세수 증가</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s18">
-            <div class="ppt-title">지역사회와 함께하는 지속가능한 발전 방안</div>
-            <div class="ppt-subtitle">관광객 유치에만 초점을 맞추지 않고, <span class="or">지역사회의 협력과 참여</span>가 필수예요.</div>
-            <div class="main">
-                <div class="col grow" style="justify-content:center;gap:12px">
-                    <div class="card" data-step="1" style="font-size:27px"><span class="tag b">참여</span>주민 의견 수렴 위원회, 주민 교육·홍보, 지역 문화 행사와 연계</div>
-                    <div class="card" data-step="2" style="font-size:27px"><span class="tag g">관광</span>친환경 관광 상품, 지역 주민이 안내하고 해설하는 참여 확대</div>
-                    <div class="card" data-step="3" style="font-size:27px"><span class="tag o">교육·연구</span>주민 지질 교육 프로그램, 옛 이야기·그림·음악 수집</div>
-                    <div class="card" data-step="4" style="font-size:27px"><span class="tag p">보호</span>침식 방지, 외래종 방제, 자연 서식지 관리, 쓰레기 관리</div>
-                    <div class="card key" data-step="5" style="font-size:27px">다른 지질공원·해외 지질공원과의 <b>교류와 연계</b></div>
-                </div>
-                <div class="imgbox tight" style="width:620px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
-            </div>
-        </div>
-        <div class="slide-x" id="s19">
-            <div class="ppt-title">지질공원은 지질만 다루는 곳이 아니에요</div>
-            <div class="ppt-subtitle">지질공원(Geopark): 과학적 중요성, 희귀성, 경관적 아름다움을 지닌 장소를 <span class="or">보존</span>하려는 제도</div>
-            <div class="main" style="flex-direction:column;gap:14px">
-                <img data-noimg="" style="width:100%;height:330px;object-fit:cover;border-radius:16px">
-                <div style="display:flex;gap:14px">
-                    <div class="card" data-step="1" style="flex:1;font-size:26px">지질뿐 아니라 <b>생물·고고·역사·문화</b>를 모두 포함하여 교육과 관광에 활용해요.</div>
-                    <div class="card" data-step="2" style="flex:1;font-size:26px">주민이 경제적 혜택과 <b>자긍심</b>을 얻어 스스로 보존에 힘써요. → 주민이 주도·참여하는 <b>상향식(bottom-up)</b> 제도</div>
-                    <div class="card key qa" data-step="3" style="flex:1;font-size:26px"><b>Q.</b> 유네스코 세계지질공원으로 인증된 곳은?<br>→ 제주도, 청송, 무등산권, 한탄강, 전북서해안권 (2024년 기준)</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s20">
-            <div class="ppt-title">세로처럼 깊게) 놀라운 시간의 간격, 지층의 부정합</div>
-            <div class="ppt-subtitle">태백 구문소 아래, 약 <span class="or">20억 년</span>의 시간을 건너뛴 부정합면</div>
-            <div class="main">
-                <img data-noimg="" style="height:640px;flex:none;border-radius:14px">
-                <div class="col grow" style="justify-content:center;gap:14px">
-                    <div class="card" data-step="1" style="font-size:27px"><span class="tag p">왼쪽</span>약 <b>25억 년 전</b> 선캄브리아시대의 변성암 <b>화강 편마암</b></div>
-                    <div class="card" data-step="2" style="font-size:27px"><span class="tag o">오른쪽</span>약 <b>5억 년 전</b> 고생대 초기(캄브리아기) 퇴적암 <b>면산층</b> (조선 누층군, 태백산 분지 최하위층)</div>
-                    <div class="card soft" data-step="3" style="font-size:25px">면산층 최하부: 약 7 m 두께의 <b>역암</b> → 그 위로 약 100 m 두께의 암회색 사암과 모래, 실트암</div>
-                    <div class="card key" data-step="4" style="font-size:27px">부정합 = 상하 지층 사이에 <b>긴 시간 간격</b>이 있어 관계가 불연속적이에요.</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s21">
-            <div class="ppt-title">태백의 부정합은 어떻게 만들어졌을까?</div>
-            <div class="ppt-subtitle">20억 년의 간격은 <span class="or">융기 → 풍화·침식 → 침강 → 퇴적</span>에 걸린 시간이에요. (지도서 예시 답안)</div>
-            <div class="main" style="flex-direction:column;justify-content:center;gap:12px">
-                <div class="card" data-step="1" style="display:flex;align-items:center;gap:20px"><span class="gnum">1</span><div>약 25억 년 전 마그마가 만든 <b>화강암</b>이 지하 깊은 곳에서 변성 → <b>화강 편마암</b></div></div>
-                <div class="arrow-down" data-step="2">▼</div>
-                <div class="card" data-step="2" style="display:flex;align-items:center;gap:20px"><span class="gnum">2</span><div>오랜 시간 동안 <b>풍화와 침식</b>으로 화강 편마암이 깎여 나감</div></div>
-                <div class="arrow-down" data-step="3">▼</div>
-                <div class="card key" data-step="3" style="display:flex;align-items:center;gap:20px"><span class="gnum" style="background:#ea580c">3</span><div>풍화 물질과 주변에서 운반된 퇴적물이 <b>고생대 초기</b>에 두껍게 퇴적 → 오늘날의 <b>면산층</b></div></div>
-            </div>
-        </div>
-        <div class="slide-x" id="s22">
-            <div class="ppt-title">부정합의 종류: 경사 부정합 · 평행 부정합 · 난정합</div>
-            <div class="ppt-subtitle">부정합면 아래 지층의 <span class="or">기울기</span>와 <span class="or">암석의 종류</span>로 구분해요. (지도서 보충 자료)</div>
-            <div class="main">
-                <div class="imgbox tight" style="width:960px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
-                <div class="col grow" style="justify-content:center;gap:14px">
-                    <div class="card" data-step="1" style="font-size:27px"><span class="tag b">경사 부정합</span>아래 지층의 쌓인 방향·기울어진 정도가 위 지층과 <b>다름</b></div>
-                    <div class="card" data-step="2" style="font-size:27px"><span class="tag g">평행 부정합</span>위아래 지층이 쌓인 방향이 <b>평행</b></div>
-                    <div class="card" data-step="3" style="font-size:27px"><span class="tag o">난정합</span>퇴적암이 <b>심성암이나 변성암</b> 위에 쌓인 경우</div>
-                    <div class="note" data-step="3">태백의 부정합: 변성암(화강 편마암) 위에 퇴적암(면산층) → 난정합에 해당해요.</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s24">
-            <div class="ppt-title">정리: 빈칸을 눌러 개념을 완성해요</div>
-            <div class="ppt-subtitle">나의 정리 노트를 함께 채워 볼까요?</div>
-            <div class="main">
-                <div class="imgbox tight" style="width:540px;flex:none"><img data-noimg="" style="max-height:622px;max-width:100%"></div>
-                <div class="col grow" style="justify-content:center;gap:14px">
-                    <div class="card" style="font-size:28px;line-height:1.8"><b>두무진</b>: <span class="blank" style="min-width:110px">변성암</span>으로 이루어진 지질 명소 → 변성 전 퇴적 구조를 간직한 거대 해식 기둥과 해식 절벽</div>
-                    <div class="card" style="font-size:28px;line-height:1.8"><b>채석강</b>: <span class="blank" style="min-width:110px">퇴적암</span>으로 이루어진 지질 명소 → 호수 퇴적 환경과 화산 활동, 단층·습곡·관입 구조·파식대</div>
-                    <div class="card" style="font-size:28px;line-height:1.8"><b>서낭바위</b>: <span class="blank" style="min-width:110px">화성암</span>으로 이루어진 지질 명소 → 화강암체의 단층과 <span class="blank" style="min-width:110px">규장암</span>이 풍화·침식</div>
-                    <div class="card key" style="font-size:28px;line-height:1.8">지질공원은 <span class="blank" style="min-width:140px">지역사회</span>와 함께 지속가능한 발전 방안을 개발하고 추진해야 해요.</div>
-                </div>
-            </div>
-        </div>
-        <div class="slide-x" id="s25">
-            <div class="ppt-title">확인 문제</div>
-            <div class="ppt-subtitle">옳으면 ⭕, 옳지 않으면 ❌를 골라 보세요.</div>
-            <div class="main" style="flex-direction:column;justify-content:center;gap:14px">
-                <div class="card q" data-a="o"><div class="qrow">우리나라는 아름답고 지질학적 가치가 뛰어난 지역을 국가지질공원으로 관리한다. <button class="sim-btn" data-v="o">⭕</button><button class="sim-btn" data-v="x">❌</button><span class="res"></span></div></div>
-                <div class="card q" data-a="x"><div class="qrow">우리나라에는 변성암으로 이루어진 지질 명소가 존재하지 않는다. <button class="sim-btn" data-v="o">⭕</button><button class="sim-btn" data-v="x">❌</button><span class="res"></span></div><div class="why" style="display:none">두무진은 변성암(규암)으로 이루어진 지질 명소예요.</div></div>
-                <div class="card q" data-a="o"><div class="qrow">채석강은 퇴적암으로 이루어진 지질 명소이다. <button class="sim-btn" data-v="o">⭕</button><button class="sim-btn" data-v="x">❌</button><span class="res"></span></div></div>
-                <div class="card q" data-a="x"><div class="qrow">두무진은 화성암으로 이루어진 지질 명소이다. <button class="sim-btn" data-v="o">⭕</button><button class="sim-btn" data-v="x">❌</button><span class="res"></span></div></div>
-                <div class="card q" data-a="x"><div class="qrow">국가지질공원은 단순히 지질만을 다룬다. <button class="sim-btn" data-v="o">⭕</button><button class="sim-btn" data-v="x">❌</button><span class="res"></span></div><div class="why" style="display:none">생물·고고·역사·문화를 모두 포함하며, 사람 중심의 활동이 핵심이에요.</div></div>
-                <div class="card key" style="font-size:26px"><b>생각해 보기</b> 지질공원의 지속가능한 발전을 위해 <b>내가 실천할 수 있는 일</b>은 무엇일까?</div>
             </div>
         </div>
 </div>
-<script>
-    /* ===== 시뮬레이션 공통 도구 (추가) ===== */
-    window.SIM = {
-        FONT: "'Gowun Dodum', sans-serif",
-        // 해당 슬라이드가 화면에 보일 때만 그리기
-        loop(slideId, fn) {
-            const el = document.getElementById(slideId);
-            let last = performance.now();
-            function f(t) {
-                const dt = Math.min(0.05, (t - last) / 1000); last = t;
-                if (el && el.classList.contains('active')) fn(t, dt);
-                requestAnimationFrame(f);
-            }
-            requestAnimationFrame(f);
-        },
-        rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
-        gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
-        pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
-        font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
-        // 파장(nm) → 화면 색
-        wl2rgb(w) {
-            let r = 0, g = 0, b = 0;
-            if (w >= 380 && w < 440) { r = -(w - 440) / 60; b = 1; }
-            else if (w < 490) { g = (w - 440) / 50; b = 1; }
-            else if (w < 510) { g = 1; b = -(w - 510) / 20; }
-            else if (w < 580) { r = (w - 510) / 70; g = 1; }
-            else if (w < 645) { r = 1; g = -(w - 645) / 65; }
-            else if (w <= 780) { r = 1; }
-            let f = 1;
-            if (w < 380 || w > 780) f = 0; else if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40; else if (w > 700) f = 0.3 + 0.7 * (780 - w) / 80;
-            return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
-        },
-        // 흑체 온도(K) → 대략적인 색
-        bbRGB(T) {
-            const t = T / 100; let r, g, b;
-            if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
-            else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
-            const c = v => Math.max(0, Math.min(255, Math.round(v)));
-            return [c(r), c(g), c(b)];
-        },
-        fmtExp(v, digits) {
-            if (!isFinite(v) || v <= 0) return '0';
-            const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
-            const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
-            return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
-        }
-    };
-    // 슬라이더·입력칸 조작 중에는 키보드로 슬라이드가 넘어가지 않도록
-    document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
-    document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.id !== 'page-input') a.blur(); });
+<script id="sim-kit">
+/* ===== sim-kit 공통 도구 (tools/sim-kit/kit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   SIM.loop / SIM.pos / SIM.font ...  : 그리기 도우미 (행성우주과학 시뮬레이션과 같음)
+   SIM.tabs()                          : ① 예측 ② 실험 ③ 미션 탭
+   SIM.predict({...})                  : 예측하고 확인
+   SIM.missions({...})                 : 도전 미션 (조건을 자동으로 확인)
+   SIM.toast(글, 'info'|'warn')        : 그림 위에 잠깐 뜨는 알림
+*/
+window.SIM = {
+  FONT: "'Gowun Dodum', sans-serif",
+  // 해당 슬라이드가 화면에 보일 때만 그리기
+  loop(slideId, fn) {
+    const el = document.getElementById(slideId);
+    let last = performance.now();
+    function f(t) {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!el || el.classList.contains('active')) fn(t, dt);
+      requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  },
+  rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+  pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+  font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  fmtExp(v, digits) {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+    const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+    return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+  },
 
+  // ---- 고해상도 캔버스 (W×H 좌표로 그리면 됨) ----
+  // const S = SIM.stage({ canvas, W: 1000, H: 620 });  S.begin(); 그리기…  S.pt(이벤트) → {x,y}
+  // 1920 화면이 줄었다 늘었다 해도 그림이 흐려지지 않게 내부 해상도를 고정(기본 2배)으로 둠
+  stage(o) {
+    const cvs = o.canvas, W = o.W, H = o.H, k = o.scale || 2;
+    cvs.width = Math.round(W * k); cvs.height = Math.round(H * k);
+    cvs.style.aspectRatio = W + '/' + H;
+    const ctx = cvs.getContext('2d');
+    return {
+      ctx, W, H,
+      begin() { ctx.setTransform(k, 0, 0, k, 0, 0); },
+      pt(e) { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; },
+      resize() {},
+    };
+  },
+
+  // ---- 알림 ----
+  toast(text, kind, ms) {
+    const stage = document.querySelector('.slide.active .sim-stage') || document.getElementById('presentation-wrapper');
+    let t = stage.querySelector(':scope > .sim-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'sim-toast'; stage.appendChild(t); }
+    t.textContent = text; t.className = 'sim-toast ' + (kind || '');
+    void t.offsetWidth; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms || 2600);
+  },
+  burst() {
+    const stage = document.querySelector('.slide.active .sim-stage');
+    if (!stage) return;
+    const cols = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement('i'); b.className = 'sim-burst';
+      b.style.left = '50%'; b.style.top = '60px'; b.style.background = cols[i % cols.length];
+      const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 220;
+      b.style.setProperty('--dx', Math.cos(a) * r + 'px'); b.style.setProperty('--dy', Math.sin(a) * r * 0.7 + 120 + 'px');
+      stage.appendChild(b); setTimeout(() => b.remove(), 1200);
+    }
+  },
+
+  // ---- ① 예측 ② 실험 ③ 미션 탭 ----
+  // 패널 안의 .sim-tabs > .sim-tab[data-tab] 와 .sim-tabpage[data-page] 를 이어 줌
+  tabs(root) {
+    root = root || document;
+    const tabs = [...root.querySelectorAll('.sim-tab')], pages = [...root.querySelectorAll('.sim-tabpage')];
+    const show = name => {
+      tabs.forEach(t => { t.classList.toggle('on', t.dataset.tab === name); t.setAttribute('aria-selected', t.dataset.tab === name); });
+      pages.forEach(p => p.classList.toggle('on', p.dataset.page === name));
+    };
+    tabs.forEach(t => { t.setAttribute('role', 'tab'); t.onclick = () => { t.classList.remove('nudge'); show(t.dataset.tab); }; });
+    const first = tabs.find(t => t.classList.contains('on')) || tabs[0];
+    if (first) show(first.dataset.tab);
+    SIM.showTab = show;
+    return show;
+  },
+
+  // ---- 예측하고 확인 ----
+  // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
+  //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  predict(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    let picked = -1, revealed = false;
+    el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
+      <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
+      <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+      <div class="predict-result" hidden></div>`;
+    const opts = [...el.querySelectorAll('.predict-opt')];
+    const reveal = () => {
+      if (revealed || picked < 0) return; revealed = true;
+      opts.forEach((b, i) => { b.disabled = true; b.classList.toggle('right', i === o.answer); b.classList.toggle('wrong', i === picked && i !== o.answer); });
+      const ok = picked === o.answer, r = el.querySelector('.predict-result');
+      r.hidden = false; r.classList.toggle('miss', !ok);
+      r.innerHTML = (ok ? '<b>예측 성공!</b> ' : `<b>정답은 ${'ABCDEF'[o.answer]}</b> — `) + (o.why || '');
+      el.querySelector('.predict-go').hidden = true;
+      SIM.toast(ok ? '예측 성공!' : '예측과 결과가 달라요. 까닭을 확인해 봐요', ok ? '' : 'warn');
+      if (ok) SIM.burst();
+      const tab = document.querySelector('.sim-tab[data-tab="predict"]');
+      if (tab) { tab.classList.add('nudge'); const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge ' + (ok ? 'done' : ''); b.textContent = ok ? '✓' : '!'; }
+      o.onReveal && o.onReveal(ok);
+    };
+    opts.forEach((b, i) => b.onclick = () => {
+      if (revealed) return;
+      picked = i; opts.forEach(x => x.classList.toggle('picked', x === b));
+      el.querySelector('.predict-go').hidden = false;
+    });
+    el.querySelector('[data-act="go"]').onclick = () => { o.setup && o.setup(); SIM.showTab && SIM.showTab('lab'); };
+    const sb = el.querySelector('[data-act="show"]'); if (sb) sb.onclick = reveal;
+    // 고른 뒤, 실험 상태가 '확인할 상태'에서 한 번 벗어났다가 다시 들어오면 결과를 보여 줌
+    // (처음부터 그 상태였다면 학생이 직접 조작해 만들 때까지 기다림)
+    let armed = false;
+    if (o.reached) SIM._checks.push(() => {
+      if (picked < 0 || revealed) return;
+      const r = o.reached();
+      if (!r) armed = true; else if (armed) reveal();
+    });
+    return { reveal, get picked() { return picked; } };
+  },
+
+  // ---- 도전 미션 ----
+  // SIM.missions({ el: 상자, items: [{ t: '할 일', hint: '도움말(선택)', test: () => true/false }] })
+  // test는 0.25초마다 자동으로 확인. 한 번 달성하면 계속 달성으로 남음.
+  // 처음부터 맞아 있던 조건은 세지 않음 (조건이 거짓이 된 적이 있어야 함).
+  missions(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    const done = o.items.map(() => false);
+    el.innerHTML = `<div class="mission-bar"><i></i></div>
+      <ul class="mission-list">${o.items.map(m => `<li><span class="ck">✓</span><span>${m.t}${m.hint ? `<span class="hint">${m.hint}</span>` : ''}</span></li>`).join('')}</ul>
+      <div class="mission-all" hidden>모든 미션 달성!</div>`;
+    const lis = [...el.querySelectorAll('li')], tab = document.querySelector('.sim-tab[data-tab="mission"]');
+    const badge = () => {
+      const n = done.filter(Boolean).length;
+      el.querySelector('.mission-bar i').style.width = (n / done.length * 100) + '%';
+      el.querySelector('.mission-all').hidden = n < done.length;
+      if (tab) { const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge' + (n === done.length ? ' done' : ''); b.textContent = n + '/' + done.length; }
+    };
+    const mark = i => {
+      if (done[i]) return; done[i] = true; lis[i].classList.add('done');
+      badge(); SIM.burst();
+      const txt = lis[i].querySelector('span:not(.ck)').cloneNode(true); txt.querySelectorAll('.hint').forEach(h => h.remove());
+      const t = txt.textContent.trim();
+      SIM.toast(done.every(Boolean) ? '모든 미션 달성!' : '미션 달성! ' + (t.length > 24 ? t.slice(0, 23) + '…' : t));
+      if (tab && !tab.classList.contains('on')) tab.classList.add('nudge');
+    };
+    // 처음 열었을 때 이미 조건이 맞아 있으면 달성으로 치지 않음: 한 번 조건에서 벗어났다가 학생이 다시 맞춰야 달성
+    const armed = o.items.map(() => false);
+    SIM._checks.push(() => o.items.forEach((m, i) => {
+      if (done[i]) return;
+      let ok = false; try { ok = !!m.test(); } catch (e) {}
+      if (!ok) armed[i] = true; else if (armed[i]) mark(i);
+    }));
+    badge();
+    return { mark, done };
+  },
+  _checks: [],
+};
+setInterval(() => SIM._checks.forEach(f => f()), 250);
+// 슬라이더·입력칸 조작 중에는 키 입력이 다른 곳으로 새지 않게
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.type === 'range') a.blur(); });
 </script>
 <script>
-window.STEP=window.STEP||{};
-
-
-function makeSorter(id,items,names){
-  const root=document.getElementById(id),pool=root.querySelector('.sort-pool'),msg=root.querySelector('.sort-msg');let sel=null,done=0;
-  const fb=items.map(it=>it);
-  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-  function reset(){pool.innerHTML='';root.querySelectorAll('.sort-bin .items').forEach(x=>x.innerHTML='');done=0;sel=null;msg.innerHTML='카드를 하나 누른 뒤, 알맞은 상자를 눌러 보세요.';
-    shuffle(fb.slice()).forEach(it=>{const b=document.createElement('button');b.className='sort-chip';b.textContent=it.t;b.dataset.bin=it.b;b.dataset.why=it.w||'';b.onclick=e=>{e.stopPropagation();if(b.classList.contains('ok'))return;pool.querySelectorAll('.sort-chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.add('hl'));};pool.appendChild(b);});}
-  root.querySelectorAll('.sort-bin').forEach(bin=>bin.onclick=()=>{if(!sel)return;root.querySelectorAll('.sort-bin').forEach(x=>x.classList.remove('hl'));
-    if(sel.dataset.bin===bin.dataset.bin){sel.classList.remove('sel');sel.classList.add('ok');bin.querySelector('.items').appendChild(sel);done++;msg.innerHTML='⭕ 정답! '+(sel.dataset.why?'<span style="font-weight:normal">'+sel.dataset.why+'</span>':'');msg.style.color='#2563eb';
-      if(done===items.length){msg.innerHTML='🎉 모두 분류했어요! <button class="sim-btn orange" style="margin-left:12px">다시 하기</button>';msg.querySelector('button').onclick=reset;}}
-    else{const s=sel;s.classList.remove('sel');s.classList.add('bad');setTimeout(()=>s.classList.remove('bad'),450);msg.innerHTML='❌ 다시 생각해 봐요. ('+s.textContent+' → '+names[bin.dataset.bin]+'?)';msg.style.color='#ea580c';}
-    sel=null;});
-  reset();
-}
-
-makeSorter('sortV5',[
-  {t:'약 10억 년 전 퇴적된 모래',b:'d'},
-  {t:'사암 → 규암',b:'d',w:'고온·고압으로 변성되었어요.'},
-  {t:'거대 해식 기둥과 해식 절벽',b:'d'},
-  {t:'중생대 백악기 호수',b:'c'},
-  {t:'격포리 퇴적층',b:'c'},
-  {t:'돌개구멍과 조수 웅덩이',b:'c'},
-  {t:'중생대 쥐라기 화강암 관입',b:'s'},
-  {t:'규장암 암맥',b:'s'},
-  {t:'풍화미지형',b:'s',w:'화강암체의 단층과 규장암이 풍화·침식을 받았어요.'}
-],{d:'두무진',c:'채석강',s:'서낭바위'});
-
-/* ========== 국가지질공원 지도 탐험 ========== */
-(function(){
-  const P={1:['백령·대청',.102,0.498],2:['한탄강',.387,0.463],3:['화성',.404,0.543],4:['단양',.547,0.562],5:['고군산군도',.288,0.656],6:['전북서해안권',.374,0.692],7:['진안·무주',.451,0.677],8:['무등산권',.349,0.754],9:['제주도',.321,0.867],10:['부산',.673,0.723],11:['의성',.629,0.621],12:['청송',.698,0.635],13:['울릉도·독도',.821,0.504],14:['경북동해안권',.712,0.585],15:['강원고생대',.544,0.496],16:['강원평화지역',.505,0.438]};
-  const map=document.getElementById('gmap'),chips=document.getElementById('pkchips'),img=document.getElementById('pkimg');
-  const tiles={};document.querySelectorAll('#pktiles img').forEach(t=>tiles[t.dataset.n]=t.src);
-  const hots={},cb={};
-  function pick(n){img.src=tiles[n];Object.entries(hots).forEach(([k,h])=>h.classList.toggle('on',+k===n));Object.entries(cb).forEach(([k,b])=>b.classList.toggle('on',+k===n));}
-  Object.entries(P).forEach(([n,[name,x,y]])=>{const h=document.createElement('button');h.className='hot';h.style.left=(x*100)+'%';h.style.top=(y*100)+'%';h.title=name;h.onclick=e=>{e.stopPropagation();pick(+n);};map.appendChild(h);hots[n]=h;
-    const b=document.createElement('button');b.textContent=n+' '+name;b.onclick=()=>pick(+n);chips.appendChild(b);cb[n]=b;});
-  pick(1);
-})();
-
-/* ========== 형성 과정 순서 맞히기 ========== */
-(function(){
-  const D={D:['선캄브리아시대 후기 얕은 바다에 퇴적물이 쌓였다.','형성된 퇴적암이 지하 깊은 곳에서 고온·고압을 받아 규암으로 변하고, 몇 번의 단층 작용을 받았다.','변성암이 융기하여 물 위로 드러났고, 파도와 비바람이 단층과 절리면을 깎았다.'],
-           C:['중생대 백악기 호수에 퇴적물이 쌓였다.','신생대에 퇴적층이 융기하여 지표면에 드러났다.','여러 차례의 해수면 변동으로 침식 작용을 받아 현재의 모습이 되었다.'],
-           S:['중생대 쥐라기 화산 활동에 의해 화강암이 관입하였다.','화강암이 지하에서 오랫동안 풍화를 받았고, 백악기 후기에 또 다른 마그마가 관입하여 규장암 암맥을 형성하였다.','차별 풍화와 침식, 해수의 작용 등으로 현재의 모습이 되었다.']};
-  const box=document.getElementById('ordcards'),msg=document.getElementById('ordmsg'),im=document.getElementById('ordimg');let site='D',next=0;
-  function load(s){site=s;next=0;im.src=document.getElementById('ord'+s).src;document.querySelectorAll('#ordsite [data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
-    const idx=[0,1,2].sort(()=>Math.random()-.5);if(idx.join()==='0,1,2')idx.reverse();box.innerHTML='';msg.textContent='가장 먼저 일어난 일을 골라 보세요.';msg.style.color='#334155';
-    idx.forEach(i=>{const c=document.createElement('button');c.className='ocard';c.innerHTML='<span class="num">?</span><span>'+D[s][i]+'</span>';c.onclick=()=>{if(c.classList.contains('done'))return;
-      if(i===next){c.classList.add('done');c.querySelector('.num').textContent=next+1;next++;msg.textContent=next===3?'🎉 순서를 모두 맞혔어요!':'⭕ 맞아요! 다음에 일어난 일은?';msg.style.color='#2563eb';}
-      else{c.classList.add('bad');setTimeout(()=>c.classList.remove('bad'),450);msg.textContent='❌ 그보다 먼저 일어난 일이 있어요.';msg.style.color='#ea580c';}};box.appendChild(c);});}
-  document.querySelectorAll('#ordsite [data-s]').forEach(b=>b.onclick=()=>load(b.dataset.s));load('D');
-})();
-
-/* ========== SIM U1: 부정합 만들기 ========== */
-(function(){
-  const c=document.getElementById('cU1'),g=c.getContext('2d'),W=1060,H=610;
+(function(){let ST_;
+  const c=document.getElementById('cU1'),g=(ST_=SIM.stage({canvas:c,W:1060,H:610}),ST_.begin(),ST_.ctx),W=1060,H=610;
   const TY={
     tilt:{name:'경사 부정합',steps:[{lab:'지층의 퇴적',n:4,d:'바다 밑에 지층 A→B→C→D가 차례로 수평으로 쌓여요.'},{lab:'융기 (습곡 형성)',amp:70,up:-150,sea:700,d:'횡압력을 받아 휘어지면서 융기해 육지가 돼요.'},{lab:'풍화·침식',e:400,d:'지표에 드러난 지층이 풍화·침식으로 깎여요.'},{lab:'침강',up:-10,sea:190,d:'다시 가라앉아 바다 밑이 돼요.'},{lab:'퇴적',E:1,d:'침식면 위에 새 지층 E가 쌓여요. 침식면 = 부정합면'}]},
     para:{name:'평행 부정합',steps:[{lab:'지층의 퇴적',n:4,d:'바다 밑에 지층 A→B→C→D가 차례로 수평으로 쌓여요.'},{lab:'융기',up:-150,sea:700,d:'지층이 기울어지지 않고 그대로 융기해요.'},{lab:'풍화·침식',e:395,d:'지표에 드러난 지층이 풍화·침식으로 깎여요.'},{lab:'침강',up:-10,sea:190,d:'다시 가라앉아 바다 밑이 돼요.'},{lab:'퇴적',E:1,d:'위아래 지층이 나란한 평행 부정합이 돼요.'}]},
@@ -688,16 +361,16 @@ makeSorter('sortV5',[
   const S0={n:0,amp:0,up:0,e:-999,sea:190,E:0,gr:0};
   let ty='tilt',k=0,p=1,prevS={...S0},curS={...S0};
   function stateAt(kk){let s={...S0};for(let i=0;i<kk;i++)Object.assign(s,TY[ty].steps[i]);return s;}
-  function out(){const T=TY[ty];document.querySelectorAll('#s23 [data-ty]').forEach(b=>b.classList.toggle('on',b.dataset.ty===ty));
+  function out(){const T=TY[ty];document.querySelectorAll('[data-ty]').forEach(b=>b.classList.toggle('on',b.dataset.ty===ty));
     document.getElementById('oU1').innerHTML='<h4>'+T.name+'</h4>'+T.steps.map((s,i)=>'<div style="'+(i<k?'color:#0f172a':'color:#94a3b8')+'">'+(i<k?(i===k-1?'▶ ':'✔ '):'○ ')+(i+1)+'. '+s.lab+'</div>').join('')+(k?'<div style="margin-top:8px;font-size:21px">'+T.steps[k-1].d+'</div>':'<div style="margin-top:8px;font-size:21px">‘다음 단계’를 눌러 시작해요.</div>');
     document.getElementById('uNext').disabled=k>=T.steps.length;}
   function go(kk){prevS=stateAt(kk-1<0?0:kk-1);curS=stateAt(kk);k=kk;p=0;out();}
-  document.querySelectorAll('#s23 [data-ty]').forEach(b=>b.onclick=()=>{ty=b.dataset.ty;k=0;p=1;prevS=curS={...S0};out();});
+  document.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{ty=b.dataset.ty;k=0;p=1;prevS=curS={...S0};out();});
   document.getElementById('uNext').onclick=()=>{if(k<TY[ty].steps.length)go(k+1);};
   document.getElementById('uReset').onclick=()=>{k=0;p=1;prevS=curS={...S0};out();};out();
   const L=60,R=1000,TOPB=[540,480,420,360],BOT=600;
   const lerp=(a,b,t)=>a+(b-a)*t;
-  SIM.loop('s23',(tm,dt)=>{
+  SIM.loop('slideMain',(tm,dt)=>{ST_.begin();
     p=Math.min(1,p+dt/1.6);const t=p<1?(1-Math.cos(Math.PI*p))/2:1;
     const s={};for(const key in curS)s[key]=lerp(prevS[key]===-999&&key==='e'?250:prevS[key],curS[key]===-999&&key==='e'?250:curS[key],t);
     if(curS.e===-999)s.e=-999;
@@ -734,38 +407,107 @@ makeSorter('sortV5',[
     // 단계 라벨
     g.fillStyle='rgba(15,23,42,.85)';g.fillRect(16,14,330,46);g.fillStyle='#fff';g.font=SIM.font(24);g.textAlign='left';g.fillText(k?k+'단계: '+TY[ty].steps[k-1].lab:'시작 전',30,46);
   });
-})();
 
+
+  const realSeen=new Set();function realBind(REAL,on){document.querySelectorAll('[data-real]').forEach(b=>b.onclick=()=>{const q=+b.dataset.real,d=REAL[q];realSeen.add(q);on&&on(d);document.querySelectorAll('[data-real]').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('realOut').innerHTML='<b>'+d.n+'</b> · '+d.t;});}
+  const fin=new Set();
+  const chk=()=>{if(k>=TY[ty].steps.length)fin.add(ty);return fin;};
+  realBind([{n:'시카 포인트 (스코틀랜드)',t:'거의 수직으로 선 오래된 지층 위에 붉은 사암이 비스듬히 덮여 있는 <b>경사 부정합</b>이에요. 1788년 허턴이 이곳을 보고 지구의 역사가 매우 길다는 생각을 굳혔어요.',ty:'tilt'},
+    {n:'그랜드 캐니언 (미국)',t:'약 17억 년 된 변성암·화강암 위에 약 5억 년 전 사암이 바로 놓인 <b>대부정합</b>이 있어요. 아래가 화성암·변성암이라 <b>난정합</b>에 해당해요.',ty:'nonc'}],
+    d=>{ty=d.ty;k=0;p=1;prevS=curS={...S0};out();});
+  SIM.tabs();
+  SIM.predict({el:'#predictBox',
+    q:'<b>난정합</b>에서 부정합면 바로 아래에 있는 암석은 무엇일까요?',
+    options:['퇴적암','심성암 같은 화성암(또는 변성암)','화석이 많은 셰일'],answer:1,
+    why:'마그마가 관입해 굳은 <b>심성암</b>이 융기·침식으로 지표에 드러난 뒤, 그 위에 새 퇴적층이 쌓이면 <b>난정합</b>이에요. 부정합면 아래가 화성암이나 변성암이에요.',
+    setup:()=>{ty='nonc';k=0;p=1;prevS=curS={...S0};out();},
+    reached:()=>ty==='nonc'&&k>=TY.nonc.steps.length});
+  SIM.missions({el:'#missionBox',items:[
+    {t:'<b>경사 부정합</b>을 마지막 단계까지 만들어 보세요.',test:()=>chk().has('tilt')},
+    {t:'<b>평행 부정합</b>을 마지막 단계까지 만들어 보세요.',test:()=>chk().has('para')},
+    {t:'<b>난정합</b>을 마지막 단계까지 만들어 보세요.',test:()=>chk().has('nonc')},
+    {t:'<b>실제 부정합</b> 2곳을 모두 살펴보세요.',hint:'② 실험 탭 아래쪽 버튼',test:()=>realSeen.size>=2},
+  ]});
+})();
 </script>
-<script>
-/* ---- 독립 실행용: 화면 크기에 맞춰 1920px 슬라이드를 축소/확대 ---- */
+<script id="mission-pop-js">
+/* 미션: 탭 대신 버튼 → 팝업 (실험 중에도 언제든 열어 보기) · 모두 달성하면 폭죽 */
 (function(){
+  const mBtn=document.querySelector('.sim-tab[data-tab="mission"]'),pop=document.getElementById('missionPop');
+  if(!mBtn||!pop)return;
+  const closePop=()=>{pop.hidden=true;};
+  mBtn.onclick=()=>{mBtn.classList.remove('nudge');mBtn.firstChild.textContent='🎯 미션 보기 ';pop.hidden=false;};
+  document.getElementById('missionClose').onclick=closePop;
+  document.getElementById('missionGo').onclick=()=>{closePop();SIM.showTab&&SIM.showTab('lab');};
+  pop.addEventListener('pointerdown',e=>{if(e.target===pop)closePop();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden)closePop();});
+  function fireworks(){
+    const wrap=document.getElementById('presentation-wrapper'),cv=document.createElement('canvas');cv.width=1920;cv.height=1080;
+    cv.style.cssText='position:absolute;inset:0;z-index:90;pointer-events:none';wrap.appendChild(cv);
+    const msg=document.createElement('div');msg.className='fw-msg';msg.innerHTML='🎉 모든 미션 완료! 🎉<small>멋진 탐구였어요!</small>';wrap.appendChild(msg);
+    const x=cv.getContext('2d'),cols=['#f43f5e','#f59e0b','#facc15','#22c55e','#3b82f6','#a855f7','#ec4899','#ffffff'];
+    const rockets=[],parts=[];let t0=performance.now(),last=t0,next=0;
+    const boom=(px,py)=>{const col=cols[Math.random()*cols.length|0],col2=cols[Math.random()*cols.length|0],k=70+Math.random()*40;
+      for(let i=0;i<k;i++){const a=i/k*Math.PI*2,v=4+Math.random()*7;parts.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,c:Math.random()<.5?col:col2,s:3+Math.random()*3});}};
+    (function f(t){const dt=Math.min(3,(t-last)/16.7);last=t;const el=t-t0;
+      if(el<3600&&el>next){next=el+260+Math.random()*260;rockets.push({x:300+Math.random()*1320,y:1080,vy:-(17+Math.random()*6),ty:180+Math.random()*380});}
+      x.globalCompositeOperation='destination-out';x.fillStyle='rgba(0,0,0,.22)';x.fillRect(0,0,1920,1080);x.globalCompositeOperation='lighter';
+      for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.y+=r.vy*dt;x.fillStyle='#fde68a';x.beginPath();x.arc(r.x,r.y,5,0,7);x.fill();if(r.y<=r.ty){boom(r.x,r.y);rockets.splice(i,1);}}
+      for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vx*=.97;p.vy=p.vy*.97+.12*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=.012*dt;
+        if(p.life<=0){parts.splice(i,1);continue;}x.globalAlpha=p.life;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();}
+      x.globalAlpha=1;
+      if(el<3600||parts.length||rockets.length)requestAnimationFrame(f);else{cv.remove();msg.classList.add('out');setTimeout(()=>msg.remove(),600);}
+    })(t0);
+    for(let i=0;i<4;i++)setTimeout(()=>SIM.burst(),i*450);
+  }
+  let cheered=false;
+  const timer=setInterval(()=>{const lis=document.querySelectorAll('#missionBox .mission-list li');
+    if(!cheered&&lis.length&&[...lis].every(l=>l.classList.contains('done'))){cheered=true;clearInterval(timer);setTimeout(fireworks,700);}},300);
+})();
+</script>
+<script id="sim-kit-fit">
+/* ===== sim-kit 화면 맞춤 · 전체화면 (tools/sim-kit/kit-fit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   - 사이트 안(iframe)에서는 폭에 맞춰 1920×1080 화면을 줄이고, 높이를 사이트에 알려 줌(sim-height)
+   - 새 창·전체화면에서는 화면 안에 16:9로 꽉 차게 가운데 정렬
+   - 전체화면을 켜면 휴대폰·태블릿은 가로 화면으로 돌림(지원하는 기기만) */
+(function () {
   var w = document.getElementById('presentation-wrapper');
-  var inFrame = window.top !== window.self;
-  function fit(){
-    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || !!document.fullscreenElement;
+  var inFrame = window.top !== window.self, de = document.documentElement;
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function fit() {
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || isFs();
     var s = window.innerWidth / 1920, x = 0, y = 0;
-    document.documentElement.classList.toggle('fit', fs);
-    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920*s)/2; y = Math.max(0,(window.innerHeight - h*s)/2); }
+    de.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920 * s) / 2; y = Math.max(0, (window.innerHeight - h * s) / 2); }
     w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
-    document.body.style.height = fs ? '100%' : Math.ceil(h*s) + 'px';
-    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h*s) }, '*'); } catch(e){} }
+    document.body.style.height = fs ? '100%' : Math.ceil(h * s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h * s) }, '*'); } catch (e) {} }
   }
   window.addEventListener('resize', fit);
-  document.addEventListener('fullscreenchange', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
   if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
   fit(); setTimeout(fit, 300);
+
+  var btn = document.getElementById('fsBtn');
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
+  }
+  function unlock() { try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} }
+  function sync() { if (btn) btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; if (!isFs()) unlock(); fit(); setTimeout(fit, 120); }
+  if (btn) btn.onclick = function () {
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function () { de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(function () { lockLandscape(); sync(); }, fallback); else { lockLandscape(); sync(); } } catch (e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
 })();
-/* 단계(▶)로 나타나는 요소는 처음부터 모두 보이게 */
-(function(){
-  var el = document.querySelector('#presentation-wrapper > .slide');
-  var n = 0; el.querySelectorAll('[data-step]').forEach(function(e){ n = Math.max(n, +e.dataset.step); e.classList.add('on'); });
-  el._shown = n;
-  try { if (window.STEP && STEP[el.id]) STEP[el.id](n); } catch(e) {}
-})();
-/* 정답 확인 카드(.q)와 빈칸(.blank) */
-document.querySelectorAll('.slide .q').forEach(function(q){ q.querySelectorAll('button[data-v]').forEach(function(b){ b.onclick=function(){ var ok=b.dataset.v===q.dataset.a, r=q.querySelector('.res'); if(r){ r.textContent=ok?'⭕ 정답':'❌ 다시!'; r.style.color=ok?'#2563eb':'#ea580c'; } var y=q.querySelector('.why'); if(y) y.style.display='block'; }; }); });
-document.querySelectorAll('.slide .blank').forEach(function(b){ b.addEventListener('click', function(){ b.classList.toggle('on'); }); });
 </script>
 </body>
 </html>

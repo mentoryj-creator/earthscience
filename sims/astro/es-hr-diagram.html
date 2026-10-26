@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H-R도와 별의 진화</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style id="sim-kit">
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
+
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
+
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
+
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
+
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
+
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
+
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
+
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
+
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
+</style>
+<style>
+  #oV7 { font-size: 23px; line-height: 1.45; }
+  #oV7 .sim-big { font-size: 34px; }
+  #realBox .sim-btn { font-size: 22px; padding: 6px 13px; }
+  .sim-row > .lbl { white-space: nowrap; }
+</style>
+<style id="mission-pop-css">
+  /* 미션 시작 버튼 + 팝업 */
+  .sim-tab.mission-open { background: #fff7ed; color: #c2410c; border: 2px solid #fdba74; }
+  .sim-tab.mission-open:hover { background: #ffedd5; }
+  .mission-pop { position: absolute; inset: 0; z-index: 80; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; }
+  .mission-card { width: 900px; max-height: 900px; overflow-y: auto; background: #fff; border-radius: 24px; padding: 28px 36px; box-shadow: 0 20px 50px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 16px; animation: rise .3s both; }
+  .mission-card h3 { font-size: 34px; font-weight: 800; color: #c2410c; display: flex; align-items: center; justify-content: space-between; }
+  .mission-card #missionBox { display: flex; flex-direction: column; gap: 12px; }
+  /* 모든 미션 완료 축하 */
+  .fw-msg { position: absolute; left: 50%; top: 50%; z-index: 91; pointer-events: none; transform: translate(-50%,-50%); text-align: center; font-size: 84px; font-weight: 800; color: #fff; background: linear-gradient(135deg,#f59e0b,#ec4899,#8b5cf6); padding: 30px 70px; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fwPop .7s cubic-bezier(.2,1.6,.4,1) both, fwGlow 1.2s ease-in-out .7s infinite alternate; transition: opacity .6s; }
+  .fw-msg small { display: block; font-size: 38px; margin-top: 6px; opacity: .95; }
+  .fw-msg.out { opacity: 0; }
+  @keyframes fwPop { from { transform: translate(-50%,-50%) scale(.2) rotate(-8deg); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+  @keyframes fwGlow { to { box-shadow: 0 0 80px rgba(250,204,21,.9); transform: translate(-50%,-50%) scale(1.04); } }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="mission-pop" id="missionPop" hidden>
+  <div class="mission-card" role="dialog" aria-label="미션">
+    <h3>🎯 미션 <button class="sim-btn" id="missionClose" type="button">✕ 닫기</button></h3>
+    <div id="missionBox"></div>
+    <div class="sim-btns" style="justify-content:center"><button class="sim-btn on" id="missionGo" type="button">실험하러 가기 →</button></div>
+  </div>
+</div>
+<div class="slide sim-slide active" id="s26">
+  <div class="ppt-title"><span class="sim-tag">탐구 활동</span>질량이 다른 별의 진화 과정을 H-R도에 나타내기</div>
+  <div class="ppt-subtitle">1 M<sub>☉</sub>인 별과 10 M<sub>☉</sub>인 별의 <span class="or">진화 경로</span>와 <span class="or">걸리는 시간</span>을 비교해 봐요.</div>
+  <div class="sim-wrap">
+    <div class="sim-stage"><canvas id="cV7" width="1160" height="860" role="img" aria-label="별의 진화 경로를 나타낸 H-R도와 시간 막대"></canvas></div>
+    <div class="sim-panel">
+      <div class="sim-tabs">
+        <button class="sim-tab on" data-tab="predict">① 예측</button>
+        <button class="sim-tab" data-tab="lab">② 실험</button>
+        <button class="sim-tab mission-open" data-tab="mission" type="button">🎯 미션 시작</button>
+      </div>
+      <div class="sim-tabpage" data-page="predict">
+        <div class="sim-box" id="predictBox"></div>
+        <div class="sim-box" id="realBox">
+          <h4>실제 별은 어느 단계일까?</h4>
+          <div class="sim-btns"><button class="sim-btn orange" data-real="0" type="button">태양</button><button class="sim-btn orange" data-real="1" type="button">알데바란</button><button class="sim-btn orange" data-real="2" type="button">베텔게우스</button><button class="sim-btn orange" data-real="3" type="button">시리우스 B</button><button class="sim-btn orange" data-real="4" type="button">게성운</button></div>
+          <div class="sim-note" id="realOut" style="margin-top:6px;font-size:21px;color:#334155">버튼을 누르면 H-R도에 그 별이 표시돼요.</div>
+          <div class="real-src">분광형·절대 등급: 교과서 별 자료 표 · 게성운: 1054년 송나라 천문 기록의 초신성</div>
+        </div>
+      </div>
+      <div class="sim-tabpage" data-page="lab">
+        <div class="sim-box blue">
+          <div class="sim-btns"><button class="sim-btn on" id="mOne" type="button">한 별씩 보기</button><button class="sim-btn" id="mRace" type="button">두 별 동시 출발</button></div>
+        </div>
+        <div class="sim-box blue" id="boxOne">
+          <div class="sim-btns"><button class="sim-btn on" data-ms="1" type="button">1 M☉인 별</button><button class="sim-btn" data-ms="10" type="button">10 M☉인 별</button></div>
+          <div class="sim-row" style="margin-top:6px"><span class="lbl" style="width:90px">진행</span><input type="range" class="sim-range" id="rV7" min="0" max="1" step="0.002" value="0" aria-label="진화 진행"></div>
+          <div class="sim-btns"><button class="sim-btn orange" id="bV7" type="button">▶ 진화 재생</button></div>
+        </div>
+        <div class="sim-box blue" id="boxRace" hidden>
+          <h4 style="font-size:25px;margin-bottom:2px">두 별이 같은 날 태어났다면</h4>
+          <div class="sim-row"><span class="lbl" style="width:120px">태어난 뒤</span><input type="range" class="sim-range" id="rT" min="6" max="10.5" step="0.01" value="6" aria-label="태어난 뒤 지난 시간"><span class="sim-val" id="vT" style="min-width:150px"></span></div>
+          <div class="sim-btns"><button class="sim-btn orange" id="bT" type="button">▶ 시간 흐르게</button><button class="sim-btn" id="bTsun" type="button">태양의 나이 (46억 년)</button></div>
+        </div>
+        <div class="sim-box key" id="oV7"></div>
+      </div>
+      <div class="sim-note">※ 교과서 그림을 바탕으로 경로를 단순화한 개념 모형이에요. 주계열 수명은 1×10¹⁰년 × M⁻²·⁵(L ∝ M³·⁵), 주계열 이후 단계는 주계열 수명의 약 10% 동안 지나간다고 단순화했어요.</div>
+    </div>
+  </div>
+</div>
+</div>
+<script id="sim-kit">
+/* ===== sim-kit 공통 도구 (tools/sim-kit/kit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   SIM.loop / SIM.pos / SIM.font ...  : 그리기 도우미 (행성우주과학 시뮬레이션과 같음)
+   SIM.tabs()                          : ① 예측 ② 실험 ③ 미션 탭
+   SIM.predict({...})                  : 예측하고 확인
+   SIM.missions({...})                 : 도전 미션 (조건을 자동으로 확인)
+   SIM.toast(글, 'info'|'warn')        : 그림 위에 잠깐 뜨는 알림
+*/
+window.SIM = {
+  FONT: "'Gowun Dodum', sans-serif",
+  // 해당 슬라이드가 화면에 보일 때만 그리기
+  loop(slideId, fn) {
+    const el = document.getElementById(slideId);
+    let last = performance.now();
+    function f(t) {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!el || el.classList.contains('active')) fn(t, dt);
+      requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  },
+  rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+  pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+  font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  fmtExp(v, digits) {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+    const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+    return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+  },
+
+  // ---- 고해상도 캔버스 (W×H 좌표로 그리면 됨) ----
+  // const S = SIM.stage({ canvas, W: 1000, H: 620 });  S.begin(); 그리기…  S.pt(이벤트) → {x,y}
+  // 1920 화면이 줄었다 늘었다 해도 그림이 흐려지지 않게 내부 해상도를 고정(기본 2배)으로 둠
+  stage(o) {
+    const cvs = o.canvas, W = o.W, H = o.H, k = o.scale || 2;
+    cvs.width = Math.round(W * k); cvs.height = Math.round(H * k);
+    cvs.style.aspectRatio = W + '/' + H;
+    const ctx = cvs.getContext('2d');
+    return {
+      ctx, W, H,
+      begin() { ctx.setTransform(k, 0, 0, k, 0, 0); },
+      pt(e) { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; },
+      resize() {},
+    };
+  },
+
+  // ---- 알림 ----
+  toast(text, kind, ms) {
+    const stage = document.querySelector('.slide.active .sim-stage') || document.getElementById('presentation-wrapper');
+    let t = stage.querySelector(':scope > .sim-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'sim-toast'; stage.appendChild(t); }
+    t.textContent = text; t.className = 'sim-toast ' + (kind || '');
+    void t.offsetWidth; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms || 2600);
+  },
+  burst() {
+    const stage = document.querySelector('.slide.active .sim-stage');
+    if (!stage) return;
+    const cols = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement('i'); b.className = 'sim-burst';
+      b.style.left = '50%'; b.style.top = '60px'; b.style.background = cols[i % cols.length];
+      const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 220;
+      b.style.setProperty('--dx', Math.cos(a) * r + 'px'); b.style.setProperty('--dy', Math.sin(a) * r * 0.7 + 120 + 'px');
+      stage.appendChild(b); setTimeout(() => b.remove(), 1200);
+    }
+  },
+
+  // ---- ① 예측 ② 실험 ③ 미션 탭 ----
+  // 패널 안의 .sim-tabs > .sim-tab[data-tab] 와 .sim-tabpage[data-page] 를 이어 줌
+  tabs(root) {
+    root = root || document;
+    const tabs = [...root.querySelectorAll('.sim-tab')], pages = [...root.querySelectorAll('.sim-tabpage')];
+    const show = name => {
+      tabs.forEach(t => { t.classList.toggle('on', t.dataset.tab === name); t.setAttribute('aria-selected', t.dataset.tab === name); });
+      pages.forEach(p => p.classList.toggle('on', p.dataset.page === name));
+    };
+    tabs.forEach(t => { t.setAttribute('role', 'tab'); t.onclick = () => { t.classList.remove('nudge'); show(t.dataset.tab); }; });
+    const first = tabs.find(t => t.classList.contains('on')) || tabs[0];
+    if (first) show(first.dataset.tab);
+    SIM.showTab = show;
+    return show;
+  },
+
+  // ---- 예측하고 확인 ----
+  // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
+  //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  predict(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    let picked = -1, revealed = false;
+    el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
+      <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
+      <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+      <div class="predict-result" hidden></div>`;
+    const opts = [...el.querySelectorAll('.predict-opt')];
+    const reveal = () => {
+      if (revealed || picked < 0) return; revealed = true;
+      opts.forEach((b, i) => { b.disabled = true; b.classList.toggle('right', i === o.answer); b.classList.toggle('wrong', i === picked && i !== o.answer); });
+      const ok = picked === o.answer, r = el.querySelector('.predict-result');
+      r.hidden = false; r.classList.toggle('miss', !ok);
+      r.innerHTML = (ok ? '<b>예측 성공!</b> ' : `<b>정답은 ${'ABCDEF'[o.answer]}</b> — `) + (o.why || '');
+      el.querySelector('.predict-go').hidden = true;
+      SIM.toast(ok ? '예측 성공!' : '예측과 결과가 달라요. 까닭을 확인해 봐요', ok ? '' : 'warn');
+      if (ok) SIM.burst();
+      const tab = document.querySelector('.sim-tab[data-tab="predict"]');
+      if (tab) { tab.classList.add('nudge'); const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge ' + (ok ? 'done' : ''); b.textContent = ok ? '✓' : '!'; }
+      o.onReveal && o.onReveal(ok);
+    };
+    opts.forEach((b, i) => b.onclick = () => {
+      if (revealed) return;
+      picked = i; opts.forEach(x => x.classList.toggle('picked', x === b));
+      el.querySelector('.predict-go').hidden = false;
+    });
+    el.querySelector('[data-act="go"]').onclick = () => { o.setup && o.setup(); SIM.showTab && SIM.showTab('lab'); };
+    const sb = el.querySelector('[data-act="show"]'); if (sb) sb.onclick = reveal;
+    // 고른 뒤, 실험 상태가 '확인할 상태'에서 한 번 벗어났다가 다시 들어오면 결과를 보여 줌
+    // (처음부터 그 상태였다면 학생이 직접 조작해 만들 때까지 기다림)
+    let armed = false;
+    if (o.reached) SIM._checks.push(() => {
+      if (picked < 0 || revealed) return;
+      const r = o.reached();
+      if (!r) armed = true; else if (armed) reveal();
+    });
+    return { reveal, get picked() { return picked; } };
+  },
+
+  // ---- 도전 미션 ----
+  // SIM.missions({ el: 상자, items: [{ t: '할 일', hint: '도움말(선택)', test: () => true/false }] })
+  // test는 0.25초마다 자동으로 확인. 한 번 달성하면 계속 달성으로 남음.
+  // 처음부터 맞아 있던 조건은 세지 않음 (조건이 거짓이 된 적이 있어야 함).
+  missions(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    const done = o.items.map(() => false);
+    el.innerHTML = `<div class="mission-bar"><i></i></div>
+      <ul class="mission-list">${o.items.map(m => `<li><span class="ck">✓</span><span>${m.t}${m.hint ? `<span class="hint">${m.hint}</span>` : ''}</span></li>`).join('')}</ul>
+      <div class="mission-all" hidden>모든 미션 달성!</div>`;
+    const lis = [...el.querySelectorAll('li')], tab = document.querySelector('.sim-tab[data-tab="mission"]');
+    const badge = () => {
+      const n = done.filter(Boolean).length;
+      el.querySelector('.mission-bar i').style.width = (n / done.length * 100) + '%';
+      el.querySelector('.mission-all').hidden = n < done.length;
+      if (tab) { const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge' + (n === done.length ? ' done' : ''); b.textContent = n + '/' + done.length; }
+    };
+    const mark = i => {
+      if (done[i]) return; done[i] = true; lis[i].classList.add('done');
+      badge(); SIM.burst();
+      const txt = lis[i].querySelector('span:not(.ck)').cloneNode(true); txt.querySelectorAll('.hint').forEach(h => h.remove());
+      const t = txt.textContent.trim();
+      SIM.toast(done.every(Boolean) ? '모든 미션 달성!' : '미션 달성! ' + (t.length > 24 ? t.slice(0, 23) + '…' : t));
+      if (tab && !tab.classList.contains('on')) tab.classList.add('nudge');
+    };
+    // 처음 열었을 때 이미 조건이 맞아 있으면 달성으로 치지 않음: 한 번 조건에서 벗어났다가 학생이 다시 맞춰야 달성
+    const armed = o.items.map(() => false);
+    SIM._checks.push(() => o.items.forEach((m, i) => {
+      if (done[i]) return;
+      let ok = false; try { ok = !!m.test(); } catch (e) {}
+      if (!ok) armed[i] = true; else if (armed[i]) mark(i);
+    }));
+    badge();
+    return { mark, done };
+  },
+  _checks: [],
+};
+setInterval(() => SIM._checks.forEach(f => f()), 250);
+// 슬라이더·입력칸 조작 중에는 키 입력이 다른 곳으로 새지 않게
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.type === 'range') a.blur(); });
+</script>
+<script>
+function bbRGB(T){const t=T/100;let r,g,b;if(t<=66){r=255;g=99.47*Math.log(t)-161.12;b=t<=19?0:138.52*Math.log(t-10)-305.04;}else{r=329.7*Math.pow(t-60,-0.1332);g=288.12*Math.pow(t-60,-0.0755);b=255;}const c=v=>Math.max(0,Math.min(255,Math.round(v)));return [c(r),c(g),c(b)];}
+function starRGB(T){return 'rgb('+bbRGB(T).join(',')+')';}
+/* ===== V7 진화 경로 ===== */
+(function(){
+  const c=document.getElementById('cV7'),W=1160,H=860,S=SIM.stage({canvas:c,W,H}),g=S.ctx;const r=document.getElementById('rV7'),rT=document.getElementById('rT');
+  let ms=1,p=0,play=false,mode='one',lt=6,tplay=false;
+  // 좌표: 분광 x (0=O5 ... 70=M0+), 절대등급 y
+  const PATHS={1:{pts:[[41,4.8],[42,4.5],[46,3.8],[53,1],[58,-2.5],[52,0.3],[50,0.8],[56,-1],[60,-3.2],[48,-3.5],[30,-3],[18,0],[16,5],[17,9],[20,11.5]],
+      st:[[0,'주계열성','표면 온도·광도·크기 거의 일정'],[0.12,'적색거성','표면 온도 감소, 광도 증가, 크기 증가'],[0.55,'다시 거성','헬륨 소진 후 다시 팽창'],[0.7,'행성상 성운','바깥층 방출'],[0.85,'백색왜성','광도·크기 감소, 표면 온도는 높음']],end:'백색왜성'},
+    10:{pts:[[12,-3.5],[13,-3.8],[20,-4.3],[35,-4.6],[50,-5],[62,-5.6],[45,-5.4],[30,-5.6],[45,-5.8],[63,-6.2]],
+      st:[[0,'주계열성','표면 온도·광도·크기 거의 일정'],[0.15,'초거성','표면 온도 감소, 광도 증가, 크기 크게 증가'],[0.9,'초신성 폭발','→ 중성자별 (H-R도에 나타낼 수 없음)']],end:'중성자별'}};
+  const L=100,R=1120,T=50,B=560;const X=v=>L+v/70*(R-L),Y=m=>T+(m+8)/22*(B-T);
+  function seg(m,t){const P=PATHS[m].pts;const n=P.length-1;const f=Math.min(n-1e-6,t*n),i=Math.floor(f),u=f-i;return [P[i][0]+(P[i+1][0]-P[i][0])*u,P[i][1]+(P[i+1][1]-P[i][1])*u];}
+  function stage(m,t){const S=PATHS[m].st;let s=S[0];S.forEach(x=>{if(t>=x[0])s=x;});return s;}
+  // 동시 출발: 시간 → 진행
+  const tMS=m=>1e10*Math.pow(m,-2.5);
+  function prog(m,t){const tm=tMS(m),thr=PATHS[m].st[1][0];if(t<tm)return thr*t/tm;return Math.min(1,thr+(1-thr)*(t-tm)/(0.1*tm));}
+  const fmtY=t=>{if(t>=1e8)return (t/1e8>=100?Math.round(t/1e8).toLocaleString():(t/1e8).toFixed(t<1e9?1:0))+'억 년';return (t/1e4>=100?Math.round(t/1e4).toLocaleString():(t/1e4).toFixed(0))+'만 년';};
+  function out(){r.value=p;rT.value=lt;document.querySelectorAll('#s26 [data-ms]').forEach(b=>b.classList.toggle('on',+b.dataset.ms===ms));
+    document.getElementById('mOne').classList.toggle('on',mode==='one');document.getElementById('mRace').classList.toggle('on',mode==='race');
+    document.getElementById('boxOne').hidden=mode!=='one';document.getElementById('boxRace').hidden=mode!=='race';
+    const t=Math.pow(10,lt);document.getElementById('vT').textContent=fmtY(t);
+    if(mode==='one'){const s=stage(ms,p);
+      document.getElementById('oV7').innerHTML='<h4>'+ms+' M☉인 별</h4><div>지금 단계: <span class="sim-big">'+s[1]+'</span></div><div>'+s[2]+'</div><div class="sim-note">최후: '+PATHS[ms].end+' · 주계열 수명 약 '+fmtY(tMS(ms))+'</div>';}
+    else{const line=m=>{const q=prog(m,t),s=stage(m,q);const gone=m===10&&q>=1;return '<div><b>'+m+' M☉</b>: <span style="color:#c2410c;font-weight:bold">'+(gone?'중성자별':s[1])+'</span>'+(t<tMS(m)?' (주계열 수명의 '+Math.round(t/tMS(m)*100)+'%)':'')+'</div>';};
+      document.getElementById('oV7').innerHTML='<h4>태어난 지 '+fmtY(t)+'</h4>'+line(1)+line(10)+'<div class="sim-note">주계열 수명: 1 M☉ 약 '+fmtY(tMS(1))+', 10 M☉ 약 '+fmtY(tMS(10))+'</div>';}}
+  r.oninput=e=>{p=+e.target.value;play=false;out();};document.querySelectorAll('#s26 [data-ms]').forEach(b=>b.onclick=()=>{ms=+b.dataset.ms;p=0;out();});
+  document.getElementById('bV7').onclick=()=>{p=0;play=true;};
+  rT.oninput=e=>{lt=+e.target.value;tplay=false;out();};
+  document.getElementById('bT').onclick=()=>{if(lt>=10.49)lt=6;tplay=true;};
+  document.getElementById('bTsun').onclick=()=>{lt=Math.log10(4.6e9);tplay=false;out();};
+  document.getElementById('mOne').onclick=()=>{mode='one';tplay=false;out();};
+  document.getElementById('mRace').onclick=()=>{mode='race';play=false;out();};
+  // 실제 별
+  const REAL=[{n:'태양',x:42,m:4.8,t:'질량 1 M☉, 나이 약 46억 년인 <b>주계열성</b>. 주계열 수명(약 100억 년)의 절반쯤 지났어요.'},
+    {n:'알데바란',x:55,m:-0.6,t:'황소자리의 주황색 <b>거성</b>. 태양과 비슷한 질량의 별이 주계열을 떠나 부풀어 오른 모습이에요.'},
+    {n:'베텔게우스',x:62,m:-5.1,t:'오리온자리의 적색 <b>초거성</b>. 태양보다 훨씬 무거운 별로, 언젠가 초신성으로 폭발할 것으로 예상돼요.'},
+    {n:'시리우스 B',x:11,m:11.3,t:'시리우스의 동반성인 <b>백색왜성</b>. 질량은 태양 정도인데 크기는 지구 정도예요.'},
+    {n:'게성운',x:null,t:'1054년 송나라 천문 기록에 남은 <b>초신성</b>의 잔해. 가운데에 <b>중성자별</b>(펄서)이 있어요. 중성자별은 너무 어두워 이 H-R도에 나타낼 수 없어요.'}];
+  const seen=new Set();let realPick=-1;
+  document.querySelectorAll('[data-real]').forEach(b=>b.onclick=()=>{const i=+b.dataset.real;seen.add(i);realPick=i;b.classList.add('on');document.getElementById('realOut').innerHTML=REAL[i].t;});
+  out();
+  function drawStar(m,q,tm,dim){const [x,y]=seg(m,q);const Teff=x<10?35000:x<20?20000:x<30?9000:x<40?7000:x<50?5600:x<60?4500:3500;const s=stage(m,q);
+    if(dim){g.strokeStyle='rgba(148,163,184,.8)';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();g.arc(X(x),Y(y),12,0,7);g.stroke();g.setLineDash([]);g.fillStyle='#94a3b8';g.font=SIM.font(20);g.textAlign='right';g.fillText(m+' M☉ → 중성자별 (H-R도 밖)',X(x)-22,Y(y)+36);return;}
+    if(s[1]==='초신성 폭발'){const b=(tm%800)/800;g.fillStyle='rgba(255,255,255,'+(1-b)+')';g.beginPath();g.arc(X(x),Y(y),10+b*60,0,7);g.fill();}
+    if(s[1]==='행성상 성운'){g.strokeStyle='rgba(56,189,248,.6)';g.lineWidth=6;g.beginPath();g.arc(X(x),Y(y),26+8*Math.sin(tm/200),0,7);g.stroke();}
+    g.fillStyle=starRGB(Teff);g.beginPath();g.arc(X(x),Y(y),12,0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+    g.fillStyle='#fde68a';g.font=SIM.font(21);g.textAlign='left';g.fillText((mode==='race'?m+' M☉ ':'')+s[1],Math.min(R-200,X(x)+18),Y(y)-14);}
+  function path(m,q,col){g.strokeStyle=col;g.lineWidth=3;g.beginPath();for(let t=0;t<=q;t+=0.005){const [x,y]=seg(m,t);t?g.lineTo(X(x),Y(y)):g.moveTo(X(x),Y(y));}g.stroke();}
+  SIM.loop('s26',(tm,dt)=>{if(play){p=Math.min(1,p+dt/10);if(p>=1)play=false;out();}
+    if(tplay){lt=Math.min(10.5,lt+dt*0.33);if(lt>=10.5)tplay=false;out();}
+    S.begin();g.fillStyle='#0b1020';g.fillRect(0,0,W,H);
+    const blob=(pts,col,lab,lx,ly)=>{g.fillStyle=col;g.beginPath();pts.forEach(([a,b],i)=>{i?g.lineTo(X(a),Y(b)):g.moveTo(X(a),Y(b));});g.closePath();g.fill();g.fillStyle='rgba(226,232,240,.75)';g.font=SIM.font(20);g.textAlign='center';g.fillText(lab,X(lx),Y(ly));};
+    blob([[0,-7],[10,-5],[25,0],[40,4],[55,8],[66,13],[60,13.5],[50,9],[38,5.5],[22,1.5],[8,-3],[0,-5.5]],'rgba(96,165,250,.14)','주계열성',33,5.7);
+    blob([[46,-1.5],[64,-2.5],[66,0.8],[50,1.6]],'rgba(251,146,60,.18)','거성',58,1.5);
+    blob([[15,-8],[68,-8],[68,-5],[15,-5.2]],'rgba(248,113,113,.15)','초거성',42,-7.2);
+    blob([[2,9],[22,13],[22,14],[2,11.5]],'rgba(203,213,225,.18)','백색왜성',12,13.5);
+    g.strokeStyle='#475569';g.lineWidth=2;g.strokeRect(L,T,R-L,B-T);
+    g.fillStyle='#cbd5e1';g.font=SIM.font(19);g.textAlign='center';['O5','B0','A0','F0','G0','K0','M0'].forEach((s,i)=>g.fillText(s,X(i*10+(i?0:2)),B+26));g.fillText('분광형 (← 고온 · 저온 →)',(L+R)/2,B+54);
+    g.textAlign='right';[-8,-4,0,4,8,12].forEach(m=>g.fillText(m,L-10,Y(m)+7));g.save();g.translate(30,(T+B)/2);g.rotate(-Math.PI/2);g.textAlign='center';g.fillText('절대 등급',0,0);g.restore();
+    // 실제 별 표시
+    REAL.forEach((d,i)=>{if(!seen.has(i)||d.x==null)return;const x=X(d.x),y=Y(d.m),hot=i===realPick;g.strokeStyle=hot?'#fb923c':'rgba(251,146,60,.6)';g.lineWidth=hot?3:2;g.beginPath();g.arc(x,y,hot?11:8,0,7);g.stroke();
+      g.fillStyle='#fdba74';g.font=SIM.font(19);const rt=i===2;g.textAlign=rt?'left':'right';g.fillText(d.n,x+(rt?14:-18),y+(rt?26:6));});
+    if(realPick===4&&seen.has(4)){const b=(tm%1400)/1400;g.strokeStyle='rgba(253,186,116,'+(1-b)+')';g.lineWidth=4;g.beginPath();g.arc(X(63),Y(-6.2),14+b*40,0,7);g.stroke();g.fillStyle='#fdba74';g.font=SIM.font(19);g.textAlign='right';g.fillText('게성운: 무거운 별이 초신성 폭발한 잔해',X(63)-40,Y(-6.2)+76);}
+    if(mode==='one'){path(ms,p,'#f59e0b');drawStar(ms,p,tm,false);}
+    else{const t=Math.pow(10,lt);[[1,'#f59e0b'],[10,'#38bdf8']].forEach(([m,col])=>{const q=prog(m,t);path(m,q,col);drawStar(m,q,tm,m===10&&q>=1);});}
+    // 아래: 시간 막대 (로그 눈금)
+    const TL=180,TR=1120,lo=6,hi=10.5,TX=v=>TL+(Math.log10(v)-lo)/(hi-lo)*(TR-TL);
+    g.fillStyle='#e2e8f0';g.font=SIM.font(20);g.textAlign='left';g.fillText('별의 일생 (태어난 뒤 시간, 로그 눈금)',L,640);
+    [[1,690,'#f59e0b'],[10,740,'#38bdf8']].forEach(([m,y,col])=>{const a=tMS(m),b=1.1*a;g.fillStyle='#cbd5e1';g.font=SIM.font(19);g.textAlign='right';g.fillText(m+' M☉',TL-14,y+7);
+      g.fillStyle='rgba(96,165,250,.55)';g.fillRect(TX(1e6),y-14,TX(a)-TX(1e6),28);g.fillStyle='rgba(251,146,60,.8)';g.fillRect(TX(a),y-14,Math.max(4,TX(b)-TX(a)),28);g.fillStyle='rgba(148,163,184,.35)';g.fillRect(TX(b),y-14,TR-TX(b),28);
+      g.fillStyle='#0b1020';g.font=SIM.font(18);g.textAlign='left';if(TX(a)-TX(1e6)>130)g.fillText('주계열',TX(1e6)+10,y+6);
+      g.fillStyle='#e2e8f0';if(TR-TX(b)>200)g.fillText(m===1?'백색왜성':'중성자별',TX(b)+12,y+6);});
+    g.strokeStyle='#64748b';g.lineWidth=2;g.beginPath();g.moveTo(TL,772);g.lineTo(TR,772);g.stroke();
+    g.fillStyle='#cbd5e1';g.font=SIM.font(18,false);g.textAlign='center';[[1e6,'100만'],[1e7,'1000만'],[1e8,'1억'],[1e9,'10억'],[1e10,'100억 년']].forEach(([v,s])=>{g.fillRect(TX(v)-1,766,2,12);g.fillText(s,TX(v),800);});
+    g.fillStyle='#fde047';g.beginPath();g.arc(TX(4.6e9),660,7,0,7);g.fill();g.font=SIM.font(18);g.fillText('태양 지금',TX(4.6e9),650);
+    if(mode==='race'){const x=TX(Math.pow(10,lt));g.strokeStyle='#facc15';g.lineWidth=3;g.beginPath();g.moveTo(x,665);g.lineTo(x,780);g.stroke();g.fillStyle='#facc15';g.beginPath();g.moveTo(x,782);g.lineTo(x-9,796);g.lineTo(x+9,796);g.fill();}
+    else{g.fillStyle='#94a3b8';g.font=SIM.font(18);g.textAlign='right';g.fillText('‘두 별 동시 출발’에서 시간을 흐르게 해 봐요',TR,840);}
+  });
+  SIM.tabs();
+  SIM.predict({el:'#predictBox',
+    q:'10 M☉인 별은 1 M☉인 별보다 연료(수소)가 10배 많아요. 주계열에 머무는 시간은 어떨까요?',
+    options:['10배쯤 더 길다','거의 같다','10배쯤 짧다','수백 배 짧다'],answer:3,
+    why:'무거운 별은 광도가 질량보다 훨씬 빨리 커져(L ∝ M³·⁵쯤) 연료를 아주 빨리 써요. 수명 ∝ 연료 ÷ 소비 속도 ∝ M⁻²·⁵이므로, 10 M☉인 별의 주계열 수명은 1 M☉인 별의 <b>약 1/300</b>(수천만 년)이에요.',
+    setup:()=>{mode='race';lt=6;tplay=false;out();},
+    reached:()=>mode==='race'&&prog(10,Math.pow(10,lt))>=1&&Math.pow(10,lt)<tMS(1)});
+  SIM.missions({el:'#missionBox',items:[
+    {t:'<b>1 M☉인 별</b>을 끝까지 진화시켜 <b>백색왜성</b>이 되는 모습을 보세요.',test:()=>mode==='one'&&ms===1&&p>=0.85},
+    {t:'<b>10 M☉인 별</b>이 <b>초신성 폭발</b>하는 단계까지 진화시켜 보세요.',test:()=>mode==='one'&&ms===10&&p>=0.9},
+    {t:'두 별 동시 출발: 10 M☉ 별은 이미 <b>중성자별</b>인데 1 M☉ 별은 아직 <b>주계열성</b>인 때를 찾아보세요.',test:()=>mode==='race'&&prog(10,Math.pow(10,lt))>=1&&Math.pow(10,lt)<tMS(1)},
+    {t:'실제 별·천체를 <b>네 개 이상</b> 불러와 어느 단계인지 확인해 보세요.',test:()=>seen.size>=4},
+  ]});
+})();
+</script>
+<script id="mission-pop-js">
+/* 미션: 탭 대신 버튼 → 팝업 (실험 중에도 언제든 열어 보기) · 모두 달성하면 폭죽 */
+(function(){
+  const mBtn=document.querySelector('.sim-tab[data-tab="mission"]'),pop=document.getElementById('missionPop');
+  if(!mBtn||!pop)return;
+  const closePop=()=>{pop.hidden=true;};
+  mBtn.onclick=()=>{mBtn.classList.remove('nudge');mBtn.firstChild.textContent='🎯 미션 보기 ';pop.hidden=false;};
+  document.getElementById('missionClose').onclick=closePop;
+  document.getElementById('missionGo').onclick=()=>{closePop();SIM.showTab&&SIM.showTab('lab');};
+  pop.addEventListener('pointerdown',e=>{if(e.target===pop)closePop();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden)closePop();});
+  function fireworks(){
+    const wrap=document.getElementById('presentation-wrapper'),cv=document.createElement('canvas');cv.width=1920;cv.height=1080;
+    cv.style.cssText='position:absolute;inset:0;z-index:90;pointer-events:none';wrap.appendChild(cv);
+    const msg=document.createElement('div');msg.className='fw-msg';msg.innerHTML='🎉 모든 미션 완료! 🎉<small>멋진 탐구였어요!</small>';wrap.appendChild(msg);
+    const x=cv.getContext('2d'),cols=['#f43f5e','#f59e0b','#facc15','#22c55e','#3b82f6','#a855f7','#ec4899','#ffffff'];
+    const rockets=[],parts=[];let t0=performance.now(),last=t0,next=0;
+    const boom=(px,py)=>{const col=cols[Math.random()*cols.length|0],col2=cols[Math.random()*cols.length|0],k=70+Math.random()*40;
+      for(let i=0;i<k;i++){const a=i/k*Math.PI*2,v=4+Math.random()*7;parts.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,c:Math.random()<.5?col:col2,s:3+Math.random()*3});}};
+    (function f(t){const dt=Math.min(3,(t-last)/16.7);last=t;const el=t-t0;
+      if(el<3600&&el>next){next=el+260+Math.random()*260;rockets.push({x:300+Math.random()*1320,y:1080,vy:-(17+Math.random()*6),ty:180+Math.random()*380});}
+      x.globalCompositeOperation='destination-out';x.fillStyle='rgba(0,0,0,.22)';x.fillRect(0,0,1920,1080);x.globalCompositeOperation='lighter';
+      for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.y+=r.vy*dt;x.fillStyle='#fde68a';x.beginPath();x.arc(r.x,r.y,5,0,7);x.fill();if(r.y<=r.ty){boom(r.x,r.y);rockets.splice(i,1);}}
+      for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vx*=.97;p.vy=p.vy*.97+.12*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=.012*dt;
+        if(p.life<=0){parts.splice(i,1);continue;}x.globalAlpha=p.life;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();}
+      x.globalAlpha=1;
+      if(el<3600||parts.length||rockets.length)requestAnimationFrame(f);else{cv.remove();msg.classList.add('out');setTimeout(()=>msg.remove(),600);}
+    })(t0);
+    for(let i=0;i<4;i++)setTimeout(()=>SIM.burst(),i*450);
+  }
+  let cheered=false;
+  const timer=setInterval(()=>{const lis=document.querySelectorAll('#missionBox .mission-list li');
+    if(!cheered&&lis.length&&[...lis].every(l=>l.classList.contains('done'))){cheered=true;clearInterval(timer);setTimeout(fireworks,700);}},300);
+})();
+</script>
+<script id="sim-kit-fit">
+/* ===== sim-kit 화면 맞춤 · 전체화면 (tools/sim-kit/kit-fit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   - 사이트 안(iframe)에서는 폭에 맞춰 1920×1080 화면을 줄이고, 높이를 사이트에 알려 줌(sim-height)
+   - 새 창·전체화면에서는 화면 안에 16:9로 꽉 차게 가운데 정렬
+   - 전체화면을 켜면 휴대폰·태블릿은 가로 화면으로 돌림(지원하는 기기만) */
+(function () {
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self, de = document.documentElement;
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function fit() {
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || isFs();
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    de.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920 * s) / 2; y = Math.max(0, (window.innerHeight - h * s) / 2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h * s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h * s) }, '*'); } catch (e) {} }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+
+  var btn = document.getElementById('fsBtn');
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
+  }
+  function unlock() { try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} }
+  function sync() { if (btn) btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; if (!isFs()) unlock(); fit(); setTimeout(fit, 120); }
+  if (btn) btn.onclick = function () {
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function () { de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(function () { lockLandscape(); sync(); }, fallback); else { lockLandscape(); sync(); } } catch (e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
+})();
+</script>
+</body>
+</html>

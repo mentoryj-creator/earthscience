@@ -131,10 +131,32 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
   /* 이 시뮬레이션만의 스타일 */
   #realBox .sim-btn { font-size: 22px; padding: 6px 14px; }
 </style>
+<style id="mission-pop-css">
+  /* 미션 시작 버튼 + 팝업 */
+  .sim-tab.mission-open { background: #fff7ed; color: #c2410c; border: 2px solid #fdba74; }
+  .sim-tab.mission-open:hover { background: #ffedd5; }
+  .mission-pop { position: absolute; inset: 0; z-index: 80; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; }
+  .mission-card { width: 900px; max-height: 900px; overflow-y: auto; background: #fff; border-radius: 24px; padding: 28px 36px; box-shadow: 0 20px 50px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 16px; animation: rise .3s both; }
+  .mission-card h3 { font-size: 34px; font-weight: 800; color: #c2410c; display: flex; align-items: center; justify-content: space-between; }
+  .mission-card #missionBox { display: flex; flex-direction: column; gap: 12px; }
+  /* 모든 미션 완료 축하 */
+  .fw-msg { position: absolute; left: 50%; top: 50%; z-index: 91; pointer-events: none; transform: translate(-50%,-50%); text-align: center; font-size: 84px; font-weight: 800; color: #fff; background: linear-gradient(135deg,#f59e0b,#ec4899,#8b5cf6); padding: 30px 70px; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fwPop .7s cubic-bezier(.2,1.6,.4,1) both, fwGlow 1.2s ease-in-out .7s infinite alternate; transition: opacity .6s; }
+  .fw-msg small { display: block; font-size: 38px; margin-top: 6px; opacity: .95; }
+  .fw-msg.out { opacity: 0; }
+  @keyframes fwPop { from { transform: translate(-50%,-50%) scale(.2) rotate(-8deg); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+  @keyframes fwGlow { to { box-shadow: 0 0 80px rgba(250,204,21,.9); transform: translate(-50%,-50%) scale(1.04); } }
+</style>
 </head>
 <body>
 <div id="presentation-wrapper">
 <button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="mission-pop" id="missionPop" hidden>
+  <div class="mission-card" role="dialog" aria-label="미션">
+    <h3>🎯 미션 <button class="sim-btn" id="missionClose" type="button">✕ 닫기</button></h3>
+    <div id="missionBox"></div>
+    <div class="sim-btns" style="justify-content:center"><button class="sim-btn on" id="missionGo" type="button">실험하러 가기 →</button></div>
+  </div>
+</div>
 <div class="slide sim-slide active" id="slideMain">
   <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>차가운 성운 vs 뜨거운 성운</div>
   <div class="ppt-subtitle">성운의 <span class="or">온도</span>와 <span class="or">밀도</span>를 바꿔 보세요. 어느 쪽에서 <span class="or">원시별</span>이 만들어질까?</div>
@@ -144,7 +166,7 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
       <div class="sim-tabs">
         <button class="sim-tab on" data-tab="predict">① 예측</button>
         <button class="sim-tab" data-tab="lab">② 실험</button>
-        <button class="sim-tab" data-tab="mission">③ 미션</button>
+        <button class="sim-tab mission-open" data-tab="mission" type="button">🎯 미션 시작</button>
       </div>
       <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div></div>
 
@@ -163,7 +185,6 @@ input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; curs
         </div>
       </div>
 
-      <div class="sim-tabpage" data-page="mission"><div class="sim-box" id="missionBox"></div></div>
       <div class="sim-note">※ 개념 모형이에요. 알갱이 사이의 중력과 열운동을 단순화해 나타냈어요. 온도·밀도 값은 개념용이에요.</div>
     </div>
   </div>
@@ -444,6 +465,41 @@ document.addEventListener('pointerup', () => { const a = document.activeElement;
     { t: '다시 시작한 뒤 <b>5초 안에</b> 중심에 모인 물질을 <b>90% 이상</b>으로 만들어 보세요.', test: () => resets > 0 && runT <= 5.2 && best5 >= 0.9 },
     { t: '<b>실제 성운</b> 3개를 모두 불러와 비교해 보세요.', test: () => realSeen.size >= 3 },
   ] });
+})();
+</script>
+<script id="mission-pop-js">
+/* 미션: 탭 대신 버튼 → 팝업 (실험 중에도 언제든 열어 보기) · 모두 달성하면 폭죽 */
+(function(){
+  const mBtn=document.querySelector('.sim-tab[data-tab="mission"]'),pop=document.getElementById('missionPop');
+  if(!mBtn||!pop)return;
+  const closePop=()=>{pop.hidden=true;};
+  mBtn.onclick=()=>{mBtn.classList.remove('nudge');mBtn.firstChild.textContent='🎯 미션 보기 ';pop.hidden=false;};
+  document.getElementById('missionClose').onclick=closePop;
+  document.getElementById('missionGo').onclick=()=>{closePop();SIM.showTab&&SIM.showTab('lab');};
+  pop.addEventListener('pointerdown',e=>{if(e.target===pop)closePop();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden)closePop();});
+  function fireworks(){
+    const wrap=document.getElementById('presentation-wrapper'),cv=document.createElement('canvas');cv.width=1920;cv.height=1080;
+    cv.style.cssText='position:absolute;inset:0;z-index:90;pointer-events:none';wrap.appendChild(cv);
+    const msg=document.createElement('div');msg.className='fw-msg';msg.innerHTML='🎉 모든 미션 완료! 🎉<small>멋진 탐구였어요!</small>';wrap.appendChild(msg);
+    const x=cv.getContext('2d'),cols=['#f43f5e','#f59e0b','#facc15','#22c55e','#3b82f6','#a855f7','#ec4899','#ffffff'];
+    const rockets=[],parts=[];let t0=performance.now(),last=t0,next=0;
+    const boom=(px,py)=>{const col=cols[Math.random()*cols.length|0],col2=cols[Math.random()*cols.length|0],k=70+Math.random()*40;
+      for(let i=0;i<k;i++){const a=i/k*Math.PI*2,v=4+Math.random()*7;parts.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,c:Math.random()<.5?col:col2,s:3+Math.random()*3});}};
+    (function f(t){const dt=Math.min(3,(t-last)/16.7);last=t;const el=t-t0;
+      if(el<3600&&el>next){next=el+260+Math.random()*260;rockets.push({x:300+Math.random()*1320,y:1080,vy:-(17+Math.random()*6),ty:180+Math.random()*380});}
+      x.globalCompositeOperation='destination-out';x.fillStyle='rgba(0,0,0,.22)';x.fillRect(0,0,1920,1080);x.globalCompositeOperation='lighter';
+      for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.y+=r.vy*dt;x.fillStyle='#fde68a';x.beginPath();x.arc(r.x,r.y,5,0,7);x.fill();if(r.y<=r.ty){boom(r.x,r.y);rockets.splice(i,1);}}
+      for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vx*=.97;p.vy=p.vy*.97+.12*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=.012*dt;
+        if(p.life<=0){parts.splice(i,1);continue;}x.globalAlpha=p.life;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();}
+      x.globalAlpha=1;
+      if(el<3600||parts.length||rockets.length)requestAnimationFrame(f);else{cv.remove();msg.classList.add('out');setTimeout(()=>msg.remove(),600);}
+    })(t0);
+    for(let i=0;i<4;i++)setTimeout(()=>SIM.burst(),i*450);
+  }
+  let cheered=false;
+  const timer=setInterval(()=>{const lis=document.querySelectorAll('#missionBox .mission-list li');
+    if(!cheered&&lis.length&&[...lis].every(l=>l.classList.contains('done'))){cheered=true;clearInterval(timer);setTimeout(fireworks,700);}},300);
 })();
 </script>
 <script id="sim-kit-fit">
