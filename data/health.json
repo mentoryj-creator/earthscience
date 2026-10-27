@@ -1,7 +1,16 @@
 {
- "checkedAt": "2026-10-26 08:03",
- "commit": "bb3e16d",
- "total": 217,
- "errors": [],
+ "checkedAt": "2026-10-27 15:58",
+ "commit": "938ac1f",
+ "total": 234,
+ "errors": [
+  {
+   "id": "ess1-09",
+   "msg": "스크립트 오류: Cannot read properties of undefined (reading '0')"
+  },
+  {
+   "id": "ess3-16",
+   "msg": "스크립트 오류: Cannot read properties of undefined (reading 'split')"
+  }
+ ],
  "warnings": []
 }
