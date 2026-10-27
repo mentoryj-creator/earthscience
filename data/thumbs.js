@@ -75,6 +75,7 @@ window.THUMBS = {
 "ess1-06": "14cecb82cf",
 "ess1-07": "63a66f885e",
 "ess1-08": "1f3b18a662",
+"ess1-09": "aae394e1f6",
 "ess1-10": "a8c16e41ba",
 "ess1-11": "078791f354",
 "ess1-12": "fdf6f2e2b8",
