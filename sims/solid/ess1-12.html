@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>화성암 조직 실험실</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style id="sim-kit">
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
+
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
+
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
+
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
+
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
+
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
+
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
+
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
+
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
+</style>
+<style>
+
+  .sim-tabs.t4 .sim-tab { flex: auto; font-size: 21px; padding: 9px 6px; gap: 4px; }
+  .sim-tabs.t4 .sim-tab .badge { font-size: 16px; padding: 1px 7px; }
+  .sim-panel .sim-box { margin-bottom: 10px; }
+  .sim-panel .sim-box.key { font-size: 20px; line-height: 1.4; padding: 14px 18px; }
+  .sim-panel .sim-box.key h4 { margin: 0 0 4px; }
+  .sim-row > .lbl { width: 170px; }
+  .sim-val { min-width: 120px; }
+  .sim-btns .sim-btn { font-size: 22px; padding: 8px 14px; }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .steps span { font-size: 18px; padding: 3px 12px; border-radius: 999px; border: 2px solid #e2e8f0; color: #94a3b8; background: #fff; }
+  .steps span.on { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .steps span.past { color: #1e293b; border-color: #93c5fd; }
+  .grid2 { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 0 10px; font-size: 19px; margin-top: 4px; }
+  .grid2 b { color: #1e293b; } .grid2 span { color: #64748b; }
+  .concept { font-size: 19px; line-height: 1.4; color: #334155; }
+  .concept ol, .concept ul { margin: 6px 0 0; padding-left: 26px; }
+  .concept li { margin: 1px 0; padding: 2px 6px; border-radius: 8px; }
+  .concept li.on { background: #dbeafe; color: #1e3a8a; }
+  .concept b { color: #1e293b; }
+  .rt { border-collapse: collapse; width: 100%; font-size: 17px; margin-top: 6px; }
+  .rt th { background: #3b82f6; color: #fff; padding: 3px 6px; }
+  .rt td { border-bottom: 1px solid #e2e8f0; padding: 1px 6px; text-align: center; background: #fff; }
+  .msg { margin-top: 6px; font-size: 19px; }
+  .msg.ok { color: #15803d; } .msg.no { color: #b91c1c; }
+
+  .modes .sim-btn, #comp .sim-btn, #opts .sim-btn { font-size: 19px; padding: 5px 10px; }
+  #opts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  #opts .sim-btn.sel { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+  .rt td.hl { background: #fff7ed; font-weight: bold; }
+
+</style>
+<style id="mission-pop-css">
+  /* 미션 시작 버튼 + 팝업 */
+  .sim-tab.mission-open { background: #fff7ed; color: #c2410c; border: 2px solid #fdba74; }
+  .sim-tab.mission-open:hover { background: #ffedd5; }
+  .mission-pop { position: absolute; inset: 0; z-index: 80; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; }
+  .mission-card { width: 900px; max-height: 900px; overflow-y: auto; background: #fff; border-radius: 24px; padding: 28px 36px; box-shadow: 0 20px 50px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 16px; animation: rise .3s both; }
+  .mission-card h3 { font-size: 34px; font-weight: 800; color: #c2410c; display: flex; align-items: center; justify-content: space-between; }
+  .mission-card #missionBox { display: flex; flex-direction: column; gap: 12px; }
+  /* 모든 미션 완료 축하 */
+  .fw-msg { position: absolute; left: 50%; top: 50%; z-index: 91; pointer-events: none; transform: translate(-50%,-50%); text-align: center; font-size: 84px; font-weight: 800; color: #fff; background: linear-gradient(135deg,#f59e0b,#ec4899,#8b5cf6); padding: 30px 70px; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fwPop .7s cubic-bezier(.2,1.6,.4,1) both, fwGlow 1.2s ease-in-out .7s infinite alternate; transition: opacity .6s; }
+  .fw-msg small { display: block; font-size: 38px; margin-top: 6px; opacity: .95; }
+  .fw-msg.out { opacity: 0; }
+  @keyframes fwPop { from { transform: translate(-50%,-50%) scale(.2) rotate(-8deg); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+  @keyframes fwGlow { to { box-shadow: 0 0 80px rgba(250,204,21,.9); transform: translate(-50%,-50%) scale(1.04); } }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="mission-pop" id="missionPop" hidden>
+  <div class="mission-card" role="dialog" aria-label="미션">
+    <h3>🎯 미션 <button class="sim-btn" id="missionClose" type="button">✕ 닫기</button></h3>
+    <div id="missionBox"></div>
+    <div class="sim-btns" style="justify-content:center"><button class="sim-btn on" id="missionGo" type="button">실험하러 가기 →</button></div>
+  </div>
+</div>
+<div class="slide sim-slide active" id="slideMain">
+  <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>화성암 조직 실험실</div>
+  <div class="ppt-subtitle">마그마가 식는 <span class="or">깊이와 속도</span>를 정하고 박편에서 결정이 자라는 모습을 지켜봐요.</div>
+  <div class="sim-wrap">
+    <div class="sim-stage light"><canvas id="cS" width="1060" height="610" role="img" aria-label="마그마가 굳는 위치와 박편의 결정 성장"></canvas></div>
+    <div class="sim-panel">
+      <div class="sim-tabs t4">
+        <button class="sim-tab on" data-tab="predict">① 예측</button>
+        <button class="sim-tab" data-tab="lab">② 실험</button>
+        <button class="sim-tab" data-tab="concept">③ 개념</button>
+        <button class="sim-tab mission-open" data-tab="mission" type="button">🎯 미션</button>
+      </div>
+      <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div></div>
+      <div class="sim-tabpage" data-page="lab">
+    <div class="sim-box blue">
+      <div class="sim-btns modes"><button class="sim-btn on" id="mLab" type="button">🧪 직접 실험</button><button class="sim-btn" id="mGame" type="button">🔬 암석 감정사</button></div>
+    </div>
+    <div class="sim-box blue" id="ctlLab">
+      <div class="sim-btns" id="comp"><button class="sim-btn" data-c="B" type="button">현무암질</button><button class="sim-btn" data-c="A" type="button">안산암질</button><button class="sim-btn on" data-c="R" type="button">유문암질</button></div>
+      <div class="sim-row"><span class="lbl">굳는 깊이</span><input type="range" class="sim-range" id="rD" min="0" max="15" step="0.5" value="10" aria-label="마그마가 굳는 깊이"><span class="sim-val" id="vD"></span></div>
+      <div class="sim-btns"><button class="sim-btn" id="tQ" type="button">💧 물에 급랭</button><button class="sim-btn" id="tTwo" type="button">2단계 냉각</button><button class="sim-btn orange on" id="bGo" type="button">❄ 냉각 시작</button></div>
+    </div>
+    <div class="sim-box blue" id="ctlGame" hidden>
+      <div class="sim-btns"><button class="sim-btn orange on" id="gStart" type="button">🎲 박편 받기</button><button class="sim-btn" id="gCheck" type="button">감정하기</button><span id="gInfo" style="font-size:18px;color:#475569;align-self:center"></span></div>
+      <div id="opts"></div>
+    </div>
+    <div class="sim-box key" id="out"></div></div>
+      <div class="sim-tabpage" data-page="concept">
+    <div class="sim-box concept"><h4>화성암의 조직</h4><ul id="cList">
+      <li><b>유리질</b>: 매우 빨리 식어 결정이 생기지 못함 (흑요석)</li>
+      <li><b>세립질</b>: 지표 부근에서 빨리 식어 결정이 작음 (현무암·유문암)</li>
+      <li><b>조립질</b>: 깊은 곳에서 천천히 식어 결정이 큼 (화강암·반려암)</li>
+      <li><b>반상</b>: 깊은 곳에서 자란 큰 반정 + 지표에서 굳은 작은 석기 (안산암)</li></ul>
+      <div style="font-size:18px;margin-top:4px">마그마가 식으며 생기는 광물은 대부분 <b>규산염 사면체</b>(Si 1개 + O 4개)가 기본인 규산염 광물이에요.</div></div>
+    <div class="sim-box" id="realBox"><h4>화성암의 분류</h4>
+      <table class="rt" id="rtab"><tr><th></th><th>현무암질</th><th>안산암질</th><th>유문암질</th></tr>
+      <tr><td>화산암 (세립)</td><td>현무암</td><td>안산암</td><td>유문암</td></tr>
+      <tr><td>심성암 (조립)</td><td>반려암</td><td>섬록암</td><td>화강암</td></tr>
+      <tr><td>색</td><td>어두움</td><td>중간</td><td>밝음</td></tr></table>
+      <div class="real-src">제주도 현무암 · 서울 북한산 화강암 · 산방산 조면암</div></div></div>
+      <div class="sim-note">※ 교육용 단순 모델이에요. 빨리 식을수록 결정의 씨앗이 많고 자랄 시간은 짧다는 원리만으로 결정 크기를 정했어요. 광물 색은 구별하기 쉽게 정한 것이에요. 박편 시야 지름 약 20 mm.</div>
+    </div>
+  </div>
+</div>
+</div>
+<script id="sim-kit">
+/* ===== sim-kit 공통 도구 (tools/sim-kit/kit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   SIM.loop / SIM.pos / SIM.font ...  : 그리기 도우미 (행성우주과학 시뮬레이션과 같음)
+   SIM.tabs()                          : ① 예측 ② 실험 ③ 미션 탭
+   SIM.predict({...})                  : 예측하고 확인
+   SIM.missions({...})                 : 도전 미션 (조건을 자동으로 확인)
+   SIM.toast(글, 'info'|'warn')        : 그림 위에 잠깐 뜨는 알림
+*/
+window.SIM = {
+  FONT: "'Gowun Dodum', sans-serif",
+  // 해당 슬라이드가 화면에 보일 때만 그리기
+  loop(slideId, fn) {
+    const el = document.getElementById(slideId);
+    let last = performance.now();
+    function f(t) {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!el || el.classList.contains('active')) fn(t, dt);
+      requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  },
+  rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+  pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+  font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  fmtExp(v, digits) {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+    const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+    return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+  },
+
+  // ---- 고해상도 캔버스 (W×H 좌표로 그리면 됨) ----
+  // const S = SIM.stage({ canvas, W: 1000, H: 620 });  S.begin(); 그리기…  S.pt(이벤트) → {x,y}
+  // 1920 화면이 줄었다 늘었다 해도 그림이 흐려지지 않게 내부 해상도를 고정(기본 2배)으로 둠
+  stage(o) {
+    const cvs = o.canvas, W = o.W, H = o.H, k = o.scale || 2;
+    cvs.width = Math.round(W * k); cvs.height = Math.round(H * k);
+    cvs.style.aspectRatio = W + '/' + H;
+    const ctx = cvs.getContext('2d');
+    return {
+      ctx, W, H,
+      begin() { ctx.setTransform(k, 0, 0, k, 0, 0); },
+      pt(e) { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; },
+      resize() {},
+    };
+  },
+
+  // ---- 알림 ----
+  toast(text, kind, ms) {
+    const stage = document.querySelector('.slide.active .sim-stage') || document.getElementById('presentation-wrapper');
+    let t = stage.querySelector(':scope > .sim-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'sim-toast'; stage.appendChild(t); }
+    t.textContent = text; t.className = 'sim-toast ' + (kind || '');
+    void t.offsetWidth; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms || 2600);
+  },
+  burst() {
+    const stage = document.querySelector('.slide.active .sim-stage');
+    if (!stage) return;
+    const cols = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement('i'); b.className = 'sim-burst';
+      b.style.left = '50%'; b.style.top = '60px'; b.style.background = cols[i % cols.length];
+      const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 220;
+      b.style.setProperty('--dx', Math.cos(a) * r + 'px'); b.style.setProperty('--dy', Math.sin(a) * r * 0.7 + 120 + 'px');
+      stage.appendChild(b); setTimeout(() => b.remove(), 1200);
+    }
+  },
+
+  // ---- ① 예측 ② 실험 ③ 미션 탭 ----
+  // 패널 안의 .sim-tabs > .sim-tab[data-tab] 와 .sim-tabpage[data-page] 를 이어 줌
+  tabs(root) {
+    root = root || document;
+    const tabs = [...root.querySelectorAll('.sim-tab')], pages = [...root.querySelectorAll('.sim-tabpage')];
+    const show = name => {
+      tabs.forEach(t => { t.classList.toggle('on', t.dataset.tab === name); t.setAttribute('aria-selected', t.dataset.tab === name); });
+      pages.forEach(p => p.classList.toggle('on', p.dataset.page === name));
+    };
+    tabs.forEach(t => { t.setAttribute('role', 'tab'); t.onclick = () => { t.classList.remove('nudge'); show(t.dataset.tab); }; });
+    const first = tabs.find(t => t.classList.contains('on')) || tabs[0];
+    if (first) show(first.dataset.tab);
+    SIM.showTab = show;
+    return show;
+  },
+
+  // ---- 예측하고 확인 ----
+  // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
+  //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  predict(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    let picked = -1, revealed = false;
+    el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
+      <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
+      <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+      <div class="predict-result" hidden></div>`;
+    const opts = [...el.querySelectorAll('.predict-opt')];
+    const reveal = () => {
+      if (revealed || picked < 0) return; revealed = true;
+      opts.forEach((b, i) => { b.disabled = true; b.classList.toggle('right', i === o.answer); b.classList.toggle('wrong', i === picked && i !== o.answer); });
+      const ok = picked === o.answer, r = el.querySelector('.predict-result');
+      r.hidden = false; r.classList.toggle('miss', !ok);
+      r.innerHTML = (ok ? '<b>예측 성공!</b> ' : `<b>정답은 ${'ABCDEF'[o.answer]}</b> — `) + (o.why || '');
+      el.querySelector('.predict-go').hidden = true;
+      SIM.toast(ok ? '예측 성공!' : '예측과 결과가 달라요. 까닭을 확인해 봐요', ok ? '' : 'warn');
+      if (ok) SIM.burst();
+      const tab = document.querySelector('.sim-tab[data-tab="predict"]');
+      if (tab) { tab.classList.add('nudge'); const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge ' + (ok ? 'done' : ''); b.textContent = ok ? '✓' : '!'; }
+      o.onReveal && o.onReveal(ok);
+    };
+    opts.forEach((b, i) => b.onclick = () => {
+      if (revealed) return;
+      picked = i; opts.forEach(x => x.classList.toggle('picked', x === b));
+      el.querySelector('.predict-go').hidden = false;
+    });
+    el.querySelector('[data-act="go"]').onclick = () => { o.setup && o.setup(); SIM.showTab && SIM.showTab('lab'); };
+    const sb = el.querySelector('[data-act="show"]'); if (sb) sb.onclick = reveal;
+    // 고른 뒤, 실험 상태가 '확인할 상태'에서 한 번 벗어났다가 다시 들어오면 결과를 보여 줌
+    // (처음부터 그 상태였다면 학생이 직접 조작해 만들 때까지 기다림)
+    let armed = false;
+    if (o.reached) SIM._checks.push(() => {
+      if (picked < 0 || revealed) return;
+      const r = o.reached();
+      if (!r) armed = true; else if (armed) reveal();
+    });
+    return { reveal, get picked() { return picked; } };
+  },
+
+  // ---- 도전 미션 ----
+  // SIM.missions({ el: 상자, items: [{ t: '할 일', hint: '도움말(선택)', test: () => true/false }] })
+  // test는 0.25초마다 자동으로 확인. 한 번 달성하면 계속 달성으로 남음.
+  // 처음부터 맞아 있던 조건은 세지 않음 (조건이 거짓이 된 적이 있어야 함).
+  missions(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    const done = o.items.map(() => false);
+    el.innerHTML = `<div class="mission-bar"><i></i></div>
+      <ul class="mission-list">${o.items.map(m => `<li><span class="ck">✓</span><span>${m.t}${m.hint ? `<span class="hint">${m.hint}</span>` : ''}</span></li>`).join('')}</ul>
+      <div class="mission-all" hidden>모든 미션 달성!</div>`;
+    const lis = [...el.querySelectorAll('li')], tab = document.querySelector('.sim-tab[data-tab="mission"]');
+    const badge = () => {
+      const n = done.filter(Boolean).length;
+      el.querySelector('.mission-bar i').style.width = (n / done.length * 100) + '%';
+      el.querySelector('.mission-all').hidden = n < done.length;
+      if (tab) { const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge' + (n === done.length ? ' done' : ''); b.textContent = n + '/' + done.length; }
+    };
+    const mark = i => {
+      if (done[i]) return; done[i] = true; lis[i].classList.add('done');
+      badge(); SIM.burst();
+      const txt = lis[i].querySelector('span:not(.ck)').cloneNode(true); txt.querySelectorAll('.hint').forEach(h => h.remove());
+      const t = txt.textContent.trim();
+      SIM.toast(done.every(Boolean) ? '모든 미션 달성!' : '미션 달성! ' + (t.length > 24 ? t.slice(0, 23) + '…' : t));
+      if (tab && !tab.classList.contains('on')) tab.classList.add('nudge');
+    };
+    // 처음 열었을 때 이미 조건이 맞아 있으면 달성으로 치지 않음: 한 번 조건에서 벗어났다가 학생이 다시 맞춰야 달성
+    const armed = o.items.map(() => false);
+    SIM._checks.push(() => o.items.forEach((m, i) => {
+      if (done[i]) return;
+      let ok = false; try { ok = !!m.test(); } catch (e) {}
+      if (!ok) armed[i] = true; else if (armed[i]) mark(i);
+    }));
+    badge();
+    return { mark, done };
+  },
+  _checks: [],
+};
+setInterval(() => SIM._checks.forEach(f => f()), 250);
+// 슬라이더·입력칸 조작 중에는 키 입력이 다른 곳으로 새지 않게
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.type === 'range') a.blur(); });
+</script>
+<script>
+(function(){
+
+  const W=1060,H=610,$=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const mk=id=>{const S=SIM.stage({canvas:$(id),W,H});return S;};
+  let g;
+  const T=(t,x,y,size,col,align,bold)=>{g.font=SIM.font(size||18,bold!==false);g.textAlign=align||'center';g.textBaseline='middle';g.fillStyle=col||'#1e293b';g.fillText(t,x,y);};
+  const box=(x,y,w,h,r,fill,stroke,lw)=>{g.beginPath();g.roundRect(x,y,w,h,r);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||2;g.stroke();}};
+  const line=(pts,col,lw,dash)=>{g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.strokeStyle=col;g.lineWidth=lw||2;g.setLineDash(dash||[]);g.stroke();g.setLineDash([]);};
+  const dot=(x,y,r,fill)=>{g.beginPath();g.arc(x,y,r,0,7);g.fillStyle=fill;g.fill();};
+  const steps=(id,k)=>[...$(id).children].forEach((el,i)=>el.className=i===k?'on':i<k?'past':'');
+
+  const S=mk('cS');g=S.ctx;
+  const G=150,CXs=775,CYs=296,RS=262,lerp=(a,b,t)=>a+(b-a)*t;
+  const MIN={B:[['감람석','#7fae5a',0.2,1.2],['휘석','#6a5a48',0.35,1.6],['사장석','#e6e6e0',0.45,3.2]],A:[['각섬석','#3e4a3c',0.25,2.5],['사장석','#e6e6e0',0.55,3],['흑운모','#2a2420',0.2,1.8]],R:[['석영','#f2f4f6',0.35,1.1],['정장석','#e9b9a4',0.4,1.8],['흑운모','#2a2420',0.12,1.6],['사장석','#e6e6e0',0.13,2.6]]};
+  const GLASS={B:'#2b231f',A:'#2f2a28',R:'#141416'},ROCK={B:{fine:'현무암',coarse:'반려암',glass:'현무암질 유리',porph:'현무암 (반상)'},A:{fine:'안산암',coarse:'섬록암',glass:'안산암질 유리',porph:'안산암'},R:{fine:'유문암',coarse:'화강암',glass:'흑요석',porph:'유문암 (반상)'}};
+  const TXN={glass:'유리질 조직',fine:'세립질 조직',coarse:'조립질 조직',porph:'반상 조직'},CN={B:'현무암질',A:'안산암질',R:'유문암질'};
+  const own=new Int32Array(G*G),img=new ImageData(G,G),off=document.createElement('canvas');off.width=G;off.height=G;const oc=off.getContext('2d');
+  const X={comp:'R',dep:10,quench:false,two:false,run:false,crystals:[],C:1,done:false,mystery:null,mode:'lab'},R={made:{},score:0,q:0,final:0};
+  const rateFor=(dep,q)=>q?3000:dep<0.3?220:dep<2?lerp(220,30,(dep-0.3)/1.7):lerp(30,1,clamp((dep-2)/8,0,1));
+  const inside=(c,x,y)=>{const dx=x-c.x,dy=y-c.y,u=dx*c.ca+dy*c.sa,v=-dx*c.sa+dy*c.ca;return c.round?(u*u+v*v<=c.r*c.r):(Math.abs(u)<=c.r*c.asp*0.5+0.5&&Math.abs(v)<=c.r*0.5+0.5);};
+  function start(pp){own.fill(-1);X.crystals=[];X.done=false;X.run=true;fc=0;X.p=Object.assign({comp:X.comp,dep:X.dep,quench:X.quench,two:X.two},pp||{});
+    X.stages=X.p.two?[{C:1.2,len:0.35},{C:rateFor(0,false),len:0.65}]:[{C:rateFor(X.p.dep,X.p.quench),len:1}];X.si=0;X.st=0;}
+  const nucRate=C=>40*Math.pow(C,0.72)*Math.exp(-Math.pow(C/900,2)),growth=(C,n)=>1.9*Math.sqrt(G*G/Math.max(n,4))*Math.exp(-Math.pow(C/1100,2));
+  let freeCache=G*G,fc=0;const countFree=()=>{if(fc++%4)return freeCache;let f=0;for(let k=0;k<G*G;k++)if(own[k]<0)f++;return freeCache=f;};
+  function step(dt){if(!X.run)return;const sg=X.stages[X.si],C=sg.C;X.C=C;const d=dt*0.18;X.st+=d/sg.len;const nt=nucRate(C),free=countFree()/(G*G);
+    let n=nt*d*free;n=Math.floor(n)+(Math.random()<n%1?1:0);const mins=MIN[X.p.comp];
+    for(let k=0;k<n;k++){const x=Math.random()*G,y=Math.random()*G;if(own[Math.floor(y)*G+Math.floor(x)]>=0)continue;let r=Math.random(),m=mins[0];for(const mm of mins){if(r<mm[2]){m=mm;break;}r-=mm[2];}
+      const a=Math.random()*Math.PI;X.crystals.push({x,y,r:0.6,ca:Math.cos(a),sa:Math.sin(a),asp:m[3]*(0.7+Math.random()*0.6),round:m[3]<1.3,col:m[1],g:growth(C,nt)*(0.6+Math.random()*0.8),stage:X.si,id:X.crystals.length});}
+    for(const c of X.crystals){c.r+=(c.stage===X.si?c.g:growth(C,nt)*0.3)*d;const Rr=Math.ceil(c.r*Math.max(c.asp,1)*0.6)+1;
+      for(let y=Math.max(0,Math.floor(c.y-Rr));y<Math.min(G,c.y+Rr);y++)for(let x=Math.max(0,Math.floor(c.x-Rr));x<Math.min(G,c.x+Rr);x++){const k=y*G+x;if(own[k]<0&&inside(c,x+.5,y+.5))own[k]=c.id;}}
+    if(X.st>=1){X.si++;X.st=0;if(X.si>=X.stages.length){fillRest(C);X.run=false;X.done=true;fc=0;countFree();if(!X.mystery){const t=texture();R.made[X.p.comp+t]=true;}}}}
+  function fillRest(C){const f=C<60?1:C<400?lerp(1,0.75,(C-60)/340):C<1500?0.5:0;if(f<=0||!X.crystals.length)return;
+    for(let y=0;y<G;y++)for(let x=0;x<G;x++){const k=y*G+x;if(own[k]>=0||Math.random()>f)continue;let best=-1,bd=1e9;for(const c of X.crystals){const d=(c.x-x)**2+(c.y-y)**2;if(d<bd){bd=d;best=c.id;}}own[k]=best;}fc=0;}
+  const meanSize=()=>{const cnt=new Map();for(let k=0;k<G*G;k++)if(own[k]>=0)cnt.set(own[k],(cnt.get(own[k])||0)+1);if(!cnt.size)return 0;let s=0;for(const v of cnt.values())s+=Math.sqrt(v);return s/cnt.size;};
+  const texture=()=>X.p.two?'porph':countFree()/(G*G)>0.6?'glass':meanSize()>9?'coarse':'fine';
+  const hc={},hex=h=>hc[h]||(hc[h]=(n=>[n>>16&255,n>>8&255,n&255])(parseInt(h.slice(1),16)));
+  function render(){const cr=X.crystals,melt=X.done?hex(GLASS[X.p?X.p.comp:'R']):null;
+    for(let k=0;k<G*G;k++){const o=own[k],c=o<0?(melt||[Math.round(lerp(220,120,X.si/2)),Math.round(lerp(100,60,X.si/2)),40]):hex(cr[o].col);img.data[k*4]=c[0];img.data[k*4+1]=c[1];img.data[k*4+2]=c[2];img.data[k*4+3]=255;}
+    for(let y=1;y<G;y++)for(let x=1;x<G;x++){const k=y*G+x;if(own[k]>=0&&(own[k]!==own[k-1]||own[k]!==own[k-G])){img.data[k*4]*=0.55;img.data[k*4+1]*=0.55;img.data[k*4+2]*=0.55;}}oc.putImageData(img,0,0);}
+  function draw(){g.fillStyle='#f8fafc';g.fillRect(0,0,W,H);
+    const lx=30,lw=400,top=124,km=24,vx=lx+lw/2,p=X.p||{dep:X.dep,two:X.two,quench:X.quench},hide=X.mystery&&!X.revealed;
+    const sky=g.createLinearGradient(0,30,0,top);sky.addColorStop(0,'#93c5fd');sky.addColorStop(1,'#e0f2fe');g.fillStyle=sky;g.fillRect(lx,30,lw,top-30);
+    g.fillStyle='#8f7f62';g.fillRect(lx,top,lw,15*km+10);
+    for(let d=0;d<=15;d+=5){line([[lx,top+d*km],[lx+lw,top+d*km]],'rgba(255,255,255,.2)',1);T(d+' km',lx+6,top+d*km+12,15,'#fff','left',false);}
+    g.fillStyle='#5b4e3d';g.beginPath();g.moveTo(vx-95,top);g.lineTo(vx-15,top-58);g.lineTo(vx+15,top-58);g.lineTo(vx+95,top);g.fill();
+    if(p.quench&&!hide){g.fillStyle='#2c7fa8';g.fillRect(lx+lw-120,top-16,120,16);T('바다',lx+lw-60,top-30,16,'#1e3a8a');}
+    line([[vx,top-58],[vx,top+15*km]],'#ef4444',6);
+    if(!hide){const dy=top+(p.two?(X.si===0?10:0):p.dep)*km,surf=p.dep<0.3&&!p.two,yy=Math.max(top-30,dy);g.fillStyle='#ff7a3a';g.beginPath();g.ellipse(vx,yy,surf?62:48,surf?11:24,0,0,7);g.fill();
+      const t=p.two?(X.si===0?'① 깊은 곳: 반정 성장':'② 분출: 석기 형성'):(p.quench?'물속에서 급랭':p.dep<0.3?'지표의 용암':p.dep<3?'얕은 곳 (반심성)':'깊은 곳 (심성)');
+      g.font=SIM.font(18);const w=g.measureText(t).width+16,ty=yy+(surf?-30:42);box(vx-w/2,ty-15,w,30,8,'rgba(15,23,42,.7)');T(t,vx,ty,18,'#fff');}
+    else T('?',vx,top+150,60,'#fff');
+    const C=hide?1:(X.C||rateFor(X.dep,X.quench)),gy=top+15*km+40;T('냉각 속도',lx,gy+6,18,'#1e293b','left');
+    box(lx+100,gy,290,12,6,'#e2e8f0');box(lx+100,gy,290*clamp(Math.log10(C)/Math.log10(3000),0,1),12,6,'#3b82f6');
+    T('느림',lx+100,gy+28,15,'#64748b','left',false);T('빠름',lx+390,gy+28,15,'#64748b','right',false);
+    render();g.save();g.beginPath();g.arc(CXs,CYs,RS,0,7);g.clip();g.imageSmoothingEnabled=false;g.drawImage(off,CXs-RS,CYs-RS,RS*2,RS*2);g.restore();S.begin();
+    g.strokeStyle='#1e293b';g.lineWidth=4;g.beginPath();g.arc(CXs,CYs,RS,0,7);g.stroke();
+    const mm=RS*2/20;line([[CXs+RS-150,CYs+RS-28],[CXs+RS-150+mm*2,CYs+RS-28]],'#fff',4);T('2 mm',CXs+RS-150+mm,CYs+RS-46,16,'#fff');
+    if(!X.p)T('❄ 냉각 시작을 눌러 보세요',CXs,CYs,22,'#fff');else if(X.run){g.font=SIM.font(18);const w=g.measureText('결정이 자라는 중…').width+20;box(CXs-w/2,CYs-RS+16,w,30,15,'rgba(15,23,42,.7)');T('결정이 자라는 중…',CXs,CYs-RS+31,18,'#fff');}
+    if(hide)T('🔬 수수께끼 박편',CXs,22,20,'#c2410c');else T('박편 (현미경 시야)',CXs,22,18,'#1e293b');
+    const comp=X.p?X.p.comp:X.comp,ms=MIN[comp];let lx2=470;
+    for(const m of ms){box(lx2,H-30,18,18,4,m[1],'#64748b',1);T(m[0],lx2+24,H-21,15,'#334155','left',false);lx2+=24+g.measureText(m[0]).width+18;}
+    if(X.done){box(lx2,H-30,18,18,4,GLASS[comp],'#64748b',1);T('유리',lx2+24,H-21,15,'#334155','left',false);}}
+  function text(){$('vD').textContent=X.dep+' km';
+    const p=X.p,hide=X.mystery&&!X.revealed,n=X.crystals.length,gl=X.done?countFree()/(G*G):0,mean=meanSize()*20/G;
+    let h='결정화 중…';if(X.done&&!hide){const t=texture();h=TXN[t]+' → '+ROCK[p.comp][t];}else if(hide)h=X.done?'감정해 보세요!':'결정화 중… (감정 대기)';
+    $('out').innerHTML='<h4>'+h+'</h4><div class="grid2"><span>냉각 속도</span><b>'+(hide?'?':X.C>=1000?'매우 빠름':X.C>=100?'빠름':X.C>=10?'보통':'느림')+'</b><span>결정 수</span><b>'+n+'개</b><span>평균 지름</span><b>'+mean.toFixed(2)+' mm</b><span>유리 부분</span><b>'+(gl*100).toFixed(0)+'%</b></div>'+(X.gameMsg&&X.mode==='game'?'<div class="msg '+(X.gameOk?'ok':'no')+'">'+X.gameMsg+'</div>':'<div class="msg" style="color:#c2410c">▶ '+(mean>1?'맨눈으로 구별 가능한 크기':'맨눈으로 구별하기 어려운 크기')+'</div>');
+    const tt=X.done&&!hide?texture():null;[...$('cList').children].forEach((li,i)=>li.className=tt===['glass','fine','coarse','porph'][i]?'on':'');}
+  const setComp=c=>{X.comp=c;$('comp').querySelectorAll('[data-c]').forEach(b=>b.classList.toggle('on',b.dataset.c===c));};
+  $('comp').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>setComp(b.dataset.c));
+  $('rD').oninput=e=>X.dep=+e.target.value;
+  $('tQ').onclick=()=>{X.quench=!X.quench;if(X.quench)X.two=false;$('tQ').classList.toggle('on',X.quench);$('tTwo').classList.toggle('on',X.two);};
+  $('tTwo').onclick=()=>{X.two=!X.two;if(X.two)X.quench=false;$('tQ').classList.toggle('on',X.quench);$('tTwo').classList.toggle('on',X.two);};
+  $('bGo').onclick=()=>{X.mystery=null;start();};
+  function setMode(m){X.mode=m;$('mLab').classList.toggle('on',m==='lab');$('mGame').classList.toggle('on',m==='game');$('ctlLab').hidden=m!=='lab';$('ctlGame').hidden=m!=='game';if(m==='lab'){X.mystery=null;}else{X.gameMsg='';buildOpts();}}
+  $('mLab').onclick=()=>setMode('lab');$('mGame').onclick=()=>setMode('game');
+  const TOPT=['glass','fine','coarse','porph'],ROPT=['흑요석','현무암','안산암','유문암','반려암','섬록암','화강암'],GM={selT:null,selR:null};
+  function buildOpts(){GM.selT=GM.selR=null;$('opts').innerHTML=TOPT.map(t=>'<button type="button" class="sim-btn" data-t="'+t+'">'+TXN[t].replace(' 조직','')+'</button>').join('')+ROPT.map(r=>'<button type="button" class="sim-btn" data-r="'+r+'">'+r+'</button>').join('');
+    $('opts').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{GM.selT=b.dataset.t;$('opts').querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('sel',x===b));});
+    $('opts').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{GM.selR=b.dataset.r;$('opts').querySelectorAll('[data-r]').forEach(x=>x.classList.toggle('sel',x===b));});
+    $('gInfo').textContent=R.q?R.q+'/5문제 · '+R.score+'점':'조직 1개 + 암석 1개 고르기';}
+  const POOL=[{comp:'R',dep:12,ans:['coarse','화강암']},{comp:'B',dep:0,ans:['fine','현무암']},{comp:'R',dep:0,quench:true,ans:['glass','흑요석']},{comp:'A',dep:0,two:true,ans:['porph','안산암']},{comp:'B',dep:12,ans:['coarse','반려암']},{comp:'A',dep:11,ans:['coarse','섬록암']},{comp:'R',dep:0,ans:['fine','유문암']}];
+  $('gStart').onclick=()=>{if(R.q>=5){R.q=0;R.score=0;}R.q++;buildOpts();const m=POOL[Math.floor(Math.random()*POOL.length)];X.mystery=m;X.revealed=false;start({comp:m.comp,dep:m.dep,quench:!!m.quench,two:!!m.two});X.gameMsg='결정이 다 자라면 조직과 암석을 골라요. (광물 색으로 마그마 종류를 추리!)';X.gameOk=false;};
+  $('gCheck').onclick=()=>{if(!X.mystery||X.revealed){SIM.toast('먼저 🎲 박편을 받으세요','warn');return;}if(!X.done){SIM.toast('결정이 다 자란 뒤 감정하세요','warn');return;}if(!GM.selT||!GM.selR){SIM.toast('조직과 암석을 하나씩 고르세요','warn');return;}
+    const [t,r]=X.mystery.ans,ok1=GM.selT===t,ok2=GM.selR===r,p=(ok1?10:0)+(ok2?10:0);R.score+=p;X.revealed=true;
+    X.gameMsg=(p===20?'✓ ':'✗ ')+'정답: '+TXN[t]+' · '+r+' (+'+p+'점)'+(ok1?'':t==='coarse'?' → 결정이 크면 깊은 곳':t==='glass'?' → 결정이 거의 없으면 유리질':t==='porph'?' → 큰 반정 + 작은 석기':' → 결정이 작으면 지표 부근');X.gameOk=p===20;
+    if(R.q>=5){X.gameMsg+=' · 최종 '+R.score+'/100점';R.final=Math.max(R.final,R.score);}$('gInfo').textContent=R.q+'/5문제 · '+R.score+'점';};
+  setComp('R');start();for(let i=0;i<400&&X.run;i++)step(0.05);R.made={};
+  let fr=0;
+  SIM.loop('slideMain',(tm,dt)=>{fr++;step(dt);S.begin();draw();if(fr%6===0)text();});
+  SIM.tabs();
+  SIM.predict({el:'#predictBox',
+    q:'마그마가 <b>지하 깊은 곳에서 천천히</b> 식으면, 지표에서 빨리 식을 때보다 결정은?',
+    options:['더 크다','더 작다','크기가 같다'],answer:0,
+    why:'천천히 식으면 결정의 씨앗이 <b>적게</b> 생기고 자랄 시간은 <b>길어서</b> 결정이 커져요(조립질 → 화강암·반려암). 굳는 깊이를 8 km 이상으로 두고 냉각해 확인해 봐요.',
+    setup:()=>{setMode('lab');X.dep=0;$('rD').value=0;X.quench=false;X.two=false;$('tQ').classList.remove('on');$('tTwo').classList.remove('on');},
+    reached:()=>X.done&&!X.mystery&&X.p.dep>=8&&!X.p.quench&&!X.p.two});
+  SIM.missions({el:'#missionBox',items:[
+    {t:'직접 실험으로 <b>화강암</b>(유문암질 · 조립질)을 만들어 보세요.',test:()=>!!R.made.Rcoarse},
+    {t:'<b>흑요석</b>(유문암질 · 유리질)을 만들어 보세요.',hint:'💧 물에 급랭',test:()=>!!R.made.Rglass},
+    {t:'<b>반상 조직</b>의 안산암을 만들어 보세요.',hint:'안산암질 + 2단계 냉각',test:()=>!!R.made.Aporph},
+    {t:'🔬 암석 감정사 5문제에서 <b>70점 이상</b>을 받아 보세요.',test:()=>R.final>=70},
+  ]});
+})();
+</script>
+<script id="mission-pop-js">
+/* 미션: 탭 대신 버튼 → 팝업 (실험 중에도 언제든 열어 보기) · 모두 달성하면 폭죽 */
+(function(){
+  const mBtn=document.querySelector('.sim-tab[data-tab="mission"]'),pop=document.getElementById('missionPop');
+  if(!mBtn||!pop)return;
+  const closePop=()=>{pop.hidden=true;};
+  mBtn.onclick=()=>{mBtn.classList.remove('nudge');mBtn.firstChild.textContent='🎯 미션 보기 ';pop.hidden=false;};
+  document.getElementById('missionClose').onclick=closePop;
+  document.getElementById('missionGo').onclick=()=>{closePop();SIM.showTab&&SIM.showTab('lab');};
+  pop.addEventListener('pointerdown',e=>{if(e.target===pop)closePop();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden)closePop();});
+  function fireworks(){
+    const wrap=document.getElementById('presentation-wrapper'),cv=document.createElement('canvas');cv.width=1920;cv.height=1080;
+    cv.style.cssText='position:absolute;inset:0;z-index:90;pointer-events:none';wrap.appendChild(cv);
+    const msg=document.createElement('div');msg.className='fw-msg';msg.innerHTML='🎉 모든 미션 완료! 🎉<small>멋진 탐구였어요!</small>';wrap.appendChild(msg);
+    const x=cv.getContext('2d'),cols=['#f43f5e','#f59e0b','#facc15','#22c55e','#3b82f6','#a855f7','#ec4899','#ffffff'];
+    const rockets=[],parts=[];let t0=performance.now(),last=t0,next=0;
+    const boom=(px,py)=>{const col=cols[Math.random()*cols.length|0],col2=cols[Math.random()*cols.length|0],k=70+Math.random()*40;
+      for(let i=0;i<k;i++){const a=i/k*Math.PI*2,v=4+Math.random()*7;parts.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,c:Math.random()<.5?col:col2,s:3+Math.random()*3});}};
+    (function f(t){const dt=Math.min(3,(t-last)/16.7);last=t;const el=t-t0;
+      if(el<3600&&el>next){next=el+260+Math.random()*260;rockets.push({x:300+Math.random()*1320,y:1080,vy:-(17+Math.random()*6),ty:180+Math.random()*380});}
+      x.globalCompositeOperation='destination-out';x.fillStyle='rgba(0,0,0,.22)';x.fillRect(0,0,1920,1080);x.globalCompositeOperation='lighter';
+      for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.y+=r.vy*dt;x.fillStyle='#fde68a';x.beginPath();x.arc(r.x,r.y,5,0,7);x.fill();if(r.y<=r.ty){boom(r.x,r.y);rockets.splice(i,1);}}
+      for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vx*=.97;p.vy=p.vy*.97+.12*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=.012*dt;
+        if(p.life<=0){parts.splice(i,1);continue;}x.globalAlpha=p.life;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();}
+      x.globalAlpha=1;
+      if(el<3600||parts.length||rockets.length)requestAnimationFrame(f);else{cv.remove();msg.classList.add('out');setTimeout(()=>msg.remove(),600);}
+    })(t0);
+    for(let i=0;i<4;i++)setTimeout(()=>SIM.burst(),i*450);
+  }
+  let cheered=false;
+  const timer=setInterval(()=>{const lis=document.querySelectorAll('#missionBox .mission-list li');
+    if(!cheered&&lis.length&&[...lis].every(l=>l.classList.contains('done'))){cheered=true;clearInterval(timer);setTimeout(fireworks,700);}},300);
+})();
+</script>
+<script id="sim-kit-fit">
+/* ===== sim-kit 화면 맞춤 · 전체화면 (tools/sim-kit/kit-fit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   - 사이트 안(iframe)에서는 폭에 맞춰 1920×1080 화면을 줄이고, 높이를 사이트에 알려 줌(sim-height)
+   - 새 창·전체화면에서는 화면 안에 16:9로 꽉 차게 가운데 정렬
+   - 전체화면을 켜면 휴대폰·태블릿은 가로 화면으로 돌림(지원하는 기기만) */
+(function () {
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self, de = document.documentElement;
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function fit() {
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || isFs();
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    de.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920 * s) / 2; y = Math.max(0, (window.innerHeight - h * s) / 2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h * s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h * s) }, '*'); } catch (e) {} }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+
+  var btn = document.getElementById('fsBtn');
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
+  }
+  function unlock() { try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} }
+  function sync() { if (btn) btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; if (!isFs()) unlock(); fit(); setTimeout(fit, 120); }
+  if (btn) btn.onclick = function () {
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function () { de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(function () { lockLandscape(); sync(); }, fallback); else { lockLandscape(); sync(); } } catch (e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
+})();
+</script>
+</body>
+</html>

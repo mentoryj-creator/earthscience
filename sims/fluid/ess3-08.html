@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>강수 과정 실험실</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style id="sim-kit">
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
+
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
+
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
+
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
+
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
+
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
+
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
+
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
+
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
+</style>
+<style>
+
+  .sim-tabs.t4 .sim-tab { flex: auto; font-size: 21px; padding: 9px 6px; gap: 4px; }
+  .sim-tabs.t4 .sim-tab .badge { font-size: 16px; padding: 1px 7px; }
+  .sim-panel .sim-box { margin-bottom: 10px; }
+  .sim-panel .sim-box.key { font-size: 20px; line-height: 1.4; padding: 14px 18px; }
+  .sim-panel .sim-box.key h4 { margin: 0 0 4px; }
+  .sim-row > .lbl { width: 170px; }
+  .sim-val { min-width: 120px; }
+  .sim-btns .sim-btn { font-size: 22px; padding: 8px 14px; }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .steps span { font-size: 18px; padding: 3px 12px; border-radius: 999px; border: 2px solid #e2e8f0; color: #94a3b8; background: #fff; }
+  .steps span.on { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .steps span.past { color: #1e293b; border-color: #93c5fd; }
+  .grid2 { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 0 10px; font-size: 19px; margin-top: 4px; }
+  .grid2 b { color: #1e293b; } .grid2 span { color: #64748b; }
+  .concept { font-size: 19px; line-height: 1.4; color: #334155; }
+  .concept ol, .concept ul { margin: 6px 0 0; padding-left: 26px; }
+  .concept li { margin: 1px 0; padding: 2px 6px; border-radius: 8px; }
+  .concept li.on { background: #dbeafe; color: #1e3a8a; }
+  .concept b { color: #1e293b; }
+  .rt { border-collapse: collapse; width: 100%; font-size: 17px; margin-top: 6px; }
+  .rt th { background: #3b82f6; color: #fff; padding: 3px 6px; }
+  .rt td { border-bottom: 1px solid #e2e8f0; padding: 1px 6px; text-align: center; background: #fff; }
+  .msg { margin-top: 6px; font-size: 19px; }
+  .msg.ok { color: #15803d; } .msg.no { color: #b91c1c; }
+
+  #act .sim-btn { font-size: 18px; padding: 4px 9px; }
+  .gsel { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 18px; margin-top: 6px; align-items: center; }
+  .gsel select { font: inherit; font-size: 18px; padding: 1px 4px; border: 2px solid #cbd5e1; border-radius: 8px; }
+
+</style>
+<style id="mission-pop-css">
+  /* 미션 시작 버튼 + 팝업 */
+  .sim-tab.mission-open { background: #fff7ed; color: #c2410c; border: 2px solid #fdba74; }
+  .sim-tab.mission-open:hover { background: #ffedd5; }
+  .mission-pop { position: absolute; inset: 0; z-index: 80; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; }
+  .mission-card { width: 900px; max-height: 900px; overflow-y: auto; background: #fff; border-radius: 24px; padding: 28px 36px; box-shadow: 0 20px 50px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 16px; animation: rise .3s both; }
+  .mission-card h3 { font-size: 34px; font-weight: 800; color: #c2410c; display: flex; align-items: center; justify-content: space-between; }
+  .mission-card #missionBox { display: flex; flex-direction: column; gap: 12px; }
+  /* 모든 미션 완료 축하 */
+  .fw-msg { position: absolute; left: 50%; top: 50%; z-index: 91; pointer-events: none; transform: translate(-50%,-50%); text-align: center; font-size: 84px; font-weight: 800; color: #fff; background: linear-gradient(135deg,#f59e0b,#ec4899,#8b5cf6); padding: 30px 70px; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fwPop .7s cubic-bezier(.2,1.6,.4,1) both, fwGlow 1.2s ease-in-out .7s infinite alternate; transition: opacity .6s; }
+  .fw-msg small { display: block; font-size: 38px; margin-top: 6px; opacity: .95; }
+  .fw-msg.out { opacity: 0; }
+  @keyframes fwPop { from { transform: translate(-50%,-50%) scale(.2) rotate(-8deg); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+  @keyframes fwGlow { to { box-shadow: 0 0 80px rgba(250,204,21,.9); transform: translate(-50%,-50%) scale(1.04); } }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="mission-pop" id="missionPop" hidden>
+  <div class="mission-card" role="dialog" aria-label="미션">
+    <h3>🎯 미션 <button class="sim-btn" id="missionClose" type="button">✕ 닫기</button></h3>
+    <div id="missionBox"></div>
+    <div class="sim-btns" style="justify-content:center"><button class="sim-btn on" id="missionGo" type="button">실험하러 가기 →</button></div>
+  </div>
+</div>
+<div class="slide sim-slide active" id="slideMain">
+  <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>강수 과정 실험실</div>
+  <div class="ppt-subtitle">구름 입자는 너무 작아 떨어지지 못해요. <span class="or">병합 과정</span>과 <span class="or">빙정 과정</span>으로 비가 되는 모습을 관찰해요.</div>
+  <div class="sim-wrap">
+    <div class="sim-stage light"><canvas id="cS" width="1060" height="610" role="img" aria-label="왼쪽은 물방울이 합쳐지는 따뜻한 구름, 오른쪽은 빙정이 자라는 차가운 구름"></canvas></div>
+    <div class="sim-panel">
+      <div class="sim-tabs t4">
+        <button class="sim-tab on" data-tab="predict">① 예측</button>
+        <button class="sim-tab" data-tab="lab">② 실험</button>
+        <button class="sim-tab" data-tab="concept">③ 개념</button>
+        <button class="sim-tab mission-open" data-tab="mission" type="button">🎯 미션</button>
+      </div>
+      <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div></div>
+      <div class="sim-tabpage" data-page="lab">
+    <div class="sim-box blue">
+      <div class="sim-row"><span class="lbl">상승 기류</span><input type="range" class="sim-range" id="rU" min="0" max="60" value="25" aria-label="따뜻한 구름의 상승 기류"><span class="sim-val" id="vU"></span></div>
+      <div class="sim-row"><span class="lbl">물방울 크기 차</span><input type="range" class="sim-range" id="rV" min="0" max="100" value="50" aria-label="물방울 크기의 다양성"><span class="sim-val" id="vV"></span></div>
+      <div class="sim-row"><span class="lbl">차가운 구름</span><input type="range" class="sim-range" id="rT" min="-45" max="5" value="-12" aria-label="차가운 구름 속 기온"><span class="sim-val" id="vT"></span></div>
+      <div class="sim-btns" id="act"><button class="sim-btn" id="bSalt" type="button">🧂 소금 살포</button><button class="sim-btn" id="bAgI" type="button">❄ 요오드화 은</button><button class="sim-btn" id="bWarm" type="button">지상 0 ℃ 이상</button><button class="sim-btn" id="bRe" type="button">↺ 새 구름</button></div>
+    </div>
+    <div class="sim-box blue" style="padding:8px 14px">
+      <div class="sim-btns"><button class="sim-btn orange" id="bQ" type="button">🛩 인공 강우 작전</button><button class="sim-btn" id="bCk" type="button">작전 개시</button></div>
+      <div class="gsel"><span>강수 과정</span><select id="g1"><option value="">선택</option><option>병합 과정</option><option>빙정 과정</option></select><span>살포 물질</span><select id="g2"><option value="">선택</option><option>흡습성 입자(소금)</option><option>요오드화 은</option><option>살포할 필요 없음</option></select></div>
+      <div class="msg" id="qMsg"></div>
+    </div>
+    <div class="sim-box key" id="out"></div></div>
+      <div class="sim-tabpage" data-page="concept">
+    <div class="sim-box concept"><h4>두 가지 강수 과정</h4><ol>
+      <li><b>병합 과정</b>: 따뜻한 구름(저위도)에서 큰 물방울이 빨리 떨어지며 작은 물방울과 충돌해 합쳐져요.</li>
+      <li>물방울 크기가 다양할수록, 상승 기류가 강해 오래 머물수록 잘 자라요.</li>
+      <li><b>빙정 과정</b>: −40~0 ℃ 구름에는 과냉각 물방울과 빙정이 함께 있어요. 같은 온도에서 <b>과냉각 물방울의 포화 수증기압 &gt; 빙정</b></li>
+      <li>그래서 물방울은 증발하고 그 수증기가 빙정에 붙어 빙정이 커져요(약 −12 ℃에서 가장 활발).</li>
+      <li>무거워진 빙정이 녹으면 <b>비</b>, 녹지 않으면 <b>눈</b>이에요. 중·고위도 강수의 대부분이에요.</li></ol></div></div>
+      <div class="sim-note">※ 교육용 단순 모델이에요. 낙하 속도는 반지름의 제곱에 비례하고, 빙정의 성장 속도는 물과 얼음의 포화 수증기압 차에 비례하게 했어요. 입자 크기는 크게 과장했어요(실제 구름 입자 약 0.02 mm, 빗방울 약 2 mm).</div>
+    </div>
+  </div>
+</div>
+</div>
+<script id="sim-kit">
+/* ===== sim-kit 공통 도구 (tools/sim-kit/kit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   SIM.loop / SIM.pos / SIM.font ...  : 그리기 도우미 (행성우주과학 시뮬레이션과 같음)
+   SIM.tabs()                          : ① 예측 ② 실험 ③ 미션 탭
+   SIM.predict({...})                  : 예측하고 확인
+   SIM.missions({...})                 : 도전 미션 (조건을 자동으로 확인)
+   SIM.toast(글, 'info'|'warn')        : 그림 위에 잠깐 뜨는 알림
+*/
+window.SIM = {
+  FONT: "'Gowun Dodum', sans-serif",
+  // 해당 슬라이드가 화면에 보일 때만 그리기
+  loop(slideId, fn) {
+    const el = document.getElementById(slideId);
+    let last = performance.now();
+    function f(t) {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!el || el.classList.contains('active')) fn(t, dt);
+      requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  },
+  rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+  pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+  font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  fmtExp(v, digits) {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+    const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+    return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+  },
+
+  // ---- 고해상도 캔버스 (W×H 좌표로 그리면 됨) ----
+  // const S = SIM.stage({ canvas, W: 1000, H: 620 });  S.begin(); 그리기…  S.pt(이벤트) → {x,y}
+  // 1920 화면이 줄었다 늘었다 해도 그림이 흐려지지 않게 내부 해상도를 고정(기본 2배)으로 둠
+  stage(o) {
+    const cvs = o.canvas, W = o.W, H = o.H, k = o.scale || 2;
+    cvs.width = Math.round(W * k); cvs.height = Math.round(H * k);
+    cvs.style.aspectRatio = W + '/' + H;
+    const ctx = cvs.getContext('2d');
+    return {
+      ctx, W, H,
+      begin() { ctx.setTransform(k, 0, 0, k, 0, 0); },
+      pt(e) { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; },
+      resize() {},
+    };
+  },
+
+  // ---- 알림 ----
+  toast(text, kind, ms) {
+    const stage = document.querySelector('.slide.active .sim-stage') || document.getElementById('presentation-wrapper');
+    let t = stage.querySelector(':scope > .sim-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'sim-toast'; stage.appendChild(t); }
+    t.textContent = text; t.className = 'sim-toast ' + (kind || '');
+    void t.offsetWidth; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms || 2600);
+  },
+  burst() {
+    const stage = document.querySelector('.slide.active .sim-stage');
+    if (!stage) return;
+    const cols = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement('i'); b.className = 'sim-burst';
+      b.style.left = '50%'; b.style.top = '60px'; b.style.background = cols[i % cols.length];
+      const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 220;
+      b.style.setProperty('--dx', Math.cos(a) * r + 'px'); b.style.setProperty('--dy', Math.sin(a) * r * 0.7 + 120 + 'px');
+      stage.appendChild(b); setTimeout(() => b.remove(), 1200);
+    }
+  },
+
+  // ---- ① 예측 ② 실험 ③ 미션 탭 ----
+  // 패널 안의 .sim-tabs > .sim-tab[data-tab] 와 .sim-tabpage[data-page] 를 이어 줌
+  tabs(root) {
+    root = root || document;
+    const tabs = [...root.querySelectorAll('.sim-tab')], pages = [...root.querySelectorAll('.sim-tabpage')];
+    const show = name => {
+      tabs.forEach(t => { t.classList.toggle('on', t.dataset.tab === name); t.setAttribute('aria-selected', t.dataset.tab === name); });
+      pages.forEach(p => p.classList.toggle('on', p.dataset.page === name));
+    };
+    tabs.forEach(t => { t.setAttribute('role', 'tab'); t.onclick = () => { t.classList.remove('nudge'); show(t.dataset.tab); }; });
+    const first = tabs.find(t => t.classList.contains('on')) || tabs[0];
+    if (first) show(first.dataset.tab);
+    SIM.showTab = show;
+    return show;
+  },
+
+  // ---- 예측하고 확인 ----
+  // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
+  //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  predict(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    let picked = -1, revealed = false;
+    el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
+      <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
+      <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+      <div class="predict-result" hidden></div>`;
+    const opts = [...el.querySelectorAll('.predict-opt')];
+    const reveal = () => {
+      if (revealed || picked < 0) return; revealed = true;
+      opts.forEach((b, i) => { b.disabled = true; b.classList.toggle('right', i === o.answer); b.classList.toggle('wrong', i === picked && i !== o.answer); });
+      const ok = picked === o.answer, r = el.querySelector('.predict-result');
+      r.hidden = false; r.classList.toggle('miss', !ok);
+      r.innerHTML = (ok ? '<b>예측 성공!</b> ' : `<b>정답은 ${'ABCDEF'[o.answer]}</b> — `) + (o.why || '');
+      el.querySelector('.predict-go').hidden = true;
+      SIM.toast(ok ? '예측 성공!' : '예측과 결과가 달라요. 까닭을 확인해 봐요', ok ? '' : 'warn');
+      if (ok) SIM.burst();
+      const tab = document.querySelector('.sim-tab[data-tab="predict"]');
+      if (tab) { tab.classList.add('nudge'); const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge ' + (ok ? 'done' : ''); b.textContent = ok ? '✓' : '!'; }
+      o.onReveal && o.onReveal(ok);
+    };
+    opts.forEach((b, i) => b.onclick = () => {
+      if (revealed) return;
+      picked = i; opts.forEach(x => x.classList.toggle('picked', x === b));
+      el.querySelector('.predict-go').hidden = false;
+    });
+    el.querySelector('[data-act="go"]').onclick = () => { o.setup && o.setup(); SIM.showTab && SIM.showTab('lab'); };
+    const sb = el.querySelector('[data-act="show"]'); if (sb) sb.onclick = reveal;
+    // 고른 뒤, 실험 상태가 '확인할 상태'에서 한 번 벗어났다가 다시 들어오면 결과를 보여 줌
+    // (처음부터 그 상태였다면 학생이 직접 조작해 만들 때까지 기다림)
+    let armed = false;
+    if (o.reached) SIM._checks.push(() => {
+      if (picked < 0 || revealed) return;
+      const r = o.reached();
+      if (!r) armed = true; else if (armed) reveal();
+    });
+    return { reveal, get picked() { return picked; } };
+  },
+
+  // ---- 도전 미션 ----
+  // SIM.missions({ el: 상자, items: [{ t: '할 일', hint: '도움말(선택)', test: () => true/false }] })
+  // test는 0.25초마다 자동으로 확인. 한 번 달성하면 계속 달성으로 남음.
+  // 처음부터 맞아 있던 조건은 세지 않음 (조건이 거짓이 된 적이 있어야 함).
+  missions(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    const done = o.items.map(() => false);
+    el.innerHTML = `<div class="mission-bar"><i></i></div>
+      <ul class="mission-list">${o.items.map(m => `<li><span class="ck">✓</span><span>${m.t}${m.hint ? `<span class="hint">${m.hint}</span>` : ''}</span></li>`).join('')}</ul>
+      <div class="mission-all" hidden>모든 미션 달성!</div>`;
+    const lis = [...el.querySelectorAll('li')], tab = document.querySelector('.sim-tab[data-tab="mission"]');
+    const badge = () => {
+      const n = done.filter(Boolean).length;
+      el.querySelector('.mission-bar i').style.width = (n / done.length * 100) + '%';
+      el.querySelector('.mission-all').hidden = n < done.length;
+      if (tab) { const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge' + (n === done.length ? ' done' : ''); b.textContent = n + '/' + done.length; }
+    };
+    const mark = i => {
+      if (done[i]) return; done[i] = true; lis[i].classList.add('done');
+      badge(); SIM.burst();
+      const txt = lis[i].querySelector('span:not(.ck)').cloneNode(true); txt.querySelectorAll('.hint').forEach(h => h.remove());
+      const t = txt.textContent.trim();
+      SIM.toast(done.every(Boolean) ? '모든 미션 달성!' : '미션 달성! ' + (t.length > 24 ? t.slice(0, 23) + '…' : t));
+      if (tab && !tab.classList.contains('on')) tab.classList.add('nudge');
+    };
+    // 처음 열었을 때 이미 조건이 맞아 있으면 달성으로 치지 않음: 한 번 조건에서 벗어났다가 학생이 다시 맞춰야 달성
+    const armed = o.items.map(() => false);
+    SIM._checks.push(() => o.items.forEach((m, i) => {
+      if (done[i]) return;
+      let ok = false; try { ok = !!m.test(); } catch (e) {}
+      if (!ok) armed[i] = true; else if (armed[i]) mark(i);
+    }));
+    badge();
+    return { mark, done };
+  },
+  _checks: [],
+};
+setInterval(() => SIM._checks.forEach(f => f()), 250);
+// 슬라이더·입력칸 조작 중에는 키 입력이 다른 곳으로 새지 않게
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.type === 'range') a.blur(); });
+</script>
+<script>
+(function(){
+
+  const W=1060,H=610,$=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const mk=id=>{const S=SIM.stage({canvas:$(id),W,H});return S;};
+  let g;
+  const T=(t,x,y,size,col,align,bold)=>{g.font=SIM.font(size||18,bold!==false);g.textAlign=align||'center';g.textBaseline='middle';g.fillStyle=col||'#1e293b';g.fillText(t,x,y);};
+  const box=(x,y,w,h,r,fill,stroke,lw)=>{g.beginPath();g.roundRect(x,y,w,h,r);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||2;g.stroke();}};
+  const line=(pts,col,lw,dash)=>{g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.strokeStyle=col;g.lineWidth=lw||2;g.setLineDash(dash||[]);g.stroke();g.setLineDash([]);};
+  const dot=(x,y,r,fill)=>{g.beginPath();g.arc(x,y,r,0,7);g.fillStyle=fill;g.fill();};
+  const steps=(id,k)=>[...$(id).children].forEach((el,i)=>el.className=i===k?'on':i<k?'past':'');
+
+  const arrow=(x1,y1,x2,y2,col,w,hd)=>{const a=Math.atan2(y2-y1,x2-x1);hd=hd||w*2.6+6;if(Math.hypot(x2-x1,y2-y1)<2)return;line([[x1,y1],[x2-Math.cos(a)*hd*.6,y2-Math.sin(a)*hd*.6]],col,w);g.fillStyle=col;g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-hd*Math.cos(a-0.42),y2-hd*Math.sin(a-0.42));g.lineTo(x2-hd*Math.cos(a+0.42),y2-hd*Math.sin(a+0.42));g.closePath();g.fill();};
+  const seg=(id,fn)=>{const bs=[...$(id).querySelectorAll('[data-v]')];bs.forEach(b=>b.onclick=()=>{bs.forEach(x=>x.classList.toggle('on',x===b));fn(b.dataset.v);});return v=>bs.forEach(x=>x.classList.toggle('on',x.dataset.v==String(v)));};
+  const lerp=(a,b,t)=>a+(b-a)*t;
+
+  const S=mk('cS');g=S.ctx;
+  const P={U:25,dv:0.5,T:-12,warm:false},R={rainW:false,ice40:false,rainC:false,quiz:0};let G=null,card='',t=0;
+  const CT=50,CB=400,GR=560,A={x0:20,x1:510},B={x0:550,x1:1040};
+  const esW=v=>6.112*Math.exp(17.62*v/(243.12+v)),esI=v=>6.112*Math.exp(22.46*v/(272.62+v)),dES=v=>v>=0||v<=-40?0:esW(v)-esI(v),DM=dES(-12);
+  let drops=[],rainW=[],accW=0,cw=[],ci=[],fallC=[],vap=[],accC=0,snowC=0;
+  const nd=y=>({x:lerp(A.x0+6,A.x1-6,Math.random()),y:y==null?lerp(CT+5,CB-5,Math.random()):y,r:1.6+P.dv*Math.pow(Math.random(),3)*3.4});
+  function resetW(){drops=[];for(let i=0;i<200;i++)drops.push(nd());rainW=[];}
+  function stepW(dt){for(const d of drops){d.y+=(3.2*d.r*d.r-P.U*clamp((d.y-CT)/140,0.15,1))*dt;d.x+=(Math.random()-0.5)*6*dt;}
+    drops.sort((a,b)=>b.r-a.r);for(let i=0;i<drops.length;i++){const a=drops[i];if(a.dead)continue;for(let j=i+1;j<drops.length;j++){const b=drops[j];if(b.dead||b.r>a.r*0.92)continue;const dx=a.x-b.x,dy=a.y-b.y,Rr=a.r+b.r+2;if(dx*dx+dy*dy<Rr*Rr&&dy<Rr){a.r=Math.cbrt(a.r**3+b.r**3);b.dead=true;}}}
+    drops=drops.filter(d=>{if(d.dead)return false;if(d.y<CT+2)d.y=CT+2;if(d.y>CB){if(d.r>4.2)rainW.push({x:d.x,y:d.y,r:d.r});return false;}return true;});
+    while(drops.length<200)drops.push(nd(Math.random()<0.5?CB-4:null));for(let i=rainW.length-1;i>=0;i--){const d=rainW[i];d.y+=260*dt;if(d.y>GR){accW+=d.r**3/2000;rainW.splice(i,1);}}}
+  const addIce=()=>ci.push({x:lerp(B.x0+15,B.x1-15,Math.random()),y:lerp(CT+15,CB-60,Math.random()),m:1,a:Math.random()*6});
+  function resetC(n){cw=[];ci=[];for(let i=0;i<110;i++)cw.push({x:lerp(B.x0+8,B.x1-8,Math.random()),y:lerp(CT+8,CB-8,Math.random()),r:2.2+Math.random()*0.8});for(let i=0;i<(n==null?2:n);i++)addIce();fallC=[];vap=[];}
+  function stepC(dt){const Tc=P.T;if(Tc>=0&&ci.length){ci.forEach(c=>cw.push({x:c.x,y:c.y,r:2.4}));ci=[];}else if(Tc<=-40){cw.forEach(d=>ci.push({x:d.x,y:d.y,m:0.8,a:Math.random()*6}));cw=[];}
+    const rate=dES(Tc)/DM;for(const d of cw){d.x=clamp(d.x+(Math.random()-0.5)*8*dt,B.x0+4,B.x1-4);d.y=clamp(d.y+(Math.random()-0.5)*8*dt,CT+4,CB-4);
+      let bst=null,bd=95*95;for(const c of ci){const q=(c.x-d.x)**2+(c.y-d.y)**2;if(q<bd){bd=q;bst=c;}}
+      if(bst&&rate>0){const r0=d.r;d.r=Math.max(0,d.r-0.15*rate*dt/Math.max(d.r,0.7));bst.m+=(r0**3-d.r**3)*0.9;if(Math.random()<rate*dt*0.5)vap.push({x:d.x,y:d.y,tx:bst.x,ty:bst.y,u:0});}else if(d.r<2.5)d.r+=0.15*dt;}
+    cw=cw.filter(d=>d.r>0.5);if(Tc>-40&&cw.length<110&&Math.random()<0.5)cw.push({x:lerp(B.x0+8,B.x1-8,Math.random()),y:lerp(CT+8,CB-8,Math.random()),r:0.9});
+    ci.forEach(c=>{const s=Math.cbrt(c.m);c.y+=(s>5?(s-4.6)*40:Math.sin(c.a+=dt)*3)*dt;c.x+=Math.sin(c.a*0.7)*4*dt;});ci=ci.filter(c=>{if(c.y>CB){fallC.push({x:c.x,y:c.y,m:c.m,a:c.a});return false;}if(c.y<CT+4)c.y=CT+4;return true;});
+    if(Tc<0&&Tc>-40&&ci.length<3&&Math.random()<dt*0.4*clamp(-Tc/10,0.2,1.5))addIce();
+    for(let i=fallC.length-1;i>=0;i--){const f=fallC[i],melt=P.warm&&f.y>470;f.y+=(melt?240:70)*dt;f.x+=Math.sin(f.a+=dt*2)*(melt?0:18)*dt;f.melt=melt;if(f.y>GR){if(P.warm)accC+=f.m/300;else snowC+=f.m/300;fallC.splice(i,1);}}
+    for(let i=vap.length-1;i>=0;i--){vap[i].u+=dt*1.2;if(vap[i].u>=1)vap.splice(i,1);}}
+  function hex(x,y,s,a){g.save();g.translate(x,y);g.rotate(a);g.beginPath();for(let k=0;k<3;k++){const q=k*Math.PI/3;g.moveTo(-Math.cos(q)*s,-Math.sin(q)*s);g.lineTo(Math.cos(q)*s,Math.sin(q)*s);}g.lineCap='round';g.strokeStyle='rgba(70,100,150,.85)';g.lineWidth=Math.max(2.6,s*0.32)+1.6;g.stroke();g.strokeStyle='#fff';g.lineWidth=Math.max(2.6,s*0.32);g.stroke();g.restore();}
+  function draw(){g.fillStyle='#f8fafc';g.fillRect(0,0,W,H);const sk=g.createLinearGradient(0,CB,0,GR);sk.addColorStop(0,'#bfdbfe');sk.addColorStop(1,'#eff6ff');g.fillStyle=sk;g.fillRect(0,CB,W,GR-CB);g.fillStyle='#a3895a';g.fillRect(0,GR,W,H-GR);
+    const ch=(o,ti,c1,c2)=>{const gr=g.createLinearGradient(0,CT,0,CB);gr.addColorStop(0,c1);gr.addColorStop(1,c2);box(o.x0,CT,o.x1-o.x0,CB-CT,14,gr,'#cbd5e1',1.5);T(ti,o.x0+12,CT-20,17,'#1e293b','left');};
+    ch(A,'따뜻한 구름 (0 ℃ 이상) · 병합 과정','#eef3f8','#dfe8f1');ch(B,'차가운 구름 ('+(P.T<0?'−'+(-P.T):P.T)+' ℃) · 빙정 과정','#e6edf7','#d6e2f0');
+    drops.forEach(d=>{g.globalAlpha=d.r>3?0.95:0.7;dot(d.x,d.y,d.r,d.r>4.2?'#1f6fb8':'#3f8fd0');});g.globalAlpha=1;rainW.forEach(d=>line([[d.x,d.y],[d.x,d.y+11]],'#2a74c0',Math.min(3,d.r*0.5)));
+    for(let i=0;i<3;i++){const x=A.x0+70+i*170,y=CB-30-((t*P.U*1.2+i*40)%120);arrow(x,y+26,x,y,'rgba(229,83,59,.4)',2.5);}
+    g.globalAlpha=0.75;cw.forEach(d=>dot(d.x,d.y,d.r,'#3f8fd0'));g.globalAlpha=1;vap.forEach(v=>dot(lerp(v.x,v.tx,v.u),lerp(v.y,v.ty,v.u),1.8,'rgba(125,190,255,.95)'));
+    ci.forEach(c=>hex(c.x,c.y,3+Math.cbrt(c.m)*1.8,c.a));fallC.forEach(f=>{if(f.melt)line([[f.x,f.y],[f.x,f.y+11]],'#2a74c0',2.5);else hex(f.x,f.y,3+Math.cbrt(f.m)*1.8,f.a);});
+    if(P.warm){line([[B.x0,470],[B.x1,470]],'rgba(229,83,59,.7)',2,[5,5]);T('0 ℃ 높이 (아래에서 녹음)',B.x1-6,458,15,'#b91c1c','right');}
+    g.fillStyle='rgba(42,116,192,.85)';const hw=Math.min(30,accW);g.fillRect(A.x0,GR-hw,A.x1-A.x0,hw);g.fillStyle=P.warm?'rgba(42,116,192,.85)':'rgba(255,255,255,.95)';const hc=Math.min(30,P.warm?accC:snowC);g.fillRect(B.x0,GR-hc,B.x1-B.x0,hc);
+    const gx0=B.x1-185,gy0=CT+14,gw=170,gh=72;box(gx0-8,gy0-8,gw+16,gh+36,8,'rgba(255,255,255,.92)');const pp=[];for(let v=-40;v<=0;v++)pp.push([gx0+(v+45)/50*gw,gy0+gh-dES(v)/DM*(gh-8)]);line(pp,'#7a5ad0',2.5);
+    line([[gx0,gy0+gh],[gx0+gw,gy0+gh]],'#cbd5e1',1);dot(gx0+(clamp(P.T,-45,5)+45)/50*gw,gy0+gh-dES(P.T)/DM*(gh-8),5,'#dc2626');T('물 − 얼음 포화 수증기압 차',gx0+gw/2,gy0+gh+16,13,'#475569');
+    T('−40',gx0+5/50*gw,gy0+gh+3,11,'#64748b','center',false);T('0 ℃',gx0+45/50*gw,gy0+gh+3,11,'#64748b','center',false);
+    if(card){box(250,170,560,130,14,'rgba(20,30,45,.88)');T('📋 구름 보고서',530,200,19,'#fff');card.split('\n').forEach((l,i)=>T(l,530,234+i*28,17,'#e2e8f0'));}}
+  function text(){$('vU').textContent=P.U<10?'약함':P.U<35?'보통':'강함';$('vV').textContent=P.dv<0.2?'고름':P.dv<0.7?'보통':'다양함';$('vT').textContent=(P.T<0?'−'+(-P.T):P.T)+' ℃';
+    if(accW>3)R.rainW=true;if(P.T<=-40)R.ice40=true;if(accC>1)R.rainC=true;const rate=dES(P.T)/DM;
+    $('out').innerHTML='<h4>'+(P.T>=0?'0 ℃ 이상: 빙정 없음':P.T<=-40?'−40 ℃ 이하: 모두 빙정':'빙정 성장 속도 '+Math.round(rate*100)+'%')+'</h4><div class="grid2"><span>누적 강수 (따뜻)</span><b>'+accW.toFixed(1)+'</b><span>누적 강수 (차가운)</span><b>'+(accC+snowC).toFixed(1)+(P.warm?' 비':' 눈')+'</b><span>큰 물방울</span><b>'+drops.filter(d=>d.r>3).length+'개</b><span>물방울 / 빙정</span><b>'+cw.length+' / '+ci.length+'</b></div>';}
+  $('rU').oninput=e=>P.U=+e.target.value;$('rV').oninput=e=>P.dv=e.target.value/100;$('rV').onchange=resetW;$('rT').oninput=e=>P.T=+e.target.value;
+  const setWarm=v=>{P.warm=v;$('bWarm').classList.toggle('on',v);};$('bWarm').onclick=()=>setWarm(!P.warm);
+  const salt=()=>{for(let i=0;i<12;i++)drops.push({x:lerp(A.x0+10,A.x1-10,Math.random()),y:CT+20+Math.random()*40,r:3.6+Math.random()});};
+  $('bSalt').onclick=salt;$('bAgI').onclick=()=>{if(P.T>=0)SIM.toast('0 ℃ 이상인 구름에서는 빙정이 바로 녹아요','warn');for(let i=0;i<12;i++)addIce();};
+  $('bRe').onclick=()=>{resetW();resetC();accW=accC=snowC=0;};
+  const MS=[{c:'구름 꼭대기 −10 ℃ · 과냉각 물방울 많음\n빙정은 거의 없음 · 지상 기온 8 ℃',p:'빙정 과정',s:'요오드화 은',set:{T:-10,warm:true,ice:0}},{c:'열대 바다 위 적운 · 구름 전체 +12 ℃\n물방울 크기가 고름 · 비가 오지 않음',p:'병합 과정',s:'흡습성 입자(소금)',set:{U:25,dv:0.05}},
+    {c:'겨울 구름 꼭대기 −18 ℃ · 빙정 부족\n지상 −3 ℃ · 스키장에 눈이 필요',p:'빙정 과정',s:'요오드화 은',set:{T:-18,warm:false,ice:0}},{c:'구름 꼭대기 +6 ℃의 두꺼운 적운\n큰 물방울이 많고 이미 비가 내림',p:'병합 과정',s:'살포할 필요 없음',set:{U:30,dv:0.9}},
+    {c:'구름 꼭대기 −25 ℃ · 빙정이 충분함\n이미 눈이 내리는 중',p:'빙정 과정',s:'살포할 필요 없음',set:{T:-25,warm:false,ice:14}},{c:'해안의 층적운 · 구름 전체 +4 ℃\n물방울이 아주 작고 크기가 비슷함',p:'병합 과정',s:'흡습성 입자(소금)',set:{U:20,dv:0.1}}];
+  let order=[];
+  $('bQ').onclick=()=>{if(!order.length)order=MS.map((m,i)=>i).sort(()=>Math.random()-0.5);G=MS[order.pop()];card=G.c;$('g1').value='';$('g2').value='';$('qMsg').className='msg';$('qMsg').textContent='보고서를 읽고 강수 과정과 살포 물질을 골라요.';};
+  $('bCk').onclick=()=>{if(!G){$('qMsg').textContent='먼저 🛩 작전을 받아요.';return;}const a=$('g1').value,b=$('g2').value;if(!a||!b){$('qMsg').textContent='두 가지를 모두 골라요.';return;}
+    const m=G,oa=a===m.p,ob=b===m.s;card='';accW=accC=snowC=0;
+    if(m.set.T!==undefined){P.T=m.set.T;$('rT').value=P.T;setWarm(m.set.warm);resetC(m.set.ice);if(b==='요오드화 은')for(let i=0;i<12;i++)addIce();}else{P.U=m.set.U;P.dv=m.set.dv;$('rU').value=P.U;$('rV').value=P.dv*100;resetW();if(b==='흡습성 입자(소금)')salt();}
+    if(oa&&ob){R.quiz++;SIM.burst();}$('qMsg').className='msg '+(oa&&ob?'ok':'no');
+    $('qMsg').innerHTML=(oa?'⭕':'❌')+' 과정 · '+(ob?'⭕':'❌')+' 물질. '+(m.p==='빙정 과정'?'0 ℃ 아래 구름 → 빙정 과정.':'0 ℃ 이상 구름 → 병합 과정.')+' '+(m.s==='요오드화 은'?'빙정핵을 뿌려 빙정을 늘려요.':m.s==='흡습성 입자(소금)'?'큰 물방울을 만들어 병합을 시작해요.':'이미 강수가 잘 일어나요.');G=null;};
+  resetW();resetC();let fr=0;
+  SIM.loop('slideMain',(tm,dt)=>{fr++;t+=dt;stepW(dt);stepC(dt);S.begin();draw();if(fr%6===0)text();});
+  SIM.tabs();
+  SIM.predict({el:'#predictBox',
+    q:'−12 ℃ 구름 속에 과냉각 물방울과 빙정이 함께 있으면 어떤 일이 일어날까요?',
+    options:['물방울이 커지고 빙정이 작아진다','빙정이 커지고 물방울이 작아진다','둘 다 그대로다'],answer:1,
+    why:'같은 온도에서 과냉각 물방울의 포화 수증기압이 빙정보다 커요. 물방울은 <b>증발</b>하고, 그 수증기가 빙정에 <b>달라붙어</b> 빙정이 무거워져 떨어져요.',
+    reached:()=>accC+snowC>0.5});
+  SIM.missions({el:'#missionBox',items:[
+    {t:'따뜻한 구름에서 <b>병합 과정</b>으로 비를 내리게 해 보세요.',hint:'상승 기류를 키우거나 소금을 뿌려요',test:()=>R.rainW},
+    {t:'차가운 구름을 <b>−40 ℃ 이하</b>로 낮추면 어떻게 되는지 확인해 보세요.',test:()=>R.ice40},
+    {t:'지상 기온을 0 ℃ 이상으로 바꿔 빙정 과정에서도 <b>비</b>가 내리게 해 보세요.',test:()=>R.rainC},
+    {t:'🛩 인공 강우 작전을 <b>2번</b> 성공해 보세요.',test:()=>R.quiz>=2},
+  ]});
+})();
+</script>
+<script id="mission-pop-js">
+/* 미션: 탭 대신 버튼 → 팝업 (실험 중에도 언제든 열어 보기) · 모두 달성하면 폭죽 */
+(function(){
+  const mBtn=document.querySelector('.sim-tab[data-tab="mission"]'),pop=document.getElementById('missionPop');
+  if(!mBtn||!pop)return;
+  const closePop=()=>{pop.hidden=true;};
+  mBtn.onclick=()=>{mBtn.classList.remove('nudge');mBtn.firstChild.textContent='🎯 미션 보기 ';pop.hidden=false;};
+  document.getElementById('missionClose').onclick=closePop;
+  document.getElementById('missionGo').onclick=()=>{closePop();SIM.showTab&&SIM.showTab('lab');};
+  pop.addEventListener('pointerdown',e=>{if(e.target===pop)closePop();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden)closePop();});
+  function fireworks(){
+    const wrap=document.getElementById('presentation-wrapper'),cv=document.createElement('canvas');cv.width=1920;cv.height=1080;
+    cv.style.cssText='position:absolute;inset:0;z-index:90;pointer-events:none';wrap.appendChild(cv);
+    const msg=document.createElement('div');msg.className='fw-msg';msg.innerHTML='🎉 모든 미션 완료! 🎉<small>멋진 탐구였어요!</small>';wrap.appendChild(msg);
+    const x=cv.getContext('2d'),cols=['#f43f5e','#f59e0b','#facc15','#22c55e','#3b82f6','#a855f7','#ec4899','#ffffff'];
+    const rockets=[],parts=[];let t0=performance.now(),last=t0,next=0;
+    const boom=(px,py)=>{const col=cols[Math.random()*cols.length|0],col2=cols[Math.random()*cols.length|0],k=70+Math.random()*40;
+      for(let i=0;i<k;i++){const a=i/k*Math.PI*2,v=4+Math.random()*7;parts.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,c:Math.random()<.5?col:col2,s:3+Math.random()*3});}};
+    (function f(t){const dt=Math.min(3,(t-last)/16.7);last=t;const el=t-t0;
+      if(el<3600&&el>next){next=el+260+Math.random()*260;rockets.push({x:300+Math.random()*1320,y:1080,vy:-(17+Math.random()*6),ty:180+Math.random()*380});}
+      x.globalCompositeOperation='destination-out';x.fillStyle='rgba(0,0,0,.22)';x.fillRect(0,0,1920,1080);x.globalCompositeOperation='lighter';
+      for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.y+=r.vy*dt;x.fillStyle='#fde68a';x.beginPath();x.arc(r.x,r.y,5,0,7);x.fill();if(r.y<=r.ty){boom(r.x,r.y);rockets.splice(i,1);}}
+      for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vx*=.97;p.vy=p.vy*.97+.12*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=.012*dt;
+        if(p.life<=0){parts.splice(i,1);continue;}x.globalAlpha=p.life;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();}
+      x.globalAlpha=1;
+      if(el<3600||parts.length||rockets.length)requestAnimationFrame(f);else{cv.remove();msg.classList.add('out');setTimeout(()=>msg.remove(),600);}
+    })(t0);
+    for(let i=0;i<4;i++)setTimeout(()=>SIM.burst(),i*450);
+  }
+  let cheered=false;
+  const timer=setInterval(()=>{const lis=document.querySelectorAll('#missionBox .mission-list li');
+    if(!cheered&&lis.length&&[...lis].every(l=>l.classList.contains('done'))){cheered=true;clearInterval(timer);setTimeout(fireworks,700);}},300);
+})();
+</script>
+<script id="sim-kit-fit">
+/* ===== sim-kit 화면 맞춤 · 전체화면 (tools/sim-kit/kit-fit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   - 사이트 안(iframe)에서는 폭에 맞춰 1920×1080 화면을 줄이고, 높이를 사이트에 알려 줌(sim-height)
+   - 새 창·전체화면에서는 화면 안에 16:9로 꽉 차게 가운데 정렬
+   - 전체화면을 켜면 휴대폰·태블릿은 가로 화면으로 돌림(지원하는 기기만) */
+(function () {
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self, de = document.documentElement;
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function fit() {
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || isFs();
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    de.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920 * s) / 2; y = Math.max(0, (window.innerHeight - h * s) / 2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h * s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h * s) }, '*'); } catch (e) {} }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+
+  var btn = document.getElementById('fsBtn');
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
+  }
+  function unlock() { try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} }
+  function sync() { if (btn) btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; if (!isFs()) unlock(); fit(); setTimeout(fit, 120); }
+  if (btn) btn.onclick = function () {
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function () { de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(function () { lockLandscape(); sync(); }, fallback); else { lockLandscape(); sync(); } } catch (e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
+})();
+</script>
+</body>
+</html>

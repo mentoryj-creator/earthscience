@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>편서풍 파동과 제트류</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style id="sim-kit">
+/* ===== sim-kit 공통 스타일 (tools/sim-kit/kit.css에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #ffffff; overflow: hidden; font-family: 'Gowun Dodum', sans-serif; color: #1e293b; }
+button, input, select, textarea, table { font-family: 'Gowun Dodum', sans-serif; }
+p, h3, h4, figure { margin: 0; }
+html.fit, html.fit body { height: 100%; background: #0f172a; }
+html.pfs body { position: fixed; inset: 0; z-index: 9999; }
+
+/* 1920×1080 화면을 통째로 비율 맞춰 줄이고 늘림 (아래 sim-kit-fit 스크립트) */
+#presentation-wrapper { position: relative; width: 1920px; height: 1080px; transform-origin: 0 0; background: #ffffff; display: flex; flex-direction: column; overflow: hidden; }
+.slide { display: none; width: 100%; height: 100%; padding: 34px 60px 40px 60px; flex-direction: column; min-height: 0; }
+.slide.active { display: flex; }
+
+/* 제목은 사이트 페이지에 이미 있으므로 감춤(파일 단독 실행 때는 <title>로 보임) · 한 줄 안내만 보임 */
+.ppt-title { display: none; }
+.ppt-subtitle { display: inline-block; font-size: 32px; font-weight: 700; background-color: #eff6ff; border-left: 8px solid #3b82f6; color: #1d4ed8; padding: 10px 30px; border-radius: 0 20px 20px 0; margin-bottom: 22px; align-self: flex-start; max-width: calc(100% - 300px); }
+.sim-tag { display: inline-block; background: #0f172a; color: #facc15; font-size: 28px; padding: 6px 18px; border-radius: 12px; margin-right: 18px; vertical-align: 8px; letter-spacing: 0; }
+.hl { color: #2563eb; font-weight: bold; }
+.or, .ppt-subtitle .or { color: #ea580c; font-weight: bold; }
+
+/* 그림(왼쪽, 남는 공간을 모두 씀) + 조작 패널(오른쪽 600px) */
+.sim-wrap { flex: 1; display: flex; gap: 30px; min-height: 0; }
+.sim-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sim-stage { position: relative; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.sim-stage.light { background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.sim-stage canvas { display: block; touch-action: none; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+.sim-panel { flex: 0 0 600px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+[hidden] { display: none !important; }
+.sim-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 24px; font-size: 26px; color: #1e293b; line-height: 1.5; word-break: keep-all; }
+.sim-box.key { background: #fff7ed; border-color: #fdba74; }
+.sim-box.blue { background: #eff6ff; border-color: #bfdbfe; }
+.sim-box h4 { font-size: 28px; font-weight: 800; color: #1d4ed8; margin: 0 0 8px 0; }
+.sim-box.key h4 { color: #c2410c; }
+.sim-box p, .sim-box div { margin: 0; }
+.sim-row { display: flex; align-items: center; gap: 14px; font-size: 26px; margin: 6px 0; }
+.sim-row > .lbl { flex: none; width: 190px; font-weight: bold; color: #334155; }
+input[type=range].sim-range { flex: 1; accent-color: #3b82f6; height: 36px; cursor: pointer; min-width: 0; }
+.sim-val { flex: none; min-width: 150px; text-align: right; font-weight: bold; color: #ea580c; font-size: 28px; }
+.sim-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.sim-btn { font-size: 25px; font-weight: bold; padding: 8px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; transition: all .2s; }
+.sim-btn:hover { background: #e2e8f0; }
+.sim-btn.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sim-btn.orange { border-color: #fdba74; color: #c2410c; }
+.sim-btn.orange.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.sim-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 24px; }
+.sim-table th { background: #3b82f6; color: #fff; padding: 6px 10px; font-weight: bold; }
+.sim-table td { padding: 5px 10px; border-bottom: 2px solid #e2e8f0; text-align: center; background: #fff; }
+.sim-big { font-size: 40px; font-weight: 800; color: #ea580c; }
+.sim-note { font-size: 21px; color: #64748b; line-height: 1.45; }
+.sim-ok { color: #16a34a; font-weight: bold; }
+.sim-hint { position: absolute; left: 20px; top: 16px; font-size: 22px; color: #cbd5e1; background: rgba(15,23,42,0.75); padding: 6px 14px; border-radius: 10px; pointer-events: none; }
+.sim-stage.light .sim-hint { color: #475569; background: rgba(255,255,255,0.9); }
+.chip { display: inline-block; border: 2px solid #cbd5e1; border-radius: 999px; padding: 2px 16px; font-size: 24px; font-weight: bold; margin: 3px 6px 3px 0; background: #fff; color: #334155; }
+.chip.b { border-color: #93c5fd; color: #2563eb; background: #eff6ff; }
+.chip.o { border-color: #fdba74; color: #c2410c; background: #fff7ed; }
+.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.slide.active .ppt-title { animation: rise .6s both; }
+.slide.active .ppt-subtitle { animation: rise .6s .1s both; }
+.slide.active .sim-wrap { animation: rise .6s .2s both; }
+
+/* 전체화면 버튼 */
+.fs-btn { position: absolute; top: 34px; right: 60px; z-index: 60; font-size: 30px; font-weight: bold; padding: 8px 26px; border-radius: 999px; border: 3px solid #cbd5e1; background: #fff; color: #1e293b; cursor: pointer; transition: all .2s; }
+.fs-btn:hover { border-color: #3b82f6; color: #1d4ed8; }
+
+/* ===== 예측 → 실험 → 미션 탭 ===== */
+.sim-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 6px; border-radius: 18px; flex: none; position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 10px -6px rgba(15,23,42,.25); }
+.sim-tab { flex: 1; font-size: 25px; font-weight: bold; padding: 9px 10px; border: none; border-radius: 13px; background: transparent; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
+.sim-tab:hover { background: rgba(255,255,255,.6); }
+.sim-tab.on { background: #fff; color: #1d4ed8; box-shadow: 0 2px 6px rgba(15,23,42,.12); }
+.sim-tab .badge { font-size: 19px; padding: 1px 10px; border-radius: 999px; background: #cbd5e1; color: #1e293b; }
+.sim-tab .badge.done { background: #16a34a; color: #fff; }
+.sim-tab.nudge { animation: nudge 1.6s ease-in-out 3; }
+@keyframes nudge { 0%, 100% { transform: none; } 40% { transform: translateY(-4px); background: #fef3c7; } }
+.sim-tabpage { display: none; flex-direction: column; gap: 14px; min-height: 0; }
+.sim-tabpage.on { display: flex; animation: rise .35s both; }
+
+/* 예측 */
+.predict-q { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1.45; }
+.predict-q .tag { display: inline-block; font-size: 20px; color: #fff; background: #7c3aed; border-radius: 8px; padding: 2px 10px; margin-right: 10px; vertical-align: 4px; }
+.predict-opts { display: flex; flex-direction: column; gap: 10px; }
+.predict-opt { text-align: left; font-size: 25px; font-weight: bold; padding: 12px 20px; border-radius: 14px; border: 2px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; display: flex; gap: 14px; align-items: center; transition: all .2s; }
+.predict-opt:hover:not(:disabled) { border-color: #7c3aed; color: #6d28d9; }
+.predict-opt .n { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #ede9fe; color: #6d28d9; display: inline-flex; align-items: center; justify-content: center; }
+.predict-opt.picked { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+.predict-opt.right { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+.predict-opt.right .n { background: #16a34a; color: #fff; }
+.predict-opt.wrong { border-color: #f87171; background: #fef2f2; color: #b91c1c; }
+.predict-opt:disabled { cursor: default; }
+.predict-result { font-size: 25px; line-height: 1.55; padding: 14px 20px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; }
+.predict-result.miss { background: #fff7ed; border-color: #fdba74; }
+.predict-result b { color: #15803d; }
+.predict-result.miss b { color: #c2410c; }
+
+/* 미션 */
+.mission-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mission-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 25px; line-height: 1.45; padding: 12px 16px; border-radius: 14px; background: #fff; border: 2px solid #e2e8f0; transition: all .3s; }
+.mission-list li .ck { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 3px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: transparent; margin-top: 1px; }
+.mission-list li.done { border-color: #86efac; background: #f0fdf4; }
+.mission-list li.done .ck { background: #16a34a; border-color: #16a34a; color: #fff; }
+.mission-list li .hint { display: block; font-size: 21px; color: #64748b; margin-top: 2px; }
+.mission-bar { height: 16px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.mission-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width .5s; }
+.mission-all { font-size: 26px; font-weight: 800; color: #15803d; text-align: center; padding: 10px; border-radius: 14px; background: #dcfce7; }
+
+/* 실제 자료 */
+.real-src { font-size: 20px; color: #64748b; margin-top: 6px; }
+.real-src::before { content: "자료: "; font-weight: bold; }
+
+/* 알림 (그림 위에 잠깐 뜸) */
+.sim-toast { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -20px); opacity: 0; z-index: 30; pointer-events: none; font-size: 28px; font-weight: 800; padding: 12px 30px; border-radius: 999px; background: #16a34a; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.25); transition: all .35s; white-space: nowrap; }
+.sim-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sim-toast.info { background: #1d4ed8; }
+.sim-toast.warn { background: #ea580c; }
+.sim-burst { position: absolute; width: 14px; height: 14px; border-radius: 3px; z-index: 29; pointer-events: none; animation: burst 1.1s ease-out forwards; }
+@keyframes burst { to { transform: translate(var(--dx), var(--dy)) rotate(540deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sim-burst { display: none; } .sim-tab.nudge, .pulse { animation: none; } }
+</style>
+<style>
+
+  .sim-tabs.t4 .sim-tab { flex: auto; font-size: 21px; padding: 9px 6px; gap: 4px; }
+  .sim-tabs.t4 .sim-tab .badge { font-size: 16px; padding: 1px 7px; }
+  .sim-panel .sim-box { margin-bottom: 10px; }
+  .sim-panel .sim-box.key { font-size: 20px; line-height: 1.4; padding: 14px 18px; }
+  .sim-panel .sim-box.key h4 { margin: 0 0 4px; }
+  .sim-row > .lbl { width: 170px; }
+  .sim-val { min-width: 120px; }
+  .sim-btns .sim-btn { font-size: 22px; padding: 8px 14px; }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .steps span { font-size: 18px; padding: 3px 12px; border-radius: 999px; border: 2px solid #e2e8f0; color: #94a3b8; background: #fff; }
+  .steps span.on { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .steps span.past { color: #1e293b; border-color: #93c5fd; }
+  .grid2 { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 0 10px; font-size: 19px; margin-top: 4px; }
+  .grid2 b { color: #1e293b; } .grid2 span { color: #64748b; }
+  .concept { font-size: 19px; line-height: 1.4; color: #334155; }
+  .concept ol, .concept ul { margin: 6px 0 0; padding-left: 26px; }
+  .concept li { margin: 1px 0; padding: 2px 6px; border-radius: 8px; }
+  .concept li.on { background: #dbeafe; color: #1e3a8a; }
+  .concept b { color: #1e293b; }
+  .rt { border-collapse: collapse; width: 100%; font-size: 17px; margin-top: 6px; }
+  .rt th { background: #3b82f6; color: #fff; padding: 3px 6px; }
+  .rt td { border-bottom: 1px solid #e2e8f0; padding: 1px 6px; text-align: center; background: #fff; }
+  .msg { margin-top: 6px; font-size: 19px; }
+  .msg.ok { color: #15803d; } .msg.no { color: #b91c1c; }
+
+  #md .sim-btn, #ctlA .sim-btns .sim-btn, #ses .sim-btn { font-size: 18px; padding: 4px 9px; }
+  .gsel { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 3px 8px; font-size: 18px; margin-top: 6px; align-items: center; }
+  .gsel select { font: inherit; font-size: 18px; padding: 1px 4px; border: 2px solid #cbd5e1; border-radius: 8px; }
+
+</style>
+<style id="mission-pop-css">
+  /* 미션 시작 버튼 + 팝업 */
+  .sim-tab.mission-open { background: #fff7ed; color: #c2410c; border: 2px solid #fdba74; }
+  .sim-tab.mission-open:hover { background: #ffedd5; }
+  .mission-pop { position: absolute; inset: 0; z-index: 80; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; }
+  .mission-card { width: 900px; max-height: 900px; overflow-y: auto; background: #fff; border-radius: 24px; padding: 28px 36px; box-shadow: 0 20px 50px rgba(0,0,0,.3); display: flex; flex-direction: column; gap: 16px; animation: rise .3s both; }
+  .mission-card h3 { font-size: 34px; font-weight: 800; color: #c2410c; display: flex; align-items: center; justify-content: space-between; }
+  .mission-card #missionBox { display: flex; flex-direction: column; gap: 12px; }
+  /* 모든 미션 완료 축하 */
+  .fw-msg { position: absolute; left: 50%; top: 50%; z-index: 91; pointer-events: none; transform: translate(-50%,-50%); text-align: center; font-size: 84px; font-weight: 800; color: #fff; background: linear-gradient(135deg,#f59e0b,#ec4899,#8b5cf6); padding: 30px 70px; border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fwPop .7s cubic-bezier(.2,1.6,.4,1) both, fwGlow 1.2s ease-in-out .7s infinite alternate; transition: opacity .6s; }
+  .fw-msg small { display: block; font-size: 38px; margin-top: 6px; opacity: .95; }
+  .fw-msg.out { opacity: 0; }
+  @keyframes fwPop { from { transform: translate(-50%,-50%) scale(.2) rotate(-8deg); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+  @keyframes fwGlow { to { box-shadow: 0 0 80px rgba(250,204,21,.9); transform: translate(-50%,-50%) scale(1.04); } }
+</style>
+</head>
+<body>
+<div id="presentation-wrapper">
+<button class="fs-btn" id="fsBtn" type="button">⛶ 전체화면</button>
+<div class="mission-pop" id="missionPop" hidden>
+  <div class="mission-card" role="dialog" aria-label="미션">
+    <h3>🎯 미션 <button class="sim-btn" id="missionClose" type="button">✕ 닫기</button></h3>
+    <div id="missionBox"></div>
+    <div class="sim-btns" style="justify-content:center"><button class="sim-btn on" id="missionGo" type="button">실험하러 가기 →</button></div>
+  </div>
+</div>
+<div class="slide sim-slide active" id="slideMain">
+  <div class="ppt-title"><span class="sim-tag">시뮬레이션</span>편서풍 파동과 제트류</div>
+  <div class="ppt-subtitle">북극 위에서 본 상층 편서풍은 <span class="or">굽이치는 파동</span>이에요. 파동의 일생, 지상 기압, 제트류를 살펴봐요.</div>
+  <div class="sim-wrap">
+    <div class="sim-stage light"><canvas id="cS" width="1060" height="610" role="img" aria-label="편서풍 파동, 상층 기압골과 지상 기압, 제트류 단면"></canvas></div>
+    <div class="sim-panel">
+      <div class="sim-tabs t4">
+        <button class="sim-tab on" data-tab="predict">① 예측</button>
+        <button class="sim-tab" data-tab="lab">② 실험</button>
+        <button class="sim-tab" data-tab="concept">③ 개념</button>
+        <button class="sim-tab mission-open" data-tab="mission" type="button">🎯 미션</button>
+      </div>
+      <div class="sim-tabpage" data-page="predict"><div class="sim-box" id="predictBox"></div></div>
+      <div class="sim-tabpage" data-page="lab">
+    <div class="sim-box blue">
+      <div class="sim-btns" id="md"><button class="sim-btn on" data-v="A" type="button">① 파동의 일생</button><button class="sim-btn" data-v="B" type="button">② 기압골과 지상</button><button class="sim-btn" data-v="C" type="button">③ 제트류와 계절</button></div>
+    </div>
+    <div class="sim-box blue" id="ctlA">
+      <div class="sim-btns"><button class="sim-btn orange" id="aPlay" type="button">⏸ 멈춤</button><button class="sim-btn" data-s="1" type="button">1단계</button><button class="sim-btn" data-s="2" type="button">2단계</button><button class="sim-btn" data-s="3" type="button">3단계</button><button class="sim-btn" data-s="4" type="button">4단계</button></div>
+      <div class="sim-row"><span class="lbl">파동의 수</span><input type="range" class="sim-range" id="rK" min="3" max="7" value="5" aria-label="지구 한 바퀴의 파동 수"><span class="sim-val" id="vK"></span></div>
+    </div>
+    <div class="sim-box blue" id="ctlB" hidden>
+      <div class="sim-row"><span class="lbl">파동의 진폭</span><input type="range" class="sim-range" id="rAmp" min="10" max="70" value="45" aria-label="파동의 진폭"><span class="sim-val" id="vAmp"></span></div>
+      <div class="sim-btns"><button class="sim-btn orange" id="bQ" type="button">📡 상층 일기도 받기</button><button class="sim-btn" id="bCk" type="button">일기도 발표</button></div>
+      <div class="gsel"><span>지상 고기압</span><select id="gH"></select><span>지상 저기압</span><select id="gL"></select></div>
+      <div class="msg" id="qMsg"></div>
+    </div>
+    <div class="sim-box blue" id="ctlC" hidden>
+      <div class="sim-btns" id="ses"><button class="sim-btn on" data-v="W" type="button">❄ 겨울</button><button class="sim-btn" data-v="S" type="button">☀ 여름</button></div>
+    </div>
+    <div class="sim-box key" id="out"></div></div>
+      <div class="sim-tabpage" data-page="concept">
+    <div class="sim-box concept"><h4>편서풍 파동이 하는 일</h4><ol>
+      <li>중위도 상층 편서풍은 파장 약 10000 km 이상의 <b>행성파</b>로 남북으로 굽이쳐요.</li>
+      <li>남북 기온 차가 커지면 파동이 발달하고, 찬 공기·따뜻한 공기가 떨어져 나가며 <b>열을 고위도로</b> 날라요.</li>
+      <li>고위도 쪽으로 올라간 곳 = <b>기압 마루</b>(빠름), 저위도 쪽으로 내려온 곳 = <b>기압골</b>(느림)</li>
+      <li>기압골 <b>서쪽</b> 상층 수렴 → 하강 → 지상 <b>고기압</b> / 기압골 <b>동쪽</b> 상층 발산 → 상승 → 지상 <b>저기압</b></li>
+      <li><b>제트류</b>: 편서풍 중 좁고 강한 흐름. 남북 기온 차가 큰 <b>겨울</b>에 강해지고 남쪽으로 내려와요.</li></ol></div></div>
+      <div class="sim-note">※ 교육용 단순 모델이에요. ①은 교과서 그림의 네 단계를 이어 그렸고, ②는 정현파 모양의 상층 등고선에서 수렴·발산 위치만 나타냈어요. ③의 비행 시간은 순항 900 km/h, 거리 9600 km로 계산한 어림값이에요.</div>
+    </div>
+  </div>
+</div>
+</div>
+<script id="sim-kit">
+/* ===== sim-kit 공통 도구 (tools/sim-kit/kit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   SIM.loop / SIM.pos / SIM.font ...  : 그리기 도우미 (행성우주과학 시뮬레이션과 같음)
+   SIM.tabs()                          : ① 예측 ② 실험 ③ 미션 탭
+   SIM.predict({...})                  : 예측하고 확인
+   SIM.missions({...})                 : 도전 미션 (조건을 자동으로 확인)
+   SIM.toast(글, 'info'|'warn')        : 그림 위에 잠깐 뜨는 알림
+*/
+window.SIM = {
+  FONT: "'Gowun Dodum', sans-serif",
+  // 해당 슬라이드가 화면에 보일 때만 그리기
+  loop(slideId, fn) {
+    const el = document.getElementById(slideId);
+    let last = performance.now();
+    function f(t) {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!el || el.classList.contains('active')) fn(t, dt);
+      requestAnimationFrame(f);
+    }
+    requestAnimationFrame(f);
+  },
+  rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  gauss(r) { let u = 0, v = 0; while (!u) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); },
+  pos(ev, c) { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * c.width / r.width, y: (ev.clientY - r.top) * c.height / r.height }; },
+  font(px, bold) { return (bold === false ? '' : 'bold ') + px + 'px ' + this.FONT; },
+  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
+  lerp(a, b, t) { return a + (b - a) * t; },
+  fmtExp(v, digits) {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)); const m = v / Math.pow(10, e);
+    const sup = String(e).split('').map(ch => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(ch)] || ch).join('');
+    return m.toFixed(digits == null ? 1 : digits) + '×10' + sup;
+  },
+
+  // ---- 고해상도 캔버스 (W×H 좌표로 그리면 됨) ----
+  // const S = SIM.stage({ canvas, W: 1000, H: 620 });  S.begin(); 그리기…  S.pt(이벤트) → {x,y}
+  // 1920 화면이 줄었다 늘었다 해도 그림이 흐려지지 않게 내부 해상도를 고정(기본 2배)으로 둠
+  stage(o) {
+    const cvs = o.canvas, W = o.W, H = o.H, k = o.scale || 2;
+    cvs.width = Math.round(W * k); cvs.height = Math.round(H * k);
+    cvs.style.aspectRatio = W + '/' + H;
+    const ctx = cvs.getContext('2d');
+    return {
+      ctx, W, H,
+      begin() { ctx.setTransform(k, 0, 0, k, 0, 0); },
+      pt(e) { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; },
+      resize() {},
+    };
+  },
+
+  // ---- 알림 ----
+  toast(text, kind, ms) {
+    const stage = document.querySelector('.slide.active .sim-stage') || document.getElementById('presentation-wrapper');
+    let t = stage.querySelector(':scope > .sim-toast');
+    if (!t) { t = document.createElement('div'); t.className = 'sim-toast'; stage.appendChild(t); }
+    t.textContent = text; t.className = 'sim-toast ' + (kind || '');
+    void t.offsetWidth; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms || 2600);
+  },
+  burst() {
+    const stage = document.querySelector('.slide.active .sim-stage');
+    if (!stage) return;
+    const cols = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement('i'); b.className = 'sim-burst';
+      b.style.left = '50%'; b.style.top = '60px'; b.style.background = cols[i % cols.length];
+      const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 220;
+      b.style.setProperty('--dx', Math.cos(a) * r + 'px'); b.style.setProperty('--dy', Math.sin(a) * r * 0.7 + 120 + 'px');
+      stage.appendChild(b); setTimeout(() => b.remove(), 1200);
+    }
+  },
+
+  // ---- ① 예측 ② 실험 ③ 미션 탭 ----
+  // 패널 안의 .sim-tabs > .sim-tab[data-tab] 와 .sim-tabpage[data-page] 를 이어 줌
+  tabs(root) {
+    root = root || document;
+    const tabs = [...root.querySelectorAll('.sim-tab')], pages = [...root.querySelectorAll('.sim-tabpage')];
+    const show = name => {
+      tabs.forEach(t => { t.classList.toggle('on', t.dataset.tab === name); t.setAttribute('aria-selected', t.dataset.tab === name); });
+      pages.forEach(p => p.classList.toggle('on', p.dataset.page === name));
+    };
+    tabs.forEach(t => { t.setAttribute('role', 'tab'); t.onclick = () => { t.classList.remove('nudge'); show(t.dataset.tab); }; });
+    const first = tabs.find(t => t.classList.contains('on')) || tabs[0];
+    if (first) show(first.dataset.tab);
+    SIM.showTab = show;
+    return show;
+  },
+
+  // ---- 예측하고 확인 ----
+  // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
+  //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  predict(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    let picked = -1, revealed = false;
+    el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
+      <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
+      <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+      <div class="predict-result" hidden></div>`;
+    const opts = [...el.querySelectorAll('.predict-opt')];
+    const reveal = () => {
+      if (revealed || picked < 0) return; revealed = true;
+      opts.forEach((b, i) => { b.disabled = true; b.classList.toggle('right', i === o.answer); b.classList.toggle('wrong', i === picked && i !== o.answer); });
+      const ok = picked === o.answer, r = el.querySelector('.predict-result');
+      r.hidden = false; r.classList.toggle('miss', !ok);
+      r.innerHTML = (ok ? '<b>예측 성공!</b> ' : `<b>정답은 ${'ABCDEF'[o.answer]}</b> — `) + (o.why || '');
+      el.querySelector('.predict-go').hidden = true;
+      SIM.toast(ok ? '예측 성공!' : '예측과 결과가 달라요. 까닭을 확인해 봐요', ok ? '' : 'warn');
+      if (ok) SIM.burst();
+      const tab = document.querySelector('.sim-tab[data-tab="predict"]');
+      if (tab) { tab.classList.add('nudge'); const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge ' + (ok ? 'done' : ''); b.textContent = ok ? '✓' : '!'; }
+      o.onReveal && o.onReveal(ok);
+    };
+    opts.forEach((b, i) => b.onclick = () => {
+      if (revealed) return;
+      picked = i; opts.forEach(x => x.classList.toggle('picked', x === b));
+      el.querySelector('.predict-go').hidden = false;
+    });
+    el.querySelector('[data-act="go"]').onclick = () => { o.setup && o.setup(); SIM.showTab && SIM.showTab('lab'); };
+    const sb = el.querySelector('[data-act="show"]'); if (sb) sb.onclick = reveal;
+    // 고른 뒤, 실험 상태가 '확인할 상태'에서 한 번 벗어났다가 다시 들어오면 결과를 보여 줌
+    // (처음부터 그 상태였다면 학생이 직접 조작해 만들 때까지 기다림)
+    let armed = false;
+    if (o.reached) SIM._checks.push(() => {
+      if (picked < 0 || revealed) return;
+      const r = o.reached();
+      if (!r) armed = true; else if (armed) reveal();
+    });
+    return { reveal, get picked() { return picked; } };
+  },
+
+  // ---- 도전 미션 ----
+  // SIM.missions({ el: 상자, items: [{ t: '할 일', hint: '도움말(선택)', test: () => true/false }] })
+  // test는 0.25초마다 자동으로 확인. 한 번 달성하면 계속 달성으로 남음.
+  // 처음부터 맞아 있던 조건은 세지 않음 (조건이 거짓이 된 적이 있어야 함).
+  missions(o) {
+    const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
+    const done = o.items.map(() => false);
+    el.innerHTML = `<div class="mission-bar"><i></i></div>
+      <ul class="mission-list">${o.items.map(m => `<li><span class="ck">✓</span><span>${m.t}${m.hint ? `<span class="hint">${m.hint}</span>` : ''}</span></li>`).join('')}</ul>
+      <div class="mission-all" hidden>모든 미션 달성!</div>`;
+    const lis = [...el.querySelectorAll('li')], tab = document.querySelector('.sim-tab[data-tab="mission"]');
+    const badge = () => {
+      const n = done.filter(Boolean).length;
+      el.querySelector('.mission-bar i').style.width = (n / done.length * 100) + '%';
+      el.querySelector('.mission-all').hidden = n < done.length;
+      if (tab) { const b = tab.querySelector('.badge') || tab.appendChild(document.createElement('span')); b.className = 'badge' + (n === done.length ? ' done' : ''); b.textContent = n + '/' + done.length; }
+    };
+    const mark = i => {
+      if (done[i]) return; done[i] = true; lis[i].classList.add('done');
+      badge(); SIM.burst();
+      const txt = lis[i].querySelector('span:not(.ck)').cloneNode(true); txt.querySelectorAll('.hint').forEach(h => h.remove());
+      const t = txt.textContent.trim();
+      SIM.toast(done.every(Boolean) ? '모든 미션 달성!' : '미션 달성! ' + (t.length > 24 ? t.slice(0, 23) + '…' : t));
+      if (tab && !tab.classList.contains('on')) tab.classList.add('nudge');
+    };
+    // 처음 열었을 때 이미 조건이 맞아 있으면 달성으로 치지 않음: 한 번 조건에서 벗어났다가 학생이 다시 맞춰야 달성
+    const armed = o.items.map(() => false);
+    SIM._checks.push(() => o.items.forEach((m, i) => {
+      if (done[i]) return;
+      let ok = false; try { ok = !!m.test(); } catch (e) {}
+      if (!ok) armed[i] = true; else if (armed[i]) mark(i);
+    }));
+    badge();
+    return { mark, done };
+  },
+  _checks: [],
+};
+setInterval(() => SIM._checks.forEach(f => f()), 250);
+// 슬라이더·입력칸 조작 중에는 키 입력이 다른 곳으로 새지 않게
+document.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+document.addEventListener('pointerup', () => { const a = document.activeElement; if (a && a.tagName === 'INPUT' && a.type === 'range') a.blur(); });
+</script>
+<script>
+(function(){
+
+  const W=1060,H=610,$=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const mk=id=>{const S=SIM.stage({canvas:$(id),W,H});return S;};
+  let g;
+  const T=(t,x,y,size,col,align,bold)=>{g.font=SIM.font(size||18,bold!==false);g.textAlign=align||'center';g.textBaseline='middle';g.fillStyle=col||'#1e293b';g.fillText(t,x,y);};
+  const box=(x,y,w,h,r,fill,stroke,lw)=>{g.beginPath();g.roundRect(x,y,w,h,r);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||2;g.stroke();}};
+  const line=(pts,col,lw,dash)=>{g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.strokeStyle=col;g.lineWidth=lw||2;g.setLineDash(dash||[]);g.stroke();g.setLineDash([]);};
+  const dot=(x,y,r,fill)=>{g.beginPath();g.arc(x,y,r,0,7);g.fillStyle=fill;g.fill();};
+  const steps=(id,k)=>[...$(id).children].forEach((el,i)=>el.className=i===k?'on':i<k?'past':'');
+
+  const arrow=(x1,y1,x2,y2,col,w,hd)=>{const a=Math.atan2(y2-y1,x2-x1);hd=hd||w*2.6+6;if(Math.hypot(x2-x1,y2-y1)<2)return;line([[x1,y1],[x2-Math.cos(a)*hd*.6,y2-Math.sin(a)*hd*.6]],col,w);g.fillStyle=col;g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-hd*Math.cos(a-0.42),y2-hd*Math.sin(a-0.42));g.lineTo(x2-hd*Math.cos(a+0.42),y2-hd*Math.sin(a+0.42));g.closePath();g.fill();};
+  const seg=(id,fn)=>{const bs=[...$(id).querySelectorAll('[data-v]')];bs.forEach(b=>b.onclick=()=>{bs.forEach(x=>x.classList.toggle('on',x===b));fn(b.dataset.v);});return v=>bs.forEach(x=>x.classList.toggle('on',x.dataset.v==String(v)));};
+  const lerp=(a,b,t)=>a+(b-a)*t;
+
+  const S=mk('cS');g=S.ctx;const SC=1.05;
+  let mode='A',t=0,rot=0;const P={k:5,play:true,ph:0,amp:0.45,season:'W'},R={cut:false,amp:false,seas:{W:false,S:false},quiz:0};let G=null;
+  const sm=x=>x*x*(3-2*x);
+  const AC={x:330,y:290},R0=150,trc=Array.from({length:70},(_,i)=>({u:i/70}));
+  function stA(){const s=P.ph,st=Math.floor(s)+1,q=s-Math.floor(s);let A,cut=0,dT;if(st===1){A=lerp(8,14,q);dT=lerp(0.6,0.85,q);}else if(st===2){A=lerp(14,48,sm(q));dT=lerp(0.85,1,q);}else if(st===3){A=lerp(48,80,sm(q));dT=lerp(1,0.9,q);}else{A=lerp(80,10,sm(clamp(q*1.6,0,1)));cut=sm(clamp(q*1.4,0,1));dT=lerp(0.9,0.6,q);}return {st,A,cut,dT};}
+  const jr=(th,A)=>{const s=Math.sin(P.k*(th-rot));return R0+A*Math.sign(s)*Math.pow(Math.abs(s),0.75);};
+  function wrap(s,x,y,w,lh,sz){g.font=SIM.font(sz,false);let ln='',yy=y;for(const wd of s.split(' ')){const ts=ln?ln+' '+wd:wd;if(g.measureText(ts).width>w){T(ln,x,yy,sz,'#1e293b','left',false);ln=wd;yy+=lh;}else ln=ts;}if(ln)T(ln,x,yy,sz,'#1e293b','left',false);}
+  function drawA(dt){if(P.play)P.ph=(P.ph+dt*0.16)%4;rot+=dt*0.03;const {st,A,cut,dT}=stA(),Rw=265;
+    const gw=g.createRadialGradient(AC.x,AC.y,R0,AC.x,AC.y,Rw);gw.addColorStop(0,'rgba(240,138,75,.55)');gw.addColorStop(1,'rgba(240,138,75,.85)');g.fillStyle=gw;g.beginPath();g.arc(AC.x,AC.y,Rw,0,7);g.fill();
+    const pts=[];for(let i=0;i<=360;i++){const th=i*Math.PI/180,r=jr(th,A);pts.push([AC.x+r*Math.cos(th),AC.y-r*Math.sin(th)]);}
+    g.fillStyle='rgba(63,127,208,.85)';g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill();
+    if(cut>0){for(let j=0;j<P.k;j++){const tT=rot+(Math.PI/2+j*2*Math.PI)/P.k,tR=rot+(-Math.PI/2+j*2*Math.PI)/P.k,rc=R0+60+cut*12,rr=R0-60-cut*8;g.globalAlpha=cut*(1-clamp((P.ph-3.75)/0.25,0,1)*0.6);
+      dot(AC.x+rc*Math.cos(tT),AC.y-rc*Math.sin(tT),24*(1-0.3*cut)+4,'rgba(63,127,208,.95)');dot(AC.x+rr*Math.cos(tR),AC.y-rr*Math.sin(tR),20*(1-0.3*cut)+4,'rgba(240,138,75,.95)');g.globalAlpha=1;
+      if(j===0&&cut>0.5){T('저',AC.x+rc*Math.cos(tT),AC.y-rc*Math.sin(tT),16,'#fff');T('고',AC.x+rr*Math.cos(tR),AC.y-rr*Math.sin(tR),16,'#fff');}}}
+    line(pts,'#7a5ad0',5);trc.forEach(p=>{p.u=(p.u+dt*0.025)%1;const th=p.u*2*Math.PI,r=jr(th,A);dot(AC.x+r*Math.cos(th),AC.y-r*Math.sin(th),2.6,'#fff');});
+    [90,180].forEach(r=>{g.strokeStyle='rgba(255,255,255,.45)';g.lineWidth=1;g.setLineDash([4,4]);g.beginPath();g.arc(AC.x,AC.y,r,0,7);g.stroke();g.setLineDash([]);});
+    T('북극',AC.x,AC.y,16,'#fff');T('60°N',AC.x+94,AC.y+12,13,'#fff','left');T('45°N',AC.x+184,AC.y+12,13,'#fff','left');arrow(AC.x+Rw+10,AC.y+40,AC.x+Rw+10,AC.y-40,'#64748b',2.5);T('서 → 동',AC.x+Rw+10,AC.y+60,14,'#475569');
+    const bx=660,by=60,TX=['1. 남북 간 열 수송이 잘 안 되어 기온 차가 점점 커져요.','2. 기온 차가 커지면서 편서풍 파동이 발달하기 시작해요.','3. 파동이 남북으로 크게 굽이치며 일부가 분리되기 시작해요.','4. 찬 공기(저기압)와 따뜻한 공기(고기압)가 떨어져 나가 열을 섞어요. 파동은 다시 완만해져요.'];
+    T(st+'단계',bx,by,26,'#1e293b','left');wrap(TX[st-1],bx,by+40,310,26,17);for(let i=1;i<=4;i++)dot(bx+10+(i-1)*30,by+170,9,i===st?'#7a5ad0':'#cbd5e1');
+    const my=by+225;T('남북 간 기온 차',bx,my,16,'#1e293b','left');box(bx,my+16,300,18,4,'#e2e8f0');box(bx,my+16,300*dT,18,4,dT>0.95?'#e5533b':'#f0a04b');
+    const heat=st===4?sm(clamp(P.ph-3,0,1)):st===3?0.25*(P.ph-2):0;T('고위도로 수송된 열',bx,my+66,16,'#1e293b','left');box(bx,my+82,300,18,4,'#e2e8f0');if(heat>0)box(bx,my+82,300*heat,18,4,'#e5533b');}
+  const BX0=40,BX1=960,LAM=480;let phB=60;const trB=Array.from({length:40},(_,i)=>({x:BX0+i*23}));
+  const upY=(x,i)=>110+i*42-P.amp*80*Math.sin(2*Math.PI*(x-phB)/LAM);
+  const ridges=()=>{const a=[];for(let n=-2;n<4;n++){const x=phB+LAM/4+n*LAM;if(x>BX0-10&&x<BX1+10)a.push(x);}return a;};
+  const troughs=()=>ridges().map(x=>x+LAM/2).concat(ridges().map(x=>x-LAM/2)).filter((x,i,a)=>x>BX0-10&&x<BX1+10&&a.indexOf(x)===i).sort((a,b)=>a-b);
+  function drawB(dt){const hide=G&&!G.done;box(BX0,30,BX1-BX0,240,0,'#f2f4fa');T('상층 일기도 (500 hPa)',BX0+8,46,15,'#475569','left');T('고위도 (북)',BX1-8,46,14,'#1d4ed8','right');T('저위도 (남)',BX1-8,258,14,'#c2410c','right');
+    for(let i=0;i<4;i++){const p=[];for(let x=BX0;x<=BX1;x+=4)p.push([x,upY(x,i)]);line(p,'#7a5ad0',i===1||i===2?2.8:1.8);T((5400+i*60)+'',BX0+4,upY(BX0,i)-10,12,'#6d28d9','left',false);}
+    trB.forEach(p=>{const s=Math.sin(2*Math.PI*(p.x-phB)/LAM);p.x+=60*(1+0.55*s*P.amp/0.45)*dt;if(p.x>BX1)p.x-=BX1-BX0;dot(p.x,(upY(p.x,1)+upY(p.x,2))/2,3.2,'rgba(122,90,208,.9)');});
+    ridges().forEach(x=>T('기압 마루 (빠름)',x,upY(x,0)-18,15,'#c2410c'));troughs().forEach(x=>{T('기압골 (느림)',x,upY(x,0)-18,15,'#1d4ed8');line([[x,upY(x,0)-4],[x,upY(x,3)+6]],'rgba(42,100,201,.5)',1.5,[6,4]);});
+    const conv=troughs().map(x=>x-LAM/4),div=troughs().map(x=>x+LAM/4),SY=500;
+    if(!hide){conv.forEach(x=>{if(x<BX0||x>BX1)return;T('수렴',x,190,15,'#b91c1c');arrow(x-32,206,x-8,206,'#b91c1c',2.2,8);arrow(x+32,206,x+8,206,'#b91c1c',2.2,8);});div.forEach(x=>{if(x<BX0||x>BX1)return;T('발산',x,190,15,'#1d4ed8');arrow(x-8,206,x-32,206,'#1d4ed8',2.2,8);arrow(x+8,206,x+32,206,'#1d4ed8',2.2,8);});}
+    box(BX0,280,BX1-BX0,SY-280,0,'#eff6ff');g.fillStyle='#a3895a';g.fillRect(BX0,SY,BX1-BX0,40);T('지상',BX0+8,SY+20,15,'#fff','left');
+    if(!hide){conv.forEach(x=>{if(x<BX0+20||x>BX1-20)return;arrow(x,300,x,SY-74,'rgba(185,28,28,.7)',4);T('하강',x+10,380,14,'#b91c1c','left');T('H',x,SY-42,30,'#dc2626');T('☀ 맑음',x,SY-14,14,'#1e293b');});
+      div.forEach(x=>{if(x<BX0+20||x>BX1-20)return;arrow(x,SY-74,x,300,'rgba(29,78,216,.7)',4);T('상승',x+10,380,14,'#1d4ed8','left');g.fillStyle='#fff';[[x-18,330],[x+4,322],[x+22,332]].forEach(([a,b])=>{g.beginPath();g.arc(a,b,16,0,7);g.fill();});T('L',x,SY-42,30,'#2563eb');T('🌧 흐림·비',x,SY-14,14,'#1e293b');});}
+    else G.spots.forEach((x,i)=>{dot(x,SY-36,17,'#fff');g.strokeStyle='#1e293b';g.lineWidth=2;g.stroke();T('ⒶⒷⒸⒹⒺ'[i],x,SY-36,18,'#1e293b');line([[x,SY-54],[x,272]],'rgba(120,120,120,.35)',1,[3,4]);});
+    T('서',BX0+14,292,15,'#475569');T('동',BX1-14,292,15,'#475569');arrow(BX0+34,292,BX0+86,292,'#64748b',1.8,8);}
+  const hm=h=>Math.floor(h)+'시간 '+Math.round(h%1*60)+'분';
+  function drawC(){const X0=70,X1=600,Y0=50,Y1=480,lx=l=>X0+l/90*(X1-X0),hy=z=>Y1-z/18*(Y1-Y0),Wn=P.season==='W',pj=Wn?42:58,pv=Wn?125:60,sj=Wn?28:35,sv=Wn?110:70;
+    const sk=g.createLinearGradient(0,Y0,0,Y1);sk.addColorStop(0,'#bfdbfe');sk.addColorStop(1,'#eff6ff');g.fillStyle=sk;g.fillRect(X0,Y0,X1-X0,Y1-Y0);
+    const trop=l=>l<sj+3?16.5:l<pj+2?12.5:9.5;g.fillStyle='rgba(150,170,200,.3)';g.beginPath();g.moveTo(X0,Y0);for(let l=0;l<=90;l+=0.5)g.lineTo(lx(l),hy(trop(l)));g.lineTo(X1,Y0);g.fill();
+    const tp=[];for(let l=0;l<=90;l+=0.5)tp.push([lx(l),hy(trop(l))]);line(tp,'#64748b',2.2);T('대류권 계면',lx(80),hy(10.6),14,'#475569');T('성층권',lx(80),hy(15),14,'#475569');
+    const jet=(l,z,v,nm)=>{for(let k=4;k>=1;k--){g.fillStyle='rgba(122,90,208,'+(0.12+0.15*(4-k))+')';g.beginPath();g.ellipse(lx(l),hy(z),k*v/9,k*v/45+4,0,0,7);g.fill();}T(nm,lx(l),hy(z)-v/6-20,16,'#1e293b');
+      if(nm[0]==='한')T('약 '+v+' km/h',lx(l),hy(z)+v/6+18,15,'#6d28d9');T('⊙',lx(l),hy(z),17,'#4c1d95');};jet(sj,13,sv,'아열대 제트류');jet(pj,10,pv,'한대 전선 제트류');
+    T('따뜻한 공기',lx(15),hy(3),17,'#c2410c');T('찬 공기',lx(78),hy(3),17,'#1d4ed8');[0,30,60,90].forEach(l=>T(l+'°N',lx(l),Y1+15,14,'#64748b','center',false));[0,6,12,18].forEach(z=>T(z+' km',X0-8,hy(z),14,'#64748b','right',false));
+    T('⊙ 서 → 동으로 부는 바람 (지면에서 나오는 방향)',(X0+X1)/2,Y1+38,14,'#64748b','center',false);line([[lx(37),Y1],[lx(37),hy(16)]],'#dc2626',1.6,[4,4]);T('한반도 37°N',lx(37)+5,hy(16)-12,14,'#b91c1c','left');
+    const bx=650;T(Wn?'❄ 겨울':'☀ 여름',bx,70,24,'#1e293b','left');wrap(Wn?'남북 간 기온 차가 커서 제트류가 강하고, 찬 기단의 세력이 커져 저위도 쪽으로 내려와요.':'남북 간 기온 차가 작아 제트류가 약하고 고위도 쪽으로 올라가요.',bx,108,330,24,16);
+    const d=9600,cr=900,jw=(Math.abs(pj-37)<8?pv:pv*0.4)*0.8,east=d/(cr+jw),west=d/(cr-jw);T('✈ 인천 ↔ 미국 서부 (약 9600 km)',bx,206,16,'#1e293b','left');
+    box(bx,226,east*14,22,4,'#3f9f6a');T('동쪽으로 '+hm(east),bx+east*14+8,237,15,'#1e293b','left');box(bx,262,west*14,22,4,'#e5533b');T('서쪽으로 '+hm(west),bx+west*14+8,273,15,'#1e293b','left');
+    const mx0=650,my0=330,mw=340,mh=200,my=l=>my0+mh-(l-15)/60*mh;box(mx0,my0,mw,mh,0,'#eef3f8','#cbd5e1',1);[30,45,60].forEach(l=>{line([[mx0,my(l)],[mx0+mw,my(l)]],'rgba(120,130,150,.3)',1);T(l+'°N',mx0+4,my(l)-9,12,'#64748b','left',false);});
+    dot(mx0+70,my(37),6,'#dc2626');T('한반도',mx0+70,my(37)+16,14,'#1e293b');const jp=[];for(let x=0;x<=mw;x+=4)jp.push([mx0+x,my(pj+6*Math.sin(x/mw*Math.PI*3+t*0.3))]);line(jp,'#7a5ad0',4.5);T('한대 전선 제트류의 위치',mx0+mw/2,my0-14,15,'#1e293b');}
+  function text(){if(mode==='A'){const s=stA();$('vK').textContent=P.k+'개';$('aPlay').textContent=P.play?'⏸ 멈춤':'▶ 재생';if(s.cut>0.5)R.cut=true;
+      $('out').innerHTML='<h4>'+s.st+'단계 · '+['','기온 차 증가','파동 발달','성장·분리 시작','분리·열 수송'][s.st]+'</h4><div class="grid2"><span>파동의 진폭</span><b>'+(s.A/R0*15).toFixed(0)+'° 위도</b><span>남북 기온 차</span><b>'+(s.dT*100).toFixed(0)+' %</b><span>파장 (50°N)</span><b>'+(40000*Math.cos(50*Math.PI/180)/P.k/1000).toFixed(1)+'천 km</b><span>떨어진 저기압</span><b>'+(s.cut>0.5?P.k+'개':'없음')+'</b></div>';}
+    else if(mode==='B'){$('vAmp').textContent=P.amp<0.3?'작음':P.amp<0.55?'보통':'큼';if(P.amp>=0.6)R.amp=true;const hide=G&&!G.done;
+      $('out').innerHTML='<h4>'+(hide?'예보 중: 가운데 기압골을 기준으로!':'기압골 서쪽 수렴 · 동쪽 발산')+'</h4><div class="grid2"><span>기압 마루</span><b>빠름 (고기압성)</b><span>기압골</span><b>느림 (저기압성)</b><span>골 서쪽 상층</span><b>'+(hide?'?':'수렴 → 지상 H')+'</b><span>골 동쪽 상층</span><b>'+(hide?'?':'발산 → 지상 L')+'</b></div>';}
+    else{const Wn=P.season==='W';R.seas[P.season]=true;$('out').innerHTML='<h4>'+(Wn?'겨울: 강하고 남쪽 (약 42°N)':'여름: 약하고 북쪽 (약 58°N)')+'</h4><div class="grid2"><span>한대 전선 제트류</span><b>'+(Wn?'약 125':'약 60')+' km/h</b><span>아열대 제트류</span><b>약 30°N</b><span>제트류 크기</span><b>폭 수백 km</b><span>한반도 상공</span><b>'+(Wn?'영향 큼':'북쪽에 있음')+'</b></div>';}}
+  seg('md',v=>{if(G&&!G.done&&v!=='B')return;mode=v;['A','B','C'].forEach(k=>$('ctl'+k).hidden=v!==k);});
+  $('aPlay').onclick=()=>P.play=!P.play;$('ctlA').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{P.ph=+b.dataset.s-1+0.55;P.play=false;});$('rK').oninput=e=>P.k=+e.target.value;
+  $('rAmp').oninput=e=>P.amp=e.target.value/100;seg('ses',v=>P.season=v);
+  ['gH','gL'].forEach(id=>$(id).innerHTML='<option value="">선택</option>'+'ⒶⒷⒸⒹⒺ'.split('').map(c=>'<option>'+c+'</option>').join(''));
+  $('bQ').onclick=()=>{const Tt=320+Math.random()*360;phB=Tt+LAM/4;const sp=[Tt-LAM/2,Tt-LAM/4,Tt,Tt+LAM/4,Tt+LAM/2];G={spots:sp,H:1,L:3,done:false};$('gH').value='';$('gL').value='';$('qMsg').className='msg';$('qMsg').textContent='가운데 기압골을 기준으로 지상 고기압·저기압 위치를 골라요.';};
+  $('bCk').onclick=()=>{if(!G||G.done){$('qMsg').textContent='먼저 📡 상층 일기도를 받아요.';return;}const h='ⒶⒷⒸⒹⒺ'.indexOf($('gH').value),l='ⒶⒷⒸⒹⒺ'.indexOf($('gL').value);if(h<0||l<0){$('qMsg').textContent='두 위치를 모두 골라요.';return;}
+    const n=(h===G.H?1:0)+(l===G.L?1:0);G.done=true;if(n===2){R.quiz++;SIM.burst();}$('qMsg').className='msg '+(n===2?'ok':'no');$('qMsg').innerHTML=n+'/2 정답. 고기압 Ⓑ (기압골 서쪽, 수렴 → 하강), 저기압 Ⓓ (기압골 동쪽, 발산 → 상승)';};
+  let fr=0;
+  SIM.loop('slideMain',(tm,dt)=>{fr++;t+=dt;S.begin();g.fillStyle='#f8fafc';g.fillRect(0,0,W,H);g.save();g.scale(SC,SC);if(mode==='A')drawA(dt);else if(mode==='B')drawB(dt);else drawC();g.restore();if(fr%6===0)text();});
+  SIM.tabs();
+  SIM.predict({el:'#predictBox',
+    q:'상층 편서풍 파동의 기압골 <b>동쪽</b> 지상에는 어떤 기압이 발달할까요?',
+    options:['저기압','고기압','기압 변화가 없다'],answer:0,
+    why:'기압골(느림)에서 마루(빠름)로 가는 기압골 동쪽 상층에서는 공기가 <b>발산</b>해요. 빠져나간 공기를 채우려 아래에서 <b>상승</b>하므로 지상에 <b>저기압</b>이 발달해요. ② 기압골과 지상에서 확인해요.'});
+  SIM.missions({el:'#missionBox',items:[
+    {t:'① 4단계에서 찬 공기와 따뜻한 공기가 <b>떨어져 나가는</b> 것을 확인해 보세요.',test:()=>R.cut},
+    {t:'② 에서 진폭을 <b>크게</b> 키워 마루와 골의 풍속 차를 관찰해 보세요.',test:()=>R.amp},
+    {t:'③ 에서 <b>겨울과 여름</b>의 제트류를 비교해 보세요.',test:()=>R.seas.W&&R.seas.S},
+    {t:'📡 상층 일기도로 지상 기압 위치를 <b>2번</b> 맞혀 보세요.',test:()=>R.quiz>=2},
+  ]});
+})();
+</script>
+<script id="mission-pop-js">
+/* 미션: 탭 대신 버튼 → 팝업 (실험 중에도 언제든 열어 보기) · 모두 달성하면 폭죽 */
+(function(){
+  const mBtn=document.querySelector('.sim-tab[data-tab="mission"]'),pop=document.getElementById('missionPop');
+  if(!mBtn||!pop)return;
+  const closePop=()=>{pop.hidden=true;};
+  mBtn.onclick=()=>{mBtn.classList.remove('nudge');mBtn.firstChild.textContent='🎯 미션 보기 ';pop.hidden=false;};
+  document.getElementById('missionClose').onclick=closePop;
+  document.getElementById('missionGo').onclick=()=>{closePop();SIM.showTab&&SIM.showTab('lab');};
+  pop.addEventListener('pointerdown',e=>{if(e.target===pop)closePop();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden)closePop();});
+  function fireworks(){
+    const wrap=document.getElementById('presentation-wrapper'),cv=document.createElement('canvas');cv.width=1920;cv.height=1080;
+    cv.style.cssText='position:absolute;inset:0;z-index:90;pointer-events:none';wrap.appendChild(cv);
+    const msg=document.createElement('div');msg.className='fw-msg';msg.innerHTML='🎉 모든 미션 완료! 🎉<small>멋진 탐구였어요!</small>';wrap.appendChild(msg);
+    const x=cv.getContext('2d'),cols=['#f43f5e','#f59e0b','#facc15','#22c55e','#3b82f6','#a855f7','#ec4899','#ffffff'];
+    const rockets=[],parts=[];let t0=performance.now(),last=t0,next=0;
+    const boom=(px,py)=>{const col=cols[Math.random()*cols.length|0],col2=cols[Math.random()*cols.length|0],k=70+Math.random()*40;
+      for(let i=0;i<k;i++){const a=i/k*Math.PI*2,v=4+Math.random()*7;parts.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,c:Math.random()<.5?col:col2,s:3+Math.random()*3});}};
+    (function f(t){const dt=Math.min(3,(t-last)/16.7);last=t;const el=t-t0;
+      if(el<3600&&el>next){next=el+260+Math.random()*260;rockets.push({x:300+Math.random()*1320,y:1080,vy:-(17+Math.random()*6),ty:180+Math.random()*380});}
+      x.globalCompositeOperation='destination-out';x.fillStyle='rgba(0,0,0,.22)';x.fillRect(0,0,1920,1080);x.globalCompositeOperation='lighter';
+      for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.y+=r.vy*dt;x.fillStyle='#fde68a';x.beginPath();x.arc(r.x,r.y,5,0,7);x.fill();if(r.y<=r.ty){boom(r.x,r.y);rockets.splice(i,1);}}
+      for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.vx*=.97;p.vy=p.vy*.97+.12*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=.012*dt;
+        if(p.life<=0){parts.splice(i,1);continue;}x.globalAlpha=p.life;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.s,0,7);x.fill();}
+      x.globalAlpha=1;
+      if(el<3600||parts.length||rockets.length)requestAnimationFrame(f);else{cv.remove();msg.classList.add('out');setTimeout(()=>msg.remove(),600);}
+    })(t0);
+    for(let i=0;i<4;i++)setTimeout(()=>SIM.burst(),i*450);
+  }
+  let cheered=false;
+  const timer=setInterval(()=>{const lis=document.querySelectorAll('#missionBox .mission-list li');
+    if(!cheered&&lis.length&&[...lis].every(l=>l.classList.contains('done'))){cheered=true;clearInterval(timer);setTimeout(fireworks,700);}},300);
+})();
+</script>
+<script id="sim-kit-fit">
+/* ===== sim-kit 화면 맞춤 · 전체화면 (tools/sim-kit/kit-fit.js에서 자동으로 넣음 — 이 블록은 직접 고치지 마세요) =====
+   - 사이트 안(iframe)에서는 폭에 맞춰 1920×1080 화면을 줄이고, 높이를 사이트에 알려 줌(sim-height)
+   - 새 창·전체화면에서는 화면 안에 16:9로 꽉 차게 가운데 정렬
+   - 전체화면을 켜면 휴대폰·태블릿은 가로 화면으로 돌림(지원하는 기기만) */
+(function () {
+  var w = document.getElementById('presentation-wrapper');
+  var inFrame = window.top !== window.self, de = document.documentElement;
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement) || de.classList.contains('pfs'); }
+  function fit() {
+    var h = w.offsetHeight, fs = !inFrame || window.innerHeight >= screen.height - 4 || isFs();
+    var s = window.innerWidth / 1920, x = 0, y = 0;
+    de.classList.toggle('fit', fs);
+    if (fs) { s = Math.min(s, window.innerHeight / h); x = (window.innerWidth - 1920 * s) / 2; y = Math.max(0, (window.innerHeight - h * s) / 2); }
+    w.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+    document.body.style.height = fs ? '100%' : Math.ceil(h * s) + 'px';
+    if (inFrame && !fs) { try { parent.postMessage({ type: 'sim-height', h: Math.ceil(h * s) }, '*'); } catch (e) {} }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+  fit(); setTimeout(fit, 300);
+
+  var btn = document.getElementById('fsBtn');
+  function lockLandscape() {
+    try { if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
+  }
+  function unlock() { try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} }
+  function sync() { if (btn) btn.textContent = isFs() ? '✕ 전체화면 끄기' : '⛶ 전체화면'; if (!isFs()) unlock(); fit(); setTimeout(fit, 120); }
+  if (btn) btn.onclick = function () {
+    if (isFs()) {
+      if (de.classList.contains('pfs')) de.classList.remove('pfs');
+      else { var ex = document.exitFullscreen || document.webkitExitFullscreen; try { var p = ex && ex.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+      sync(); return;
+    }
+    var req = de.requestFullscreen || de.webkitRequestFullscreen;
+    var fallback = function () { de.classList.add('pfs'); sync(); };
+    try { if (!req) throw 0; var p = req.call(de); if (p && p.then) p.then(function () { lockLandscape(); sync(); }, fallback); else { lockLandscape(); sync(); } } catch (e) { fallback(); }
+  };
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && de.classList.contains('pfs')) { de.classList.remove('pfs'); sync(); } });
+})();
+</script>
+</body>
+</html>
