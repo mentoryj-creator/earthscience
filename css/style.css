@@ -159,12 +159,12 @@ a.card:hover, .sim-card.ready:hover { text-decoration: none; transform: translat
 .search:focus-within { border-color: var(--accent); }
 
 /* ---------- 과목 페이지 (목차 + 본문) ---------- */
-.with-toc { display: grid; grid-template-columns: 230px 1fr; gap: 32px; margin-top: 24px; }
+.with-toc { display: grid; grid-template-columns: 270px 1fr; gap: 32px; margin-top: 24px; }
 .toc { position: sticky; top: 84px; align-self: start; }
 .toc h4 { margin: 0 0 8px; font-size: .85rem; color: var(--muted); }
-.toc a { display: block; padding: 6px 10px; border-radius: 8px; color: var(--text); font-size: .93rem; }
+.toc a { display: flex; align-items: center; gap: 10px; word-break: keep-all; line-height: 1.35; padding: 7px 10px; border-radius: 8px; color: var(--text); font-size: .93rem; }
 .toc a:hover { background: var(--surface-2); text-decoration: none; }
-.toc a .n { color: var(--muted); font-size: .8rem; float: right; }
+.toc a .n { color: var(--muted); font-size: .8rem; margin-left: auto; flex: none; min-width: 1.6em; text-align: right; }
 .toc a { position: relative; transition: background .25s, color .25s; }
 .toc a.on { background: var(--accent-soft); color: var(--c, var(--accent)); font-weight: 700; box-shadow: inset 4px 0 0 var(--c, var(--accent)); }
 .toc a.on .n { color: var(--c, var(--accent)); }

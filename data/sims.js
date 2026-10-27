@@ -81,7 +81,7 @@ window.SITE = /*DATA-START*/{
       "units": [
         {
           "id": "u1",
-          "name": "지구 탄생과 생동하는지구"
+          "name": "지구 탄생과 생동하는 지구"
         },
         {
           "id": "u2",
@@ -89,7 +89,7 @@ window.SITE = /*DATA-START*/{
         },
         {
           "id": "u3",
-          "name": "강수과정과 대기의 운동"
+          "name": "강수 과정과 대기의 운동"
         }
       ]
     },
