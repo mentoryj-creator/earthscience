@@ -308,14 +308,14 @@ window.SIM = {
   // ---- 예측하고 확인 ----
   // SIM.predict({ el: 상자, q: '질문', options: ['…','…'], answer: 정답 번호(0부터),
   //   why: '맞았을 때 함께 보여 줄 설명', setup: () => {실험을 그 조건으로 맞춤},
-  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; 없으면 [결과 보기] 버튼) })
+  //   reached: () => true/false (실험이 확인할 상태에 도달했는지; [정답 확인] 버튼은 늘 있음) })
   predict(o) {
     const el = typeof o.el === 'string' ? document.querySelector(o.el) : o.el;
     let picked = -1, revealed = false;
     el.innerHTML = `<div class="predict-q"><span class="tag">예측</span>${o.q}</div>
       <div class="predict-opts">${o.options.map((t, i) => `<button type="button" class="predict-opt" data-i="${i}"><span class="n">${'ABCDEF'[i]}</span><span>${t}</span></button>`).join('')}</div>
       <div class="predict-go" hidden><div class="sim-note" style="margin-bottom:8px">좋아요! 이제 실험해서 확인해 봐요.</div>
-        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button>${o.reached ? '' : '<button type="button" class="sim-btn" data-act="show">결과 보기</button>'}</div></div>
+        <div class="sim-btns"><button type="button" class="sim-btn on" data-act="go">② 실험하러 가기 →</button><button type="button" class="sim-btn orange" data-act="show">✔ 정답 확인</button></div></div>
       <div class="predict-result" hidden></div>`;
     const opts = [...el.querySelectorAll('.predict-opt')];
     const reveal = () => {
