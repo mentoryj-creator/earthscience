@@ -1,12 +1,7 @@
 {
- "checkedAt": "2026-10-29 12:45",
- "commit": "dcfa111",
+ "checkedAt": "2026-10-30 14:43",
+ "commit": "29f591c",
  "total": 234,
- "errors": [
-  {
-   "id": "ess3-16",
-   "msg": "스크립트 오류: Cannot read properties of undefined (reading 'split')"
-  }
- ],
+ "errors": [],
  "warnings": []
 }
