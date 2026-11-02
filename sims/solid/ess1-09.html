@@ -432,9 +432,9 @@ document.addEventListener('pointerup', () => { const a = document.activeElement;
     g.fillStyle='#a8a29e';g.beginPath();g.moveTo(TX+4,SEA-4);g.lineTo(W,SEA-14);g.lineTo(W,SEA+130);g.lineTo(TX+160,SEA+130);g.lineTo(TX+16,top(TX)+6);g.closePath();g.fill();
     if(m.L>0){g.fillStyle='#c2410c';[[TX+80,SEA-6],[TX+140,SEA-8]].forEach(([x,y])=>{g.beginPath();g.moveTo(x-16,y);g.lineTo(x,y-26);g.lineTo(x+16,y);g.fill();});}
     T('대륙판',TX+190,SEA+50,20,'#1e293b');
-    ph+=dt*m.v*0.025;
+    ph=((ph+Math.max(0,dt||0)*m.v*0.025)%1+1)%1;
     for(const d of dots){const x=lerp(RX+4,TX-4,(d+ph)%1);dot(x,top(x)+thickAt(x)*0.5,2.8,'rgba(255,255,255,.85)');}
-    if(path)for(let i=0;i<10;i++){const p=path[Math.floor(((i/10)+ph*1.9)%1*(path.length-1))];dot(p[0]-Math.sin(p[2])*th*0.5,p[1]+Math.cos(p[2])*th*0.5,2.8,'rgba(255,255,255,.85)');}
+    if(path)for(let i=0;i<10;i++){const p=path[Math.floor(((i/10)+ph*1.9)%1*(path.length-1))];if(!p)continue;dot(p[0]-Math.sin(p[2])*th*0.5,p[1]+Math.cos(p[2])*th*0.5,2.8,'rgba(255,255,255,.85)');}
     const sc=v=>clamp(32*Math.sqrt(Math.max(v,0)/1e12),0,220);
     const rpL=sc(m.Frp);arrow(RX+40,top(RX+40)-18,RX+40+rpL,top(RX+40+rpL)-18,'#f59e0b',6);
     tag('해령에서 미는 힘 '+(m.Frp/1e12).toFixed(1),RX+70,SEA-28,'#fde68a','left');
