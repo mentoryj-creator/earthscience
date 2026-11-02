@@ -1,7 +1,21 @@
 {
- "checkedAt": "2026-10-30 14:43",
- "commit": "29f591c",
- "total": 234,
- "errors": [],
- "warnings": []
+ "checkedAt": "2026-11-02 09:04",
+ "commit": "0f4b093",
+ "total": 240,
+ "errors": [
+  {
+   "id": "ess1-09",
+   "msg": "스크립트 오류: Cannot read properties of undefined (reading '0')"
+  },
+  {
+   "id": "ess3-16",
+   "msg": "스크립트 오류: Cannot read properties of undefined (reading 'split')"
+  }
+ ],
+ "warnings": [
+  {
+   "id": "hr-diagram",
+   "msg": "어느 과목·단원에도 연결되어 있지 않습니다"
+  }
+ ]
 }
